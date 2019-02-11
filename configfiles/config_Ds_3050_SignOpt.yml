@@ -1,0 +1,108 @@
+fileMCLowPt:
+  filename: inputs/LHC16i2b.root
+  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_strongPID_kINT7_kCentral
+  listname: coutputDs_3050_d0Cut_strongPID_kINT7_kCentral
+  sparsenamePrompt: fnSparseReco_fromC
+  sparsenameFD: fnSparseReco_fromB
+  sparsenameGenPrompt: fnSparseAcc_fromC
+  sparsenameGenFD: fnSparseAcc_fromB
+
+fileMCHighPt:
+  filename: inputs/LHC16i2b.root
+  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_consPID_kINT7_kCentral
+  listname: coutputDs_3050_d0Cut_consPID_kINT7_kCentral
+  sparsenamePrompt: fnSparseReco_fromC
+  sparsenameFD: fnSparseReco_fromB
+  sparsenameGenPrompt: fnSparseAcc_fromC
+  sparsenameGenFD: fnSparseAcc_fromB
+
+fileDataLowPt:
+  filename: inputs/LHC18r_lowpt.root
+  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_strongPID_kINT7_kCentral
+  listname: coutputDs_3050_d0Cut_strongPID_kINT7_kCentral
+  sparsenameAll: fnSparse
+  normname: NormalizationCounter
+  histoevname: hNEvents
+
+fileDataHighPt:
+  filename: inputs/LHC18r_highpt.root
+  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_consPID_kINT7_kCentral
+  listname: coutputDs_3050_d0Cut_consPID_kINT7_kCentral
+  sparsenameAll: fnSparse
+  normname: NormalizationCounter
+  histoevname: hNEvents
+
+PtThreshold: 8
+
+filenameFONLL: models/FONLL-Ds-pp5-y05-measfinebins.txt
+filenameRaaPredTAMU: models/Tamu/Ds_TAMU_RAA_5TeV_3050.txt
+filenameRaaPredPHSD: models/Ds_PHSD_RAA_5TeV_3050.txt
+filenameRaaPredGossiaux: models/D_Gossiaux_RAA_5TeV_3050.txt
+filenameRaaPredCatania: models/Ds_Catania_RAA_5TeV_3050.dat
+filenameAcc: accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
+nExpectedEvents: 100000000 #PbPb2018
+Taa: 0.000000003897 #pb-1
+fprompt: 0.85 #assumpion
+BR: 0.0227
+fractoD: 0.092
+
+PublishedResult: 
+  filenameHepData: hepdata/HEPData_PbPb_2015.root
+  tableCorrYield: 8
+  tableRaa: 32
+
+PtMin: [ 5, 6 ]
+PtMax: [ 6, 8 ]
+
+cutvars: 
+  DeltaMassKK:
+    axisnum: 2
+    min: 5.
+    max: 5.
+    upperlowercut: Upper
+  NormDecLXY:
+    axisnum: 5
+    min: 6.
+    max: 9.
+    upperlowercut: Lower
+  DecL:
+    axisnum: 3
+    min: 50.
+    max: 50.
+    upperlowercut: Lower
+  CosP:
+    axisnum: 6
+    min: 98.
+    max: 99.
+    upperlowercut: Lower
+  CosPXY:
+    axisnum: 7
+    min: 98.
+    max: 99.
+    upperlowercut: Lower
+  SigVert:
+    axisnum: 8
+    min: 25
+    max: 40
+    upperlowercut: Upper
+  CosPiDs:
+    axisnum: 9
+    min: 8.5
+    max: 10
+    upperlowercut: Upper
+  CosPiKPhi:
+    axisnum: 10
+    min: 0
+    max: 1.5
+    upperlowercut: Lower
+  Topomatic:
+    axisnum: 11
+    min: 1.5
+    max: 2.5
+    upperlowercut: Upper
+  ImpParXY:
+    axisnum: 14
+    min: 60
+    max: 90
+    upperlowercut: Upper
+  
