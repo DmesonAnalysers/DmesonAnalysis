@@ -1,4 +1,6 @@
 inputs/*.root
 outputs/*.root
 outputs/*.pdf
+configfiles/*_local.yml
 *.pyc
+*.pdf
