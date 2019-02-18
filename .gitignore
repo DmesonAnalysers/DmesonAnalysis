@@ -1,1 +1,4 @@
 inputs/*.root
+outputs/*.root
+outputs/*.pdf
+*.pyc
