@@ -101,7 +101,7 @@ cutvars:
     max: 2.5
     upperlowercut: Upper
   ImpParXY:
-    axisnum: 14
+    axisnum: 12
     min: 60
     max: 90
     upperlowercut: Upper

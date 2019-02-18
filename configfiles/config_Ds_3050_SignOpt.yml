@@ -1,7 +1,7 @@
 fileMCLowPt:
   filename: inputs/LHC16i2b.root
-  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_strongPID_kINT7_kCentral
-  listname: coutputDs_3050_d0Cut_strongPID_kINT7_kCentral
+  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_strongPID_kINT7_kSemiCentral
+  listname: coutputDs_3050_d0Cut_strongPID_kINT7_kSemiCentral
   sparsenamePrompt: fnSparseReco_fromC
   sparsenameFD: fnSparseReco_fromB
   sparsenameGenPrompt: fnSparseAcc_fromC
@@ -9,8 +9,8 @@ fileMCLowPt:
 
 fileMCHighPt:
   filename: inputs/LHC16i2b.root
-  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_consPID_kINT7_kCentral
-  listname: coutputDs_3050_d0Cut_consPID_kINT7_kCentral
+  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_consPID_kINT7_kSemiCentral
+  listname: coutputDs_3050_d0Cut_consPID_kINT7_kSemiCentral
   sparsenamePrompt: fnSparseReco_fromC
   sparsenameFD: fnSparseReco_fromB
   sparsenameGenPrompt: fnSparseAcc_fromC
@@ -18,16 +18,16 @@ fileMCHighPt:
 
 fileDataLowPt:
   filename: inputs/LHC18r_lowpt.root
-  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_strongPID_kINT7_kCentral
-  listname: coutputDs_3050_d0Cut_strongPID_kINT7_kCentral
+  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_strongPID_kINT7_kSemiCentral
+  listname: coutputDs_3050_d0Cut_strongPID_kINT7_kSemiCentral
   sparsenameAll: fnSparse
   normname: NormalizationCounter
   histoevname: hNEvents
 
 fileDataHighPt:
   filename: inputs/LHC18r_highpt.root
-  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_consPID_kINT7_kCentral
-  listname: coutputDs_3050_d0Cut_consPID_kINT7_kCentral
+  dirname: PWG3_D2H_InvMassDs_3050_d0Cut_consPID_kINT7_kSemiCentral
+  listname: coutputDs_3050_d0Cut_consPID_kINT7_kSemiCentral
   sparsenameAll: fnSparse
   normname: NormalizationCounter
   histoevname: hNEvents
@@ -35,7 +35,7 @@ fileDataHighPt:
 PtThreshold: 8
 
 filenameFONLL: models/FONLL-Ds-pp5-y05-measfinebins.txt
-filenameRaaPredTAMU: models/Tamu/Ds_TAMU_RAA_5TeV_3050.txt
+filenameRaaPredTAMU: models/Ds_TAMU_RAA_5TeV_3050.txt
 filenameRaaPredPHSD: models/Ds_PHSD_RAA_5TeV_3050.txt
 filenameRaaPredGossiaux: models/D_Gossiaux_RAA_5TeV_3050.txt
 filenameRaaPredCatania: models/Ds_Catania_RAA_5TeV_3050.dat
@@ -101,7 +101,7 @@ cutvars:
     max: 2.5
     upperlowercut: Upper
   ImpParXY:
-    axisnum: 14
+    axisnum: 12
     min: 60
     max: 90
     upperlowercut: Upper
