@@ -203,7 +203,7 @@ for iPt in range(0,len(PtMin)) :
     sigma = fMassSgn.GetParameter(2)
 
     hMassSB = GetSideBandHisto(hMassData,mean,sigma)
-    B = GetExpectedBackground(hMassSB,mean,sigma,Nexp,hEv.GetBinContent(5))
+    B = GetExpectedBackground(hMassSB,mean,sigma,Nexp,nEvBkg)
 
     nRecoPrompt = hMassPrompt.Integral()
     effPrompt = nRecoPrompt / nGenPrompt
