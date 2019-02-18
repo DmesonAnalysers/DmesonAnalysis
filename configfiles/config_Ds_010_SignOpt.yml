@@ -35,12 +35,12 @@ fileDataHighPt:
 PtThreshold: 8
 
 filenameFONLL: models/FONLL-Ds-pp5-y05-measfinebins.txt
-filenameRaaPredTAMU: models/Tamu/Ds_TAMU_RAA_5TeV_010.txt
+filenameRaaPredTAMU: models/Ds_TAMU_RAA_5TeV_010.txt
 filenameRaaPredPHSD: models/Ds_PHSD_RAA_5TeV_010.txt
 filenameRaaPredGossiaux: models/D_Gossiaux_RAA_5TeV_010.txt
 filenameRaaPredCatania: models/Ds_Catania_RAA_5TeV_010.dat
 filenameAcc: accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
-nExpectedEvents: 100000000 #PbPb2018
+nExpectedEvents: 40000000 #PbPb2018
 Taa: 0.00000002307 #pb-1
 fprompt: 0.85 #assumpion
 BR: 0.0227

@@ -1,6 +1,6 @@
 #*******************************************************************************************#
 # python script for the expected significance of D+ and Ds+ mesons using THnSparses         #
-# run: python ProjectDplusDsSparse.py cfgFileName.yml cutSetFile.yml outFileName            #
+# run: python GetExpectedSignificance.py cfgFileName.yml cutSetFile.yml outFileName         #
 # author: Fabrizio Grosa, fabrizio.grosa@to.infn.it ,INFN Torino                            #
 #*******************************************************************************************#
 
@@ -313,7 +313,7 @@ gStyle.SetPadTickX(1)
 gStyle.SetPadTickY(1)
 gStyle.SetLegendBorderSize(0)
 
-legTAMU, legPHSD, legGossiaux, legCatania = ({'CorrYield' : TLegend(0.45,0.7,0.65,0.85), 'Raa' : TLegend(0.45,0.7,0.65,0.85), 'Signif' : TLegend(0.45,0.7,0.65,0.85)} for iDic in range(4))
+legTAMU, legPHSD, legGossiaux, legCatania = ({'CorrYield' : TLegend(0.45,0.7,0.65,0.85), 'Raa' : TLegend(0.45,0.7,0.65,0.85), 'Signif' : TLegend(0.45,0.75,0.65,0.85)} for iDic in range(4))
 
 for iLeg in legTAMU:
   legTAMU[iLeg].SetFillStyle(0)
