@@ -4,8 +4,8 @@
 # author: Fabrizio Grosa, fabrizio.grosa@to.infn.it ,INFN Torino                 #
 #********************************************************************************#
 
-from ROOT import TFile, TCanvas, TH1F, TF1, TNtuple, TGraph, TSpline3
-from ROOT import kRed, kBlack, kBlue, kGreen, kOrange
+from ROOT import TFile, TCanvas, TH1F, TF1, TNtuple, TGraph, TSpline3, gROOT # pylint: disable=import-error,no-name-in-module
+from ROOT import kRed, kBlack, kBlue, kGreen, kOrange # pylint: disable=import-error,no-name-in-module
 import yaml, sys, itertools, math, array
 from ReadModel import ReadFONLL, ReadTAMU
 
@@ -127,6 +127,8 @@ for iVar in cutVars :
   axesnum.append(cutVars[iVar]['axisnum'])
   upperlowercuts.append(cutVars[iVar]['upperlowercut'])
 
+gROOT.SetBatch(True)
+gROOT.ProcessLine("gErrorIgnoreLevel = kFatal;")
 outfile = TFile(outFileName,'recreate')
 
 varsName4Tuple = ':'.join(cutVars) + ':PtMin:PtMax:Signif:SoverB:EffPrompt' 
