@@ -4,9 +4,9 @@
 # author: Fabrizio Grosa, fabrizio.grosa@to.infn.it ,INFN Torino                            #
 #*******************************************************************************************#
 
-from ROOT import TFile, TCanvas, TH1F, TSpline3, TF1, TGraphAsymmErrors, TLine, TLegend
-from ROOT import gROOT, gStyle
-from ROOT import kWhite, kBlack, kOrange, kRed, kGreen, kBlue, kAzure, kFullCircle, kFullSquare, kFullDiamond, kFullTriangleUp, kFullTriangleDown
+from ROOT import TFile, TCanvas, TH1F, TSpline3, TF1, TGraphAsymmErrors, TLine, TLegend # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, gStyle # pylint: disable=import-error,no-name-in-module
+from ROOT import kWhite, kBlack, kOrange, kRed, kGreen, kBlue, kAzure, kFullCircle, kFullSquare, kFullDiamond, kFullTriangleUp, kFullTriangleDown # pylint: disable=import-error,no-name-in-module
 import yaml, sys, array, math
 from ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadGossiaux, ReadCatania
 from ReadHepData import ReadHepDataROOT
@@ -461,3 +461,4 @@ hAccEffPrompt.Write()
 hAccEffFD.Write()
 cEff.Write()
 cEff.SaveAs('%s_Efficiency.pdf' % outFileName)
+raw_input("Press enter to exit")
