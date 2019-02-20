@@ -1,5 +1,5 @@
-from ROOT import TFile, TCanvas, TH1F, TF1, TNtuple, TGraph, TSpline3
-from ROOT import kRed, kBlack, kBlue, kGreen, kOrange
+from ROOT import TFile, TCanvas, TH1F, TF1, TNtuple, TGraph, TSpline3 # pylint: disable=import-error,no-name-in-module
+from ROOT import kRed, kBlack, kBlue, kGreen, kOrange # pylint: disable=import-error,no-name-in-module
 import sys, yaml
 
 cfgFileName = sys.argv[1]
@@ -29,4 +29,5 @@ ntuple.Draw('EffPrompt','PtMin>=%f && PtMax<=%f && Signif>%f && EffPrompt>%f' % 
 cDist.cd(counter+2)
 ntuple.Draw('Signif','PtMin>=%f && PtMax<=%f && Signif>%f && EffPrompt>%f' % (float(PtMin), float(PtMax), float(minSignif), float(minEffPrompt)))
 
-cDist.SaveAs('DsNtupleProj_pt_%f_%f.pdf')
+cDist.SaveAs('DsNtupleProj_pt_%d_%d.pdf' % (int(PtMin), int(PtMax)))
+raw_input("Press enter to exit")
