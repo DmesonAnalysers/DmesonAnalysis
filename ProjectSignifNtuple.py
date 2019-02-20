@@ -6,8 +6,10 @@ cfgFileName = sys.argv[1]
 inputFileName = sys.argv[2]
 PtMin = sys.argv[3]
 PtMax = sys.argv[4]
-minSignif = sys.argv[5]
-minEffPrompt = sys.argv[6]
+SignifMin = sys.argv[5]
+SignifMax = sys.argv[6]
+EffPromptMin = sys.argv[7]
+EffPromptMax = sys.argv[8]
 
 with open(cfgFileName, 'r') as ymlCfgFile:
   inputCfg = yaml.load(ymlCfgFile)
@@ -18,9 +20,11 @@ infile = TFile(inputFileName)
 ntuple = infile.Get('tSignif')
 
 cDist = TCanvas('cDist','',1920,1080)
-cDist.Divide((len(cutVars)+3)/2,2)
+numCol = int(round((len(cutVars) + 4)/3.))
+cDist.Divide(numCol,3)
 counter = 0
-sel_string = 'PtMin>=%f && PtMax<=%f && Signif>%f && EffPrompt>%f' % (float(PtMin), float(PtMax), float(minSignif), float(minEffPrompt))
+sel_string = 'PtMin>=%f && PtMax<=%f && Signif>%f && Signif<%f && EffPrompt>%f && EffPrompt<%f' % (float(PtMin),
+             float(PtMax), float(SignifMin), float(SignifMax), float(EffPromptMin), float(EffPromptMax))
 for iVar in cutVars :
   counter += 1
   cDist.cd(counter)
@@ -30,7 +34,11 @@ ntuple.Draw('EffPrompt', sel_string)
 cDist.cd(counter+2)
 ntuple.Draw('Signif', sel_string)
 cDist.cd(counter+3)
-ntuple.Draw('EffPrompt:Signif', sel_string, 'colz')
+ntuple.Draw('SoverB', sel_string)
+cDist.cd(counter+4)
+ntuple.Draw('Signif:EffPrompt', sel_string, 'colz')
+cDist.cd(counter+5)
+ntuple.Draw('Signif:SoverB', sel_string, 'colz')
 
 cDist.SaveAs('DsNtupleProj_pt_%d_%d.pdf' % (int(PtMin), int(PtMax)))
 raw_input("Press enter to exit")
