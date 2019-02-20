@@ -160,14 +160,14 @@ for iPt in range(len(cutVars['Pt']['min'])):
     sMassPtCutVarsPrompt = sMassPtCutVarsPromptLowPt.Clone('sMassPtCutVars')
     sMassPtCutVarsFD = sMassPtCutVarsFDLowPt.Clone('sMassPtCutVars')
     sGenPrompt = sGenPromptLowPt.Clone('sMassPtCutVars')
-    sGenFD = sGenPromptLowPt.Clone('sMassPtCutVars')
+    sGenFD = sGenFDLowPt.Clone('sMassPtCutVars')
   else:
     nEvBkg = hEvHighPt.GetBinContent(5)
     sMassPtCutVars = sMassPtCutVarsHighPt.Clone('sMassPtCutVars')
     sMassPtCutVarsPrompt = sMassPtCutVarsPromptHighPt.Clone('sMassPtCutVars')
     sMassPtCutVarsFD = sMassPtCutVarsFDHighPt.Clone('sMassPtCutVars')
     sGenPrompt = sGenPromptHighPt.Clone('sMassPtCutVars')
-    sGenFD = sGenPromptHighPt.Clone('sMassPtCutVars')
+    sGenFD = sGenFDHighPt.Clone('sMassPtCutVars')
 
   #gen for efficiency
   binGenPtMin = sGenPrompt.GetAxis(0).FindBin(cutVars['Pt']['min'][iPt]*1.0001)
