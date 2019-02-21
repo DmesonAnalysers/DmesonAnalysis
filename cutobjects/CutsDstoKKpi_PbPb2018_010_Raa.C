@@ -515,11 +515,11 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
     anacutsval[7][2]=0.03;   //decay length
     anacutsval[9][2]=0.98;   //cosP
     anacutsval[12][2]=0.008; //Mass Phi
-    anacutsval[14][2]=0.1;   //Abs(CosineKpiPhiRFrame)^3
+    anacutsval[14][2]=0.;   //Abs(CosineKpiPhiRFrame)^3
     anacutsval[15][2]=1.0;   //CosP labFrame
     anacutsval[16][2]=0.03;  //decayXY
     anacutsval[17][2]=0.;    //normdecay
-    anacutsval[18][2]=9.0;   //normdecayXY
+    anacutsval[18][2]=6.0;   //normdecayXY
     anacutsval[19][2]=0.97;  //CosPXY
     
     anacutsval[6][3]=0.035;   //sigmavert
