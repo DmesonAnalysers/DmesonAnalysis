@@ -1,0 +1,7 @@
+isMC: no
+filename: /Users/fabrizio/cernbox/ALICE_WORK/Files/Trains/Run2/LHC18qr/AnalysisResults_Ds_newcuts_010.root
+dirname: PWG3_D2H_InvMassDs_010_2015Cuts_strongPIDpt8_Raa
+listname: coutputDs_010_2015Cuts_strongPIDpt8_Raa
+sparsenameAll: fnSparse
+normname: NormalizationCounter
+histoevname: hNEvents
