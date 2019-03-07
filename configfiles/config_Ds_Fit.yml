@@ -20,12 +20,12 @@ Cent3050:
     SigmaFile: ''
     FixMean: 0
     MeanFile: ''
-    PtMin: [ 2, 3, 4, 5, 6, 8, 12, 16 ]    
-    PtMax: [ 3, 4, 5, 6, 8, 12, 16, 24 ]    
-    MassMin: [ 1.82, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78 ]    
-    MassMax: [ 2.08, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10 ]
-    Rebin: [4, 4, 4, 4, 4, 4, 4, 5, 5]
-    InclSecPeak: [0, 1, 1, 1, 1, 1, 1, 1, 1]
+    PtMin: [ 2, 3, 4, 5, 6, 8, 12, 16, 24]    
+    PtMax: [ 3, 4, 5, 6, 8, 12, 16, 24, 36]    
+    MassMin: [ 1.82, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78]    
+    MassMax: [ 2.08, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
+    Rebin: [4, 4, 4, 4, 4, 4, 4, 5, 6]
+    InclSecPeak: [0, 1, 1, 1, 1, 1, 1, 1, 0]
     UseLikelihood: 1
-    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo',]
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
     SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
