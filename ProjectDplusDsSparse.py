@@ -64,7 +64,7 @@ for iPt in range(0,len(cutVars['Pt']['min'])):
         sGenPrompt.GetAxis(0).SetRange(binGenMin,binGenMax)
         sGenFD.GetAxis(0).SetRange(binGenMin,binGenMax)
         hGenPtPrompt = sGenPrompt.Projection(0)
-        hGenPtPrompt.SetName('hPrompGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt] , cutVars['Pt']['max'][iPt]))    
+        hGenPtPrompt.SetName('hPromptGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt] , cutVars['Pt']['max'][iPt]))    
         hGenPtPrompt.Write()
         hGenPtFD = sGenFD.Projection(0)
         hGenPtFD.SetName('hFDGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt] , cutVars['Pt']['max'][iPt]))    

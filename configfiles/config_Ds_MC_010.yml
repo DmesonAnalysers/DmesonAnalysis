@@ -1,0 +1,11 @@
+isMC: yes
+filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/inputs/LHC16i2a.root
+dirname: PWG3_D2H_InvMassDs_010_d0Cut_strongPID_kINT7_kCentral
+listname: coutputDs_010_d0Cut_strongPID_kINT7_kCentral
+sparsenameAll: fnSparseReco_fromC
+sparsenamePrompt: fnSparseReco_fromC
+sparsenameFD: fnSparseReco_fromB
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+normname: NormalizationCounter
+histoevname: hNEvents
