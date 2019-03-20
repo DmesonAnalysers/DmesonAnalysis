@@ -4,7 +4,7 @@
 #include <TClonesArray.h>
 #include <TParameter.h>
 
-void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0) {
+void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE) {
     
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
@@ -164,8 +164,9 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
-    analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kCentral);
-    
+    if(!fIsMC) analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kCentral);
+    else analysiscuts->SetTriggerMask(AliVEvent::kMB);
+
     analysiscuts->SetUsePID(kTRUE);
     if(fUseStrongPID) {
       analysiscuts->SetPidOption(1); //0=kConservative,1=kStrong
@@ -185,13 +186,15 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     cout<<"This is the object I'm going to save:"<<nptbins<<endl;
     
     analysiscuts->PrintAll();
-    TFile* fout=new TFile(Form("DstoKKpiCuts_010_central_strongPIDpt%0.f_Raa_kINT7_kCentral.root",maxPtstrongPID),"recreate");
+    TString triggername = "kINT7_kCentral";
+    if(fIsMC) triggername = "kMB";
+    TFile* fout=new TFile(Form("DstoKKpiCuts_010_central_strongPIDpt%0.f_Raa_%s.root",maxPtstrongPID,triggername.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
 }
 
-void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0) {
+void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE) {
     
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
@@ -385,7 +388,8 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
-    analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kCentral);
+    if(!fIsMC) analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kCentral);
+    else analysiscuts->SetTriggerMask(AliVEvent::kMB);
     
     analysiscuts->SetUsePID(kTRUE);
     if(fUseStrongPID) {
@@ -406,13 +410,15 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     cout<<"This is the object I'm going to save:"<<nptbins<<endl;
     
     analysiscuts->PrintAll();
-    TFile* fout=new TFile(Form("DstoKKpiCuts_010_central_strongPIDpt%0.f_Raa_kINT7_kCentral.root",maxPtstrongPID),"recreate");
+    TString triggername = "kINT7_kCentral";
+    if(fIsMC) triggername = "kMB";
+    TFile* fout=new TFile(Form("DstoKKpiCuts_010_central_strongPIDpt%0.f_Raa_%s.root",maxPtstrongPID, triggername.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
 }
 
-void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0) {
+void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE) {
     
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
@@ -606,7 +612,8 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
-    analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kCentral);
+    if(!fIsMC) analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kCentral);
+    else analysiscuts->SetTriggerMask(AliVEvent::kMB);
     
     analysiscuts->SetUsePID(kTRUE);
     if(fUseStrongPID) {
@@ -627,7 +634,9 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
     cout<<"This is the object I'm going to save:"<<nptbins<<endl;
     
     analysiscuts->PrintAll();
-    TFile* fout=new TFile(Form("DstoKKpiCuts_010_loose_strongPIDpt%0.f_Raa_kINT7_kCentral.root",maxPtstrongPID),"recreate");
+    TString triggername = "kINT7_kCentral";
+    if(fIsMC) triggername = "kMB";
+    TFile* fout=new TFile(Form("DstoKKpiCuts_010_loose_strongPIDpt%0.f_Raa_%s.root",maxPtstrongPID,triggername.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
