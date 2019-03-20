@@ -196,6 +196,8 @@ void MakeFileForCuts_Central(){
   analysiscuts->Setd0MeasMinusExpCut(nptbins,d0d0expcutsval);
   analysiscuts->AddTrackCuts(esdTrackCuts);
   analysiscuts->SetScaleNormDLxyBypOverPt(kFALSE);
+  analysiscuts->SetUsePreSelect(1);
+
   cout<<"************** checking old PID (it should be FALSE by default - July 10)--> "<<analysiscuts->GetPidHF()->GetOldPid()<<endl;
 
   // analysiscuts->SetUsePID(kFALSE);
