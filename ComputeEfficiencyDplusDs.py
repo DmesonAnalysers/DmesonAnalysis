@@ -1,12 +1,12 @@
 #*************************************************************************************************************#
 # python script for the computation of the D+ and Ds+ efficiency mesons from ProjectDplusDsSparse.py output   #
-# run: python cutSetFileName.yml inputFileName.root outFileName.root                                          #
+# run: python ComputeEfficiencyDplusDs.py cutSetFileName.yml inputFileName.root outFileName.root              #
 # author: Fabrizio Grosa, fabrizio.grosa@to.infn.it ,INFN Torino                                              #
 #*************************************************************************************************************#
 
 from ROOT import TFile, TCanvas, TH1F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gStyle, kRed, kBlue, kFullCircle, kOpenSquare # pylint: disable=import-error,no-name-in-module
-import yaml, sys, array, math
+import yaml, sys, array, math, string
 
 def ComputeEfficiency(recoCounts, genCounts):
     hTmpNum = TH1F('hTmpNum', '', 1,0,1)
@@ -69,10 +69,11 @@ gStyle.SetPadTickY(1)
 gStyle.SetLegendBorderSize(0)
 gStyle.SetOptStat(0)
 
-leg = TLegend(0.2,0.6,0.4,0.8)
+leg = TLegend(0.6,0.2,0.8,0.4)
 leg.SetTextSize(0.045)
 leg.SetFillStyle(0)
-leg
+leg.AddEntry(hEffPrompt,"Prompt","p")
+leg.AddEntry(hEffFD,"Feed-down","p")
 
 hEffPrompt.SetDirectory(0)
 hEffFD.SetDirectory(0)
@@ -81,6 +82,13 @@ cEff.DrawFrame(PtMin[0],1.e-5,PtMax[nPtBins-1],1.,';#it{p}_{T} (GeV/#it{c});Effi
 cEff.SetLogy()
 hEffPrompt.Draw('same')
 hEffFD.Draw('same')
+leg.Draw()
 
-cEff.SaveAs("test.pdf")
+outFile = TFile(outFileName,'recreate')
+hEffPrompt.Write()
+hEffFD.Write()
+outFile.Close()
+
+outFileNamePDF = string.replace(outFileName,'.root','.pdf')
+cEff.SaveAs(outFileNamePDF)
 raw_input('Press enter to exit')

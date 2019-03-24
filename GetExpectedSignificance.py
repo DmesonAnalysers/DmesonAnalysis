@@ -237,10 +237,10 @@ for iPt in range(len(cutVars['Pt']['min'])):
   effPromptUnc = math.sqrt(effPrompt*(1-effPrompt)/nGenPrompt)
   effFDUnc = math.sqrt(effFD*(1-effFD)/nGenFD)
 
-  hAccEffPrompt.SetBinContent(iPt+1,effPrompt)
-  hAccEffPrompt.SetBinError(iPt+1,effPromptUnc)
-  hAccEffFD.SetBinContent(iPt+1,effFD)
-  hAccEffFD.SetBinError(iPt+1,effFDUnc)
+  hAccEffPrompt.SetBinContent(iPt+1,effPrompt*Acc)
+  hAccEffPrompt.SetBinError(iPt+1,effPromptUnc*Acc)
+  hAccEffFD.SetBinContent(iPt+1,effFD*Acc)
+  hAccEffFD.SetBinError(iPt+1,effFDUnc*Acc)
 
   SignifTAMU, SignifPHSD, SignifGossiaux, SignifCatania  = ({} for iDic in range(4))
   CorrYieldTAMU, CorrYieldPHSD, CorrYieldGossiaux, CorrYieldCatania = ({} for iDic in range(4))
