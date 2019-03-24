@@ -32,7 +32,7 @@ enum {k010, k3050};
 enum {kDplus, kDs};
 
 //__________________________________________________________________________________________________________________
-int GetRawYieldsDplusDs(int cent = k010, bool isMC = kFALSE, TString infilename = "InvMassSpectraDplus_010_PbPb2015cuts.root", TString cfgfilename = "Dplus/config_Dplus_Fit.yml", TString outFileName = "RawYieldsDplus_010_PbPb2015cuts.root");
+int GetRawYieldsDplusDs(int cent = k010, bool isMC = false, TString infilename = "InvMassSpectraDplus_010_PbPb2015cuts.root", TString cfgfilename = "Dplus/config_Dplus_Fit.yml", TString outFileName = "RawYieldsDplus_010_PbPb2015cuts.root");
 double SingleGaus(double *m, double *pars);
 double DoublePeakSingleGaus(double *x, double *pars);
 double DoubleGaus(double *m, double *pars);
@@ -83,9 +83,9 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
   TString massaxistit = "";
   if(meson==kDplus)
-    massaxistit = "#it{M}_{K#pi#pi} (GeV/#it{c}^{2})";
+    massaxistit = "#it{M}(K#pi#pi) (GeV/#it{c}^{2})";
   else if(meson==kDs)
-    massaxistit = "#it{M}_{KK#pi} (GeV/#it{c}^{2})";
+    massaxistit = "#it{M}(KK#pi) (GeV/#it{c}^{2})";
 
   //load inv-mass histos
   auto infile = TFile::Open(infilename.Data());
@@ -93,7 +93,16 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
   TH1F* hMass[nPtBins];
   TH1F* hEv = NULL;
   for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
-    hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt])));
+    if(!isMC)
+      hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt])));
+    else {
+      hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hPromptMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt])));
+      hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hFDMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt]))));
+      if(InclSecPeak[iPt]) {
+        hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hPromptSecPeakMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt]))));
+        hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hFDSecPeakMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt]))));
+      }
+    }
     hEv = static_cast<TH1F*>(infile->Get("hEvForNorm"));
     hMass[iPt]->SetDirectory(0);
     hEv->SetDirectory(0);
@@ -168,19 +177,17 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
   }
 
   //fit histos
-  TCanvas* cMass = new TCanvas("cMass","Mass",1920,1080);
-  DivideCanvas(cMass,nPtBins);
-
   double massDplus = TDatabasePDG::Instance()->GetParticle(411)->Mass();
   double massDs = TDatabasePDG::Instance()->GetParticle(431)->Mass();
   double massForFit = (meson==kDplus) ? massDplus : massDs;
-
   TH1F* hMassForFit[nPtBins];
 
+  TCanvas* cMass = new TCanvas("cMass","cMass",1920,1080);
+  DivideCanvas(cMass,nPtBins);
   for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
 
     hMassForFit[iPt]=reinterpret_cast<TH1F*>(AliVertexingHFUtils::RebinHisto(hMass[iPt],Rebin[iPt]));
-    hMassForFit[iPt]->SetTitle(Form(";%s;Counts per %0.f MeV/#it{c}^{2}",massaxistit.Data(),hMass[iPt]->GetBinWidth(1)*1000));
+    hMassForFit[iPt]->SetTitle(Form(";%s;Counts per %0.f MeV/#it{c}^{2}",massaxistit.Data(),hMassForFit[iPt]->GetBinWidth(1)*1000));
     hMassForFit[iPt]->SetName(Form("MassForFit%d",iPt));
     SetHistoStyle(hMassForFit[iPt]);
 
@@ -191,9 +198,11 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
       if(SgnFunc[iPt]==AliHFInvMassFitter::kGaus) {
         if(!(InclSecPeak[iPt] && meson==kDs)) {
           massFunc = new TF1(Form("massFunc%d",iPt),SingleGaus,MassMin[iPt],MassMax[iPt],3);
+          massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010);
         }
         else {
           massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakSingleGaus,MassMin[iPt],MassMax[iPt],6);
+          massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
           parrawyieldsecpeak = 3;
           parmeansecpeak = 4;
           parsigmasecpeak = 5;
@@ -204,15 +213,22 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
           parfrac2gaus = 4;
         if(!(InclSecPeak[iPt] && meson==kDs)) {
           massFunc = new TF1(Form("massFunc%d",iPt),DoubleGaus,MassMin[iPt],MassMax[iPt],5); 
+          massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9);
         }
         else {
           massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakDoubleGaus,MassMin[iPt],MassMax[iPt],8); 
+          massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
           parrawyieldsecpeak = 5;
           parmeansecpeak = 6;
           parsigmasecpeak = 7;
         }
       }
-      hMassForFit[iPt]->Fit(massFunc,"RE"); //fit with chi2
+
+      if(nPtBins>1) 
+        cMass->cd(iPt+1);
+      else 
+        cMass->cd();
+      hMassForFit[iPt]->Fit(massFunc,"E"); //fit with chi2
       
       double rawyield = massFunc->GetParameter(parrawyield);
       double rawyielderr = massFunc->GetParError(parrawyield);
@@ -228,6 +244,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
       hRawYieldsSigma->SetBinError(iPt+1,sigmaerr);
       hRawYieldsMean->SetBinContent(iPt+1,mean);
       hRawYieldsMean->SetBinError(iPt+1,meanerr);
+      hRawYieldsChiSquare->SetBinContent(iPt+1,redchi2);
+      hRawYieldsChiSquare->SetBinError(iPt+1,0.);
 
       hRawYieldsTrue->SetBinContent(iPt+1,hMassForFit[iPt]->Integral());
       hRawYieldsTrue->SetBinError(iPt+1,TMath::Sqrt(hMassForFit[iPt]->Integral()));
@@ -263,12 +281,6 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         hRawYieldsFracGaus2->SetBinContent(iPt+1,frac2gaus);
         hRawYieldsFracGaus2->SetBinError(iPt+1,frac2gauserr);
       }
-
-      if(nPtBins>1) 
-        cMass->cd(iPt+1);
-      else 
-        cMass->cd();
-      hMassForFit[iPt]->Draw();
     }
     else { //data
       auto massFitter = new AliHFInvMassFitter(hMassForFit[iPt],MassMin[iPt],MassMax[iPt],BkgFunc[iPt],SgnFunc[iPt]);
