@@ -1,6 +1,9 @@
 inputs/*.root
 outputs/*.root
 outputs/*.pdf
+outputs/*/*.root
+outputs/*/*.pdf
+*.eps
 configfiles/*_local.yml
 *.pyc
 *.pdf
