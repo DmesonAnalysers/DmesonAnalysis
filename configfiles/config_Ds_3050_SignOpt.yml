@@ -41,7 +41,7 @@ filenameRaaPredGossiaux: models/D_Gossiaux_RAA_5TeV_3050.txt
 filenameRaaPredCatania: models/Ds_Catania_RAA_5TeV_3050.dat
 filenameAcc: accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
 nExpectedEvents: 100000000 #PbPb2018
-Taa: 0.000000003897 #pb-1
+Taa: 0.000000003917 #pb-1
 fprompt: 0.85 #assumpion
 BR: 0.0227
 fractoD: 0.092
