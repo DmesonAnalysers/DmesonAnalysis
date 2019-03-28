@@ -5,3 +5,4 @@ listname: coutputDs_010_2015Cuts_strongPIDpt8_Raa
 sparsenameAll: fnSparse
 normname: NormalizationCounter
 histoevname: hNEvents
+enableSecPeak: no #always no for data
