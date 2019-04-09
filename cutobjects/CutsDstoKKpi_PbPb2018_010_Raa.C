@@ -273,7 +273,7 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
 
     anacutsval[6][0]=0.020;   //sigmavert
     anacutsval[7][0]=0.05;   //decay length
-    anacutsval[9][0]=0.99;   //cosP
+    anacutsval[9][0]=0.985;   //cosP
     anacutsval[12][0]=0.005; //Mass Phi
     anacutsval[14][0]=0.15;  //Abs(CosineKpiPhiRFrame)^3
     anacutsval[15][0]=1.0;  //CosP labFrame
@@ -284,7 +284,7 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     
     anacutsval[6][1]=0.020;   //sigmavert
     anacutsval[7][1]=0.05;   //decay length
-    anacutsval[9][1]=0.99;   //cosP
+    anacutsval[9][1]=0.985;   //cosP
     anacutsval[12][1]=0.005; //Mass Phi
     anacutsval[14][1]=0.15;  //Abs(CosineKpiPhiRFrame)^3
     anacutsval[15][1]=1.0;  //CosP labFrame
@@ -295,7 +295,7 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     
     anacutsval[6][2]=0.025;   //sigmavert
     anacutsval[7][2]=0.05;   //decay length
-    anacutsval[9][2]=0.99;   //cosP
+    anacutsval[9][2]=0.98;   //cosP
     anacutsval[12][2]=0.005; //Mass Phi
     anacutsval[14][2]=0.1;   //Abs(CosineKpiPhiRFrame)^3
     anacutsval[15][2]=1.0;   //CosP labFrame
@@ -308,7 +308,7 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     anacutsval[7][3]=0.05;   //decay length
     anacutsval[9][3]=0.98;   //cosP
     anacutsval[12][3]=0.005; //Mass Phi
-    anacutsval[14][3]=0.1;   //Abs(CosineKpiPhiRFrame)^3
+    anacutsval[14][3]=0.05;   //Abs(CosineKpiPhiRFrame)^3
     anacutsval[15][3]=1.0;  //CosP labFrame
     anacutsval[16][3]=0.05;   //decayXY
     anacutsval[17][3]=0.;    //normdecay
@@ -399,8 +399,10 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
   
     analysiscuts->SetOptPileup(kFALSE);
-    analysiscuts->SetMinCentrality(mincen);
-    analysiscuts->SetMaxCentrality(maxcen);
+    if(!fIsMC) {
+      analysiscuts->SetMinCentrality(mincen);
+      analysiscuts->SetMaxCentrality(maxcen);
+    }
     cent=Form("%.0f%.0f",mincen,maxcen);
     
     analysiscuts->SetMinPtCandidate(2.);
@@ -623,8 +625,10 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
   
     analysiscuts->SetOptPileup(kFALSE);
-    analysiscuts->SetMinCentrality(mincen);
-    analysiscuts->SetMaxCentrality(maxcen);
+    if(!fIsMC) {
+      analysiscuts->SetMinCentrality(mincen);
+      analysiscuts->SetMaxCentrality(maxcen);
+    }
     cent=Form("%.0f%.0f",mincen,maxcen);
     
     analysiscuts->SetMinPtCandidate(2.);
