@@ -205,7 +205,7 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     fout->Close();
 }
 
-void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE) {
+void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE, Bool_t fNoCentCut=kFALSE) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
@@ -223,6 +223,11 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     
     Float_t mincen=30.;
     Float_t maxcen=50;
+
+    if(fIsMC && fNoCentCut){
+      mincen=0.;
+      maxcen=100;
+    }
     
     const Int_t nptbins=9;
     Float_t* ptbins;
@@ -426,13 +431,13 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     TString triggername = "kINT7_kSemiCentral";
     if(fIsMC)
      triggername = "kMB";
-    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_central_strongPIDpt%0.f_Raa_%s.root",maxPtstrongPID, triggername.Data()),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_central_strongPIDpt%0.f_Raa_%s_%s.root",maxPtstrongPID, triggername.Data(),cent.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
 }
 
-void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE) {
+void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE, Bool_t fNoCentCut=kFALSE) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
@@ -450,6 +455,11 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
     
     Float_t mincen=30.;
     Float_t maxcen=50;
+
+    if(fIsMC && fNoCentCut){
+      mincen=0.;
+      maxcen=100;
+    }
     
     const Int_t nptbins=9;
     Float_t* ptbins;
@@ -653,7 +663,7 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
     TString triggername = "kINT7_kSemiCentral";
     if(fIsMC)
      triggername = "kMB";
-    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_loose_strongPIDpt%0.f_Raa_%s.root",maxPtstrongPID, triggername.Data()),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_loose_strongPIDpt%0.f_Raa_%s_%s.root",maxPtstrongPID, triggername.Data(),cent.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
