@@ -8,3 +8,6 @@ configfiles/*_local.yml
 *.pyc
 *.pdf
 .vscode
+*.pcm
+*.d
+*.so
