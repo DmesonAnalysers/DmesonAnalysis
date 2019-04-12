@@ -403,6 +403,10 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
       analysiscuts->SetMinCentrality(mincen);
       analysiscuts->SetMaxCentrality(maxcen);
     }
+    else {
+      analysiscuts->SetMinCentrality(0);
+      analysiscuts->SetMaxCentrality(100);
+    }
     cent=Form("%.0f%.0f",mincen,maxcen);
     
     analysiscuts->SetMinPtCandidate(2.);
@@ -628,6 +632,10 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
     if(!fIsMC) {
       analysiscuts->SetMinCentrality(mincen);
       analysiscuts->SetMaxCentrality(maxcen);
+    }
+    else {
+      analysiscuts->SetMinCentrality(0);
+      analysiscuts->SetMaxCentrality(100);
     }
     cent=Form("%.0f%.0f",mincen,maxcen);
     
