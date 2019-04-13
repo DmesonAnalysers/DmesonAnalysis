@@ -187,7 +187,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
   for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
 
     hMassForFit[iPt]=reinterpret_cast<TH1F*>(AliVertexingHFUtils::RebinHisto(hMass[iPt],Rebin[iPt]));
-    hMassForFit[iPt]->SetTitle(Form(";%s;Counts per %0.f MeV/#it{c}^{2}",massaxistit.Data(),hMassForFit[iPt]->GetBinWidth(1)*1000));
+    TString pttitle = Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c}",PtMin[iPt],PtMax[iPt]);
+    hMassForFit[iPt]->SetTitle(Form("%s;%s;Counts per %0.f MeV/#it{c}^{2}",pttitle.Data(),massaxistit.Data(),hMassForFit[iPt]->GetBinWidth(1)*1000));
     hMassForFit[iPt]->SetName(Form("MassForFit%d",iPt));
     SetHistoStyle(hMassForFit[iPt]);
 

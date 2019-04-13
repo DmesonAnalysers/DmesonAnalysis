@@ -66,6 +66,13 @@ cAccEff.SetLogy()
 hAccEffPrompt.Draw('same')
 hAccEffFD.Draw('same')
 
+leg = TLegend(0.6,0.2,0.8,0.4)
+leg.SetTextSize(0.045)
+leg.SetFillStyle(0)
+leg.AddEntry(hAccEffPrompt,"Prompt","p")
+leg.AddEntry(hAccEffFD,"Feed-down","p")
+leg.Draw()
+
 outFile = TFile(outFileName,'recreate')
 cAccEff.Write()
 hEffPrompt.Write()
