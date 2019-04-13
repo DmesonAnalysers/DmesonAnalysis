@@ -6,15 +6,15 @@
 
 from ROOT import TFile, TCanvas, TH1F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gStyle, kRed, kBlue, kFullCircle, kOpenSquare # pylint: disable=import-error,no-name-in-module
-import yaml, sys, array, math, string
+import yaml, array, math, string, argparse
 
-def ComputeEfficiency(recoCounts, genCounts):
+def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     hTmpNum = TH1F('hTmpNum', '', 1,0,1)
     hTmpDen = TH1F('hTmpDen', '', 1,0,1)
     hTmpNum.SetBinContent(1, recoCounts)
     hTmpDen.SetBinContent(1, genCounts)
-    hTmpNum.Sumw2()
-    hTmpDen.Sumw2()
+    hTmpNum.SetBinError(1, recoCountsError)
+    hTmpDen.SetBinError(1, genCountsError)
     hTmpNum.Divide(hTmpNum,hTmpDen,1.,1,'B')
     return hTmpNum.GetBinContent(1), hTmpNum.GetBinError(1)
 
@@ -26,11 +26,14 @@ def SetHistoStyle(histo, color, marker, markersize=1.5, linewidth=2, linestyle=1
     histo.SetMarkerStyle(marker)
     histo.SetMarkerSize(markersize)
 
-cutSetFileName = sys.argv[1]
-inFileName = sys.argv[2]
-outFileName = sys.argv[3]
+parser = argparse.ArgumentParser(description='Arguments')
+parser.add_argument('cutSetFileName', metavar='text', default='')
+parser.add_argument('inFileName', metavar='text', default='')
+parser.add_argument('outFileName', metavar='text', default='')
+parser.add_argument('--ptweights', metavar=('text','text'), nargs=2, required=False, help='First path of the pT weights file, second name of the pT weights histogram')
+args = parser.parse_args()
 
-with open(cutSetFileName, 'r') as ymlcutSetFile:
+with open(args.cutSetFileName, 'r') as ymlcutSetFile:
     cutSet = yaml.load(ymlcutSetFile)
 
 PtMin = cutSet['cutvars']['Pt']['min']
@@ -52,16 +55,40 @@ SetHistoStyle(hYieldFDGen,kBlue,kOpenSquare,1.5,2,7)
 SetHistoStyle(hYieldPromptReco,kRed,kFullCircle)
 SetHistoStyle(hYieldFDReco,kBlue,kOpenSquare,1.5,2,7)
 
+if args.ptweights:
+    infileWeigts = TFile.Open(args.ptweights[0])
+    hPtWeights = infileWeigts.Get(args.ptweights[1])
+
 hRecoPrompt, hRecoFD, hGenPrompt, hGenFD = ([] for iHisto in range(4))
 
-infile = TFile(inFileName)
+infile = TFile(args.inFileName)
 for iPt in range(len(PtMin)):
     hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (PtMin[iPt], PtMax[iPt])))
     hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (PtMin[iPt], PtMax[iPt])))
     hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (PtMin[iPt], PtMax[iPt])))
     hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (PtMin[iPt], PtMax[iPt])))
-    effPrompt, effPromptUnc = ComputeEfficiency(hRecoPrompt[iPt].Integral(),hGenPrompt[iPt].Integral())
-    effFD, effFDUnc = ComputeEfficiency(hRecoFD[iPt].Integral(),hGenFD[iPt].Integral())
+
+    #get unweighted yields (for uncertainty)
+    nRecoPrompt = hRecoPrompt[iPt].Integral()
+    nGenPrompt = hGenPrompt[iPt].Integral()
+    nRecoFD = hRecoFD[iPt].Integral()
+    nGenFD = hGenFD[iPt].Integral()
+
+    #get weighted yields
+    nRecoPromptWeighted, nGenPromptWeighted, nRecoFDWeighted, nGenFDWeighted = (0 for i in range(4))
+    for iBin in range(hRecoPrompt[iPt].GetNbinsX()):
+        if args.ptweights:
+            binweigths = hPtWeights.GetXaxis().FindBin(hRecoPrompt[iPt].GetBinCenter(iBin+1))
+            weight = hPtWeights.GetBinContent(binweigths)
+        else:
+            weight = 1
+        nRecoPromptWeighted += weight*hRecoPrompt[iPt].GetBinContent(iBin+1)
+        nGenPromptWeighted += weight*hGenPrompt[iPt].GetBinContent(iBin+1)
+        nRecoFDWeighted += weight*hRecoFD[iPt].GetBinContent(iBin+1)
+        nGenFDWeighted += weight*hGenFD[iPt].GetBinContent(iBin+1)
+        
+    effPrompt, effPromptUnc = ComputeEfficiency(nRecoPromptWeighted,nGenPromptWeighted,nRecoPromptWeighted/math.sqrt(nRecoPrompt),nGenPromptWeighted/math.sqrt(nGenPrompt))
+    effFD, effFDUnc = ComputeEfficiency(nRecoFDWeighted,nGenFDWeighted,nRecoFDWeighted/math.sqrt(nRecoFD),nGenFDWeighted/math.sqrt(nGenFD))
     hEffPrompt.SetBinContent(iPt+1,effPrompt)
     hEffPrompt.SetBinError(iPt+1,effPromptUnc)
     hEffFD.SetBinContent(iPt+1,effFD)
@@ -96,7 +123,7 @@ hEffPrompt.Draw('same')
 hEffFD.Draw('same')
 leg.Draw()
 
-outFile = TFile(outFileName,'recreate')
+outFile = TFile(args.outFileName,'recreate')
 hEffPrompt.Write()
 hEffFD.Write()
 hYieldPromptGen.Write()
@@ -105,6 +132,6 @@ hYieldPromptReco.Write()
 hYieldFDReco.Write()
 outFile.Close()
 
-outFileNamePDF = string.replace(outFileName,'.root','.pdf')
+outFileNamePDF = string.replace(args.outFileName,'.root','.pdf')
 cEff.SaveAs(outFileNamePDF)
 raw_input('Press enter to exit')
