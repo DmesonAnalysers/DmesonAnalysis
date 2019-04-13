@@ -1,7 +1,7 @@
 isMC: no
-filename: /Users/fabrizio/cernbox/ALICE_WORK/Files/Trains/Run2/LHC18qr/AnalysisResults_Ds_3050.root
-dirname: PWG3_D2H_InvMassDs_3050_2015Cuts_strongPIDpt8_Raa
-listname: coutputDs_3050_2015Cuts_strongPIDpt8_Raa
+filename: inputs/AnalysisResults_Raa_Data_loose_3050_LHC18qr_pass1_Tot_run1383_4.root
+dirname: PWG3_D2H_InvMassDs_3050_kSemiCentral_strongPIDpt8_loosecuts
+listname: coutputDs_3050_kSemiCentral_strongPIDpt8_loosecuts
 sparsenameAll: fnSparse
 normname: NormalizationCounter
 histoevname: hNEvents

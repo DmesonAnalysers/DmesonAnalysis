@@ -1,0 +1,16 @@
+isMC: yes
+filename: inputs/AnalysisResults_Ds_MC_loose_3050_LHC19c3b_Tot_run952.root
+dirname: PWG3_D2H_InvMassDs_3050_LooseCuts_strongPIDpt8_Raa
+listname: coutputDs_3050_LooseCuts_strongPIDpt8_Raa
+sparsenameAll: fnSparseReco_fromC
+sparsenamePrompt: fnSparseReco_fromC
+sparsenameFD: fnSparseReco_fromB
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableSecPeak: yes
+sparsenamePromptSecPeak: fnSparseRecoDplus_fromC
+sparsenameFDSecPeak: fnSparseRecoDplus_fromB
+sparsenameGenPromptSecPeak: fnSparseAccDplus_fromC
+sparsenameGenFDSecPeak: fnSparseAccDplus_fromB
+normname: NormalizationCounter
+histoevname: hNEvents
