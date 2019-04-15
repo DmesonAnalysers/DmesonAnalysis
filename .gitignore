@@ -1,8 +1,5 @@
 inputs/*.root
-outputs/*.root
-outputs/*.pdf
-outputs/*/*.root
-outputs/*/*.pdf
+outputs/*
 *.eps
 configfiles/*_local.yml
 *.pyc
