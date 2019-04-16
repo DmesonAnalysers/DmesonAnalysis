@@ -206,7 +206,7 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
       analysiscuts->SetMaxPtStrongPid(maxPtstrongPID);
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
-
+    analysiscuts->EnableNsigmaDataDrivenCorrection(kTRUE,AliAODPidHF::kPbPb3050);
     analysiscuts->SetOptPileup(kFALSE);
     analysiscuts->SetMinCentrality(mincen);
     analysiscuts->SetMaxCentrality(maxcen);
