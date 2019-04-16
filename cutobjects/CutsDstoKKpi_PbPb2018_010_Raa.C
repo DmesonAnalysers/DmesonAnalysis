@@ -173,7 +173,9 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
       analysiscuts->SetMaxPtStrongPid(maxPtstrongPID);
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
-  
+    if(!fIsMC)
+      analysiscuts->EnableNsigmaDataDrivenCorrection(kTRUE,AliAODPidHF::kPbPb010);
+
     analysiscuts->SetOptPileup(kFALSE);
     analysiscuts->SetMinCentrality(mincen);
     analysiscuts->SetMaxCentrality(maxcen);
@@ -397,7 +399,9 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
       analysiscuts->SetMaxPtStrongPid(maxPtstrongPID);
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
-  
+    if(!fIsMC)
+      analysiscuts->EnableNsigmaDataDrivenCorrection(kTRUE,AliAODPidHF::kPbPb010);
+
     analysiscuts->SetOptPileup(kFALSE);
     if(!fIsMC) {
       analysiscuts->SetMinCentrality(mincen);
@@ -627,7 +631,9 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
       analysiscuts->SetMaxPtStrongPid(maxPtstrongPID);
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
-  
+    if(!fIsMC)
+      analysiscuts->EnableNsigmaDataDrivenCorrection(kTRUE,AliAODPidHF::kPbPb010);
+
     analysiscuts->SetOptPileup(kFALSE);
     if(!fIsMC) {
       analysiscuts->SetMinCentrality(mincen);
