@@ -4,8 +4,9 @@ from ROOT import kWhite, kBlack, kOrange, kRed, kGreen, kBlue, kAzure, kFullCirc
 import yaml, sys, array, math
 from ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadGossiaux, ReadCatania
 
-infileGenPtShape = TFile.Open('ptweights/GenPtShape_LHC19c3b.root')
+infileGenPtShape = TFile.Open('ptweights/GenPtShape_LHC19c3a.root')
 hPtGen = infileGenPtShape.Get('hPtPromptStep0')
+hPtGen.SetName('hPtPythia')
 hPtGen.SetDirectory(0)
 nptbins = hPtGen.GetNbinsX()
 ptlims = array.array('d')
@@ -18,10 +19,10 @@ hPtFONLLcent = infileFONLL.Get('hDsPhipitoKkpipred_central')
 hPtFONLLmin = infileFONLL.Get('hDsPhipitoKkpipred_min')
 hPtFONLLmax = infileFONLL.Get('hDsPhipitoKkpipred_max')
 
-TAMU = ReadTAMU('models/Ds_TAMU_RAA_5TeV_3050.txt')
-PHSD = ReadPHSD('models/Ds_PHSD_RAA_5TeV_3050.txt')
-Gossiaux = ReadGossiaux('models/D_Gossiaux_RAA_5TeV_3050.txt')
-Catania = ReadCatania('models/Ds_Catania_RAA_5TeV_3050.dat')
+TAMU = ReadTAMU('models/Ds_TAMU_RAA_5TeV_010.txt')
+PHSD = ReadPHSD('models/Ds_PHSD_RAA_5TeV_010.txt')
+Gossiaux = ReadGossiaux('models/D_Gossiaux_RAA_5TeV_010.txt')
+Catania = ReadCatania('models/Ds_Catania_RAA_5TeV_010.dat')
 
 sTAMU, sGossiaux, sPHSD, sCatania = ({} for iDic in range(4))
 
@@ -133,11 +134,7 @@ hPtWeightsFONLLtimesCataniacent.Divide(hPtFONLLtimesCataniacent,hPtGen)
 hPtWeightsFONLLtimesCataniamin.Divide(hPtFONLLtimesCataniamin,hPtGen)
 hPtWeightsFONLLtimesCataniamax.Divide(hPtFONLLtimesCataniamax,hPtGen)
 
-sTAMU['Max'].Draw()
-
-input()
-
-outfile = TFile('ptweights/PtWeigths_LHC19c3b.root','recreate')
+outfile = TFile('ptweights/PtWeigths_LHC19c3a.root','recreate')
 #spectrum shapes
 hPtGen.Write()
 hPtFONLLcent.Write()
@@ -171,3 +168,4 @@ hPtWeightsFONLLtimesGossiauxmax.Write()
 hPtWeightsFONLLtimesCataniacent.Write()
 hPtWeightsFONLLtimesCataniamin.Write()
 hPtWeightsFONLLtimesCataniamax.Write()
+outfile.Close()
