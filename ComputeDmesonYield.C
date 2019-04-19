@@ -16,42 +16,36 @@
 #include "AliHFSystErr.h"
 #endif
 
-// input files
-TString filnamPPref="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_5_6_8_12_16_24_36_50.root";
-
-TString filnamSpectrumNb="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/crosssec/HFPtSpectrum.root";
-TString filnamSpectrumFc="";
-TString filnamRaaNb="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/raa/HFPtSpectrumRaa.root";
-TString filnamRaaFc="";
-
 //configuration
 enum dspec{kDzero,kDplus,kDstar,kDs};
-Int_t mesonSpecie=kDs;
-TString centrality="0-10";
+enum cent{k010,k3050};
+
 const Int_t nPtBins=9;
 Double_t binlim[nPtBins+1]={2.,3.,4.,5.,6.,8.,12.,16.,24.,36.};
-Int_t method=2;    // 1=fc; 2=Nb --> default=2
-Int_t optErrFD=1;  // 0=from histos, not combined; 
-                   // 1= from ntuple with Rbc hypo, not combining Nb and fc; 
-                   // 2= from ntuple with Rbc hypo, combining Nb and fc
-                   // --> default=2; change to 1 only to produce files for D-meson ratios
-Float_t centHypoFdOverPr=1.;
-Float_t lowHypoFdOverPr=1./3;
-Float_t highHypoFdOverPr=3.;
-Double_t normToCsec=1.; // put here the trigger cross section in ub; if ==1 per-event yield are computed
-TString collSyst="Pb-Pb";
-
 
 // Graphical styles
 Bool_t draw[nPtBins]={1,1,0,1,0,1,0,0,1};
 Int_t colors[nPtBins]={kGray+2,kMagenta+1,kMagenta,kBlue,kCyan,kGreen+2,kYellow+2,kOrange+1,kRed+1};
 Int_t lstyle[nPtBins]={9,10,3,5,7,1,3,6,2};
 
-
 Bool_t PbPbDataSyst(AliHFSystErr *syst, TH1D* heff, Double_t pt, Double_t &dataSystUp, Double_t &dataSystDown);
 
-
-void ComputeDmesonYield(){
+void ComputeDmesonYield(Int_t mesonSpecie=kDs,
+                        Int_t Cent=k010,
+                        Int_t method=2,
+                        Int_t optErrFD=1,
+                        TString filnamPPref="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DsRAA/ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_5_6_8_12_16_24_36_50.root", 
+                        TString filnamSpectrumNb="outputs/crosssec/HFPtSpectrum_Ds_centralcuts_LHC18qr.root",
+                        TString filnamSpectrumFc="", 
+                        TString filnamRaaNb="outputs/raa/HFPtSpectrumRaa_Ds_centralcuts_LHC18qr.root", 
+                        TString filnamRaaFc="",
+                        TString outputdir="outputs/crosssec",
+                        Float_t centHypoFdOverPr=1.,
+                        Float_t lowHypoFdOverPr=1./3,
+                        Float_t highHypoFdOverPr=3.,
+                        Double_t normToCsec=1.)
+{
+  TString collSyst="Pb-Pb";
 
   TString mesName="Dzero";
   Int_t mesCode=1;
@@ -81,6 +75,14 @@ void ComputeDmesonYield(){
      highHypoFdOverPr=3.;
     }
     ptForExtrap=24.;
+  }
+
+  TString centrality="";
+  if(Cent==k010) {
+    centrality = "0-10";
+  }
+  else if(Cent==k3050) {
+    centrality = "30-50";
   }
 
   TString centralityNoDash=centrality.Data();
@@ -747,7 +749,7 @@ void ComputeDmesonYield(){
   lin0->SetLineColor(kGray+1);
   lin0->Draw();
   if(method==2 && optErrFD==2){
-    c2->SaveAs(Form("%s-RcVsRcb_method%d_optErrFD%d_br%d.eps",mesName.Data(),method,optErrFD,correctForBR));
+    c2->SaveAs(Form("%s/%s-RcVsRcb_method%d_optErrFD%d_br%d.eps",outputdir.Data(),mesName.Data(),method,optErrFD,correctForBR));
   }
 
 
@@ -781,7 +783,7 @@ void ComputeDmesonYield(){
   TLatex* t2=new TLatex(0.17,0.2,"Nb");
   t2->SetNDC();
   t2->Draw();
-  cfp->SaveAs(Form("fprompt-%s.eps",mesName.Data()));
+  cfp->SaveAs(Form("%s/fprompt-%s.eps",outputdir.Data(),mesName.Data()));
 
   hppC->SetMarkerStyle(markerppC);
   hppC->SetMarkerSize(msizppC);
@@ -885,7 +887,7 @@ void ComputeDmesonYield(){
   ent=legSy->AddEntry(gaaCsystRb,"Syst. unc. from #it{R}_{AA} feed-down","F");
   legSy->Draw();
   tdec->Draw();
-  c3->SaveAs(Form("%s-Yields_1pad_method%d_optErrFD%d_br%d.eps",mesName.Data(),method,optErrFD,correctForBR));
+  c3->SaveAs(Form("%s/%s-Yields_1pad_method%d_optErrFD%d_br%d.eps",outputdir.Data(),mesName.Data(),method,optErrFD,correctForBR));
 
 
 
@@ -939,7 +941,7 @@ void ComputeDmesonYield(){
 
   TString type="Yield";
   if(TMath::Abs(normToCsec-1)>0.001) type="CrossSec";
-  TFile* outfil=new TFile(Form("%s%s_method%d_fd%d_br%d.root",mesName.Data(),type.Data(),method,optErrFD,correctForBR),"recreate");
+  TFile* outfil=new TFile(Form("%s/%s%s_method%d_fd%d_br%d.root",outputdir.Data(),mesName.Data(),type.Data(),method,optErrFD,correctForBR),"recreate");
   hAAC->Write();
   gppCsystFD->Write();
   gppCsystdata->Write();
@@ -958,6 +960,12 @@ void ComputeDmesonYield(){
   systematicsABcent->Write();
   if(systematicsPP) systematicsPP->Write();
   outfil->Close();
+
+  TFile outfileHypo(Form("%s/%s%sHypoVar_method%d_fd%d_br%d.root",outputdir.Data(),mesName.Data(),type.Data(),method,optErrFD,correctForBR),"recreate");
+  for(Int_t ib=0; ib<nPtBins; ib++){
+    gcrbc[ib]->Write(Form("gHypo_pT_%0.f_%0.f",binlim[ib],binlim[ib+1]));
+  }
+  outfileHypo.Close();
 }
 
 
