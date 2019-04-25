@@ -5,7 +5,7 @@
 enum etaregion{kEtaPos,kEtaNeg,kEtaFull};
 
 //__________________________________________________________________________________________
-void MakeFileForCuts_Central(){
+void MakeFileForCuts_Central(Bool_t fIsMC=kFALSE){
 
   AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
   esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
@@ -188,6 +188,8 @@ void MakeFileForCuts_Central(){
   d0d0expcutsval[14]=3.0;//36.0-50.0
 
   AliRDHFCutsDplustoKpipi* analysiscuts=new AliRDHFCutsDplustoKpipi();
+  if(!fIsMC)
+    analysiscuts->EnableNsigmaDataDrivenCorrection(kTRUE,AliAODPidHF::kPbPb3050);
   analysiscuts->SetName("AnalysisCuts");
   analysiscuts->SetTitle("Cuts for Dplus Analysis and CF");
   analysiscuts->SetPtBins(nptbins+1,ptbins);
@@ -204,18 +206,23 @@ void MakeFileForCuts_Central(){
   analysiscuts->SetUsePID(kTRUE);
   analysiscuts->SetUseImpParProdCorrCut(kFALSE);
   analysiscuts->SetOptPileup(kFALSE);
-  analysiscuts->SetMinCentrality(minc);
-  analysiscuts->SetMaxCentrality(maxc);
+  if(!fIsMC) {
+    analysiscuts->SetMinCentrality(minc);
+    analysiscuts->SetMaxCentrality(maxc);
+  }
 
   analysiscuts->SetRemoveTrackletOutliers(kTRUE);//added on June 28
-  analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
+  analysiscuts->SetCutOnzVertexSPD(3);
 
   cent=Form("%.0f%.0f",minc,maxc);
   analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
   analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
   analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
-  analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kSemiCentral);
-
+  if(!fIsMC)
+    analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kSemiCentral);
+  else
+    analysiscuts->SetTriggerMask(AliVEvent::kMB);
+  
   analysiscuts->SetMinPtCandidate(2.);
   analysiscuts->SetMaxPtCandidate(50.);
 
@@ -223,7 +230,10 @@ void MakeFileForCuts_Central(){
 
   analysiscuts->PrintAll();
   analysiscuts->PrintTrigger();
-  TString filename = "DplustoKpipiCuts_2018_3050_central_v2_kINT7_kSemiCentral.root";
+  TString triggername = "kINT7_kSemiCentral";
+  if(fIsMC)
+    triggername = "kMB";
+  TString filename = Form("DplustoKpipiCuts_2018_3050_central_v2_%s.root",triggername.Data());
   TFile* fout=new TFile(filename.Data(),"RECREATE");
   fout->cd();
   analysiscuts->Write();
