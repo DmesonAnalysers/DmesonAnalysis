@@ -2,6 +2,7 @@
 #include <TFile.h>
 #include <TClonesArray.h>
 #include <TParameter.h>
+#include <AliRDHFCutsDstoKKpi.h>
 enum etaregion{kEtaPos,kEtaNeg,kEtaFull};
 
 void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0) {
@@ -21,7 +22,7 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
     esdTrackCuts->SetPtRange(0.3,1.e10);
     
     Float_t mincen=30.;
-    Float_t maxcen=50;
+    Float_t maxcen=50.;
     
     const Int_t nptbins=9;
     Float_t* ptbins;
@@ -193,8 +194,6 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
     analysiscuts->Setd0MeasMinusExpCut(nptbins,topomCuts);
     analysiscuts->Setd0Cut(nptbins,d0Cuts);
     
-    TString cent="";
-    
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -210,16 +209,15 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
     analysiscuts->SetOptPileup(kFALSE);
     analysiscuts->SetMinCentrality(mincen);
     analysiscuts->SetMaxCentrality(maxcen);
-    cent=Form("%.0f%.0f",mincen,maxcen);
     
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(36.);
     analysiscuts->SetRemoveDaughtersFromPrim(kFALSE);
   
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
     
     analysiscuts->PrintAll();
-    TFile* fout=new TFile(Form("DstoKKpiCuts_2018_3050_central_strongPIDpt%0.f_v2_kINT7_kSemiCentral.root",maxPtstrongPID),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts2018_3050_central_strongPIDpt%0.f_v2_kINT7_kSemiCentral.root",maxPtstrongPID),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
