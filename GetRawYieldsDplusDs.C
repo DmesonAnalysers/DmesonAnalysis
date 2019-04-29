@@ -163,7 +163,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     if(!infileSigma) return -2;
     hSigmaToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigma"));
     hSigmaSecPeakToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigmaSecondPeak"));
-    if(static_cast<unsigned int>(hSigmaToFix->GetNbinsX()) || static_cast<unsigned int>(hSigmaSecPeakToFix->GetNbinsX())!=nPtBins)
+    if(static_cast<unsigned int>(hSigmaToFix->GetNbinsX())!=nPtBins || static_cast<unsigned int>(hSigmaSecPeakToFix->GetNbinsX())!=nPtBins)
       cout << "WARNING: Different number of bins for this analysis and histo for fix sigma" << endl;
   }
 
