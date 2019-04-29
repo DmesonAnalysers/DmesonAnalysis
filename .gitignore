@@ -1,5 +1,5 @@
-inputs/*.root
-outputs/*
+inputs
+outputs
 *.eps
 configfiles/*_local.yml
 *.pyc
