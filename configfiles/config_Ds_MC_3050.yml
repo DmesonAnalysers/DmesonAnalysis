@@ -1,7 +1,7 @@
 isMC: yes
-filename: inputs/AnalysisResults_Ds_MC_loose_3050_Improver_LHC19c3b_Tot_local.root
-dirname: PWG3_D2H_InvMassDs_LooseCuts_strongPIDpt8_Raa_NoImprover
-listname: coutputDs_LooseCuts_strongPIDpt8_Raa_NoImprover
+filename: inputs/AnalysisResults_Ds_MC_3050_LHC19c3b_Tot.root
+dirname: PWG3_D2H_InvMassDs_3050_LooseCuts_strongPIDpt8_Raa
+listname: coutputDs_3050_LooseCuts_strongPIDpt8_Raa
 sparsenameAll: fnSparseReco_fromC
 sparsenamePrompt: fnSparseReco_fromC
 sparsenameFD: fnSparseReco_fromB
