@@ -56,6 +56,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
   int meson = (mesonname=="Dplus") ? kDplus : kDs;
   bool fixSigma = static_cast<bool>(config[centname.Data()]["FixSigma"].as<int>());
   string infilenameSigma = config[centname.Data()]["SigmaFile"].as<string>();
+  double sigmaMult = config[centname.Data()]["SigmaMultFactor"].as<double>();
   bool fixMean = static_cast<bool>(config[centname.Data()]["FixMean"].as<int>());
   string infilenameMean = config[centname.Data()]["MeanFile"].as<string>();
   bool UseLikelihood = config[centname.Data()]["UseLikelihood"].as<int>();
@@ -157,13 +158,12 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
   SetHistoStyle(hRelDiffRawYieldsFitTrue);
   SetHistoStyle(hRelDiffRawYieldsSecondPeakFitTrue,kRed+1);
   
-  TH1D *hSigmaToFix = NULL, *hSigmaSecPeakToFix = NULL;
+  TH1D *hSigmaToFix = NULL;
   if(fixSigma) {
     auto infileSigma = TFile::Open(infilenameSigma.data());
     if(!infileSigma) return -2;
     hSigmaToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigma"));
-    hSigmaSecPeakToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigmaSecondPeak"));
-    if(static_cast<unsigned int>(hSigmaToFix->GetNbinsX())!=nPtBins || static_cast<unsigned int>(hSigmaSecPeakToFix->GetNbinsX())!=nPtBins)
+    if( static_cast<unsigned int>(hSigmaToFix->GetNbinsX()) != nPtBins)
       cout << "WARNING: Different number of bins for this analysis and histo for fix sigma" << endl;
   }
 
@@ -291,7 +291,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
       else
         massFitter->SetInitialGaussianMean(massForFit);
       if(fixSigma) 
-        massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1));
+        massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
       
       if(InclSecPeak[iPt] && meson==kDs) massFitter->IncludeSecondGausPeak(massDplus,false,0.008,true); //TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
       massFitter->MassFitter(false);

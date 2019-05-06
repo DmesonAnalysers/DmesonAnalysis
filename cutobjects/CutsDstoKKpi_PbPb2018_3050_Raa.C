@@ -67,8 +67,8 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     }
     /*
      
-     Cut list                                                rejection condition
-     0           "inv. mass [GeV]",                          invmassDS-massDspdg>fCutsRD
+     Cut list                                           rejection condition
+     0      "inv. mass [GeV]",                          invmassDS-massDspdg>fCutsRD
      1			"pTK [GeV/c]",                              pTK<fCutsRd
      2			"pTPi [GeV/c]",                             pTPi<fCutsRd
      3			"d0K [cm]",                                 d0K<fCutsRd
@@ -82,7 +82,7 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
      11			"dca [cm]",                                 dca(i)>fCutsRD
      12			"inv. mass (Mphi-MKK) [GeV]",               invmass-pdg>fCutsRD
      13			"inv. mass (MKo*-MKpi) [GeV]"};             invmass-pdg>fCutsRD
-     14    		"Abs(CosineKpiPhiRFrame)^3",
+     14    	"Abs(CosineKpiPhiRFrame)^3",
      15  		"CosPiDsLabFrame"};
      16  		"DecLengthXY
      17  		"NormDecayLength"};

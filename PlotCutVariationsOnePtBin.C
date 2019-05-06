@@ -26,7 +26,12 @@ const TString inputdirname = "outputs/cutvarsyst";
 const TString inputfilecommonname_crosssec = "DsYield_method2_fd1_br1";
 const TString inputfilecommonname_rawyield =  "RawyieldsDs";
 const TString inputfilecommonname_eff = "Efficiency_Ds";
-const TString inputfilesuffix[] = {"_010_central_2018", "_010_cospkphi3_loose_1", "_010_cospkphi3_loose_2", "_010_cospkphi3_tight_1", "_010_cospkphi3_tight_2", "_010_cp_loose_1", "_010_cp_loose_2", "_010_cp_tight_1", "_010_cp_tight_2", "_010_cpxy_loose_1", "_010_cpxy_loose_2", "_010_cpxy_tight_1", "_010_cpxy_tight_2", "_010_d0_loose_1", "_010_d0_loose_2", "_010_d0_tight_1", "_010_d0_tight_2", "_010_deltamKK_loose_1", "_010_deltamKK_loose_2", "_010_deltamKK_tight_1", "_010_deltamKK_tight_2", "_010_dl_loose_1", "_010_dl_loose_2", "_010_dl_tight_1", "_010_dl_tight_2", "_010_dlxy_loose_1", "_010_dlxy_loose_2", "_010_dlxy_tight_1", "_010_dlxy_tight_2", "_010_ndlxy_loose_1", "_010_ndlxy_loose_2", "_010_ndlxy_tight_1", "_010_ndlxy_tight_2", "_010_sigvtx_loose_1", "_010_sigvtx_loose_2", "_010_sigvtx_tight_1", "_010_sigvtx_tight_2", "_010_topo_loose_1", "_010_topo_loose_2", "_010_topo_tight_1", "_010_topo_tight_2"};
+const TString inputfilesuffix[] = {"_010_central_2018", "_010_cospkphi3_loose_1", "_010_cospkphi3_loose_2", "_010_cospkphi3_tight_1", "_010_cospkphi3_tight_2", "_010_cp_loose_1", "_010_cp_loose_2",
+                                   "_010_cp_tight_1", "_010_cp_tight_2", "_010_cpxy_loose_1", "_010_cpxy_loose_2", "_010_cpxy_tight_1", "_010_cpxy_tight_2", "_010_d0_loose_1", "_010_d0_loose_2",
+                                   "_010_d0_tight_1", "_010_d0_tight_2", "_010_deltamKK_loose_1", "_010_deltamKK_loose_2", "_010_deltamKK_tight_1", "_010_deltamKK_tight_2", "_010_dl_loose_1", "_010_dl_loose_2",
+                                   "_010_dl_tight_1", "_010_dl_tight_2", "_010_dlxy_loose_1", "_010_dlxy_loose_2", "_010_dlxy_tight_1", "_010_dlxy_tight_2", "_010_ndlxy_loose_1", "_010_ndlxy_loose_2",
+                                   "_010_ndlxy_tight_1", "_010_ndlxy_tight_2", "_010_sigvtx_loose_1", "_010_sigvtx_loose_2", "_010_sigvtx_tight_1", "_010_sigvtx_tight_2", "_010_topo_loose_1", "_010_topo_loose_2",
+                                   "_010_topo_tight_1", "_010_topo_tight_2"};
 
 double minaccsignif = 3;
 
