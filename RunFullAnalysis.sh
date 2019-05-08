@@ -126,7 +126,7 @@ if $DoEfficiency; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute efficiency from ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root
-    python ComputeEfficiencyDplusDs.py ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root --ptweights ${PtWeightsFileName} ${PtWeightsHistoName}
+    python ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root --ptweights ${PtWeightsFileName} ${PtWeightsHistoName}
   done
 fi
 
@@ -154,7 +154,7 @@ if $DoHFPtSpecRaa; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute HFPtspectrumRaa
-    echo '.x HFPtSpectrumRaa.C+ ("'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrumDs'${CutSets[$iCutSet]}'.root","'${OutDirRaa}'/HFPtSpectrumRaaDs'${CutSets[$iCutSet]}'_oldppref.root",4,1,kNb,'${Cent}',k2018,k5dot023,1./3,3,6,false,1)' | root -l
+    echo '.x HFPtSpectrumRaa.C+ ("'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrumDs'${CutSets[$iCutSet]}'.root","'${OutDirRaa}'/HFPtSpectrumRaaDs'${CutSets[$iCutSet]}'.root",4,1,kNb,'${Cent}',k2018,k5dot023,1./3,3,6,false,1)' | root -l -b
     echo '.q'
   done
 fi
@@ -164,7 +164,7 @@ if $DoDmesonYield; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute corrected yield
-    echo '.x ComputeDmesonYield.C+ (kDs,'${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrumDs'${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaaDs'${CutSets[$iCutSet]}'.root","","'${OutDirCrossSec}'","_'${CutSets[$iCutSet]}'",1,1./3,3,1)' | root -l
+    echo '.x ComputeDmesonYield.C+ (kDs,'${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrumDs'${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaaDs'${CutSets[$iCutSet]}'.root","","'${OutDirCrossSec}'","'${CutSets[$iCutSet]}'",1,1./3,3,1)' | root -l -b
     echo '.q'
   done
 fi
