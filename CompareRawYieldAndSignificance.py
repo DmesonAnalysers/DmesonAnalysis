@@ -1,6 +1,6 @@
 from ROOT import TCanvas, TFile, TLegend
 from ROOT import gStyle, kRed, kBlack, kBlue, kGreen, kFullCircle, kFullSquare, kFullDiamond 
-import math
+import math, six
 
 inputdir = 'outputs/'
 inputfilenames = [ '2015results/RawYieldDs_3050.root', '3_24bin_merge/raw_yields/RawYieldsDs_3050_2015cuts.root']
@@ -149,4 +149,8 @@ cRatioSignal.SaveAs('%s/SignalPerEventRatio_%s.eps' % (outputdir,outputsuffix))
 cBkg.SaveAs('%s/BkgPerEventComparison_%s.eps' % (outputdir,outputsuffix))
 cSoverB.SaveAs('%s/SoverB_%s.eps' % (outputdir,outputsuffix))
 cSignificance.SaveAs('%s/SignificancePerEventComparison_%s.eps' % (outputdir,outputsuffix))
-input('Press enter to exit')
+
+if six.PY2:
+    raw_input('Press enter to exit')
+elif six.PY3:
+    input('Press enter to exit')

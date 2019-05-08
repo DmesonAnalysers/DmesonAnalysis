@@ -1,6 +1,7 @@
 from ROOT import TCanvas, TFile, TLegend, TLine
 from ROOT import gStyle, kRed, kBlack, kBlue, kFullCircle, kFullSquare, kFullDiamond 
 import math
+import six
 
 inputdir = 'outputs'
 inputfilenames = [ '2015results/AccEffDs_3050_AOD198.root', '3_24bin_merge/eff/EffAcc_Ds_3050_2015cuts_Improver.root']
@@ -89,4 +90,7 @@ for iFile in range(len(inputfilenames)):
 cPrompt.SaveAs('%s/PromptEfficiencyComparison_%s.pdf' % (inputdir,outputsuffix))
 cFD.SaveAs('%s/FDEfficiencyComparison_%s.pdf' % (inputdir,outputsuffix))
 
-input()
+if six.PY2:
+    raw_input('Press enter to exit')
+elif six.PY3:
+    input('Press enter to exit')

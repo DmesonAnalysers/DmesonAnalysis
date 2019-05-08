@@ -1,4 +1,4 @@
-import sys
+import sys, six
 from ROOT import TCanvas, TFile, TH1F, TList, TLine, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import gStyle, kRed, kBlue, kBlack, kGreen, kAzure, kOrange, kFullCircle, kFullSquare, kFullSquare, kFullTriangleUp, kFullTriangleDown, kFullCross # pylint: disable=import-error,no-name-in-module
 
@@ -115,4 +115,7 @@ if len(inFileEffNames)!=0 and len(inFileEffNames)==len(PtShapes):
     hEffPromptRatio[iEff].Draw('same')
   cEff.SaveAs(outFileEffName)
 
-raw_input()
+if six.PY2:
+    raw_input('Press enter to exit')
+elif six.PY3:
+    input('Press enter to exit')

@@ -7,6 +7,7 @@
 import math
 import argparse
 import string
+import six
 from ROOT import gROOT, TFile, TCanvas, TH1F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import gStyle, kBlack, kFullDiamond # pylint: disable=import-error,no-name-in-module
 
@@ -88,7 +89,12 @@ hAccEffPrompt.Write()
 hAccEffFD.Write()
 outFile.Close()
 
-outFileNamePDF = string.replace(args.outFileName, '.root', '.pdf')
-cAccEff.SaveAs(outFileNamePDF)
 if not args.batch:
-    raw_input('Press enter to exit')
+    if six.PY2:
+        outFileNamePDF = string.replace(args.outFileName,'.root','.pdf')
+        cAccEff.SaveAs(outFileNamePDF)
+        raw_input('Press enter to exit')
+    elif six.PY3:
+        outFileNamePDF = args.outFileName.replace('.root', '.pdf')
+        cAccEff.SaveAs(outFileNamePDF)
+        input('Press enter to exit')

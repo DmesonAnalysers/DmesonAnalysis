@@ -6,7 +6,7 @@
 
 from ROOT import TFile, TCanvas, TH1F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gStyle, kRed, kBlue, kFullCircle, kOpenSquare # pylint: disable=import-error,no-name-in-module
-import yaml, array, math, string, argparse
+import yaml, array, math, string, argparse, six
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     hTmpNum = TH1F('hTmpNum', '', 1,0,1)
@@ -147,7 +147,12 @@ hYieldPromptReco.Write()
 hYieldFDReco.Write()
 outFile.Close()
 
-outFileNamePDF = string.replace(args.outFileName,'.root','.pdf')
-cEff.SaveAs(outFileNamePDF)
 if not args.batch:
-    raw_input('Press enter to exit')
+    if six.PY2:
+        outFileNamePDF = string.replace(args.outFileName,'.root','.pdf')
+        cEff.SaveAs(outFileNamePDF)
+        raw_input('Press enter to exit')
+    elif six.PY3:
+        outFileNamePDF = args.outFileName.replace('.root','.pdf')
+        cEff.SaveAs(outFileNamePDF)
+        input('Press enter to exit')

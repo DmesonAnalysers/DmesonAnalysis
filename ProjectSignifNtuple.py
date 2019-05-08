@@ -1,6 +1,6 @@
 from ROOT import TFile, TCanvas, TH1F, TF1, TNtuple, TGraph, TSpline3 # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kBlack, kBlue, kGreen, kOrange # pylint: disable=import-error,no-name-in-module
-import sys, yaml
+import sys, yaml, six
 
 cfgFileName = sys.argv[1]
 inputFileName = sys.argv[2]
@@ -41,4 +41,7 @@ cDist.cd(counter+5)
 ntuple.Draw('Signif:SoverB', sel_string, 'colz')
 
 cDist.SaveAs('DsNtupleProj_pt_%d_%d.pdf' % (int(PtMin), int(PtMax)))
-raw_input("Press enter to exit")
+if six.PY2:
+    raw_input('Press enter to exit')
+elif six.PY3:
+    input('Press enter to exit')
