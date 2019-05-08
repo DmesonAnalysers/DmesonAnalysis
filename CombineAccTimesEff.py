@@ -4,19 +4,26 @@
 # author: Fabrizio Grosa, fabrizio.grosa@to.infn.it ,INFN Torino                           #
 #******************************************************************************************#
 
-from ROOT import TFile, TCanvas, TH1F, TLegend # pylint: disable=import-error,no-name-in-module
-from ROOT import gStyle, kBlack, kFullCircle, kOpenSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module
-import yaml, sys, array, math, string
+import math
+import argparse
+import string
+from ROOT import gROOT, TFile, TCanvas, TH1F, TLegend # pylint: disable=import-error,no-name-in-module
+from ROOT import gStyle, kBlack, kFullDiamond # pylint: disable=import-error,no-name-in-module
 
-effFileName = sys.argv[1]
-accFileName = sys.argv[2]
-outFileName = sys.argv[3]
+parser = argparse.ArgumentParser(description='Arguments')
+parser.add_argument('effFileName', metavar='text', default='')
+parser.add_argument('accFileName', metavar='text', default='')
+parser.add_argument('outFileName', metavar='text', default='')
+parser.add_argument("--batch", help="suppress video output", action="store_true")
+args = parser.parse_args()
 
-effFile = TFile.Open(effFileName)
+gROOT.SetBatch(args.batch)
+
+effFile = TFile.Open(args.effFileName)
 hEffPrompt = effFile.Get('hEffPrompt')
 hEffFD = effFile.Get('hEffFD')
 
-accFile = TFile.Open(accFileName)
+accFile = TFile.Open(args.accFileName)
 hAccNum = accFile.Get('hPtGenAcc')
 hAccDen = accFile.Get('hPtGenLimAcc')
 hAcc = hEffPrompt.Clone('hAcc')
@@ -28,19 +35,19 @@ hTmpNum = TH1F('hTmpNum','',1,0,1)
 hTmpDen = TH1F('hTmpDen','',1,0,1)
 nPtBins = hEffPrompt.GetNbinsX()
 for iPt in range(nPtBins):
-  PtMin = hEffPrompt.GetBinLowEdge(iPt+1)
-  PtMax = PtMin+hEffPrompt.GetBinWidth(iPt+1)
-  PtBinMin = hAccNum.GetXaxis().FindBin(PtMin*1.0001)
-  PtBinMax = hAccNum.GetXaxis().FindBin(PtMax*0.9999)
-  
-  hTmpNum.SetBinContent(1,hAccNum.Integral(PtBinMin,PtBinMax))  
-  hTmpNum.SetBinError(1,math.sqrt(hAccNum.Integral(PtBinMin,PtBinMax)))  
-  hTmpDen.SetBinContent(1,hAccDen.Integral(PtBinMin,PtBinMax))
-  hTmpDen.SetBinError(1,math.sqrt(hAccDen.Integral(PtBinMin,PtBinMax)))  
+    PtMin = hEffPrompt.GetBinLowEdge(iPt+1)
+    PtMax = PtMin+hEffPrompt.GetBinWidth(iPt+1)
+    PtBinMin = hAccNum.GetXaxis().FindBin(PtMin*1.0001)
+    PtBinMax = hAccNum.GetXaxis().FindBin(PtMax*0.9999)
 
-  hTmpNum.Divide(hTmpNum,hTmpDen,1.,1.,'B')
-  hAcc.SetBinContent(iPt+1,hTmpNum.GetBinContent(1))
-  hAcc.SetBinError(iPt+1,hTmpNum.GetBinError(1))
+    hTmpNum.SetBinContent(1,hAccNum.Integral(PtBinMin,PtBinMax))  
+    hTmpNum.SetBinError(1,math.sqrt(hAccNum.Integral(PtBinMin,PtBinMax)))  
+    hTmpDen.SetBinContent(1,hAccDen.Integral(PtBinMin,PtBinMax))
+    hTmpDen.SetBinError(1,math.sqrt(hAccDen.Integral(PtBinMin,PtBinMax)))  
+
+    hTmpNum.Divide(hTmpNum,hTmpDen,1.,1.,'B')
+    hAcc.SetBinContent(iPt+1,hTmpNum.GetBinContent(1))
+    hAcc.SetBinError(iPt+1,hTmpNum.GetBinError(1))
 
 hAccEffPrompt = hEffPrompt.Clone('hAccEffPrompt')
 hAccEffPrompt.Multiply(hAcc)
@@ -73,7 +80,7 @@ leg.AddEntry(hAccEffPrompt,"Prompt","p")
 leg.AddEntry(hAccEffFD,"Feed-down","p")
 leg.Draw()
 
-outFile = TFile(outFileName,'recreate')
+outFile = TFile(args.outFileName,'recreate')
 cAccEff.Write()
 hEffPrompt.Write()
 hEffFD.Write()
@@ -81,7 +88,7 @@ hAccEffPrompt.Write()
 hAccEffFD.Write()
 outFile.Close()
 
-outFileNamePDF = string.replace(outFileName,'.root','.pdf')
+outFileNamePDF = string.replace(args.outFileName, '.root', '.pdf')
 cAccEff.SaveAs(outFileNamePDF)
-
-raw_input('Press enter to exit')
+if not args.batch:
+    raw_input('Press enter to exit')

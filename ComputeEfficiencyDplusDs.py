@@ -32,16 +32,19 @@ parser.add_argument('centClass', metavar='text', default='')
 parser.add_argument('inFileName', metavar='text', default='')
 parser.add_argument('outFileName', metavar='text', default='')
 parser.add_argument('--ptweights', metavar=('text','text'), nargs=2, required=False, help='First path of the pT weights file, second name of the pT weights histogram')
+parser.add_argument("--batch", help="suppress video output", action="store_true")
 args = parser.parse_args()
 
 with open(args.fitConfigFileName, 'r') as ymlfitConfigFile:
     fitConfig = yaml.load(ymlfitConfigFile)
 
 cent = ''
-if(args.centClass == 'k010'):
+if args.centClass == 'k010':
     cent = 'Cent010'
-elif(args.centClass == 'k3050'):
+elif args.centClass == 'k3050':
     cent = 'Cent3050'
+
+gROOT.SetBatch(args.batch)
 
 PtMin = fitConfig[cent]['PtMin']
 PtMax = fitConfig[cent]['PtMax']
@@ -93,7 +96,7 @@ for iPt in range(len(PtMin)):
         nGenPromptWeighted += weight*hGenPrompt[iPt].GetBinContent(iBin+1)
         nRecoFDWeighted += weight*hRecoFD[iPt].GetBinContent(iBin+1)
         nGenFDWeighted += weight*hGenFD[iPt].GetBinContent(iBin+1)
-        
+
     effPrompt, effPromptUnc = ComputeEfficiency(nRecoPromptWeighted,nGenPromptWeighted,nRecoPromptWeighted/math.sqrt(nRecoPrompt),nGenPromptWeighted/math.sqrt(nGenPrompt))
     effFD, effFDUnc = ComputeEfficiency(nRecoFDWeighted,nGenFDWeighted,nRecoFDWeighted/math.sqrt(nRecoFD),nGenFDWeighted/math.sqrt(nGenFD))
     hEffPrompt.SetBinContent(iPt+1,effPrompt)
@@ -146,4 +149,5 @@ outFile.Close()
 
 outFileNamePDF = string.replace(args.outFileName,'.root','.pdf')
 cEff.SaveAs(outFileNamePDF)
-raw_input('Press enter to exit')
+if not args.batch:
+    raw_input('Press enter to exit')

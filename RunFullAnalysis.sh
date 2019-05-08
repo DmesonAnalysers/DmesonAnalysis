@@ -107,7 +107,7 @@ if $DoDataRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Extract raw yields from ${OutDirRawyields}/Distr_Ds_data${CutSets[$iCutSet]}.root
-    echo '.x GetRawYieldsDplusDs.C+ ('${Cent}',false, "'${OutDirRawyields}'/Distr_Ds_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYieldsDs'${CutSets[$iCutSet]}'.root")' | root -l
+    echo '.x GetRawYieldsDplusDs.C+ ('${Cent}',false, "'${OutDirRawyields}'/Distr_Ds_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYieldsDs'${CutSets[$iCutSet]}'.root")' | root -l -b
     echo '.q'
   done
 fi
@@ -116,7 +116,7 @@ if $DoMCRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Extract raw yields from ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root
-    echo '.x GetRawYieldsDplusDs.C+ ('${Cent}',true, "'${OutDirEfficiency}'/Distr_Ds_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYieldsDs_MC'${CutSets[$iCutSet]}'.root")' | root -l
+    echo '.x GetRawYieldsDplusDs.C+ ('${Cent}',true, "'${OutDirEfficiency}'/Distr_Ds_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYieldsDs_MC'${CutSets[$iCutSet]}'.root")' | root -l -b
     echo '.q'
   done
 fi
@@ -126,7 +126,7 @@ if $DoEfficiency; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute efficiency from ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root
-    python ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root --ptweights ${PtWeightsFileName} ${PtWeightsHistoName}
+    python ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root --ptweights ${PtWeightsFileName} ${PtWeightsHistoName} --batch
   done
 fi
 
@@ -135,7 +135,7 @@ if $DoAccEff; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute efficiency times acceptance
-    python CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_Ds${CutSets[$iCutSet]}.root
+    python CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_Ds${CutSets[$iCutSet]}.root --batch
   done
 fi
 
@@ -144,7 +144,7 @@ if $DoHFPtSpec; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute HFPtspectrum
-    echo '.x HFPtSpectrum.C+ (kDsKKpi,"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_Ds'${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYieldsDs'${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrumDs'${CutSets[$iCutSet]}'.root",kNb,1.,true,'${Cent}',k2018)' | root -l
+    echo '.x HFPtSpectrum.C+ (kDsKKpi,"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_Ds'${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYieldsDs'${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrumDs'${CutSets[$iCutSet]}'.root",kNb,1.,true,'${Cent}',k2018)' | root -l -b
     echo '.q'
   done
 fi
