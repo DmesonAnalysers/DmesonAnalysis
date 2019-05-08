@@ -39,7 +39,7 @@ const  double relassignedsyst[] = {0.10,0.10,0.10,0.06,0.05,0.05,0.05,0.05};
 
 const TString outfilename = "outputs/cutvarsyst/systvalues/CutVarSyst_Ds_010.root";
 
- int PlotCutVariationsOnePtBin( bool fRelativeVariation=kFALSE);
+int PlotCutVariationsOnePtBin( bool fRelativeVariation=kFALSE);
 void SetStyle();
 
  int PlotCutVariationsOnePtBin( bool fRelativeVariation) {
@@ -242,7 +242,7 @@ void SetStyle();
       gSoverBVsCutSet[iPtRaw]->SetPointError(iFile,0.5,hSoverB[iFile]->GetBinError(iPtRaw+1));      
     
       if(iFile!=0) {
-        if(TMath::Abs(1-hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin))<0.001 && TMath::Abs(1-hEffFD[iFile]->GetBinContent(iPtRaw+1)/hEffFD[0]->GetBinContent(iPtRaw+1))<0.001) continue;
+        if(TMath::Abs(1-hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin))<0.01 && TMath::Abs(1-hEffFD[iFile]->GetBinContent(iPtRaw+1)/hEffFD[0]->GetBinContent(iPtRaw+1))<0.01) continue;
         if(hSignificance[iFile]->GetBinContent(iPtRaw+1)<minaccsignif) continue;
         hCrossSectionRatioDist[iPtRaw]->Fill(hCrossSection[iFile]->GetBinContent(crossptbin)/hCrossSection[0]->GetBinContent(crossptbin));
       }
