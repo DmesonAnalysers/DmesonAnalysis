@@ -1,6 +1,6 @@
 #*************************************************************************************************************#
 # python script for the computation of the D+ and Ds+ efficiency mesons from ProjectDplusDsSparse.py output   #
-# run: python ComputeEfficiencyDplusDs.py cutSetFileName.yml inputFileName.root outFileName.root              #
+# run: python ComputeEfficiencyDplusDs.py fitConfigFileName.yml inputFileName.root outFileName.root              #
 # author: Fabrizio Grosa, fabrizio.grosa@to.infn.it ,INFN Torino                                              #
 #*************************************************************************************************************#
 
@@ -27,27 +27,34 @@ def SetHistoStyle(histo, color, marker, markersize=1.5, linewidth=2, linestyle=1
     histo.SetMarkerSize(markersize)
 
 parser = argparse.ArgumentParser(description='Arguments')
-parser.add_argument('cutSetFileName', metavar='text', default='')
+parser.add_argument('fitConfigFileName', metavar='text', default='config_Ds_Fit.yml')
+parser.add_argument('centClass', metavar='text', default='')
 parser.add_argument('inFileName', metavar='text', default='')
 parser.add_argument('outFileName', metavar='text', default='')
 parser.add_argument('--ptweights', metavar=('text','text'), nargs=2, required=False, help='First path of the pT weights file, second name of the pT weights histogram')
 args = parser.parse_args()
 
-with open(args.cutSetFileName, 'r') as ymlcutSetFile:
-    cutSet = yaml.load(ymlcutSetFile)
+with open(args.fitConfigFileName, 'r') as ymlfitConfigFile:
+    fitConfig = yaml.load(ymlfitConfigFile)
 
-PtMin = cutSet['cutvars']['Pt']['min']
-PtMax = cutSet['cutvars']['Pt']['max']
-cutSet['cutvars']['Pt']['limits'] = list(cutSet['cutvars']['Pt']['min'])
-cutSet['cutvars']['Pt']['limits'].append(cutSet['cutvars']['Pt']['max'][len(cutSet['cutvars']['Pt']['max'])-1])
+cent = ''
+if(args.centClass == 'k010'):
+    cent = 'Cent010'
+elif(args.centClass == 'k3050'):
+    cent = 'Cent3050'
+
+PtMin = fitConfig[cent]['PtMin']
+PtMax = fitConfig[cent]['PtMax']
+PtLims = list(PtMin)
 nPtBins = len(PtMin)
+PtLims.append(PtMax[nPtBins - 1])
 
-hEffPrompt = TH1F('hEffPrompt',';#it{p}_{T} (GeV/#it{c});Efficiency',nPtBins,array.array('f',cutSet['cutvars']['Pt']['limits']))
-hEffFD = TH1F('hEffFD',';#it{p}_{T} (GeV/#it{c});Efficiency',nPtBins,array.array('f',cutSet['cutvars']['Pt']['limits']))
-hYieldPromptGen = TH1F('hYieldPromptGen',';#it{p}_{T} (GeV/#it{c}); # Generated MC',nPtBins,array.array('f',cutSet['cutvars']['Pt']['limits']))
-hYieldFDGen = TH1F('hYieldFDGen',';#it{p}_{T} (GeV/#it{c}); # Generated MC',nPtBins,array.array('f',cutSet['cutvars']['Pt']['limits']))
-hYieldPromptReco = TH1F('hYieldPromptReco',';#it{p}_{T} (GeV/#it{c}); # Reco MC',nPtBins,array.array('f',cutSet['cutvars']['Pt']['limits']))
-hYieldFDReco = TH1F('hYieldFDReco',';#it{p}_{T} (GeV/#it{c}); # Reco MC',nPtBins,array.array('f',cutSet['cutvars']['Pt']['limits']))
+hEffPrompt = TH1F('hEffPrompt',';#it{p}_{T} (GeV/#it{c});Efficiency',nPtBins,array.array('f',PtLims))
+hEffFD = TH1F('hEffFD',';#it{p}_{T} (GeV/#it{c});Efficiency',nPtBins,array.array('f',PtLims))
+hYieldPromptGen = TH1F('hYieldPromptGen',';#it{p}_{T} (GeV/#it{c}); # Generated MC',nPtBins,array.array('f',PtLims))
+hYieldFDGen = TH1F('hYieldFDGen',';#it{p}_{T} (GeV/#it{c}); # Generated MC',nPtBins,array.array('f',PtLims))
+hYieldPromptReco = TH1F('hYieldPromptReco',';#it{p}_{T} (GeV/#it{c}); # Reco MC',nPtBins,array.array('f',PtLims))
+hYieldFDReco = TH1F('hYieldFDReco',';#it{p}_{T} (GeV/#it{c}); # Reco MC',nPtBins,array.array('f',PtLims))
 SetHistoStyle(hEffPrompt,kRed,kFullCircle)
 SetHistoStyle(hEffFD,kBlue,kOpenSquare,1.5,2,7)
 SetHistoStyle(hYieldPromptGen,kRed,kFullCircle)
