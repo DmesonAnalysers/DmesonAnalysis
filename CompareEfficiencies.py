@@ -3,13 +3,13 @@ from ROOT import gStyle, kRed, kBlack, kBlue, kFullCircle, kFullSquare, kFullDia
 import math
 import six
 
-inputdir = 'outputs'
-inputfilenames = [ '2015results/AccEffDs_3050_AOD198.root', '3_24bin_merge/eff/EffAcc_Ds_3050_2015cuts_Improver.root']
-histonames = [ 'hEffAcc', 'hAccEff' ]
+inputdir = 'outputs/efficiency'
+inputfilenames = [ 'Efficiency_Ds_010_central_18q.root', 'Efficiency_Ds_010_central_18r.root']
+histonames = [ 'hEff', 'hEff' ]
 colors = [ kRed, kBlue ]
 markers = [ kFullSquare, kFullCircle]
-legendnames = [ 'LHC16i2b (2015 cuts)', 'LHC19c3b(2) (2015 cuts)']
-outputsuffix = 'LHC15o_LHC18qr'
+legendnames = [ 'LHC18q', 'LHC18r']
+outputsuffix = 'LHC18q_LHC18r'
 
 hEffPrompt, hEffFD, hEffPromptRatio, hEffFDRatio = ([] for iList in range(4))
 
@@ -61,14 +61,17 @@ for iFile in range(len(inputfilenames)):
   #  hEffPromptRatio[iFile].SetBinError(iBin+1,1.e-20)
   #  hEffFDRatio[iFile].SetBinError(iBin+1,1.e-20)
 
+ptmin = hEffPrompt[0].GetBinLowEdge(1)
+ptmax = hEffPrompt[0].GetBinLowEdge(hEffPrompt[0].GetNbinsX())+hEffPrompt[0].GetBinWidth(hEffPrompt[0].GetNbinsX())
+
 cPrompt = TCanvas('cPrompt','',1000,500)
 cPrompt.Divide(2,1)
-cPrompt.cd(1).DrawFrame(4,1.e-4,16,1.,';#it{p}_{T} (GeV/#it{c}); Prompt efficiency')
+cPrompt.cd(1).DrawFrame(ptmin,1.e-4,ptmax,1.,';#it{p}_{T} (GeV/#it{c}); Prompt efficiency')
 cPrompt.cd(1).SetLogy()
 for iFile in range(len(inputfilenames)):
   hEffPrompt[iFile].Draw('same')
 leg.Draw()
-cPrompt.cd(2).DrawFrame(4,0.5,16,1.5,';#it{p}_{T} (GeV/#it{c}); Prompt efficiency ratio')
+cPrompt.cd(2).DrawFrame(ptmin,0.5,ptmax,1.5,';#it{p}_{T} (GeV/#it{c}); Prompt efficiency ratio')
 for iFile in range(len(inputfilenames)):
   if iFile==0: 
     continue
@@ -76,12 +79,12 @@ for iFile in range(len(inputfilenames)):
 
 cFD = TCanvas('cFD','',1000,500)
 cFD.Divide(2,1)
-cFD.cd(1).DrawFrame(4,1.e-4,16,1.,';#it{p}_{T} (GeV/#it{c}); Feed-down efficiency')
+cFD.cd(1).DrawFrame(ptmin,1.e-4,ptmax,1.,';#it{p}_{T} (GeV/#it{c}); Feed-down efficiency')
 cFD.cd(1).SetLogy()
 for iFile in range(len(inputfilenames)):
   hEffFD[iFile].Draw('same')
 leg.Draw()
-cFD.cd(2).DrawFrame(4,0.5,16,1.5,';#it{p}_{T} (GeV/#it{c}); Feed-down efficiency ratio')
+cFD.cd(2).DrawFrame(ptmin,0.5,ptmax,1.5,';#it{p}_{T} (GeV/#it{c}); Feed-down efficiency ratio')
 for iFile in range(len(inputfilenames)):
   if iFile==0: 
     continue
