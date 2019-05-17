@@ -196,7 +196,7 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     fout->Close();
 }
 
-void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE) {
+void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE, Bool_t fSetMinRatioCrossedRowsOverFindableClustersTPC=kFALSE, Bool_t fSetMinCrossedRowsTPCPtDep=kFALSE, Bool_t fSetMinRatioClsOverCrossRowsTPC=kFALSE, Bool_t fSetUseCutGeoNcrNcl=kFALSE) {
     
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
@@ -381,10 +381,29 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     analysiscuts->SetUsePreSelect(1);
     analysiscuts->SetPtBins(nptbins+1,ptbins);
     analysiscuts->SetCuts(nvars,nptbins,anacutsval);
-    analysiscuts->AddTrackCuts(esdTrackCuts);
     analysiscuts->Setd0MeasMinusExpCut(nptbins,topomCuts);
     analysiscuts->Setd0Cut(nptbins,d0Cuts);
     
+    TString suffixtrack = "";
+    if(fSetMinRatioCrossedRowsOverFindableClustersTPC) {
+      esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.9);
+      suffixtrack += "_tkc1";
+    }
+    analysiscuts->AddTrackCuts(esdTrackCuts);
+    
+    if(fSetMinCrossedRowsTPCPtDep) {
+      analysiscuts->SetMinCrossedRowsTPCPtDep("120-(5/pt)");
+      suffixtrack += "_tkc2";
+    }
+    if(fSetMinRatioClsOverCrossRowsTPC) {
+      analysiscuts->SetMinRatioClsOverCrossRowsTPC(0.65);
+      suffixtrack += "_tkc3";
+    }
+    if(fSetUseCutGeoNcrNcl) {
+      analysiscuts->SetUseCutGeoNcrNcl(kTRUE);
+      suffixtrack += "_tkc4";
+    }
+
     TString cent="";
     
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
@@ -422,7 +441,7 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     analysiscuts->PrintAll();
     TString triggername = "kINT7_kCentral";
     if(fIsMC) triggername = "kMB";
-    TFile* fout=new TFile(Form("DstoKKpiCuts_010_central_strongPIDpt%0.f_Raa_%s.root",maxPtstrongPID, triggername.Data()),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_010_central_strongPIDpt%0.f_Raa_%s%s.root",maxPtstrongPID, triggername.Data(),suffixtrack.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
