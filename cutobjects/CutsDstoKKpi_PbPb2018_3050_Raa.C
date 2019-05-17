@@ -202,7 +202,7 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     fout->Close();
 }
 
-void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC=kFALSE) {
+void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0, Bool_t fIsMC = kFALSE, Int_t addTrackCut = 0) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
@@ -420,6 +420,32 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(36.);
     analysiscuts->SetRemoveDaughtersFromPrim(kFALSE);
+
+    TString trackCutName= "";
+    switch (addTrackCut) {
+      case 1:
+        esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.9);
+        trackCutName = "_addRowsOverClusterTPC";
+        break;
+      
+      case 2:
+        analysiscuts->SetMinCrossedRowsTPCPtDep("120-(5/pt)");
+        trackCutName = "_addMinCrossedRowsTPC";
+        break;
+      
+      case 3:
+        analysiscuts->SetMinRatioClsOverCrossRowsTPC(0.65);
+        trackCutName = "_addRatioClsOverRowsTPC";
+        break;
+      
+      case 4:
+        analysiscuts->SetUseCutGeoNcrNcl(kTRUE);
+        trackCutName = "_addUseCutGeo";
+        break;
+      
+      default:
+        break;
+    }
   
     std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
     
@@ -427,7 +453,7 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     TString triggername = "kINT7_kSemiCentral";
     if(fIsMC)
      triggername = "kMB";
-    TFile* fout=new TFile(Form("DstoKKpiCuts2018_3050_central_strongPIDpt%0.f_Raa_%s.root",maxPtstrongPID, triggername.Data()),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts2018_3050_central_strongPIDpt%0.f_Raa_%s%s.root",maxPtstrongPID, triggername.Data(), trackCutName.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
