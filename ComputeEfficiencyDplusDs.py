@@ -73,10 +73,10 @@ hRecoPrompt, hRecoFD, hGenPrompt, hGenFD = ([] for iHisto in range(4))
 
 infile = TFile(args.inFileName)
 for iPt in range(len(PtMin)):
-    hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (PtMin[iPt], PtMax[iPt])))
-    hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (PtMin[iPt], PtMax[iPt])))
-    hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (PtMin[iPt], PtMax[iPt])))
-    hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (PtMin[iPt], PtMax[iPt])))
+    hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (PtMin[iPt]*10, PtMax[iPt]*10)))
+    hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (PtMin[iPt]*10, PtMax[iPt]*10)))
+    hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (PtMin[iPt]*10, PtMax[iPt]*10)))
+    hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (PtMin[iPt]*10, PtMax[iPt]*10)))
 
     #get unweighted yields (for uncertainty)
     nRecoPrompt = hRecoPrompt[iPt].Integral()

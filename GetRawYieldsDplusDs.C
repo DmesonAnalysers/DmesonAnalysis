@@ -95,13 +95,13 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
   TH1F* hEv = NULL;
   for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
     if(!isMC)
-      hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt])));
+      hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10)));
     else {
-      hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hPromptMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt])));
-      hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hFDMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt]))));
+      hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hPromptMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10)));
+      hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hFDMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10))));
       if(InclSecPeak[iPt]) {
-        hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hPromptSecPeakMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt]))));
-        hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hFDSecPeakMass_%0.f_%0.f",PtMin[iPt],PtMax[iPt]))));
+        hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hPromptSecPeakMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10))));
+        hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hFDSecPeakMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10))));
       }
     }
     hEv = static_cast<TH1F*>(infile->Get("hEvForNorm"));

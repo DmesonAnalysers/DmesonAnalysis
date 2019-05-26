@@ -61,7 +61,7 @@ FD_gen_list_secpeak = []
 outfile = TFile(outFileName,'RECREATE')
 
 for iPt in range(0, len(cutVars['Pt']['min'])):
-    print("Projecting distributions for %0.f < pT < %0.f GeV/c" % (cutVars['Pt']['min'][iPt],cutVars['Pt']['max'][iPt]))
+    print("Projecting distributions for %0.1f < pT < %0.1f GeV/c" % (cutVars['Pt']['min'][iPt],cutVars['Pt']['max'][iPt]))
     for iVar in cutVars:
         if iVar == 'InvMass':
             continue
@@ -77,26 +77,26 @@ for iPt in range(0, len(cutVars['Pt']['min'])):
 
     for iVar in ('InvMass', 'Pt'):
         hVar = sMassPtCutVars.Projection(cutVars[iVar]['axisnum'])
-        hVar.SetName('h%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))    
+        hVar.SetName('h%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))    
         outfile.cd()
         all_dict[iVar].append(hVar)
         hVar.Write()
         if isMC:
             hVarPrompt = sMassPtCutVarsPrompt.Projection(cutVars[iVar]['axisnum'])
-            hVarPrompt.SetName('hPrompt%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+            hVarPrompt.SetName('hPrompt%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
             prompt_dict[iVar].append(hVarPrompt)
             hVarPrompt.Write()
             hVarFD = sMassPtCutVarsFD.Projection(cutVars[iVar]['axisnum'])
-            hVarFD.SetName('hFD%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+            hVarFD.SetName('hFD%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
             FD_dict[iVar].append(hVarFD)
             hVarFD.Write()
             if enableSecPeak:
                 hVarPromptSecPeak = sMassPtCutVarsPromptSecPeak.Projection(cutVars[iVar]['axisnum'])
-                hVarPromptSecPeak.SetName('hPromptSecPeak%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+                hVarPromptSecPeak.SetName('hPromptSecPeak%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
                 prompt_dict_secpeak[iVar].append(hVarPromptSecPeak)
                 hVarPromptSecPeak.Write()
                 hVarFDSecPeak = sMassPtCutVarsFDSecPeak.Projection(cutVars[iVar]['axisnum'])
-                hVarFDSecPeak.SetName('hFDSecPeak%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+                hVarFDSecPeak.SetName('hFDSecPeak%s_%0.f_%0.f' % ( cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
                 FD_dict_secpeak[iVar].append(hVarFDSecPeak)
                 hVarFDSecPeak.Write()
     if isMC:
@@ -105,22 +105,22 @@ for iPt in range(0, len(cutVars['Pt']['min'])):
         sGenPrompt.GetAxis(0).SetRange(binGenMin,binGenMax)
         sGenFD.GetAxis(0).SetRange(binGenMin,binGenMax)
         hGenPtPrompt = sGenPrompt.Projection(0)
-        hGenPtPrompt.SetName('hPromptGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+        hGenPtPrompt.SetName('hPromptGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
         prompt_gen_list.append(hGenPtPrompt)
         hGenPtPrompt.Write()
         hGenPtFD = sGenFD.Projection(0)
-        hGenPtFD.SetName('hFDGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+        hGenPtFD.SetName('hFDGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
         FD_gen_list.append(hGenPtFD)
         hGenPtFD.Write()
         if enableSecPeak:
             sGenPromptSecPeak.GetAxis(0).SetRange(binGenMin,binGenMax)
             sGenFDSecPeak.GetAxis(0).SetRange(binGenMin,binGenMax)
             hGenPtPromptSecPeak = sGenPromptSecPeak.Projection(0)
-            hGenPtPromptSecPeak.SetName('hPromptSecPeakGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+            hGenPtPromptSecPeak.SetName('hPromptSecPeakGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
             prompt_gen_list_secpeak.append(hGenPtPromptSecPeak)  
             hGenPtPromptSecPeak.Write()
             hGenPtFDSecPeak = sGenFDSecPeak.Projection(0)
-            hGenPtFDSecPeak.SetName('hFDSecPeakGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+            hGenPtFDSecPeak.SetName('hFDSecPeakGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
             FD_gen_list_secpeak.append(hGenPtFDSecPeak)
             hGenPtFDSecPeak.Write()
 
@@ -136,35 +136,37 @@ for iPt in range(0, len(cutVars['Pt']['min'])):
 for iPt in range(0, len(cutVars['Pt']['min']) - 1):
     for iVar in ('InvMass', 'Pt'):
         hVar_merged = merge_hist(all_dict[iVar][iPt], all_dict[iVar][iPt+1])
-        hVar_merged.SetName('h%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
+        hVar_merged.SetName('h%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
         hVar_merged.Write()
         if isMC:
             hVarPrompt_merged = merge_hist(prompt_dict[iVar][iPt], prompt_dict[iVar][iPt+1])
-            hVarPrompt_merged.SetName('hPrompt%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
+            hVarPrompt_merged.SetName('hPrompt%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
             hVarPrompt_merged.Write()
             hVarFD_merged = merge_hist(FD_dict[iVar][iPt], FD_dict[iVar][iPt+1])
-            hVarFD_merged.SetName('hFD%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
+            hVarFD_merged.SetName('hFD%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
             hVarFD_merged.Write()
-            hVarPrompt_secpeak_merged = merge_hist(prompt_dict_secpeak[iVar][iPt], prompt_dict_secpeak[iVar][iPt+1])
-            hVarPrompt_secpeak_merged.SetName('hPromptSecPeak%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
-            hVarPrompt_secpeak_merged.Write()
-            hVarFD_secpeak_merged = merge_hist(FD_dict_secpeak[iVar][iPt], FD_dict_secpeak[iVar][iPt+1])
-            hVarFD_secpeak_merged.SetName('hFDSecPeak%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
-            hVarFD_secpeak_merged.Write()
+            if enableSecPeak:
+                hVarPrompt_secpeak_merged = merge_hist(prompt_dict_secpeak[iVar][iPt], prompt_dict_secpeak[iVar][iPt+1])
+                hVarPrompt_secpeak_merged.SetName('hPromptSecPeak%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
+                hVarPrompt_secpeak_merged.Write()
+                hVarFD_secpeak_merged = merge_hist(FD_dict_secpeak[iVar][iPt], FD_dict_secpeak[iVar][iPt+1])
+                hVarFD_secpeak_merged.SetName('hFDSecPeak%s_%0.f_%0.f' % (cutVars[iVar]['name'], cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
+                hVarFD_secpeak_merged.Write()
     
     if isMC:
         hVarPromptGen_merged = merge_hist(prompt_gen_list[iPt], prompt_gen_list[iPt+1])
-        hVarPromptGen_merged.SetName('hPromptGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
+        hVarPromptGen_merged.SetName('hPromptGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
         hVarPromptGen_merged.Write()
         hVarPromptFD_merged = merge_hist(FD_gen_list[iPt], FD_gen_list[iPt+1])
-        hVarPromptFD_merged.SetName('hFDGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
+        hVarPromptFD_merged.SetName('hFDGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
         hVarPromptFD_merged.Write()
-        hVarPromptGen_secpeak_merged = merge_hist(prompt_gen_list_secpeak[iPt], prompt_gen_list_secpeak[iPt+1])
-        hVarPromptGen_secpeak_merged.SetName('hPromptGenSecPeakPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
-        hVarPromptGen_secpeak_merged.Write()
-        hVarFDGen_secpeak_merged = merge_hist(FD_gen_list_secpeak[iPt], FD_gen_list_secpeak[iPt+1])
-        hVarFDGen_secpeak_merged.SetName('hFDGenSecPeakPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt+1]))
-        hVarFDGen_secpeak_merged.Write()
+        if enableSecPeak:
+            hVarPromptGen_secpeak_merged = merge_hist(prompt_gen_list_secpeak[iPt], prompt_gen_list_secpeak[iPt+1])
+            hVarPromptGen_secpeak_merged.SetName('hPromptGenSecPeakPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
+            hVarPromptGen_secpeak_merged.Write()
+            hVarFDGen_secpeak_merged = merge_hist(FD_gen_list_secpeak[iPt], FD_gen_list_secpeak[iPt+1])
+            hVarFDGen_secpeak_merged.SetName('hFDGenSecPeakPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt+1]*10))
+            hVarFDGen_secpeak_merged.Write()
 
 hEvForNorm = TH1F("hEvForNorm",";;Number of events", 2, 0., 2.)
 hEvForNorm.GetXaxis().SetBinLabel(1,"norm counter")
