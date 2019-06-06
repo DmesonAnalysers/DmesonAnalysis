@@ -87,7 +87,7 @@ int RawYieldSystematics(TString outfilerawname) {
   TH1F* hFracGaus2MC=0x0;
   TH1F* hRatioSigmaGaus2MC=0x0;
   int loadref = LoadRefFiles(reffilename,reffileMCname,reffileMCname2,hRawYieldRef,hSigmaRef,hMeanRef,hBkgRef,hSigmaMC,hFracGaus2MC,hRatioSigmaGaus2MC);
-  if(loadref>0 && loadref<9) {cerr << "Error in loading reference files! Check them please." <<endl; return loadref;}
+  if(loadref>0 && loadref<9) {std::cerr << "Error in loading reference files! Check them please." <<std::endl; return loadref;}
   if(hRatioSigmaGaus2MC && hSigmaMC) {
     hRatioSigmaGaus2MC->Divide(hSigmaMC);
   }
@@ -506,7 +506,7 @@ int RawYieldSystematics(TString outfilerawname) {
     c[iPt]->Write();
   }
   outfileraw.Close();
-  cout << "\n" <<outfilerawname << " saved." <<endl;
+  std::cout << "\n" <<outfilerawname << " saved." <<std::endl;
   
   for(int iPt=0; iPt<nPtBins; iPt++) {
     outfilerawname.ReplaceAll(".root","");

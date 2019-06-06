@@ -18,7 +18,7 @@ Cent010:
 Cent3050:
     Meson: 'Ds'
     FixSigma: 0
-    SigmaFile: 'outputs/3_24bin/no_fix_width/raw_yields/RawYieldsDs_MC_3050_100419cuts.root'
+    SigmaFile: 'outputs/3_24bin_merge/PIDvar/rawyields/RawYieldsDs_3050_central_2018.root'
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
