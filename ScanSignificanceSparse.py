@@ -6,7 +6,7 @@
 
 from ROOT import TFile, TCanvas, TH1F, TF1, TNtuple, TGraph, TSpline3, gROOT # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kBlack, kBlue, kGreen, kOrange # pylint: disable=import-error,no-name-in-module
-import yaml, sys, itertools, math, array
+import yaml, sys, itertools, math, array, time
 from ReadModel import ReadFONLL, ReadTAMU
 
 def ApplyCuts(sparse,bins,axesnum,upperlowercuts,name) :
@@ -187,11 +187,13 @@ for iPt in range(0,len(PtMin)) :
   sMassPtCutVarsFD.GetAxis(1).SetRange(binRecoPtMin,binRecoPtMax)
 
   cutSetCount = 0 
+  start_time = time.time()
   for iBins in itertools.product(*ranges) :
 
     cutSetCount += 1
-    if cutSetCount % 100 == 0:
-      print('tested cut set number %d' % cutSetCount)
+    if cutSetCount % 1000 == 0:
+      elapsed_time = time.time() - start_time
+      print('tested cut set number %d, elapsed time: %f s' % (cutSetCount, elapsed_time))
 
     hMassData, index, array4Ntuple = ApplyCuts(sMassPtCutVars,iBins,axesnum,upperlowercuts,'hMassData')  
     hMassPrompt, index, array4Ntuple = ApplyCuts(sMassPtCutVarsPrompt,iBins,axesnum,upperlowercuts,'hMassPrompt')  
