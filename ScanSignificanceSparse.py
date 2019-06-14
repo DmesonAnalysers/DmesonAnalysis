@@ -115,15 +115,17 @@ PtMax = inputCfg['PtMax']
 ranges = []
 axesnum = []
 upperlowercuts = []
+steps = []
 
-for iVar in cutVars :
+for varnum, iVar in enumerate(cutVars):
   if cutVars[iVar]['upperlowercut'] == 'Lower' :
     cutVars[iVar]['binmin'] = sMassPtCutVarsLowPt.GetAxis(cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['min']*1.0001)
     cutVars[iVar]['binmax'] = sMassPtCutVarsLowPt.GetAxis(cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['max']*1.0001)
   elif cutVars[iVar]['upperlowercut'] == 'Upper' :
     cutVars[iVar]['binmin'] = sMassPtCutVarsLowPt.GetAxis(cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['min']*0.9999)
     cutVars[iVar]['binmax'] = sMassPtCutVarsLowPt.GetAxis(cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['max']*0.9999)
-  ranges.append(range(cutVars[iVar]['binmin'],cutVars[iVar]['binmax']+1))
+  steps.append(int(cutVars[iVar]['step'] / sMassPtCutVarsLowPt.GetAxis(cutVars[iVar]['axisnum']).GetBinWidth(1)))
+  ranges.append(range(cutVars[iVar]['binmin'],cutVars[iVar]['binmax']+1,steps[varnum]))
   axesnum.append(cutVars[iVar]['axisnum'])
   upperlowercuts.append(cutVars[iVar]['upperlowercut'])
 
@@ -135,8 +137,8 @@ varsName4Tuple = ':'.join(cutVars) + ':PtMin:PtMax:Signif:SoverB:EffPrompt'
 tSignif = TNtuple('tSignif','tSignif',varsName4Tuple)
 
 totSets = 1
-for iVar in cutVars:
-  totSets *= cutVars[iVar]['binmax']-cutVars[iVar]['binmin']+1
+for varnum, iVar in enumerate(cutVars):
+  totSets *= int((cutVars[iVar]['binmax']-cutVars[iVar]['binmin']+1)/steps[varnum])
 
 print('Total number of sets per pT bin: %d' % totSets)
 
