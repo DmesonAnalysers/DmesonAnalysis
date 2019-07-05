@@ -193,6 +193,7 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
     analysiscuts->AddTrackCuts(esdTrackCuts);
     analysiscuts->Setd0MeasMinusExpCut(nptbins,topomCuts);
     analysiscuts->Setd0Cut(nptbins,d0Cuts);
+    analysiscuts->SetUseTimeRangeCutForPbPb2018(kTRUE);
     
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC

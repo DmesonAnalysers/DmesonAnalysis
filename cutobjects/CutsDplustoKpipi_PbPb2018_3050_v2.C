@@ -199,6 +199,7 @@ void MakeFileForCuts_Central(Bool_t fIsMC=kFALSE){
   analysiscuts->AddTrackCuts(esdTrackCuts);
   analysiscuts->SetScaleNormDLxyBypOverPt(kFALSE);
   analysiscuts->SetUsePreSelect(1);
+  analysiscuts->SetUseTimeRangeCutForPbPb2018(kTRUE);
 
   cout<<"************** checking old PID (it should be FALSE by default - July 10)--> "<<analysiscuts->GetPidHF()->GetOldPid()<<endl;
 

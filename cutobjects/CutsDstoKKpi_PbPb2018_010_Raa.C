@@ -157,6 +157,8 @@ void MakeFileForCuts_Central2015(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     analysiscuts->SetCuts(nvars,nptbins,anacutsval);
     analysiscuts->AddTrackCuts(esdTrackCuts);
     analysiscuts->Setd0MeasMinusExpCut(nptbins,topomCuts);
+    analysiscuts->SetUseTimeRangeCutForPbPb2018(kTRUE);
+
    // analysiscuts->SetUseReferencePhiMass(1.0205);
     
     TString cent="";
@@ -383,7 +385,8 @@ void MakeFileForCuts_Central2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstr
     analysiscuts->SetCuts(nvars,nptbins,anacutsval);
     analysiscuts->Setd0MeasMinusExpCut(nptbins,topomCuts);
     analysiscuts->Setd0Cut(nptbins,d0Cuts);
-    
+    analysiscuts->SetUseTimeRangeCutForPbPb2018(kTRUE);
+
     TString suffixtrack = "";
     if(fSetMinRatioCrossedRowsOverFindableClustersTPC) {
       esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.9);
@@ -635,6 +638,7 @@ void MakeFileForCuts_Loose2018(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstron
     analysiscuts->AddTrackCuts(esdTrackCuts);
     analysiscuts->Setd0MeasMinusExpCut(nptbins,topomCuts);
     analysiscuts->Setd0Cut(nptbins,d0Cuts);
+    analysiscuts->SetUseTimeRangeCutForPbPb2018(kTRUE);
     
     TString cent="";
     
