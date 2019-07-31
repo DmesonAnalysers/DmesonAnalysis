@@ -42,9 +42,14 @@ filenameRaaPredCatania: models/Ds_Catania_RAA_5TeV_010.dat
 filenameAcc: accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
 nExpectedEvents: 40000000 #PbPb2018
 Taa: 0.00000002326 #pb-1
-fprompt: 0.85 #assumpion
 BR: 0.0227
 fractoD: 0.092
+
+PredForFprompt:
+  filename: models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
+  prompthistoname: hDsPhipitoKkpipred_central
+  FDhistoname: hDsPhipitoKkpifromBpred_central_corr
+  RatioRaaFDPrompt: 1 #as in papers
 
 PublishedResult: 
   filenameHepData: hepdata/HEPData_PbPb_2015.root

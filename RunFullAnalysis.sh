@@ -1,6 +1,6 @@
 #!/bin/bash
 DoDataProjection=true
-DoMCProjection=false
+DoMCProjection=true
 DoDataRawYields=true
 DoMCRawYields=false
 DoEfficiency=false
@@ -18,7 +18,7 @@ cfgFileMC="configfiles/config_Ds_MC_010.yml"
 cfgFileFit="configfiles/config_Ds_Fit.yml"
 
 accFileName="accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root"
-predFileName="models/D0DplusDstarPredictions_502TeV_y05_all_021016_BDShapeCorrected.root"
+predFileName="models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root"
 pprefFileName="ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_5_6_8_12_16_24_36_50.root"
 
 PtWeightsFileName="ptweights/PtWeigths_LHC19c3a.root"
@@ -90,7 +90,7 @@ if $DoDataProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Projecting data sparse 
-    python ProjectDplusDsSparse.py ${cfgFileData} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml ${OutDirRawyields}/Distr_Ds_data${CutSets[$iCutSet]}.root
+    python3 ProjectDplusDsSparse.py ${cfgFileData} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml ${OutDirRawyields}/Distr_Ds_data${CutSets[$iCutSet]}.root
   done
 fi
 
@@ -98,7 +98,7 @@ if $DoMCProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Projecting MC sparses 
-    python ProjectDplusDsSparse.py ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root
+    python3 ProjectDplusDsSparse.py ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root
   done
 fi
 
@@ -126,7 +126,7 @@ if $DoEfficiency; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute efficiency from ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root
-    python ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root --ptweights ${PtWeightsFileName} ${PtWeightsHistoName} --batch
+    python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root --ptweights ${PtWeightsFileName} ${PtWeightsHistoName} --batch
   done
 fi
 
@@ -135,7 +135,7 @@ if $DoAccEff; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute efficiency times acceptance
-    python CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_Ds${CutSets[$iCutSet]}.root --batch
+    python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_Ds${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_Ds${CutSets[$iCutSet]}.root --batch
   done
 fi
 
