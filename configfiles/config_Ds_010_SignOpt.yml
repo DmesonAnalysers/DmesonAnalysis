@@ -7,6 +7,7 @@ fileMCLowPt:
   sparsenameGenPrompt: fnSparseAcc_fromC
   sparsenameGenFD: fnSparseAcc_fromB
   sparsenameBkg: null
+  histoevname: hNEvents
 
 fileMCHighPt:
   filename: inputs/LHC16i2a.root
@@ -17,6 +18,7 @@ fileMCHighPt:
   sparsenameGenPrompt: fnSparseAcc_fromC
   sparsenameGenFD: fnSparseAcc_fromB
   sparsenamebkg: null
+  histoevname: hNEvents
 
 fileDataLowPt:
   filename: inputs/LHC18r_lowpt.root
@@ -34,7 +36,7 @@ fileDataHighPt:
   normname: NormalizationCounter
   histoevname: hNEvents
 
-getbkgfromMC: false
+getbkgfromMC: False
 PtThreshold: 8
 
 filenameFONLL: models/FONLL-Ds-pp5-y05-measfinebins.txt
@@ -50,8 +52,8 @@ fractoD: 0.092
 
 PredForFprompt:
   filename: models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
-  prompthistoname: hDsPhipitoKkpipred_central
-  FDhistoname: hDsPhipitoKkpifromBpred_central_corr
+  histonamePrompt: hDsPhipitoKkpipred_central
+  histonameFD: hDsPhipitoKkpifromBpred_central_corr
   RatioRaaFDPrompt: 1 #as in papers
 
 PublishedResult: 
