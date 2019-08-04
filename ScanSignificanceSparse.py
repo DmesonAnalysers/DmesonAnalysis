@@ -52,6 +52,12 @@ def GetExpectedBackgroundFromSB(hSB, mean, sigma, Nexp, Nanal):
     B = fMassBkg.Integral(mean-3*sigma, mean+3*sigma) / hSB.GetBinWidth(1) * Nexp / Nanal
     return B
 
+def GetExpectedBackgroundFromMC(hBkgMC, mean, sigma, Nexp, Nanal):
+    binmin = hBkgMC.GetXaxis().FindBin(mean-3*sigma)
+    binmax = hBkgMC.GetXaxis().FindBin(mean+3*sigma)
+    B = hBkgMC.Integral(binmin, binmax) / hBkgMC.GetBinWidth(1) * Nexp / Nanal
+    return B
+
 def GetExpectedSignal(DeltaPt, sigma, Raa, Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp):
     corrYield = sigma * fractoD * Raa * Taa / DeltaPt
     rawYield = 2 * DeltaPt * corrYield * effPrompt * Acc * BR * Nexp / fprompt
@@ -92,8 +98,6 @@ inlistDataHighPt = indirDataHighPt.Get(inputCfg['fileDataHighPt']['listname'])
 sMassPtCutVarsHighPt = inlistDataHighPt.FindObject(inputCfg['fileDataHighPt']['sparsenameAll'])
 hEvHighPt = inlistDataHighPt.FindObject(inputCfg['fileDataHighPt']['histoevname'])
 
-PtThreshold = inputCfg['PtThreshold']
-
 infileMCLowPt = TFile(inputCfg['fileMCLowPt']['filename'])
 indirMCLowPt = infileMCLowPt.Get(inputCfg['fileMCLowPt']['dirname'])
 inlistMCLowPt = indirMCLowPt.Get(inputCfg['fileMCLowPt']['listname'])
@@ -101,6 +105,8 @@ sMassPtCutVarsPromptLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sp
 sMassPtCutVarsFDLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameFD'])
 sGenPromptLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenPrompt'])
 sGenFDLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenFD'])
+if inputCfg['getbkgfromMC']:
+    sMassPtCutVarsBkgLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameBkg'])
 
 infileMCHighPt = TFile(inputCfg['fileMCHighPt']['filename'])
 indirMCHighPt = infileMCHighPt.Get(inputCfg['fileMCHighPt']['dirname'])
@@ -109,6 +115,8 @@ sMassPtCutVarsPromptHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt'][
 sMassPtCutVarsFDHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt']['sparsenameFD'])
 sGenPromptHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt']['sparsenameGenPrompt'])
 sGenFDHighPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenFD'])
+if inputCfg['getbkgfromMC']:
+    sMassPtCutVarsBkgHighPt = inlistMCLowPt.FindObject(inputCfg['fileMCHighPt']['sparsenameBkg'])
 
 PtThreshold = inputCfg['PtThreshold']
 
@@ -170,17 +178,21 @@ for iPt, _ in enumerate(PtMin):
     if PtMax[iPt] <= PtThreshold:
         nEvBkg = hEvLowPt.GetBinContent(5)
         sMassPtCutVars = sMassPtCutVarsLowPt.Clone('sMassPtCutVars')
-        sMassPtCutVarsPrompt = sMassPtCutVarsPromptLowPt.Clone('sMassPtCutVars')
-        sMassPtCutVarsFD = sMassPtCutVarsFDLowPt.Clone('sMassPtCutVars')
-        sGenPrompt = sGenPromptLowPt.Clone('sMassPtCutVars')
-        sGenFD = sGenPromptLowPt.Clone('sMassPtCutVars')
+        sMassPtCutVarsPrompt = sMassPtCutVarsPromptLowPt.Clone('sMassPtCutVarsPrompt')
+        sMassPtCutVarsFD = sMassPtCutVarsFDLowPt.Clone('sMassPtCutVarsFD')
+        sGenPrompt = sGenPromptLowPt.Clone('sGenPrompt')
+        sGenFD = sGenPromptLowPt.Clone('sGenFD')
+        if inputCfg['getbkgfromMC']:
+            sMassPtCutVarsBkg = sMassPtCutVarsBkgLowPt.Clone('sMassPtCutVarsBkg')
     else:
         nEvBkg = hEvHighPt.GetBinContent(5)
         sMassPtCutVars = sMassPtCutVarsHighPt.Clone('sMassPtCutVars')
-        sMassPtCutVarsPrompt = sMassPtCutVarsPromptHighPt.Clone('sMassPtCutVars')
-        sMassPtCutVarsFD = sMassPtCutVarsFDHighPt.Clone('sMassPtCutVars')
-        sGenPrompt = sGenPromptHighPt.Clone('sMassPtCutVars')
-        sGenFD = sGenPromptHighPt.Clone('sMassPtCutVars')
+        sMassPtCutVarsPrompt = sMassPtCutVarsPromptHighPt.Clone('sMassPtCutVarsPrompt')
+        sMassPtCutVarsFD = sMassPtCutVarsFDHighPt.Clone('sMassPtCutVarsFD')
+        sGenPrompt = sGenPromptHighPt.Clone('sGenPrompt')
+        sGenFD = sGenPromptHighPt.Clone('sGenFD')
+        if inputCfg['getbkgfromMC']:
+            sMassPtCutVarsBkg = sMassPtCutVarsBkgHighPt.Clone('sMassPtCutVarsBkg')
 
     #gen for efficiency
     binGenPtMin = sGenPrompt.GetAxis(0).FindBin(PtMin[iPt]*1.0001)
@@ -223,6 +235,9 @@ for iPt, _ in enumerate(PtMin):
         hMassPrompt, index, array4Ntuple = ApplyCuts(sMassPtCutVarsPrompt, iBins, axesnum, upperlowercuts, 'hMassPrompt')
         hMassFD, index, array4Ntuple = ApplyCuts(sMassPtCutVarsFD, iBins, axesnum, upperlowercuts, 'hMassFD')
 
+        if inputCfg['getbkgfromMC']:
+            hMassBkg, index, array4Ntuple = ApplyCuts(sMassPtCutVarsBkg, iBins, axesnum, upperlowercuts, 'hMassBkg')
+
         hMassSgn = hMassPrompt.Clone('hMassSgn')
         hMassSgn.Add(hMassFD)
         fMassSgn = TF1('fMassSgn', 'gaus', 1.7, 2.15)
@@ -237,7 +252,11 @@ for iPt, _ in enumerate(PtMin):
         effPrompt = nRecoPrompt / nGenPrompt
         effFD = nRecoFD / nGenFD
 
-        B = GetExpectedBackgroundFromSB(hMassSB, mean, sigma, Nexp, nEvBkg)
+        if inputCfg['getbkgfromMC']:
+            B = GetExpectedBackgroundFromMC(hMassBkg, mean, sigma, Nexp, nEvBkg)        
+        else:
+            B = GetExpectedBackgroundFromSB(hMassSB, mean, sigma, Nexp, nEvBkg)
+
         S = GetExpectedSignal(PtMin[iPt]-PtMax[iPt], sigmaFONLL, Raa, Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp)
         fprompt = ComputeExpectedFprompt(PtMin[iPt], PtMax[iPt], effPrompt, hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt)
 

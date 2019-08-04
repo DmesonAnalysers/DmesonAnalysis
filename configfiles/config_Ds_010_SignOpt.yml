@@ -6,6 +6,7 @@ fileMCLowPt:
   sparsenameFD: fnSparseReco_fromB
   sparsenameGenPrompt: fnSparseAcc_fromC
   sparsenameGenFD: fnSparseAcc_fromB
+  sparsenameBkg: null
 
 fileMCHighPt:
   filename: inputs/LHC16i2a.root
@@ -15,6 +16,7 @@ fileMCHighPt:
   sparsenameFD: fnSparseReco_fromB
   sparsenameGenPrompt: fnSparseAcc_fromC
   sparsenameGenFD: fnSparseAcc_fromB
+  sparsenamebkg: null
 
 fileDataLowPt:
   filename: inputs/LHC18r_lowpt.root
@@ -32,6 +34,7 @@ fileDataHighPt:
   normname: NormalizationCounter
   histoevname: hNEvents
 
+getbkgfromMC: false
 PtThreshold: 8
 
 filenameFONLL: models/FONLL-Ds-pp5-y05-measfinebins.txt
