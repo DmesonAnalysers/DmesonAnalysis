@@ -84,7 +84,10 @@ cfgFileName = sys.argv[1]
 outFileName = sys.argv[2]
 
 with open(cfgFileName, 'r') as ymlCfgFile:
-    inputCfg = yaml.load(ymlCfgFile)
+    if six.PY2:
+        inputCfg = yaml.load(ymlCfgFile)
+    else:
+        inputCfg = yaml.safe_load(ymlCfgFile)
 
 if inputCfg['getbkgfromMC'] is False:
     infileDataLowPt = TFile.Open(inputCfg['fileDataLowPt']['filename'])
@@ -184,7 +187,7 @@ for iPt, _ in enumerate(PtMin):
         sMassPtCutVarsPrompt = sMassPtCutVarsPromptLowPt.Clone('sMassPtCutVarsPrompt')
         sMassPtCutVarsFD = sMassPtCutVarsFDLowPt.Clone('sMassPtCutVarsFD')
         sGenPrompt = sGenPromptLowPt.Clone('sGenPrompt')
-        sGenFD = sGenPromptLowPt.Clone('sGenFD')
+        sGenFD = sGenFDLowPt.Clone('sGenFD')
         if inputCfg['getbkgfromMC']:
             sMassPtCutVarsBkg = sMassPtCutVarsBkgLowPt.Clone('sMassPtCutVarsBkg')
         else:
@@ -194,7 +197,7 @@ for iPt, _ in enumerate(PtMin):
         sMassPtCutVarsPrompt = sMassPtCutVarsPromptHighPt.Clone('sMassPtCutVarsPrompt')
         sMassPtCutVarsFD = sMassPtCutVarsFDHighPt.Clone('sMassPtCutVarsFD')
         sGenPrompt = sGenPromptHighPt.Clone('sGenPrompt')
-        sGenFD = sGenPromptHighPt.Clone('sGenFD')
+        sGenFD = sGenFDHighPt.Clone('sGenFD')
         if inputCfg['getbkgfromMC']:
             sMassPtCutVarsBkg = sMassPtCutVarsBkgHighPt.Clone('sMassPtCutVarsBkg')
         else:

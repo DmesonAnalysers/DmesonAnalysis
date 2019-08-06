@@ -126,7 +126,7 @@ if inputCfg['getbkgfromMC']:
 
 PtThreshold = inputCfg['PtThreshold']
 
-nEvExp = inputCfg['nExpectedEvents']
+Nexp = inputCfg['nExpectedEvents']
 Taa = inputCfg['Taa']
 BR = inputCfg['BR']
 fractoD = inputCfg['fractoD']
@@ -164,7 +164,10 @@ for iRaaTAMU in TAMU:
             sCatania[iRaaCatania] = TSpline3('sCatania%s' % iRaaCatania, array.array('d', Catania['PtCent']), array.array('d', Catania[iRaaCatania]), len(Catania['PtCent']))
 
 with open(cutSetFile, 'r') as ymlCutSetFile:
-    cutSetFile = yaml.load(ymlCutSetFile)
+    if six.PY2:
+        cutSetFile = yaml.load(ymlCutSetFile)
+    else:
+        cutSetFile = yaml.safe_load(ymlCutSetFile)
 cutVars = cutSetFile['cutvars']
 
 gSignifTAMU, gSignifPHSD, gSignifGossiaux, gSignifCatania = (TGraphAsymmErrors(0) for iGraph in range(4))
@@ -188,14 +191,15 @@ hAccEffFD = TH1F('hAccEffFD', ';#it{p}_{T} (GeV/#it{c});(Acc #times #epsilon) #t
 SetGraphStyle(hAccEffPrompt, kRed+1, kWhite, kFullSquare)
 SetGraphStyle(hAccEffFD, kBlue+1, kWhite, kFullCircle)
 
-for iPt in range(len(cutVars['Pt']['min'])):
+for iPt, ptmin in enumerate(cutVars['Pt']['min']):
+    ptmax = cutVars['Pt']['max'][iPt]
       #check if low or high pt
-    if PtMax[iPt] <= PtThreshold:
+    if ptmax <= PtThreshold:
         nEvBkg = hEvLowPt.GetBinContent(5)
         sMassPtCutVarsPrompt = sMassPtCutVarsPromptLowPt.Clone('sMassPtCutVarsPrompt')
         sMassPtCutVarsFD = sMassPtCutVarsFDLowPt.Clone('sMassPtCutVarsFD')
         sGenPrompt = sGenPromptLowPt.Clone('sGenPrompt')
-        sGenFD = sGenPromptLowPt.Clone('sGenFD')
+        sGenFD = sGenFDLowPt.Clone('sGenFD')
         if inputCfg['getbkgfromMC']:
             sMassPtCutVarsBkg = sMassPtCutVarsBkgLowPt.Clone('sMassPtCutVarsBkg')
         else:
@@ -205,7 +209,7 @@ for iPt in range(len(cutVars['Pt']['min'])):
         sMassPtCutVarsPrompt = sMassPtCutVarsPromptHighPt.Clone('sMassPtCutVarsPrompt')
         sMassPtCutVarsFD = sMassPtCutVarsFDHighPt.Clone('sMassPtCutVarsFD')
         sGenPrompt = sGenPromptHighPt.Clone('sGenPrompt')
-        sGenFD = sGenPromptHighPt.Clone('sGenFD')
+        sGenFD = sGenFDHighPt.Clone('sGenFD')
         if inputCfg['getbkgfromMC']:
             sMassPtCutVarsBkg = sMassPtCutVarsBkgHighPt.Clone('sMassPtCutVarsBkg')
         else:
@@ -271,7 +275,14 @@ for iPt in range(len(cutVars['Pt']['min'])):
     hMassFD.SetName('hMassFD_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
     hMassSgn = hMassPrompt.Clone('hMassSgn_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))  
     hMassSgn.Add(hMassFD)
-  
+
+    nRecoPrompt = hMassPrompt.Integral()
+    nRecoFD = hMassFD.Integral()
+    effPrompt = nRecoPrompt / nGenPrompt
+    effFD = nRecoFD / nGenFD
+    effPromptUnc = math.sqrt(effPrompt*(1-effPrompt)/nGenPrompt)
+    effFDUnc = math.sqrt(effFD*(1-effFD)/nGenFD)
+
     fMassSgn = TF1('fMassSgn', 'gaus', 1.7, 2.15)
     hMassSgn.Fit('fMassSgn', 'Q0')
     mean = fMassSgn.GetParameter(1)
@@ -284,16 +295,9 @@ for iPt in range(len(cutVars['Pt']['min'])):
         B = GetExpectedBackgroundFromSB(hMassSB, mean, sigma, Nexp, nEvBkg)
 
     if inputCfg['PredForFprompt']['estimateFprompt']:
-        fprompt = ComputeExpectedFprompt(PtMin[iPt], PtMax[iPt], effPrompt, hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt)
+        fprompt = ComputeExpectedFprompt(ptmin, ptmax, effPrompt, hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt)
     else:
         fprompt = inputCfg['fprompt']
-
-    nRecoPrompt = hMassPrompt.Integral()
-    nRecoFD = hMassFD.Integral()
-    effPrompt = nRecoPrompt / nGenPrompt
-    effFD = nRecoFD / nGenFD
-    effPromptUnc = math.sqrt(effPrompt*(1-effPrompt)/nGenPrompt)
-    effFDUnc = math.sqrt(effFD*(1-effFD)/nGenFD)
 
     hAccEffPrompt.SetBinContent(iPt+1, effPrompt*Acc)
     hAccEffPrompt.SetBinError(iPt+1, effPromptUnc*Acc)
@@ -311,19 +315,19 @@ for iPt in range(len(cutVars['Pt']['min'])):
             SignifCatania[iFONLL], CorrYieldCatania[iFONLL] = (dict(RaaCatania) for iDic in range(2)) 
 
             for iRaaTAMU in RaaTAMU:
-                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaTAMU[iRaaTAMU], Taa, effPrompt, acc, fprompt, BR, fractoD, nEvExp)
+                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaTAMU[iRaaTAMU], Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp)
                 SignifTAMU[iFONLL][iRaaTAMU] = rawyield/math.sqrt(rawyield+B)
                 CorrYieldTAMU[iFONLL][iRaaTAMU] = corryield
             for iRaaPHSD in RaaPHSD:
-                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaPHSD[iRaaPHSD], Taa, effPrompt, acc, fprompt, BR, fractoD, nEvExp)
+                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaPHSD[iRaaPHSD], Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp)
                 SignifPHSD[iFONLL][iRaaPHSD] = rawyield/math.sqrt(rawyield+B)
                 CorrYieldPHSD[iFONLL][iRaaPHSD] = corryield
             for iRaaGossiaux in RaaGossiaux:
-                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaGossiaux[iRaaGossiaux], Taa, effPrompt, acc, fprompt, BR, fractoD, nEvExp)
+                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaGossiaux[iRaaGossiaux], Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp)
                 SignifGossiaux[iFONLL][iRaaGossiaux] = rawyield/math.sqrt(rawyield+B)
                 CorrYieldGossiaux[iFONLL][iRaaGossiaux] = corryield
             for iRaaCatania in RaaCatania:
-                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaCatania[iRaaCatania], Taa, effPrompt, acc, fprompt, BR, fractoD, nEvExp)
+                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaCatania[iRaaCatania], Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp)
                 SignifCatania[iFONLL][iRaaCatania] = rawyield/math.sqrt(rawyield+B)
                 CorrYieldCatania[iFONLL][iRaaCatania] = corryield
 
@@ -339,14 +343,14 @@ for iPt in range(len(cutVars['Pt']['min'])):
     gSignifCatania.SetPoint(iPt, PtCent, SignifCatania['Max']['Cent'])
     gSignifCatania.SetPointError(iPt, PtUnc, PtUnc, SignifCatania['Max']['Cent']-SignifCatania['Min'][min(SignifCatania['Min'], key=SignifCatania['Min'].get)], SignifCatania['Max'][max(SignifCatania['Max'], key=SignifCatania['Max'].get)]-SignifCatania['Max']['Cent'])
 
-    gCorrYieldTAMU.SetPoint(iPt, PtCent, corrYieldTAMU['Max']['Min'])
-    gCorrYieldTAMU.SetPointError(iPt, PtUnc, PtUnc, corrYieldTAMU['Max']['Min']-CorrYieldTAMU['Min'][min(CorrYieldTAMU['Min'], key=CorrYieldTAMU['Min'].get)], corrYieldTAMU['Max'][max(CorrYieldTAMU['Max'], key=CorrYieldTAMU['Max'].get)]-CorrYieldTAMU['Max']['Min'])
-    gCorrYieldPHSD.SetPoint(iPt, PtCent, corrYieldPHSD['Max']['Cent'])
-    gCorrYieldPHSD.SetPointError(iPt, PtUnc, PtUnc, corrYieldPHSD['Max']['Cent']-CorrYieldPHSD['Min'][min(CorrYieldPHSD['Min'], key=CorrYieldPHSD['Min'].get)], corrYieldPHSD['Max'][max(CorrYieldPHSD['Max'], key=CorrYieldPHSD['Max'].get)]-CorrYieldPHSD['Max']['Cent'])
-    gCorrYieldGossiaux.SetPoint(iPt, PtCent, corrYieldGossiaux['Max']['ColRad'])
-    gCorrYieldGossiaux.SetPointError(iPt, PtUnc, PtUnc, corrYieldGossiaux['Max']['ColRad']-CorrYieldGossiaux['Min'][min(CorrYieldGossiaux['Min'], key=CorrYieldGossiaux['Min'].get)], corrYieldGossiaux['Max'][max(CorrYieldGossiaux['Max'], key=CorrYieldGossiaux['Max'].get)]-CorrYieldGossiaux['Max']['ColRad'])
-    gCorrYieldCatania.SetPoint(iPt, PtCent, corrYieldCatania['Max']['Cent'])
-    gCorrYieldCatania.SetPointError(iPt, PtUnc, PtUnc, corrYieldCatania['Max']['Cent']-CorrYieldCatania['Min'][min(CorrYieldCatania['Min'], key=CorrYieldCatania['Min'].get)], corrYieldCatania['Max'][max(CorrYieldCatania['Max'], key=CorrYieldCatania['Max'].get)]-CorrYieldCatania['Max']['Cent'])
+    gCorrYieldTAMU.SetPoint(iPt, PtCent, CorrYieldTAMU['Max']['Min'])
+    gCorrYieldTAMU.SetPointError(iPt, PtUnc, PtUnc, CorrYieldTAMU['Max']['Min']-CorrYieldTAMU['Min'][min(CorrYieldTAMU['Min'], key=CorrYieldTAMU['Min'].get)], CorrYieldTAMU['Max'][max(CorrYieldTAMU['Max'], key=CorrYieldTAMU['Max'].get)]-CorrYieldTAMU['Max']['Min'])
+    gCorrYieldPHSD.SetPoint(iPt, PtCent, CorrYieldPHSD['Max']['Cent'])
+    gCorrYieldPHSD.SetPointError(iPt, PtUnc, PtUnc, CorrYieldPHSD['Max']['Cent']-CorrYieldPHSD['Min'][min(CorrYieldPHSD['Min'], key=CorrYieldPHSD['Min'].get)], CorrYieldPHSD['Max'][max(CorrYieldPHSD['Max'], key=CorrYieldPHSD['Max'].get)]-CorrYieldPHSD['Max']['Cent'])
+    gCorrYieldGossiaux.SetPoint(iPt, PtCent, CorrYieldGossiaux['Max']['ColRad'])
+    gCorrYieldGossiaux.SetPointError(iPt, PtUnc, PtUnc, CorrYieldGossiaux['Max']['ColRad']-CorrYieldGossiaux['Min'][min(CorrYieldGossiaux['Min'], key=CorrYieldGossiaux['Min'].get)], CorrYieldGossiaux['Max'][max(CorrYieldGossiaux['Max'], key=CorrYieldGossiaux['Max'].get)]-CorrYieldGossiaux['Max']['ColRad'])
+    gCorrYieldCatania.SetPoint(iPt, PtCent, CorrYieldCatania['Max']['Cent'])
+    gCorrYieldCatania.SetPointError(iPt, PtUnc, PtUnc, CorrYieldCatania['Max']['Cent']-CorrYieldCatania['Min'][min(CorrYieldCatania['Min'], key=CorrYieldCatania['Min'].get)], CorrYieldCatania['Max'][max(CorrYieldCatania['Max'], key=CorrYieldCatania['Max'].get)]-CorrYieldCatania['Max']['Cent'])
 
     hMassData.Write()
     hMassPrompt.Write()
