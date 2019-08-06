@@ -211,7 +211,7 @@ for iPt, _ in enumerate(PtMin):
     hPtGenFD = sGenFD.GetAxis(0).SetRange(binGenPtMin, binGenPtMax)
     hPtGenFD = sGenFD.Projection(0)
     nGenPrompt = hPtGenPrompt.Integral()
-    nGenFD = hPtGenPrompt.Integral()
+    nGenFD = hPtGenFD.Integral()
 
     #acceptance from TOY MC
     binAccPtMin = hPtGenAcc.GetXaxis().FindBin(PtMin[iPt]*1.0001)
