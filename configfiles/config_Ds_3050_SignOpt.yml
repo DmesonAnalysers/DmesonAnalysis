@@ -57,6 +57,7 @@ PredForFprompt:
   RatioRaaFDPrompt: 1 #as in papers
 
 PublishedResult: 
+  plotPublished: true
   filenameHepData: hepdata/HEPData_PbPb_2015.root
   tableCorrYield: 8
   tableRaa: 33

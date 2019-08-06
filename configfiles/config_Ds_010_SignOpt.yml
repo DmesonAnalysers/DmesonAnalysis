@@ -36,7 +36,7 @@ fileDataHighPt:
   normname: NormalizationCounter
   histoevname: hNEvents
 
-getbkgfromMC: False
+getbkgfromMC: false
 PtThreshold: 8
 
 filenameFONLL: models/FONLL-Ds-pp5-y05-measfinebins.txt
@@ -57,6 +57,7 @@ PredForFprompt:
   RatioRaaFDPrompt: 1 #as in papers
 
 PublishedResult: 
+  plotPublished: true
   filenameHepData: hepdata/HEPData_PbPb_2015.root
   tableCorrYield: 4
   tableRaa: 28
