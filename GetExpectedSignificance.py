@@ -1,7 +1,7 @@
 #*******************************************************************************************#
 # python script for the expected significance of D+ and Ds+ mesons using THnSparses         #
 # run: python GetExpectedSignificance.py cfgFileName.yml cutSetFile.yml outFileName         #
-# author: Fabrizio Grosa, fabrizio.grosa@to.infn.it , iNFN Torino                            #
+# author: Fabrizio Grosa, fabrizio.grosa@to.infn.it , iNFN Torino                           #
 #*******************************************************************************************#
 
 from ROOT import TFile, TCanvas, TH1F, TSpline3, TF1, TGraphAsymmErrors, TLine, TLegend # pylint: disable=import-error, no-name-in-module
@@ -11,6 +11,7 @@ import yaml, sys, array, math, six
 from ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadGossiaux, ReadCatania
 from ReadHepData import ReadHepDataROOT
 
+#pylint: disable=redefined-outer-name
 def GetExpectedBackgroundFromSB(hSB, mean, sigma, Nexp, Nanal):
     fMassBkg = TF1('fMassBkg', 'expo', 1.8, 2.12)
     hSB.Fit('fMassBkg', 'QR')
@@ -23,7 +24,7 @@ def GetExpectedBackgroundFromMC(hBkgMC, mean, sigma, Nexp, Nanal):
     B = hBkgMC.Integral(binmin, binmax) / hBkgMC.GetBinWidth(1) * Nexp / Nanal
     return B
 
-def GetExpectedSignal(DeltaPt, sigma, Raa, Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp) :
+def GetExpectedSignal(DeltaPt, sigma, Raa, Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp):
     corrYield = sigma * fractoD * Raa * Taa / DeltaPt
     rawYield = 2 * DeltaPt * corrYield * effPrompt * Acc * BR * Nexp / fprompt
     return rawYield, corrYield
@@ -71,11 +72,11 @@ def SetSplineStyle(spline, color):
     spline.SetLineColor(color)
     spline.SetLineWidth(2)
 
-colors = {'TAMU' : kOrange+10, 'PHSD' : kGreen+3, 'Gossiaux' : kAzure+4, 'Catania' : kRed+2}
-colorsFill = {'TAMU' : kOrange+7, 'PHSD' : kGreen+2, 'Gossiaux' : kAzure+2, 'Catania' : kRed+1}
-markers = {'TAMU' : kFullSquare, 'PHSD' : kFullCircle, 'Gossiaux' : kFullDiamond, 'Catania' : kFullTriangleUp}
+colors = {'TAMU': kOrange+10, 'PHSD': kGreen+3, 'Gossiaux': kAzure+4, 'Catania': kRed+2}
+colorsFill = {'TAMU': kOrange+7, 'PHSD': kGreen+2, 'Gossiaux': kAzure+2, 'Catania': kRed+1}
+markers = {'TAMU': kFullSquare, 'PHSD': kFullCircle, 'Gossiaux': kFullDiamond, 'Catania': kFullTriangleUp}
 
-######################################################################################################
+####################################################################################################
 #main function
 
 inputCfg = sys.argv[1]
@@ -88,17 +89,18 @@ with open(inputCfg, 'r') as ymlinputCfg:
     else:
         inputCfg = yaml.safe_load(ymlinputCfg)
 
-infileDataLowPt = TFile(inputCfg['fileDataLowPt']['filename'])
-indirDataLowPt = infileDataLowPt.Get(inputCfg['fileDataLowPt']['dirname'])
-inlistDataLowPt = indirDataLowPt.Get(inputCfg['fileDataLowPt']['listname'])
-sMassPtCutVarsLowPt = inlistDataLowPt.FindObject(inputCfg['fileDataLowPt']['sparsenameAll'])
-hEvLowPt = inlistDataLowPt.FindObject(inputCfg['fileDataLowPt']['histoevname'])
+if inputCfg['getbkgfromMC'] is False:
+    infileDataLowPt = TFile(inputCfg['fileDataLowPt']['filename'])
+    indirDataLowPt = infileDataLowPt.Get(inputCfg['fileDataLowPt']['dirname'])
+    inlistDataLowPt = indirDataLowPt.Get(inputCfg['fileDataLowPt']['listname'])
+    sMassPtCutVarsLowPt = inlistDataLowPt.FindObject(inputCfg['fileDataLowPt']['sparsenameAll'])
+    hEvLowPt = inlistDataLowPt.FindObject(inputCfg['fileDataLowPt']['histoevname'])
 
-infileDataHighPt = TFile(inputCfg['fileDataHighPt']['filename'])
-indirDataHighPt = infileDataHighPt.Get(inputCfg['fileDataHighPt']['dirname'])
-inlistDataHighPt = indirDataHighPt.Get(inputCfg['fileDataHighPt']['listname'])
-sMassPtCutVarsHighPt = inlistDataHighPt.FindObject(inputCfg['fileDataHighPt']['sparsenameAll'])
-hEvHighPt = inlistDataHighPt.FindObject(inputCfg['fileDataHighPt']['histoevname'])
+    infileDataHighPt = TFile(inputCfg['fileDataHighPt']['filename'])
+    indirDataHighPt = infileDataHighPt.Get(inputCfg['fileDataHighPt']['dirname'])
+    inlistDataHighPt = indirDataHighPt.Get(inputCfg['fileDataHighPt']['listname'])
+    sMassPtCutVarsHighPt = inlistDataHighPt.FindObject(inputCfg['fileDataHighPt']['sparsenameAll'])
+    hEvHighPt = inlistDataHighPt.FindObject(inputCfg['fileDataHighPt']['histoevname'])
 
 infileMCLowPt = TFile(inputCfg['fileMCLowPt']['filename'])
 indirMCLowPt = infileMCLowPt.Get(inputCfg['fileMCLowPt']['dirname'])
@@ -107,6 +109,9 @@ sMassPtCutVarsPromptLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sp
 sMassPtCutVarsFDLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameFD'])
 sGenPromptLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenPrompt'])
 sGenFDLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenFD'])
+if inputCfg['getbkgfromMC']:
+    sMassPtCutVarsBkgLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameBkg'])
+    hEvLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['histoevname'])
 
 infileMCHighPt = TFile(inputCfg['fileMCHighPt']['filename'])
 indirMCHighPt = infileMCHighPt.Get(inputCfg['fileMCHighPt']['dirname'])
@@ -115,14 +120,22 @@ sMassPtCutVarsPromptHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt'][
 sMassPtCutVarsFDHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt']['sparsenameFD'])
 sGenPromptHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt']['sparsenameGenPrompt'])
 sGenFDHighPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenFD'])
+if inputCfg['getbkgfromMC']:
+    sMassPtCutVarsBkgHighPt = inlistMCLowPt.FindObject(inputCfg['fileMCHighPt']['sparsenameBkg'])
+    hEvHighPt = inlistMCLowPt.FindObject(inputCfg['fileMCHighPt']['histoevname'])
 
 PtThreshold = inputCfg['PtThreshold']
 
 nEvExp = inputCfg['nExpectedEvents']
 Taa = inputCfg['Taa']
-fprompt = inputCfg['fprompt']
 BR = inputCfg['BR']
 fractoD = inputCfg['fractoD']
+
+if inputCfg['PredForFprompt']['estimateFprompt']:
+    infilePred = TFile.Open(inputCfg['PredForFprompt']['filename'])
+    hPredPrompt = infilePred.Get(inputCfg['PredForFprompt']['histonamePrompt'])
+    hPredFD = infilePred.Get(inputCfg['PredForFprompt']['histonameFD'])
+    RatioRaaFDPrompt = inputCfg['PredForFprompt']['RatioRaaFDPrompt']
 
 infileAcc = TFile(inputCfg['filenameAcc'])
 hPtGenAcc = infileAcc.Get('hPtGenAcc')
@@ -177,20 +190,26 @@ SetGraphStyle(hAccEffFD, kBlue+1, kWhite, kFullCircle)
 
 for iPt in range(len(cutVars['Pt']['min'])):
       #check if low or high pt
-    if cutVars['Pt']['max'][iPt] <= PtThreshold:
+    if PtMax[iPt] <= PtThreshold:
         nEvBkg = hEvLowPt.GetBinContent(5)
-        sMassPtCutVars = sMassPtCutVarsLowPt.Clone('sMassPtCutVars')
-        sMassPtCutVarsPrompt = sMassPtCutVarsPromptLowPt.Clone('sMassPtCutVars')
-        sMassPtCutVarsFD = sMassPtCutVarsFDLowPt.Clone('sMassPtCutVars')
-        sGenPrompt = sGenPromptLowPt.Clone('sMassPtCutVars')
-        sGenFD = sGenFDLowPt.Clone('sMassPtCutVars')
+        sMassPtCutVarsPrompt = sMassPtCutVarsPromptLowPt.Clone('sMassPtCutVarsPrompt')
+        sMassPtCutVarsFD = sMassPtCutVarsFDLowPt.Clone('sMassPtCutVarsFD')
+        sGenPrompt = sGenPromptLowPt.Clone('sGenPrompt')
+        sGenFD = sGenPromptLowPt.Clone('sGenFD')
+        if inputCfg['getbkgfromMC']:
+            sMassPtCutVarsBkg = sMassPtCutVarsBkgLowPt.Clone('sMassPtCutVarsBkg')
+        else:
+            sMassPtCutVars = sMassPtCutVarsLowPt.Clone('sMassPtCutVars')
     else:
         nEvBkg = hEvHighPt.GetBinContent(5)
-        sMassPtCutVars = sMassPtCutVarsHighPt.Clone('sMassPtCutVars')
-        sMassPtCutVarsPrompt = sMassPtCutVarsPromptHighPt.Clone('sMassPtCutVars')
-        sMassPtCutVarsFD = sMassPtCutVarsFDHighPt.Clone('sMassPtCutVars')
-        sGenPrompt = sGenPromptHighPt.Clone('sMassPtCutVars')
-        sGenFD = sGenFDHighPt.Clone('sMassPtCutVars')
+        sMassPtCutVarsPrompt = sMassPtCutVarsPromptHighPt.Clone('sMassPtCutVarsPrompt')
+        sMassPtCutVarsFD = sMassPtCutVarsFDHighPt.Clone('sMassPtCutVarsFD')
+        sGenPrompt = sGenPromptHighPt.Clone('sGenPrompt')
+        sGenFD = sGenPromptHighPt.Clone('sGenFD')
+        if inputCfg['getbkgfromMC']:
+            sMassPtCutVarsBkg = sMassPtCutVarsBkgHighPt.Clone('sMassPtCutVarsBkg')
+        else:
+            sMassPtCutVars = sMassPtCutVarsHighPt.Clone('sMassPtCutVars')
 
     #gen for efficiency
     binGenPtMin = sGenPrompt.GetAxis(0).FindBin(cutVars['Pt']['min'][iPt]*1.0001)
@@ -232,12 +251,20 @@ for iPt in range(len(cutVars['Pt']['min'])):
             continue
         binMin = sMassPtCutVars.GetAxis(cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['min'][iPt]*1.0001)
         binMax = sMassPtCutVars.GetAxis(cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['max'][iPt]*0.9999)
-        sMassPtCutVars.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
         sMassPtCutVarsPrompt.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
         sMassPtCutVarsFD.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
-  
-    hMassData = sMassPtCutVars.Projection(0)
-    hMassData.SetName('hMassData_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+        if inputCfg['getbkgfromMC']:
+            sMassPtCutVarsBkg.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
+        else:
+            sMassPtCutVars.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
+        
+    if inputCfg['getbkgfromMC']:
+        hMassBkg = sMassPtCutVarsBkg.Projection(0)
+        hMassBkg.SetName('hMassBkgpT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+    else:
+        hMassData = sMassPtCutVars.Projection(0)
+        hMassData.SetName('hMassData_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+
     hMassPrompt = sMassPtCutVarsPrompt.Projection(0)
     hMassPrompt.SetName('hMassPrompt_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
     hMassFD = sMassPtCutVarsFD.Projection(0)
@@ -250,8 +277,16 @@ for iPt in range(len(cutVars['Pt']['min'])):
     mean = fMassSgn.GetParameter(1)
     sigma = fMassSgn.GetParameter(2)
 
-    hMassSB = GetSideBandHisto(hMassData, mean, sigma, 'hMassSB_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
-    B = GetExpectedBackgroundFromSB(hMassSB, mean, sigma, nEvExp, nEvBkg)
+    if inputCfg['getbkgfromMC']:
+        B = GetExpectedBackgroundFromMC(hMassBkg, mean, sigma, Nexp, nEvBkg)        
+    else:
+        hMassSB = GetSideBandHisto(hMassData, mean, sigma, 'hMassSB_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
+        B = GetExpectedBackgroundFromSB(hMassSB, mean, sigma, Nexp, nEvBkg)
+
+    if inputCfg['PredForFprompt']['estimateFprompt']:
+        fprompt = ComputeExpectedFprompt(PtMin[iPt], PtMax[iPt], effPrompt, hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt)
+    else:
+        fprompt = inputCfg['fprompt']
 
     nRecoPrompt = hMassPrompt.Integral()
     nRecoFD = hMassFD.Integral()
@@ -260,12 +295,12 @@ for iPt in range(len(cutVars['Pt']['min'])):
     effPromptUnc = math.sqrt(effPrompt*(1-effPrompt)/nGenPrompt)
     effFDUnc = math.sqrt(effFD*(1-effFD)/nGenFD)
 
-    hAccEffPrompt.SetBinContent(iPt+1,effPrompt*Acc)
-    hAccEffPrompt.SetBinError(iPt+1,effPromptUnc*Acc)
-    hAccEffFD.SetBinContent(iPt+1,effFD*Acc)
-    hAccEffFD.SetBinError(iPt+1,effFDUnc*Acc)
+    hAccEffPrompt.SetBinContent(iPt+1, effPrompt*Acc)
+    hAccEffPrompt.SetBinError(iPt+1, effPromptUnc*Acc)
+    hAccEffFD.SetBinContent(iPt+1, effFD*Acc)
+    hAccEffFD.SetBinError(iPt+1, effFDUnc*Acc)
 
-    SignifTAMU, SignifPHSD, SignifGossiaux, SignifCatania  = ({} for iDic in range(4))
+    SignifTAMU, SignifPHSD, SignifGossiaux, SignifCatania = ({} for iDic in range(4))
     CorrYieldTAMU, CorrYieldPHSD, CorrYieldGossiaux, CorrYieldCatania = ({} for iDic in range(4))
     for iFONLL in FONLL:
         if iFONLL == 'Cent' or iFONLL == 'Min' or iFONLL == 'Max':
@@ -276,19 +311,19 @@ for iPt in range(len(cutVars['Pt']['min'])):
             SignifCatania[iFONLL], CorrYieldCatania[iFONLL] = (dict(RaaCatania) for iDic in range(2)) 
 
             for iRaaTAMU in RaaTAMU:
-                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt],FONLL[iFONLL][binFONLL],RaaTAMU[iRaaTAMU],Taa,effPrompt, acc,fprompt,BR,fractoD, nEvExp)
+                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaTAMU[iRaaTAMU], Taa, effPrompt, acc, fprompt, BR, fractoD, nEvExp)
                 SignifTAMU[iFONLL][iRaaTAMU] = rawyield/math.sqrt(rawyield+B)
                 CorrYieldTAMU[iFONLL][iRaaTAMU] = corryield
             for iRaaPHSD in RaaPHSD:
-                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt],FONLL[iFONLL][binFONLL],RaaPHSD[iRaaPHSD],Taa,effPrompt, acc,fprompt,BR,fractoD, nEvExp)
+                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaPHSD[iRaaPHSD], Taa, effPrompt, acc, fprompt, BR, fractoD, nEvExp)
                 SignifPHSD[iFONLL][iRaaPHSD] = rawyield/math.sqrt(rawyield+B)
                 CorrYieldPHSD[iFONLL][iRaaPHSD] = corryield
             for iRaaGossiaux in RaaGossiaux:
-                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt],FONLL[iFONLL][binFONLL],RaaGossiaux[iRaaGossiaux],Taa,effPrompt, acc,fprompt,BR,fractoD, nEvExp)
+                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaGossiaux[iRaaGossiaux], Taa, effPrompt, acc, fprompt, BR, fractoD, nEvExp)
                 SignifGossiaux[iFONLL][iRaaGossiaux] = rawyield/math.sqrt(rawyield+B)
                 CorrYieldGossiaux[iFONLL][iRaaGossiaux] = corryield
             for iRaaCatania in RaaCatania:
-                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt],FONLL[iFONLL][binFONLL],RaaCatania[iRaaCatania],Taa,effPrompt, acc,fprompt,BR,fractoD, nEvExp)
+                rawyield, corryield = GetExpectedSignal(cutVars['Pt']['max'][iPt]-cutVars['Pt']['min'][iPt], FONLL[iFONLL][binFONLL], RaaCatania[iRaaCatania], Taa, effPrompt, acc, fprompt, BR, fractoD, nEvExp)
                 SignifCatania[iFONLL][iRaaCatania] = rawyield/math.sqrt(rawyield+B)
                 CorrYieldCatania[iFONLL][iRaaCatania] = corryield
 
@@ -337,7 +372,7 @@ gStyle.SetPadTickX(1)
 gStyle.SetPadTickY(1)
 gStyle.SetLegendBorderSize(0)
 
-legTAMU, legPHSD, legGossiaux, legCatania = ({'CorrYield' : TLegend(0.45, 0.7, 0.65, 0.85), 'Raa' : TLegend(0.45, 0.7, 0.65, 0.85), 'Signif' : TLegend(0.45, 0.75, 0.65, 0.85)} for iDic in range(4))
+legTAMU, legPHSD, legGossiaux, legCatania = ({'CorrYield': TLegend(0.45, 0.7, 0.65, 0.85), 'Raa': TLegend(0.45, 0.7, 0.65, 0.85), 'Signif': TLegend(0.45, 0.75, 0.65, 0.85)} for iDic in range(4))
 
 for iLeg in legTAMU:
     legTAMU[iLeg].SetFillStyle(0)

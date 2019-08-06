@@ -128,10 +128,11 @@ Taa = inputCfg['Taa']
 BR = inputCfg['BR']
 fractoD = inputCfg['fractoD']
 
-infilePred = TFile.Open(inputCfg['PredForFprompt']['filename'])
-hPredPrompt = infilePred.Get(inputCfg['PredForFprompt']['histonamePrompt'])
-hPredFD = infilePred.Get(inputCfg['PredForFprompt']['histonameFD'])
-RatioRaaFDPrompt = inputCfg['PredForFprompt']['RatioRaaFDPrompt']
+if inputCfg['PredForFprompt']['estimateFprompt']:
+    infilePred = TFile.Open(inputCfg['PredForFprompt']['filename'])
+    hPredPrompt = infilePred.Get(inputCfg['PredForFprompt']['histonamePrompt'])
+    hPredFD = infilePred.Get(inputCfg['PredForFprompt']['histonameFD'])
+    RatioRaaFDPrompt = inputCfg['PredForFprompt']['RatioRaaFDPrompt']
 
 FONLL = ReadFONLL(inputCfg['filenameFONLL'])
 TAMU = ReadTAMU(inputCfg['filenameRaaPredTAMU']) #optimisation performed using TAMU
@@ -263,7 +264,11 @@ for iPt, _ in enumerate(PtMin):
             hMassSB = GetSideBandHisto(hMassData, mean, sigma)
             B = GetExpectedBackgroundFromSB(hMassSB, mean, sigma, Nexp, nEvBkg)
 
-        fprompt = ComputeExpectedFprompt(PtMin[iPt], PtMax[iPt], effPrompt, hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt)
+        if inputCfg['PredForFprompt']['estimateFprompt']:
+            fprompt = ComputeExpectedFprompt(PtMin[iPt], PtMax[iPt], effPrompt, hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt)
+        else:
+            fprompt = inputCfg['fprompt']
+
         S = GetExpectedSignal(PtMin[iPt]-PtMax[iPt], sigmaFONLL, Raa, Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp)
 
         array4Ntuple.append(PtMin[iPt])

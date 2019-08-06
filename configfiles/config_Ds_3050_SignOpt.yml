@@ -51,6 +51,7 @@ BR: 0.0227
 fractoD: 0.092
 
 PredForFprompt:
+  estimateFprompt: true
   filename: models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
   histonamePrompt: hDsPhipitoKkpipred_central
   histonameFD: hDsPhipitoKkpifromBpred_central_corr
