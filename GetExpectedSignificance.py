@@ -103,7 +103,7 @@ with open(inputCfg, 'r') as ymlinputCfg:
     else:
         inputCfg = yaml.safe_load(ymlinputCfg)
 
-if inputCfg['getbkgfromMC'] is False:
+if inputCfg['bkgConfiguration']['getbkgfromMC'] is False:
     infileDataLowPt = TFile(inputCfg['fileDataLowPt']['filename'])
     indirDataLowPt = infileDataLowPt.Get(inputCfg['fileDataLowPt']['dirname'])
     inlistDataLowPt = indirDataLowPt.Get(inputCfg['fileDataLowPt']['listname'])
@@ -123,7 +123,7 @@ sMassPtCutVarsPromptLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sp
 sMassPtCutVarsFDLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameFD'])
 sGenPromptLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenPrompt'])
 sGenFDLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenFD'])
-if inputCfg['getbkgfromMC']:
+if inputCfg['bkgConfiguration']['getbkgfromMC']:
     sMassPtCutVarsBkgLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameBkg'])
     hEvLowPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['histoevname'])
 
@@ -134,10 +134,14 @@ sMassPtCutVarsPromptHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt'][
 sMassPtCutVarsFDHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt']['sparsenameFD'])
 sGenPromptHighPt = inlistMCHighPt.FindObject(inputCfg['fileMCHighPt']['sparsenameGenPrompt'])
 sGenFDHighPt = inlistMCLowPt.FindObject(inputCfg['fileMCLowPt']['sparsenameGenFD'])
-if inputCfg['getbkgfromMC']:
+if inputCfg['bkgConfiguration']['getbkgfromMC']:
     sMassPtCutVarsBkgHighPt = inlistMCLowPt.FindObject(inputCfg['fileMCHighPt']['sparsenameBkg'])
     hEvHighPt = inlistMCLowPt.FindObject(inputCfg['fileMCHighPt']['histoevname'])
 
+if inputCfg['bkgConfiguration']['applyCorrFactor']:
+    infileCorrFactor = TFile.Open(inputCfg['bkgConfiguration']['bkgCorrFactorfilename'])
+    hBkgCorrFactor = infileCorrFactor.Get(inputCfg['bkgConfiguration']['bkgCorrFactorhistoname'])
+    
 PtThreshold = inputCfg['PtThreshold']
 
 Nexp = inputCfg['nExpectedEvents']
@@ -238,7 +242,7 @@ for iPt, ptmin in enumerate(cutVars['Pt']['min']):
         sMassPtCutVarsFD = sMassPtCutVarsFDLowPt.Clone('sMassPtCutVarsFD')
         sGenPrompt = sGenPromptLowPt.Clone('sGenPrompt')
         sGenFD = sGenFDLowPt.Clone('sGenFD')
-        if inputCfg['getbkgfromMC']:
+        if inputCfg['bkgConfiguration']['getbkgfromMC']:
             sMassPtCutVarsBkg = sMassPtCutVarsBkgLowPt.Clone('sMassPtCutVarsBkg')
         else:
             sMassPtCutVars = sMassPtCutVarsLowPt.Clone('sMassPtCutVars')
@@ -248,7 +252,7 @@ for iPt, ptmin in enumerate(cutVars['Pt']['min']):
         sMassPtCutVarsFD = sMassPtCutVarsFDHighPt.Clone('sMassPtCutVarsFD')
         sGenPrompt = sGenPromptHighPt.Clone('sGenPrompt')
         sGenFD = sGenFDHighPt.Clone('sGenFD')
-        if inputCfg['getbkgfromMC']:
+        if inputCfg['bkgConfiguration']['getbkgfromMC']:
             sMassPtCutVarsBkg = sMassPtCutVarsBkgHighPt.Clone('sMassPtCutVarsBkg')
         else:
             sMassPtCutVars = sMassPtCutVarsHighPt.Clone('sMassPtCutVars')
@@ -295,16 +299,24 @@ for iPt, ptmin in enumerate(cutVars['Pt']['min']):
         binMax = sMassPtCutVars.GetAxis(cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['max'][iPt]*0.9999)
         sMassPtCutVarsPrompt.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
         sMassPtCutVarsFD.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
-        if inputCfg['getbkgfromMC']:
+        if inputCfg['bkgConfiguration']['getbkgfromMC']:
             sMassPtCutVarsBkg.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
         else:
             sMassPtCutVars.GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
         
-    if inputCfg['getbkgfromMC']:
+    if inputCfg['bkgConfiguration']['getbkgfromMC']:
         hMassBkg = sMassPtCutVarsBkg.Projection(0)
+        if inputCfg['bkgConfiguration']['applyCorrFactor']:
+            binCorrFactor = hBkgCorrFactor.GetXaxis().FindBin(PtCent)
+            corrfactor = hBkgCorrFactor.GetBinContent(binCorrFactor)
+            hMassBkg.Scale(corrfactor)
         hMassBkg.SetName('hMassBkgpT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
     else:
         hMassData = sMassPtCutVars.Projection(0)
+        if inputCfg['bkgConfiguration']['applyCorrFactor']:
+            binCorrFactor = hBkgCorrFactor.GetXaxis().FindBin(PtCent)
+            corrfactor = hBkgCorrFactor.GetBinContent(binCorrFactor)
+            hMassData.Scale(corrfactor)
         hMassData.SetName('hMassData_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))
 
     hMassPrompt = sMassPtCutVarsPrompt.Projection(0)
@@ -331,7 +343,7 @@ for iPt, ptmin in enumerate(cutVars['Pt']['min']):
     mean = fMassSgn.GetParameter(1)
     sigma = fMassSgn.GetParameter(2)
 
-    if inputCfg['getbkgfromMC']:
+    if inputCfg['bkgConfiguration']['getbkgfromMC']:
         B = GetExpectedBackgroundFromMC(hMassBkg, mean, sigma, Nexp, nEvBkg)        
     else:
         hMassSB = GetSideBandHisto(hMassData, mean, sigma, 'hMassSB_pT_%0.f_%0.f' % (cutVars['Pt']['min'][iPt], cutVars['Pt']['max'][iPt]))

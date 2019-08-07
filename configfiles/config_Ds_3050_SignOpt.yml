@@ -36,8 +36,13 @@ fileDataHighPt:
   normname: NormalizationCounter
   histoevname: hNEvents
 
-getbkgfromMC: false
 PtThreshold: 8
+
+bkgConfiguration:
+  getbkgfromMC: false
+  applyCorrFactor: false
+  bkgCorrFactorfilename: null
+  bkgCorrFactorhistoname: null
 
 filenameFONLL: models/FONLL-Ds-pp5-y05-measfinebins.txt
 filenameRaaPredTAMU: models/Ds_TAMU_RAA_5TeV_3050.txt
