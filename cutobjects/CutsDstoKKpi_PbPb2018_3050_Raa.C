@@ -826,7 +826,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_FiltTreeCreator2018(bool fUseStrongPI
     cout<<"This is the object I'm going to save:"<<nptbins<<endl;
     
     analysiscuts->PrintAll();
-    TString triggername = "kINT7_kCentral";
+    TString triggername = "kINT7_kSemiCentral";
     if(fIsMC) triggername = "kMB";
     TString pidname = "";
     if(fUseStrongPID) pidname = Form("_strongPIDpt%0.f", maxPtstrongPID);
