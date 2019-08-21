@@ -15,8 +15,6 @@
 // 1) MakeFileForCutsDsVn3050_Central --> central cuts of v2 2018 analysis
 //____________________________________________________________________________________________________//
 
-enum etaregion{kEtaPos,kEtaNeg,kEtaFull};
-
 AliRDHFCutsDstoKKpi* MakeFileForCutsDsVn3050_Central(bool fUseStrongPID = true, double maxPtstrongPID = 8.0) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
