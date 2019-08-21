@@ -733,14 +733,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_FiltTreeCreator2018(bool fUseStrongPI
     float maxcen=50;
     
     const int nptbins=2;
-    float ptlimits[nptbins+1]={0.,5.,999.};
-        
-    analysiscuts->SetStandardCutsPbPb2010();
-    analysiscuts->SetUseTrackSelectionWithFilterBits(false);
-    analysiscuts->SetUsePID(true);
-    analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
-    analysiscuts->SetPtBins(nptbins+1,ptlimits);
-
+    float ptbins[nptbins+1]={0.,5.,999.};
     const int nvars = 20;
       
     float** anacutsval=new float*[nvars];
@@ -843,5 +836,5 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_FiltTreeCreator2018(bool fUseStrongPI
     analysiscuts->Write();
     fout->Close();
 
-    return analisyscuts;
+    return analysiscuts;
 }

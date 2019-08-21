@@ -34,7 +34,7 @@ cutvars:
         name: 'CosP'
     CosPXY:
         axisnum: 7
-        min: [ 99., 97.0, 97.0, 97.0, 99., 99. ]
+        min: [ 99., 97.0, 97.0, 97.0, 98., 99. ]
         max: [ 101., 101., 101., 101., 101., 101. ]
         name: 'CosPXY'
     SigmaVtx:
