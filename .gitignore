@@ -8,3 +8,4 @@ configfiles/*_local.yml
 *.pcm
 *.d
 *.so
+.DS_Store
