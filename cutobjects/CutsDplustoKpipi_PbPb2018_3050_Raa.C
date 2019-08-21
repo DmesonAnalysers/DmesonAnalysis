@@ -518,7 +518,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus3050_FiltTreeCreator2018(bool fUseS
 
     ptbins[0]=2.;
     ptbins[1]=5.;
-    ptbins[2]=999.;
+    ptbins[2]=50.;
 
     const int nvars=14;
     float** anacutsval;

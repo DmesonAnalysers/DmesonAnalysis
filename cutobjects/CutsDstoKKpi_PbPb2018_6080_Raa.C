@@ -528,7 +528,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_FiltTreeCreator2018(bool fUseStrongPI
     float maxcen=80;
     
     const int nptbins=2;
-    float ptbins[nptbins+1]={0.,5.,999.};
+    float ptbins[nptbins+1]={0.,5.,50.};
         
     const int nvars = 20;
       
@@ -616,7 +616,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_FiltTreeCreator2018(bool fUseStrongPI
     cent=Form("%.0f%.0f",mincen,maxcen);
     
     analysiscuts->SetMinPtCandidate(2.);
-    analysiscuts->SetMaxPtCandidate(999.);
+    analysiscuts->SetMaxPtCandidate(50.);
     analysiscuts->SetRemoveDaughtersFromPrim(false);
 
     cout<<"This is the object I'm going to save:"<<nptbins<<endl;
