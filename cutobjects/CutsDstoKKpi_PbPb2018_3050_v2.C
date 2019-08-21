@@ -1,17 +1,29 @@
+#if !defined (__CINT__) || defined (__CLING__)
+
 #include <Riostream.h>
 #include <TFile.h>
 #include <TClonesArray.h>
 #include <TParameter.h>
-#include <AliRDHFCutsDstoKKpi.h>
+
+#include "AliESDtrackCuts.h"
+#include "AliRDHFCutsDstoKKpi.h"
+
+#endif
+
+//____________________________________________________________________________________________________//
+// Methods:
+// 1) MakeFileForCutsDsVn3050_Central --> central cuts of v2 2018 analysis
+//____________________________________________________________________________________________________//
+
 enum etaregion{kEtaPos,kEtaNeg,kEtaFull};
 
-void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongPID = 8.0) {
+AliRDHFCutsDstoKKpi* MakeFileForCutsDsVn3050_Central(bool fUseStrongPID = true, double maxPtstrongPID = 8.0) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
-    esdTrackCuts->SetRequireSigmaToVertex(kFALSE);
+    esdTrackCuts->SetRequireSigmaToVertex(false);
     //default
-    esdTrackCuts->SetRequireTPCRefit(kTRUE);
-    esdTrackCuts->SetRequireITSRefit(kTRUE);
+    esdTrackCuts->SetRequireTPCRefit(true);
+    esdTrackCuts->SetRequireITSRefit(true);
     //esdTrackCuts->SetMinNClustersITS(4); // default is 5
     esdTrackCuts->SetMinNClustersTPC(70);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
@@ -21,12 +33,12 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.3,1.e10);
     
-    Float_t mincen=30.;
-    Float_t maxcen=50.;
+    float mincen=30.;
+    float maxcen=50.;
     
-    const Int_t nptbins=9;
-    Float_t* ptbins;
-    ptbins=new Float_t[nptbins+1];
+    const int nptbins=9;
+    float* ptbins;
+    ptbins=new float[nptbins+1];
     ptbins[0]=2.;
     ptbins[1]=3.;
     ptbins[2]=4.;
@@ -38,13 +50,13 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
     ptbins[8]=24.;
     ptbins[9]=36.;
 
-    const Int_t nvars=20;
+    const int nvars=20;
     
-    Float_t** anacutsval;
-    anacutsval=new Float_t*[nvars];
+    float** anacutsval;
+    anacutsval=new float*[nvars];
     
-    for(Int_t ic=0;ic<nvars;ic++){anacutsval[ic]=new Float_t[nptbins];}
-    for(Int_t ipt=0;ipt<nptbins;ipt++){
+    for(int ic=0;ic<nvars;ic++){anacutsval[ic]=new float[nptbins];}
+    for(int ipt=0;ipt<nptbins;ipt++){
         
         anacutsval[0][ipt]=0.2;
         anacutsval[1][ipt]=0.3;
@@ -181,8 +193,8 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
     anacutsval[18][8]=4.0;   //normdecayXY
     anacutsval[19][8]=0.975;  //CosPXY
 
-    Float_t topomCuts[nptbins] = {1.5,2.,2.,2.5,2.5,2.5,3.,3.,3.}; //topomatic
-    Float_t d0Cuts[nptbins] = {70.,70.,70.,70.,70.,70.,70.,70.,70.}; //impparXY
+    float topomCuts[nptbins] = {1.5,2.,2.,2.5,2.5,2.5,3.,3.,3.}; //topomatic
+    float d0Cuts[nptbins] = {70.,70.,70.,70.,70.,70.,70.,70.,70.}; //impparXY
     
     AliRDHFCutsDstoKKpi* analysiscuts=new AliRDHFCutsDstoKKpi();
     analysiscuts->SetName("AnalysisCuts");
@@ -193,33 +205,39 @@ void MakeFileForCuts_Central(Bool_t fUseStrongPID = kTRUE, Double_t maxPtstrongP
     analysiscuts->AddTrackCuts(esdTrackCuts);
     analysiscuts->Setd0MeasMinusExpCut(nptbins,topomCuts);
     analysiscuts->Setd0Cut(nptbins,d0Cuts);
-    analysiscuts->SetUseTimeRangeCutForPbPb2018(kTRUE);
+    analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
     
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
     analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kSemiCentral);
     
-    analysiscuts->SetUsePID(kTRUE);
+    analysiscuts->SetUsePID(true);
     if(fUseStrongPID) {
       analysiscuts->SetPidOption(1); //0=kConservative,1=kStrong
       analysiscuts->SetMaxPtStrongPid(maxPtstrongPID);
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
-    analysiscuts->EnableNsigmaDataDrivenCorrection(kTRUE,AliAODPidHF::kPbPb3050);
-    analysiscuts->SetOptPileup(kFALSE);
+    analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb3050);
+    analysiscuts->SetOptPileup(false);
     analysiscuts->SetMinCentrality(mincen);
     analysiscuts->SetMaxCentrality(maxcen);
     
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(36.);
-    analysiscuts->SetRemoveDaughtersFromPrim(kFALSE);
+    analysiscuts->SetRemoveDaughtersFromPrim(false);
   
     std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
     
     analysiscuts->PrintAll();
-    TFile* fout=new TFile(Form("DstoKKpiCuts2018_3050_central_strongPIDpt%0.f_v2_kINT7_kSemiCentral.root",maxPtstrongPID),"recreate");
+    TString pidname = "";
+    if(fUseStrongPID)
+        pidname = Form("_strongPIDpt%0.f", maxPtstrongPID);
+
+    TFile* fout=new TFile(Form("DstoKKpiCuts2018_3050_central%s_v2_kINT7_kSemiCentral.root",pidname.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
+
+    return analysiscuts;
 }
