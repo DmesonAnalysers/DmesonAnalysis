@@ -33,9 +33,13 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
     AliRDHFCutsDplustoKpipi* cutsDplusFilt = NULL;
     AliRDHFCutsDplustoKpipi* cutsDplusCent = NULL;
 
+    TString centname = "";
+    TString triggername = "";
     switch(cent) {
         case k010:
         {
+            centname="010";
+            triggername="kINT7_kCentral";
             if(fIncludeDs) {
                 cutsDsFilt = MakeFileForCutsDs010_FiltTreeCreator2018(false, -1.0, fIsMC);
                 cutsDsCent = MakeFileForCutsDs010_Central2018(true, 8.0, fIsMC);
@@ -49,6 +53,8 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
         }
         case k3050:
         {
+            centname="3050";
+            triggername="kINT7_kSemiCentral";
             if(fIncludeDs) {
                 cutsDsFilt = MakeFileForCutsDs3050_FiltTreeCreator2018(false, -1.0, fIsMC);
                 cutsDsCent = MakeFileForCutsDs3050_Central2018(true, 8.0, fIsMC);
@@ -62,6 +68,8 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
         }
         case k6080:
         {
+            centname="6080";
+            triggername="kINT7";
             if(fIncludeDs) {
                 cutsDsFilt = MakeFileForCutsDs6080_FiltTreeCreator2018(false, -1.0, fIsMC);
                 cutsDsCent = MakeFileForCutsDs6080_Central2018(true, 8.0, fIsMC);
@@ -73,16 +81,20 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
 
             break;
         }
+        default:
+        {
+            std::cerr << "Centrality not implemented! Exit " << std::endl;
+            return;
+        }
 
     }
 
-    TString triggername = "kINT7_kCentral";
     if(fIsMC) triggername = "kMB";
     TString mesonname = "";
     if(fIncludeDs) mesonname += "Ds";
     if(fIncludeDplus) mesonname += "Dplus";
-
-    TFile fout(Form("%sCuts_PbPb2018_Central_%s.root",mesonname.Data(), triggername.Data()),"recreate");
+    
+    TFile fout(Form("%sCuts_treecreator_PbPb2018_%s_%s.root",mesonname.Data(), centname.Data(), triggername.Data()),"recreate");
     fout.cd();
     if(fIncludeDs) {
         cutsDsFilt->Write("DstoKKpiFilteringCuts");

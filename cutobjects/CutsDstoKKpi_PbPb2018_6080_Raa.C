@@ -269,7 +269,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_Central2018(bool fUseStrongPID = true
     TString pidname = "";
     if(fUseStrongPID) pidname = Form("_strongPIDpt%0.f", maxPtstrongPID);
 
-    TFile* fout=new TFile(Form("DstoKKpiCuts_6080_loose%s_Raa_%s%s.root", pidname.Data(), triggername.Data(), trackCutName.Data()),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_6080_central%s_Raa_%s%s.root", pidname.Data(), triggername.Data(), trackCutName.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
