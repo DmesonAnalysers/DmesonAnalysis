@@ -97,10 +97,14 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
     TFile fout(Form("%sCuts_treecreator_PbPb2018_%s_%s.root",mesonname.Data(), centname.Data(), triggername.Data()),"recreate");
     fout.cd();
     if(fIncludeDs) {
+        cutsDsFilt->SetName("DstoKKpiFilteringCuts");
+        cutsDsCent->SetName("DstoKKpiAnalysisCuts");
         cutsDsFilt->Write("DstoKKpiFilteringCuts");
         cutsDsCent->Write("DstoKKpiAnalysisCuts");
     }
     if(fIncludeDplus) {
+        cutsDplusFilt->SetName("DplustoKpipiFilteringCuts");
+        cutsDplusCent->SetName("DplustoKpipiAnalysisCuts");
         cutsDplusFilt->Write("DplustoKpipiFilteringCuts");
         cutsDplusCent->Write("DplustoKpipiAnalysisCuts");
     }
