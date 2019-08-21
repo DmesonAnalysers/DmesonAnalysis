@@ -20,15 +20,12 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_Loose2018(bool fUseStrongPID = true, 
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(false);
-    //default
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
-    //esdTrackCuts->SetMinNClustersITS(4); // default is 5
     esdTrackCuts->SetMinNClustersTPC(70);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                            AliESDtrackCuts::kAny);
-    // default is kBoth, otherwise kAny
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.3,1.e10);
     
@@ -257,17 +254,14 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_FiltTreeCreator2018(bool fUseStrongPI
         
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(false);
-    //default
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
-    esdTrackCuts->SetMinNClustersTPC(50);
-    esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,AliESDtrackCuts::kAny);
-    esdTrackCuts->SetEtaRange(-0.8,0.8);
+    esdTrackCuts->SetMinNClustersTPC(70);
+    esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
+    esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
+                                           AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
-    esdTrackCuts->SetPtRange(0.4,1.e10);
-    esdTrackCuts->SetMaxDCAToVertexXY(1.);
-    esdTrackCuts->SetMaxDCAToVertexZ(1.);
-    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0025*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
+    esdTrackCuts->SetPtRange(0.3,1.e10);
     
     float mincen=60.;
     float maxcen=80;
