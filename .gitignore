@@ -9,3 +9,6 @@ configfiles/*_local.yml
 *.d
 *.so
 .DS_Store
+treecreator/AODfiles
+treecreator/*.pdf
+treecreator/*.root

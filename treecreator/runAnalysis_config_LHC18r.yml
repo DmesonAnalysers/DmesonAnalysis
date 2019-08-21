@@ -1,0 +1,5 @@
+system: PbPb
+datadir: /alice/data/2018/LHC18r/
+datapattern: /AOD
+AliPhysicVersion: vAN-20190820_ROOT6-1
+runs: [297123]
