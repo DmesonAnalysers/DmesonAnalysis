@@ -101,7 +101,7 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
         cutsDsCent->Write("DstoKKpiAnalysisCuts");
     }
     if(fIncludeDplus) {
-        cutsDplusFilt->Write("DplustoKpopiFilteringCuts");
+        cutsDplusFilt->Write("DplustoKpipiFilteringCuts");
         cutsDplusCent->Write("DplustoKpipiAnalysisCuts");
     }
     fout.Close();    
