@@ -58,7 +58,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplusVn3050_Central(bool fUseStrongPID =
     for(int ic=0;ic<nvars;ic++){anacutsval[ic]=new float[nptbins];}
 
     /*
-     
+
      Cut list
      0          "inv. mass [GeV]",
      1			"pTK [GeV/c]",
@@ -78,11 +78,11 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplusVn3050_Central(bool fUseStrongPID =
 
     for(int ipt=0;ipt<nptbins;ipt++){
         anacutsval[0][ipt]=0.2; //minv
-        anacutsval[1][ipt]=0.2; //ptK
-        anacutsval[2][ipt]=0.2; //ptPi
-        anacutsval[3][ipt]=0.2; //d0K
-        anacutsval[4][ipt]=0.2; //d0Pi
-        anacutsval[5][ipt]=0.2; //dist12
+        anacutsval[1][ipt]=0.4; //ptK
+        anacutsval[2][ipt]=0.4; //ptPi
+        anacutsval[3][ipt]=0.; //d0K
+        anacutsval[4][ipt]=0.; //d0Pi
+        anacutsval[5][ipt]=0.; //dist12
         anacutsval[8][ipt]=0.0; //pM
         anacutsval[10][ipt]=0.0; //sumd02
         anacutsval[11][ipt]=10000000000.; //dca
@@ -226,7 +226,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplusVn3050_Central(bool fUseStrongPID =
         analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kSemiCentral);
     else
         analysiscuts->SetTriggerMask(AliVEvent::kMB);
-    
+
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 

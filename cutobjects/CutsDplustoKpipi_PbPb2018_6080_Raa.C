@@ -59,7 +59,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
     for(int ic=0;ic<nvars;ic++){anacutsval[ic]=new float[nptbins];}
 
     /*
-     
+
      Cut list
      0          "inv. mass [GeV]",
      1			"pTK [GeV/c]",
@@ -79,11 +79,11 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
 
     for(int ipt=0;ipt<nptbins;ipt++){
         anacutsval[0][ipt]=0.2; //minv
-        anacutsval[1][ipt]=0.2; //ptK
-        anacutsval[2][ipt]=0.2; //ptPi
-        anacutsval[3][ipt]=0.2; //d0K
-        anacutsval[4][ipt]=0.2; //d0Pi
-        anacutsval[5][ipt]=0.2; //dist12
+        anacutsval[1][ipt]=0.4; //ptK
+        anacutsval[2][ipt]=0.4; //ptPi
+        anacutsval[3][ipt]=0.; //d0K
+        anacutsval[4][ipt]=0.; //d0Pi
+        anacutsval[5][ipt]=0.; //dist12
         anacutsval[8][ipt]=0.0; //pM
         anacutsval[10][ipt]=0.0; //sumd02
         anacutsval[11][ipt]=10000000000.; //dca
@@ -232,7 +232,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
     analysiscuts->SetTriggerMask(AliVEvent::kINT7);
     if(fIsMC) analysiscuts->SetTriggerMask(AliVEvent::kMB);
-    
+
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
     if(!fIsMC)
@@ -244,22 +244,22 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
         esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.9);
         trackCutName = "_addRowsOverClusterTPC";
         break;
-      
+
       case 2:
         analysiscuts->SetMinCrossedRowsTPCPtDep("120-(5/pt)");
         trackCutName = "_addMinCrossedRowsTPC";
         break;
-      
+
       case 3:
         analysiscuts->SetMinRatioClsOverCrossRowsTPC(0.65);
         trackCutName = "_addRatioClsOverRowsTPC";
         break;
-      
+
       case 4:
         analysiscuts->SetUseCutGeoNcrNcl(true);
         trackCutName = "_addUseCutGeo";
         break;
-      
+
       default:
         break;
     }
@@ -327,7 +327,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Loose2018(bool fUseStrongPID=f
     for(int ic=0;ic<nvars;ic++){anacutsval[ic]=new float[nptbins];}
 
     /*
-     
+
      Cut list
      0          "inv. mass [GeV]",
      1			"pTK [GeV/c]",
@@ -347,11 +347,11 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Loose2018(bool fUseStrongPID=f
 
     for(int ipt=0;ipt<nptbins;ipt++){
         anacutsval[0][ipt]=0.2; //minv
-        anacutsval[1][ipt]=0.2; //ptK
-        anacutsval[2][ipt]=0.2; //ptPi
-        anacutsval[3][ipt]=0.2; //d0K
-        anacutsval[4][ipt]=0.2; //d0Pi
-        anacutsval[5][ipt]=0.2; //dist12
+        anacutsval[1][ipt]=0.4; //ptK
+        anacutsval[2][ipt]=0.4; //ptPi
+        anacutsval[3][ipt]=0.; //d0K
+        anacutsval[4][ipt]=0.; //d0Pi
+        anacutsval[5][ipt]=0.; //dist12
         anacutsval[8][ipt]=0.0; //pM
         anacutsval[10][ipt]=0.0; //sumd02
         anacutsval[11][ipt]=10000000000.; //dca
@@ -477,7 +477,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Loose2018(bool fUseStrongPID=f
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
     analysiscuts->SetTriggerMask(AliVEvent::kINT7);
     if(fIsMC) analysiscuts->SetTriggerMask(AliVEvent::kMB);
-    
+
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
     if(!fIsMC)
@@ -533,7 +533,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_FiltTreeCreator2018(bool fUseS
     for(int ic=0;ic<nvars;ic++){anacutsval[ic]=new float[nptbins];}
 
     /*
-     
+
      Cut list
      0          "inv. mass [GeV]",
      1			"pTK [GeV/c]",
@@ -553,11 +553,11 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_FiltTreeCreator2018(bool fUseS
 
     for(int ipt=0;ipt<nptbins;ipt++){
         anacutsval[0][ipt]=0.2; //minv
-        anacutsval[1][ipt]=0.2; //ptK
-        anacutsval[2][ipt]=0.2; //ptPi
-        anacutsval[3][ipt]=0.2; //d0K
-        anacutsval[4][ipt]=0.2; //d0Pi
-        anacutsval[5][ipt]=0.2; //dist12
+        anacutsval[1][ipt]=0.4; //ptK
+        anacutsval[2][ipt]=0.4; //ptPi
+        anacutsval[3][ipt]=0.; //d0K
+        anacutsval[4][ipt]=0.; //d0Pi
+        anacutsval[5][ipt]=0.; //dist12
         anacutsval[8][ipt]=0.0; //pM
         anacutsval[10][ipt]=0.0; //sumd02
         anacutsval[11][ipt]=10000000000.; //dca
@@ -609,7 +609,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_FiltTreeCreator2018(bool fUseS
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
     analysiscuts->SetTriggerMask(AliVEvent::kINT7);
     if(fIsMC) analysiscuts->SetTriggerMask(AliVEvent::kMB);
-    
+
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
     if(!fIsMC)
