@@ -1,0 +1,15 @@
+DataPath: alien:///alice/cern.ch/user/f/fgrosa/PIDsingletrack_LHC18a5b_cent/output/282343_282365
+RecoPass: null
+TrainName: null
+InputFileName: AnalysisResults.root
+OutputPath: '.'
+OutputFileName: AnalysisResults.root
+MergeOptions:
+    IsMC: True
+    MergeByRun: False
+    RunNumbers: [ null ]
+    NfilesTot: 453 #needed only if not merge by run
+    NfilesPerChunk: 100
+    MergeTrees: True
+    DoTotalMerge: True
+    ObjectsToMerge: [ null ]

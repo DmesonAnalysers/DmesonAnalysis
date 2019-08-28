@@ -1,0 +1,15 @@
+DataPath: alien:///alice/data/2018/LHC18q
+RecoPass: pass1
+TrainName: PWGHF/D2H_PbPb/1578_20190827-1525
+InputFileName: AnalysisResults.root
+OutputPath: '.'
+OutputFileName: AnalysisResults_incomplTPC.root
+MergeOptions:
+    IsMC: False
+    MergeByRun: True
+    RunNumbers: [ 295753 ]
+    NfilesTot: -1 #needed only if not merge by run
+    NfilesPerChunk: 20
+    MergeTrees: True
+    DoTotalMerge: True
+    ObjectsToMerge: [ null ]

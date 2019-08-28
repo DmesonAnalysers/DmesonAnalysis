@@ -1,0 +1,15 @@
+DataPath: alien:///alice/data/2018/LHC18r
+RecoPass: pass1
+TrainName: PWGHF/D2H_PbPb/1578_20190827-1525
+InputFileName: AnalysisResults.root
+OutputPath: '.'
+OutputFileName: AnalysisResults_timerangecut.root
+MergeOptions:
+    IsMC: False
+    MergeByRun: True
+    RunNumbers: [296749, 296750, 296849, 296890, 297029, 297194, 297219]
+    NfilesTot: -1 #needed only if not merge by run
+    NfilesPerChunk: 20
+    MergeTrees: True
+    DoTotalMerge: True
+    ObjectsToMerge: [ null ]
