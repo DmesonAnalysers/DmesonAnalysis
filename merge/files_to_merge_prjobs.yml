@@ -6,9 +6,9 @@ OutputPath: '.'
 OutputFileName: AnalysisResults.root
 MergeOptions:
     IsMC: True
-    MergeByRun: False
+    MergeByRun: False # if false takes unmerged files
     RunNumbers: [ null ]
-    NfilesTot: 453 #needed only if not merge by run
+    NfilesPerRun: 10 # -1: all files
     NfilesPerChunk: 100
     MergeTrees: True
     DoTotalMerge: True

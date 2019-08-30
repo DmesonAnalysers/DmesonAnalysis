@@ -6,9 +6,9 @@ OutputPath: '.'
 OutputFileName: AnalysisResults_incomplTPC.root
 MergeOptions:
     IsMC: False
-    MergeByRun: True
+    MergeByRun: True # if false takes unmerged files
     RunNumbers: [ 295753 ]
-    NfilesTot: -1 #needed only if not merge by run
+    NfilesPerRun: -1 # -1: all files
     NfilesPerChunk: 20
     MergeTrees: True
     DoTotalMerge: True

@@ -6,9 +6,9 @@ OutputPath: '.'
 OutputFileName: AnalysisResults_timerangecut.root
 MergeOptions:
     IsMC: False
-    MergeByRun: True
+    MergeByRun: True # if false takes unmerged files
     RunNumbers: [296749, 296750, 296849, 296890, 297029, 297194, 297219]
-    NfilesTot: -1 #needed only if not merge by run
+    NfilesPerRun: -1 # -1: all files
     NfilesPerChunk: 20
     MergeTrees: True
     DoTotalMerge: True

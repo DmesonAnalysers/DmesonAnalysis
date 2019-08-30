@@ -3,7 +3,25 @@ import os
 import argparse
 import six
 import yaml
-from ROOT import TGrid, TFileMerger, gROOT #pylint: disable=import-error, no-name-in-module
+from ROOT import TGrid, TFileMerger #pylint: disable=import-error, no-name-in-module
+from ROOT import gROOT #pylint: disable=import-error, no-name-in-module
+
+
+def merge(merger, outfilename, objtomerge=None, mode=None):
+    '''
+    general function for merging
+    '''
+
+    merger.OutputFile(outfilename)
+    if objtomerge is not None and objtomerge:
+        merger.AddObjectNames(objtomerge)
+        if mode is not None:
+            merger.PartialMerge(mode)
+    else:
+        merger.Merge()
+    merger.Reset()
+    print('Merged files in ', outfilename)
+
 
 #pylint: disable=invalid-name
 parser = argparse.ArgumentParser(description='Arguments')
@@ -14,50 +32,80 @@ args = parser.parse_args()
 with open(args.cfgfile, 'r') as ymlinputCfg:
     if six.PY2:
         inputCfg = yaml.load(ymlinputCfg)
-    else:
+    elif six.PY3:
         inputCfg = yaml.safe_load(ymlinputCfg)
 
-TGrid.Connect('alien://')
+grid = TGrid.Connect('alien://')
 fileMerger = TFileMerger()
+fileMerger.SetPrintLevel(0)
 
 if not inputCfg['MergeOptions']['MergeTrees']:
     fileMerger.SetNotrees(True)
-
-if inputCfg['MergeOptions']['MergeByRun']:
-    runs = inputCfg['MergeOptions']['RunNumbers']
-else:
-    runs = [('%03d' % iNum) for iNum in range(inputCfg['MergeOptions']['NfilesTot'])]
 
 defMode = (TFileMerger.kAll | TFileMerger.kIncremental)
 Mode = (defMode | TFileMerger.kOnlyListed)
 objToMerge = ''
 for obj in inputCfg['MergeOptions']['ObjectsToMerge']:
     if obj is not None:
-        objToMerge += '%s ' % obj
+        objToMerge += '{0} '.format(obj)
 
 #partially merged files from alien
 nBunch = 0
+runs = inputCfg['MergeOptions']['RunNumbers']
+nPerRun = inputCfg['MergeOptions']['NfilesPerRun']
 for iRun, run in enumerate(runs):
-    if inputCfg['MergeOptions']['IsMC']:
-        inname = os.path.join(inputCfg['DataPath'], '%s' % run)
-    else:
-        inname = os.path.join(inputCfg['DataPath'], '000%s' % run)
-    if inputCfg['RecoPass'] is not None and inputCfg['TrainName'] is not None:
-        inname = os.path.join(inname, inputCfg['RecoPass'], inputCfg['TrainName'])
-    inname = os.path.join(inname, inputCfg['InputFileName'])
-    fileMerger.AddFile(inname)
-    if iRun%inputCfg['MergeOptions']['NfilesPerChunk'] == 0 or iRun == len(runs)-1:
-        print('Merging up to %s' % inname)
-        outname = inputCfg['OutputFileName'].replace('.root', '_%04d.root' % nBunch)
-        outname = os.path.join(inputCfg['OutputPath'], outname)
-        fileMerger.OutputFile(outname)
-        if objToMerge:
-            fileMerger.AddObjectNames(objToMerge)
-            fileMerger.PartialMerge(Mode)
+    dirname = inputCfg['DataPath']
+    if run is not None:
+        if inputCfg['MergeOptions']['IsMC']:
+            dirname = os.path.join(dirname, '{:%d}'.format(run))
         else:
-            fileMerger.Merge()
-        fileMerger.Reset()
+            dirname = os.path.join(dirname, '{:%09d}'.format(run))
+    if (inputCfg['RecoPass'] is not None) and (inputCfg['TrainName'] is not None):
+        dirname = os.path.join(dirname, inputCfg['RecoPass'], inputCfg['TrainName'])
+
+    if not grid.Cd(dirname.replace('alien://', '')):
+        print('No outputs for this run, continue')
+        continue
+
+    dirnum = 1
+    if not inputCfg['MergeOptions']['MergeByRun']:
+        ndigits = 4
+        dirname = os.path.join(dirname, '{:0{}d}/'.format(dirnum, ndigits))
+        if not grid.Cd(dirname.replace('alien://', '')):
+            ndigits = 3
+            dirname = dirname.replace('/{:0{}d}/'.format(dirnum, 4), \
+                '/{:0{}d}/'.format(dirnum, ndigits))
+            if not grid.Cd(dirname.replace('alien://', '')):
+                print('No outputs for this run, continue')
+                continue
+
+        while ((dirnum < nPerRun) or nPerRun < 0) and grid.Cd(dirname.replace('alien://', '')):
+            dirname = dirname.replace('/{:0{}d}/'.format(dirnum-1, ndigits),  \
+                '/{:0{}d}/'.format(dirnum, ndigits))
+            inname = os.path.join(dirname, inputCfg['InputFileName'])
+            fileMerger.AddFile(inname)
+            if dirnum%inputCfg['MergeOptions']['NfilesPerChunk'] == 0:
+                print('Merging up to ', inname)
+                outname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(nBunch))
+                outname = os.path.join(inputCfg['OutputPath'], outname)
+                merge(fileMerger, outname, objToMerge, Mode)
+                nBunch += 1
+            dirnum += 1
+        print('Merging up to ', inname)
+        outname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(nBunch))
+        outname = os.path.join(inputCfg['OutputPath'], outname)
+        merge(fileMerger, outname, objToMerge, Mode)
         nBunch += 1
+    else:
+        inname = os.path.join(dirname, inputCfg['InputFileName'])
+        fileMerger.AddFile(inname)
+        if iRun%inputCfg['MergeOptions']['NfilesPerChunk'] == 0 or iRun == len(iRun)-1:
+            print('Merging up to ', inname)
+            outname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(nBunch))
+            outname = os.path.join(inputCfg['OutputPath'], outname)
+            merge(fileMerger, outname, objToMerge, Mode)
+            nBunch += 1
+
 fileMerger.Reset()
 
 # merge partially merged files
@@ -65,15 +113,13 @@ if inputCfg['MergeOptions']['DoTotalMerge']:
     print('Merging partial files')
     outname = os.path.join(inputCfg['OutputPath'], inputCfg['OutputFileName'])
     if nBunch > 1:
-        fileMerger.OutputFile(outname)
         for iMergedFile in range(nBunch):
-            inname = inputCfg['OutputFileName'].replace('.root', '_%04d.root' % iMergedFile)
+            inname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(iMergedFile))
             inname = os.path.join(inputCfg['OutputPath'], inname)
             fileMerger.AddFile(inname)
-        fileMerger.Merge()
-        fileMerger.Reset()
+        merge(fileMerger, outname)
         for iMergedFile in range(nBunch):
-            inname = inputCfg['OutputFileName'].replace('.root', '_%04d.root' % iMergedFile)
+            inname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(iMergedFile))
             inname = os.path.join(inputCfg['OutputPath'], inname)
             if os.path.isfile(inname):
                 os.remove(inname)
