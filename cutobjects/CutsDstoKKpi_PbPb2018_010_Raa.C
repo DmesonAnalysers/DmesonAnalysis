@@ -15,7 +15,8 @@
 // 1) MakeFileForCutsDs010_Central2015 --> central cuts of 2015 analysis
 // 2) MakeFileForCutsDs010_Central2018 --> central cuts of 2018 analysis
 // 3) MakeFileForCutsDs010_Loose2018 --> loose cuts of 2018 analysis (sparse)
-// 4) MakeFileForCutsDs010_FiltTreeCreator2018 --> filtering cuts of 2018 analysis (tree creator)
+// 4) MakeFileForCutsDs010_FiltTreeCreator2018 --> filtering cuts of 2018 analysis, locally on aliceml, SQM  (tree creator)
+// 5) MakeFileForCutsDs010_FiltTreeCreator2018QM --> filtering cuts of 2018 analysis, application on grid, QM (tree creator)
 //____________________________________________________________________________________________________//
 
 AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2015(bool fUseStrongPID = true, double maxPtstrongPID = 8.0, bool fIsMC=false) {
@@ -199,7 +200,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2015(bool fUseStrongPID = true,
     analysiscuts->SetMaxPtCandidate(24.);
     analysiscuts->SetRemoveDaughtersFromPrim(false);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
     
     analysiscuts->PrintAll();
     TString triggername = "kINT7_kCentral";
@@ -460,7 +461,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2018(bool fUseStrongPID = true,
     analysiscuts->SetMaxPtCandidate(36.);
     analysiscuts->SetRemoveDaughtersFromPrim(false);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
     
     analysiscuts->PrintAll();
     TString triggername = "kINT7_kCentral";
@@ -696,7 +697,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Loose2018(bool fUseStrongPID = true, d
     analysiscuts->SetMaxPtCandidate(36.);
     analysiscuts->SetRemoveDaughtersFromPrim(false);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
     
     analysiscuts->PrintAll();
     TString triggername = "kINT7_kCentral";
@@ -819,7 +820,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018(bool fUseStrongPID
     analysiscuts->SetMaxPtCandidate(50.);
     analysiscuts->SetRemoveDaughtersFromPrim(false);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
     
     analysiscuts->PrintAll();
     TString triggername = "kINT7_kCentral";
@@ -828,6 +829,122 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018(bool fUseStrongPID
     if(fUseStrongPID) pidname = Form("_strongPIDpt%0.f", maxPtstrongPID);
 
     TFile* fout=new TFile(Form("DstoKKpiCuts_010_filttreecreator%s_Raa_%s.root",pidname.Data(),triggername.Data()),"recreate");
+    fout->cd();
+    analysiscuts->Write();
+    fout->Close();
+
+    return analysiscuts;
+}
+
+AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false) {
+        
+    AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
+    esdTrackCuts->SetRequireSigmaToVertex(false);
+    esdTrackCuts->SetRequireTPCRefit(true);
+    esdTrackCuts->SetRequireITSRefit(true);
+    esdTrackCuts->SetMinNClustersTPC(70);
+    esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
+    esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD, AliESDtrackCuts::kAny);
+    esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetPtRange(0.3,1.e10);
+    
+    float mincen=0.;
+    float maxcen=10;
+    
+    const int nptbins=2;
+    float ptbins[nptbins+1]={0.,5.,50.};
+              
+    const int nvars = 20;
+    float** anacutsval=new float*[nvars];
+    for(int ic=0;ic<nvars;ic++){anacutsval[ic]=new float[nptbins];}
+      
+    anacutsval[0][0]=0.25;
+    anacutsval[1][0]=0.4;
+    anacutsval[2][0]=0.4;
+    anacutsval[3][0]=0.;
+    anacutsval[4][0]=0.;
+    anacutsval[5][0]=0.;
+    anacutsval[6][0]=0.04;
+    anacutsval[7][0]=0.02;
+    anacutsval[8][0]=0.;
+    anacutsval[9][0]=0.96;
+    anacutsval[10][0]=0.;
+    anacutsval[11][0]=1000.0;
+    anacutsval[12][0]=0.015;
+    anacutsval[13][0]=0.001;
+    anacutsval[14][0]=0.;
+    anacutsval[15][0]=1.;
+    anacutsval[16][0]=0.;
+    anacutsval[17][0]=0.;
+    anacutsval[18][0]=3.;
+    anacutsval[19][0]=0.96;
+
+    anacutsval[0][1]=0.3;
+    anacutsval[1][1]=0.4;
+    anacutsval[2][1]=0.4;
+    anacutsval[3][1]=0.;
+    anacutsval[4][1]=0.;
+    anacutsval[5][1]=0.;
+    anacutsval[6][1]=0.06;
+    anacutsval[7][1]=0.02;
+    anacutsval[8][1]=0.;
+    anacutsval[9][1]=0.9;
+    anacutsval[10][1]=0.;
+    anacutsval[11][1]=1000.;
+    anacutsval[12][1]=0.015;
+    anacutsval[13][1]=0.0001;
+    anacutsval[14][1]=0.;
+    anacutsval[15][1]=1.;
+    anacutsval[16][1]=0.;
+    anacutsval[17][1]=0.;
+    anacutsval[18][1]=2.;
+    anacutsval[19][1]=0.9;
+    
+    AliRDHFCutsDstoKKpi* analysiscuts=new AliRDHFCutsDstoKKpi();
+    analysiscuts->SetName("AnalysisCuts");
+    analysiscuts->SetTitle("Cuts for Ds Analysis and CF");
+    analysiscuts->SetUsePreSelect(1);
+    analysiscuts->SetPtBins(nptbins+1,ptbins);
+    analysiscuts->SetCuts(nvars,nptbins,anacutsval);
+    analysiscuts->AddTrackCuts(esdTrackCuts);
+    if(!fIsMC)
+        analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
+    
+    TString cent="";
+    
+    analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
+    analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
+    analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
+    if(!fIsMC) analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kCentral);
+    else analysiscuts->SetTriggerMask(AliVEvent::kMB);
+    
+    analysiscuts->SetUsePID(true);
+    analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
+    if(!fIsMC)
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb010);
+
+    analysiscuts->SetOptPileup(false);
+    if(!fIsMC) {
+      analysiscuts->SetMinCentrality(mincen);
+      analysiscuts->SetMaxCentrality(maxcen);
+    }
+    else {
+      analysiscuts->SetMinCentrality(0);
+      analysiscuts->SetMaxCentrality(100);
+    }
+    cent=Form("%.0f%.0f",mincen,maxcen);
+    
+    analysiscuts->SetMinPtCandidate(2.);
+    analysiscuts->SetMaxPtCandidate(50.);
+    analysiscuts->SetRemoveDaughtersFromPrim(false);
+
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
+    
+    analysiscuts->PrintAll();
+    TString triggername = "kINT7_kCentral";
+    if(fIsMC) triggername = "kMB";
+
+    TFile* fout=new TFile(Form("DstoKKpiCuts_010_filttreecreatorQM_Raa_%s.root",triggername.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
