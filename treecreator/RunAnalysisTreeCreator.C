@@ -37,11 +37,11 @@ TString gridWorkingDir="testNtupleCreatorDsPbPb2018";
 TString gridOutputDir="output";
 
 //Task configuration
-TString cutFile="../cutobjects/DsDplusCuts_treecreator_PbPb2018_010_kINT7_kCentral.root"; 
+TString cutFile="../cutobjects/DsDplusCuts_treecreator_PbPb2018_010_kINT7_kCentral.root";
 TString cutFileDsTask="../cutobjects/DstoKKpiCuts_010_filttreecreator_Raa_kINT7_kCentral.root";
 //______________________________________________
 
-void RunAnalysisTreeCreator(TString configfilename, TString runMode)
+void RunAnalysisTreeCreator(TString configfilename, TString runMode="full", bool mergeviajdl=true)
 {
     TGrid::Connect("alien://");
     // set if you want to run the analysis locally (true), or on grid (false)
@@ -83,8 +83,7 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode)
 
     if(System==kpPb || System==kPbPb) {
         AliMultSelectionTask *multSel = reinterpret_cast<AliMultSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C"))));
-        
-        
+
         if(strstr(gridDataDir.c_str(),"LHC15o") || strstr(gridDataDir.c_str(),"LHC16i2")) multSel->SetAlternateOADBforEstimators("LHC15o-DefaultMC-HIJING");
         else if((strstr(gridDataDir.c_str(),"LHC18q") || strstr(gridDataDir.c_str(),"LHC18r") || strstr(gridDataDir.c_str(),"LHC19c")) && isRunOnMC) multSel->SetAlternateOADBFullManualBypassMC("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/data/OADB-LHC18q-DefaultMC-HIJING.root");
     }
@@ -93,9 +92,11 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode)
     isRunOnMC, 1, "HFTreeCreator", cutFile.Data(),1,isRunOnMC,isRunOnMC,0,1,0,0,0,0,0,0,0,"AliHFTreeHandler::kNsigmaDetAndCombPID","AliHFTreeHandler::kNsigmaDetAndCombPID","AliHFTreeHandler::kNsigmaDetAndCombPID","AliHFTreeHandler::kNsigmaDetAndCombPID","AliHFTreeHandler::kNsigmaDetAndCombPID",
     "AliHFTreeHandler::kNsigmaDetAndCombPID","AliHFTreeHandler::kNsigmaDetAndCombPID","AliHFTreeHandler::kNsigmaDetAndCombPID","AliHFTreeHandler::kNsigmaDetAndCombPID","AliHFTreeHandler::kRedSingleTrackVars", false, false)));
     task->SetNsigmaTPCDataDrivenCorrection(0);
+    task->ApplyPhysicsSelectionOnline();
+    task->EnableEventDownsampling(0.1, 0);
 
     AliAnalysisTaskSEDs *taskDs = reinterpret_cast<AliAnalysisTaskSEDs*>(gInterpreter->ProcessLine(Form(".x %s(%d,%d,%d,%d,%d,\"%s\",\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskDs.C"),1, 0, true,isRunOnMC,isRunOnMC,cutFileDsTask.Data(),"FilteringCuts")));
-  
+
     if(System==kPbPb) {
         AliAnalysisTaskSECleanupVertexingHF *taskclean =reinterpret_cast<AliAnalysisTaskSECleanupVertexingHF *>(gInterpreter->ProcessLine(Form(".x %s", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskCleanupVertexingHF.C"))));
     }
@@ -121,7 +122,7 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode)
         // start the analysis locally, reading the events from the tchain
         mgr->StartAnalysis("local", chainAOD);
 
-    } 
+    }
     else {
         // if we want to run on grid, we create and configure the plugin
         AliAnalysisAlien *alienHandler = new AliAnalysisAlien();
@@ -133,7 +134,7 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode)
         // alienHandler->SetAdditionalLibs("custom.cxx custom.h");
         // alienHandler->SetAnalysisSource("custom.cxx");
 
-        // select the aliphysics version. 
+        // select the aliphysics version.
         alienHandler->SetAliPhysicsVersion(aliPhysVersion.data());
 
         // set the Alien API version
@@ -168,7 +169,7 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode)
         // (see below) mode, set SetMergeViaJDL(false)
         // to collect final results
         alienHandler->SetMaxMergeStages(3); //2, 3
-        alienHandler->SetMergeViaJDL(true);
+        alienHandler->SetMergeViaJDL(mergeviajdl);
 
         // define the output folders
         alienHandler->SetGridWorkingDir(gridWorkingDir.Data());
