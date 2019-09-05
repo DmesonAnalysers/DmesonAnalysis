@@ -28,7 +28,6 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
     }
 
     AliRDHFCutsDstoKKpi* cutsDsFilt = NULL;
-    AliRDHFCutsDstoKKpi* cutsDsFiltQM = NULL;
     AliRDHFCutsDstoKKpi* cutsDsCent = NULL;
 
     AliRDHFCutsDplustoKpipi* cutsDplusFilt = NULL;
@@ -42,8 +41,7 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             centname="010";
             triggername="kINT7_kCentral";
             if(fIncludeDs) {
-                cutsDsFilt = MakeFileForCutsDs010_FiltTreeCreator2018(false, -1.0, fIsMC);
-                cutsDsFiltQM = MakeFileForCutsDs010_FiltTreeCreator2018QM(fIsMC);
+                cutsDsFilt = MakeFileForCutsDs010_FiltTreeCreator2018QM(fIsMC);
                 cutsDsCent = MakeFileForCutsDs010_Central2018(true, 8.0, fIsMC);
             }
             if(fIncludeDplus) {
@@ -58,8 +56,7 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             centname="3050";
             triggername="kINT7_kSemiCentral";
             if(fIncludeDs) {
-                cutsDsFilt = MakeFileForCutsDs3050_FiltTreeCreator2018(false, -1.0, fIsMC);
-                cutsDsFiltQM = MakeFileForCutsDs3050_FiltTreeCreator2018QM(fIsMC);
+                cutsDsFilt = MakeFileForCutsDs3050_FiltTreeCreator2018QM(fIsMC);
                 cutsDsCent = MakeFileForCutsDs3050_Central2018(true, 8.0, fIsMC);
             }
             if(fIncludeDplus) {
@@ -104,10 +101,6 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
         cutsDsCent->SetName("DstoKKpiAnalysisCuts");
         cutsDsFilt->Write("DstoKKpiFilteringCuts");
         cutsDsCent->Write("DstoKKpiAnalysisCuts");
-        if(cent == k010 || cent == k3050) {
-            cutsDsFiltQM->SetName("DstoKKpiFilteringCutsQM");
-            cutsDsFiltQM->Write("DstoKKpiFilteringCutsQM");
-        }
     }
     if(fIncludeDplus) {
         cutsDplusFilt->SetName("DplustoKpipiFilteringCuts");
