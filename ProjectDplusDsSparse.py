@@ -20,7 +20,7 @@ def main(): # pylint: disable=too-many-locals,too-many-branches,too-many-stateme
     outFileName = sys.argv[3]
 
     with open(cfgFileName, 'r') as ymlCfgFile:
-        inputCfg = yaml.load(ymlCfgFile)
+        inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 
     isMC = inputCfg['isMC']
     infileData = TFile(inputCfg['filename'])
@@ -42,7 +42,7 @@ def main(): # pylint: disable=too-many-locals,too-many-branches,too-many-stateme
     hEv = inlistData.FindObject(inputCfg['histoevname'])
 
     with open(cutSetFileName, 'r') as ymlCutSetFile:
-        cutSetCfg = yaml.load(ymlCutSetFile)
+        cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
 
     cutVars = cutSetCfg['cutvars']
 
