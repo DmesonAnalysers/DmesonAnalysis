@@ -1,6 +1,6 @@
 [FORMAT]
 indent-string='    '
-max-line-length=100
+max-line-length=120
 
 [BASIC]
 variable-rgx=(?:(?P<snake>[a-z_]+))
@@ -13,4 +13,4 @@ max-args=10
 max-locals=40
 
 [MESSAGES CONTROL]
-disable=missing-docstring
+disable=missing-docstring,invalid-name
