@@ -1,5 +1,6 @@
 from ROOT import TCanvas, TFile, TLegend
-from ROOT import gStyle, kRed, kBlack, kBlue, kGreen, kFullCircle, kFullSquare, kFullDiamond 
+from ROOT import gStyle, kRed, kBlack, kBlue, kGreen, kOrange
+from ROOT import kFullCircle, kFullSquare, kFullDiamond
 import math, six
 
 inputdir = 'outputs/'
@@ -151,6 +152,6 @@ cSoverB.SaveAs('%s/SoverB_%s.eps' % (outputdir,outputsuffix))
 cSignificance.SaveAs('%s/SignificancePerEventComparison_%s.eps' % (outputdir,outputsuffix))
 
 if six.PY2:
-    raw_input('Press enter to exit')
+  raw_input('Press enter to exit')
 elif six.PY3:
-    input('Press enter to exit')
+  input('Press enter to exit')
