@@ -101,7 +101,7 @@ where ```files_to_merge.yml``` is the configuration file containing the informat
 ## Test and validation of code for production of trees used in ML studies
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```treecreator``` folder
 
-* To run the [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator) on the same files:
+* To run the [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx) on the same files:
 ```
 RunAnalysisTreeCreator.C (TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
 ```
