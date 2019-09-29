@@ -57,9 +57,9 @@ for iRun, run in enumerate(runs):
     dirname = inputCfg['DataPath']
     if run is not None:
         if inputCfg['MergeOptions']['IsMC']:
-            dirname = os.path.join(dirname, '{:%d}'.format(run))
+            dirname = os.path.join(dirname, '{:d}'.format(run))
         else:
-            dirname = os.path.join(dirname, '{:%09d}'.format(run))
+            dirname = os.path.join(dirname, '{:09d}'.format(run))
     if (inputCfg['RecoPass'] is not None) and (inputCfg['TrainName'] is not None):
         dirname = os.path.join(dirname, inputCfg['RecoPass'], inputCfg['TrainName'])
 
