@@ -23,23 +23,44 @@ def main(): # pylint: disable=too-many-locals,too-many-branches,too-many-stateme
         inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 
     isMC = inputCfg['isMC']
-    infileData = TFile(inputCfg['filename'])
-    indirData = infileData.Get(inputCfg['dirname'])
-    inlistData = indirData.Get(inputCfg['listname'])
-    sMassPtCutVars = inlistData.FindObject(inputCfg['sparsenameAll'])
-    enableSecPeak = inputCfg['enableSecPeak']
-    if isMC:
-        sMassPtCutVarsPrompt = inlistData.FindObject(inputCfg['sparsenamePrompt'])
-        sMassPtCutVarsFD = inlistData.FindObject(inputCfg['sparsenameFD'])
-        sGenPrompt = inlistData.FindObject(inputCfg['sparsenameGenPrompt'])
-        sGenFD = inlistData.FindObject(inputCfg['sparsenameGenFD'])
-        if enableSecPeak:
-            sMassPtCutVarsPromptSecPeak = inlistData.FindObject(inputCfg['sparsenamePromptSecPeak'])
-            sMassPtCutVarsFDSecPeak = inlistData.FindObject(inputCfg['sparsenameFDSecPeak'])
-            sGenPromptSecPeak = inlistData.FindObject(inputCfg['sparsenameGenPromptSecPeak'])
-            sGenFDSecPeak = inlistData.FindObject(inputCfg['sparsenameGenFDSecPeak'])
-    normCounter = indirData.Get(inputCfg['normname'])
-    hEv = inlistData.FindObject(inputCfg['histoevname'])
+    infilenames = inputCfg['filename']
+    if not isinstance(infilenames, list):
+        infilenames = [infilenames]
+
+    for iFile, infilename in enumerate(infilenames):
+        infileData = TFile(infilename)
+        indirData = infileData.Get(inputCfg['dirname'])
+        inlistData = indirData.Get(inputCfg['listname'])
+        enableSecPeak = inputCfg['enableSecPeak']
+        if iFile == 0:
+            sMassPtCutVars = inlistData.FindObject(inputCfg['sparsenameAll'])
+            normCounter = indirData.Get(inputCfg['normname'])
+            hEv = inlistData.FindObject(inputCfg['histoevname'])
+        else:
+            sMassPtCutVars.Add(inlistData.FindObject(inputCfg['sparsenameAll']))
+            normCounter.Add(indirData.Get(inputCfg['normname']))
+            hEv.Add(inlistData.FindObject(inputCfg['histoevname']))
+        if isMC:
+            if iFile == 0:
+                sMassPtCutVarsPrompt = inlistData.FindObject(inputCfg['sparsenamePrompt'])
+                sMassPtCutVarsFD = inlistData.FindObject(inputCfg['sparsenameFD'])
+                sGenPrompt = inlistData.FindObject(inputCfg['sparsenameGenPrompt'])
+                sGenFD = inlistData.FindObject(inputCfg['sparsenameGenFD'])
+                if enableSecPeak:
+                    sMassPtCutVarsPromptSecPeak = inlistData.FindObject(inputCfg['sparsenamePromptSecPeak'])
+                    sMassPtCutVarsFDSecPeak = inlistData.FindObject(inputCfg['sparsenameFDSecPeak'])
+                    sGenPromptSecPeak = inlistData.FindObject(inputCfg['sparsenameGenPromptSecPeak'])
+                    sGenFDSecPeak = inlistData.FindObject(inputCfg['sparsenameGenFDSecPeak'])
+            else:
+                sMassPtCutVarsPrompt.Add(inlistData.FindObject(inputCfg['sparsenamePrompt']))
+                sMassPtCutVarsFD.Add(inlistData.FindObject(inputCfg['sparsenameFD']))
+                sGenPrompt.Add(inlistData.FindObject(inputCfg['sparsenameGenPrompt']))
+                sGenFD.Add(inlistData.FindObject(inputCfg['sparsenameGenFD']))
+                if enableSecPeak:
+                    sMassPtCutVarsPromptSecPeak.Add(inlistData.FindObject(inputCfg['sparsenamePromptSecPeak']))
+                    sMassPtCutVarsFDSecPeak.Add(inlistData.FindObject(inputCfg['sparsenameFDSecPeak']))
+                    sGenPromptSecPeak.Add(inlistData.FindObject(inputCfg['sparsenameGenPromptSecPeak']))
+                    sGenFDSecPeak.Add(inlistData.FindObject(inputCfg['sparsenameGenFDSecPeak']))
 
     with open(cutSetFileName, 'r') as ymlCutSetFile:
         cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
