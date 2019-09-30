@@ -98,6 +98,13 @@ python MergeTrainOutputs.py files_to_merge.yml
 ```
 where ```files_to_merge.yml``` is the configuration file containing the information about the outputs that has to be merged such as [files_to_merge_LHC18q.yml](merge/files_to_merge_LHC18q.yml)
 
+## Pre-filter ThnSparses
+* If the train outputs are too large and cannot be merged, they can be pre-filtered with:
+```
+python FilterSparse configfile.yml cutset.yml
+```
+where ```configfile.yml``` is the config file with the info of the input files and ```cutset.yml``` is the set of selections to be applied in the filtering. It creates output files as the input ones, with the ThnSparses filtered. With the option --suffix ```suffix```, a suffix is added to the output file names, otherwise the input files are overwritten
+
 ## Test and validation of code for production of trees used in ML studies
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```treecreator``` folder
 
