@@ -6,8 +6,9 @@ with option --suffix a suffix is added to the output file name, otherwise the in
 
 import argparse
 import array
+import six
 import yaml
-from ROOT import TFile, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TDirectoryFile, TCanvas  # pylint: disable=import-error,no-name-in-module
 from TaskFileLoader import LoadSparseFromTask, LoadListFromTask, LoadNormObjFromTask, LoadCutObjFromTask
 
 
@@ -44,7 +45,26 @@ def FilterSparses(sparsesOrig, cutvars, axestokeep):
     return sparsesFilt
 
 
-#main function
+def PlotFiltVarsVsPt(sparses, canvasname):
+    '''
+    function that gets a dictionary of sparses and returns a dictionary of canvases with scatter plots
+    '''
+    cVars, histos = {}, {}
+    for sparsetype in sparses:
+        histos[sparsetype] = []
+        cVars[sparsetype] = TCanvas(
+            '{0}{1}'.format(canvasname, sparsetype), '', 1920, 1080)
+        cVars[sparsetype].Divide(
+            int(sparses[sparsetype].GetNdimensions()/3)+1, 3)
+        for iVar in range(sparses[sparsetype].GetNdimensions()):
+            histos[sparsetype].append(sparses[sparsetype].Projection(iVar, 1, 'O'))
+            histos[sparsetype][iVar].SetName('{0}{1}{2}'.format(canvasname, sparsetype, iVar))
+            cVars[sparsetype].cd(iVar+1).SetLogz()
+            histos[sparsetype][iVar].Draw('colz')
+
+        cVars[sparsetype].SaveAs('{0}{1}.pdf'.format(canvasname, sparsetype))
+
+# main function
 PARSER = argparse.ArgumentParser(description='Arguments to pass')
 PARSER.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
                     help='config file name with root input files')
@@ -52,6 +72,8 @@ PARSER.add_argument('cutSetFileName', metavar='text', default='filtFileName.yml'
                     help='input file with filtering selections')
 PARSER.add_argument('--suffix', metavar='text',
                     help='suffix to be added to output file')
+PARSER.add_argument('--plot', action='store_true',
+                    help='flag to enable plots')
 ARGS = PARSER.parse_args()
 
 with open(ARGS.cfgFileName, 'r') as ymlCfgFile:
@@ -68,13 +90,19 @@ if not isinstance(infilenames, list):
 isMC = inputCfg['isMC']
 enableSecPeak = inputCfg['enableSecPeak']
 
-for infilename in infilenames:
+for iFile, infilename in enumerate(infilenames):
     sparseReco, sparseGen = LoadSparseFromTask(infilename, inputCfg)
 
     # filter sparses
     sparseFiltReco = FilterSparses(sparseReco, cutVars, axesToKeep)
     if inputCfg['isMC']:
         sparseFiltGen = FilterSparses(sparseGen, cutVars, axesToKeep)
+
+    # plot filtered sparses (each variable vs pt)
+    if ARGS.plot:
+        PlotFiltVarsVsPt(sparseFiltReco, 'cReco{0}'.format(iFile))
+        if inputCfg['isMC']:
+            PlotFiltVarsVsPt(sparseFiltGen, 'cGen{0}'.format(iFile))
 
     # get other objects from original file
     inlist = LoadListFromTask(infilename, inputCfg)
