@@ -3,7 +3,6 @@ python script for the projection of D+ and Ds+ mesons THnSparses
 run: python ProjectDplusDsSparse.py cfgFileName.yml cutSetFileName.yml outFileName.root
 '''
 
-import sys
 import argparse
 import yaml
 from ROOT import TFile, TH1F, TList  # pylint: disable=import-error,no-name-in-module
