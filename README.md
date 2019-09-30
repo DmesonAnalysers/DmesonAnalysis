@@ -103,7 +103,9 @@ where ```files_to_merge.yml``` is the configuration file containing the informat
 ```
 python FilterSparse configfile.yml cutset.yml
 ```
-where ```configfile.yml``` is the config file with the info of the input files and ```cutset.yml``` is the set of selections to be applied in the filtering. It creates output files as the input ones, with the ThnSparses filtered. With the option --suffix ```suffix```, a suffix is added to the output file names, otherwise the input files are overwritten
+where ```configfile.yml``` is the config file with the info of the input files and ```cutset.yml``` is the set of selections to be applied in the filtering. It creates output files as the input ones, with the ThnSparses filtered. 
+With the option ```--suffix suffixname```, a suffix is added to the output file names, otherwise the input files are overwritten.
+With the option ```--plot``` it creates control plots that are saved in .pdf files 
 
 ## Test and validation of code for production of trees used in ML studies
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```treecreator``` folder
