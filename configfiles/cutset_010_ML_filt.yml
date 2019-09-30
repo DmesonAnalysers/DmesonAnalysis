@@ -1,0 +1,16 @@
+cutvars:
+    InvMass:
+        axisnum: 0
+        name: 'Mass'
+    Pt:
+        axisnum: 1
+        min: [ 2., 3., 4., 6., 12.]
+        max: [ 3., 4., 6., 12., 50.]
+        name: 'Pt'
+    BDTout:
+        axisnum: 13
+        min: [ 0.97, 0.97, 0.95, 0.92, 0.9]
+        max: [ 1., 1., 1., 1., 1.]
+        name: 'BDToutput'
+
+axestokeep: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ]
