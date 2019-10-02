@@ -20,7 +20,7 @@
 
 enum centclasses {k010, k3050, k6080};
 
-void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cent=k010, bool fIsMC=false)
+void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cent=k010, bool fIsMC=false, double ptDsmin=2., double ptDsmax=50.)
 {
     if(!fIncludeDs && !fIncludeDplus) {
         std::cerr << "You have to enable at least a meson species! Exit " << std::endl;
@@ -41,8 +41,8 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             centname="010";
             triggername="kINT7_kCentral";
             if(fIncludeDs) {
-                cutsDsFilt = MakeFileForCutsDs010_FiltTreeCreator2018QM(fIsMC);
-                cutsDsCent = MakeFileForCutsDs010_Central2018(true, 8.0, fIsMC);
+                cutsDsFilt = MakeFileForCutsDs010_FiltTreeCreator2018QM(fIsMC, ptDsmin, ptDsmax);
+                cutsDsCent = MakeFileForCutsDs010_Central2018(true, 8.0, fIsMC, ptDsmin, ptDsmax);
             }
             if(fIncludeDplus) {
                 cutsDplusFilt = MakeFileForCutsDplus010_FiltTreeCreator2018(false, -1.0, fIsMC);
@@ -56,8 +56,8 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             centname="3050";
             triggername="kINT7_kSemiCentral";
             if(fIncludeDs) {
-                cutsDsFilt = MakeFileForCutsDs3050_FiltTreeCreator2018QM(fIsMC);
-                cutsDsCent = MakeFileForCutsDs3050_Central2018(true, 8.0, fIsMC);
+                cutsDsFilt = MakeFileForCutsDs3050_FiltTreeCreator2018QM(fIsMC, ptDsmin, ptDsmax);
+                cutsDsCent = MakeFileForCutsDs3050_Central2018(true, 8.0, fIsMC, ptDsmin, ptDsmax);
             }
             if(fIncludeDplus) {
                 cutsDplusFilt = MakeFileForCutsDplus3050_FiltTreeCreator2018(false, -1.0, fIsMC);
@@ -71,8 +71,8 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             centname="6080";
             triggername="kINT7";
             if(fIncludeDs) {
-                cutsDsFilt = MakeFileForCutsDs6080_FiltTreeCreator2018(false, -1.0, fIsMC);
-                cutsDsCent = MakeFileForCutsDs6080_Central2018(true, 8.0, fIsMC);
+                cutsDsFilt = MakeFileForCutsDs6080_FiltTreeCreator2018(false, -1.0, fIsMC, ptDsmin, ptDsmax);
+                cutsDsCent = MakeFileForCutsDs6080_Central2018(true, 8.0, fIsMC, ptDsmin, ptDsmax);
             }
             if(fIncludeDplus) {
                 cutsDplusFilt = MakeFileForCutsDplus3050_FiltTreeCreator2018(false, -1.0, fIsMC);
@@ -93,8 +93,8 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
     TString mesonname = "";
     if(fIncludeDs) mesonname += "Ds";
     if(fIncludeDplus) mesonname += "Dplus";
-    
-    TFile fout(Form("%sCuts_treecreator_PbPb2018_%s_%s.root",mesonname.Data(), centname.Data(), triggername.Data()),"recreate");
+
+    TFile fout(Form("%sCuts_treecreator_PbPb2018_%s_%s_ptDs%0.f_%0.f.root",mesonname.Data(), centname.Data(), triggername.Data(), ptDsmin, ptDsmax),"recreate");
     fout.cd();
     if(fIncludeDs) {
         cutsDsFilt->SetName("DstoKKpiFilteringCuts");
@@ -108,5 +108,5 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
         cutsDplusFilt->Write("DplustoKpipiFilteringCuts");
         cutsDplusCent->Write("DplustoKpipiAnalysisCuts");
     }
-    fout.Close();    
+    fout.Close();
 }
