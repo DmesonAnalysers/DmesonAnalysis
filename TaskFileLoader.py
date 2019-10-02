@@ -1,8 +1,8 @@
+from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
+
 '''
 python script with helper functions to load objects from task
 '''
-
-from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
 
 
 def LoadSparseFromTask(infilename, inputCfg):
@@ -43,6 +43,7 @@ def LoadNormObjFromTask(infilename, inputCfg):
 
     return hEv, normCounter
 
+
 def LoadListFromTask(infilename, inputCfg):
     print('Loading TList from file', infilename)
     infileData = TFile(infilename)
@@ -50,6 +51,7 @@ def LoadListFromTask(infilename, inputCfg):
     inlistData = indirData.Get(inputCfg['listname'])
 
     return inlistData
+
 
 def LoadCutObjFromTask(infilename, inputCfg):
     print('Loading cut object from file', infilename)
@@ -60,3 +62,22 @@ def LoadCutObjFromTask(infilename, inputCfg):
     cutobj = indirData.Get(cutobjname)
 
     return cutobj, cutobjname
+
+
+def LoadPIDTH3(infilename, inputCfg):
+    print('Loading Nsigma distributions from file', infilename)
+    hNsigmaVsPtVsML = {}
+    infileData = TFile(infilename)
+    indirData = infileData.Get(inputCfg['dirname'])
+    inlistData = indirData.Get(inputCfg['listname'])
+    species = ['K', 'Pi']
+    detectors = ['TPC', 'TOF', 'Comb']
+    for det in detectors:
+        hNsigmaVsPtVsML[det] = {}
+        for spe in species:
+            hNsigmaVsPtVsML[det][spe] = {}
+            for iprong in range(3):
+                hNsigmaVsPtVsML[det][spe]['{0}'.format(iprong)] = inlistData.FindObject(
+                    'fHistNsigma{0}{1}Prong{2}'.format(det, spe, iprong))
+
+    return hNsigmaVsPtVsML
