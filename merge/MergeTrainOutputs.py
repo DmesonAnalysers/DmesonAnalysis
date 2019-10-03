@@ -93,7 +93,7 @@ for iRun, run in enumerate(runs):
     else:
         inname = os.path.join(dirname, inputCfg['InputFileName'])
         fileMerger.AddFile(inname)
-        if iRun%inputCfg['MergeOptions']['NfilesPerChunk'] == 0 or iRun == len(iRun)-1:
+        if iRun%inputCfg['MergeOptions']['NfilesPerChunk'] == 0 or run == runs[-1]:
             print('Merging up to ', inname)
             outname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(nBunch))
             outname = os.path.join(inputCfg['OutputPath'], outname)
