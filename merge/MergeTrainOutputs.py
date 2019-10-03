@@ -55,6 +55,7 @@ runs = inputCfg['MergeOptions']['RunNumbers']
 nPerRun = inputCfg['MergeOptions']['NfilesPerRun']
 for iRun, run in enumerate(runs):
     dirname = inputCfg['DataPath']
+    indirs = []
     if run is not None:
         if inputCfg['MergeOptions']['IsMC']:
             dirname = os.path.join(dirname, '{:d}'.format(run))
@@ -66,25 +67,18 @@ for iRun, run in enumerate(runs):
     if not grid.Cd(dirname.replace('alien://', '')):
         print('No outputs for this run, continue')
         continue
+    else:
+        listoffiles = grid.Ls(dirname.replace('alien://', ''))
+        for iFile in range(listoffiles.GetEntries()):
+            if listoffiles.GetFileName(iFile).isdigit():
+                indirs.append(listoffiles.GetFileName(iFile))
 
     dirnum = 1
     if not inputCfg['MergeOptions']['MergeByRun']:
-        ndigits = 4
-        dirname = os.path.join(dirname, '{:0{}d}/'.format(dirnum, ndigits))
-        if not grid.Cd(dirname.replace('alien://', '')):
-            ndigits = 3
-            dirname = dirname.replace('/{:0{}d}/'.format(dirnum, 4), \
-                '/{:0{}d}/'.format(dirnum, ndigits))
-            if not grid.Cd(dirname.replace('alien://', '')):
-                print('No outputs for this run, continue')
-                continue
-
-        while ((dirnum < nPerRun) or nPerRun < 0) and grid.Cd(dirname.replace('alien://', '')):
-            dirname = dirname.replace('/{:0{}d}/'.format(dirnum-1, ndigits),  \
-                '/{:0{}d}/'.format(dirnum, ndigits))
-            inname = os.path.join(dirname, inputCfg['InputFileName'])
+        for indir in indirs:
+            inname = os.path.join(dirname, '{0}'.format(indir), inputCfg['InputFileName'])
             fileMerger.AddFile(inname)
-            if dirnum%inputCfg['MergeOptions']['NfilesPerChunk'] == 0:
+            if dirnum%inputCfg['MergeOptions']['NfilesPerChunk'] == 0 or indir == max(indir):
                 print('Merging up to ', inname)
                 outname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(nBunch))
                 outname = os.path.join(inputCfg['OutputPath'], outname)
