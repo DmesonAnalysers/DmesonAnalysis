@@ -846,7 +846,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD, AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
-    esdTrackCuts->SetPtRange(0.3,1.e10);
+    esdTrackCuts->SetPtRange(0.6,1.e10);
 
     float mincen=0.;
     float maxcen=10;
@@ -859,8 +859,8 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     for(int ic=0;ic<nvars;ic++){anacutsval[ic]=new float[nptbins];}
 
     anacutsval[0][0]=0.25;
-    anacutsval[1][0]=0.4;
-    anacutsval[2][0]=0.4;
+    anacutsval[1][0]=0.6;
+    anacutsval[2][0]=0.6;
     anacutsval[3][0]=0.;
     anacutsval[4][0]=0.;
     anacutsval[5][0]=0.;
@@ -880,8 +880,8 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     anacutsval[19][0]=0.96;
 
     anacutsval[0][1]=0.3;
-    anacutsval[1][1]=0.4;
-    anacutsval[2][1]=0.4;
+    anacutsval[1][1]=0.6;
+    anacutsval[2][1]=0.6;
     anacutsval[3][1]=0.;
     anacutsval[4][1]=0.;
     anacutsval[5][1]=0.;
