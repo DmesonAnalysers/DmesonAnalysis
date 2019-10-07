@@ -1,7 +1,7 @@
 isMC: yes
-filename: ../ML_DsAnalysis/QM_prel/inputs/MC/D2H_prod/010/AnalysisResultsDs_MC_010_LHC19c3a_Tot_wTRcut.root
-dirname: PWG3_D2H_InvMassDs_MLappl010_pt2_8
-listname: coutputDs_MLappl010_pt2_8
+filename: ../ML_DsAnalysis/QM_prel/inputs/MC/D2H_prod/3050/AnalysisResultsDs_MC_3050_LHC19c3b_Tot_wTRcut.root
+dirname: PWG3_D2H_InvMassDs_MLappl3050_pt8_50
+listname: coutputDs_MLappl3050_pt8_50
 sparsenameAll: fnSparseReco_fromC
 sparsenamePrompt: fnSparseReco_fromC
 sparsenameFD: fnSparseReco_fromB
