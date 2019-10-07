@@ -76,11 +76,11 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
         PtLims[iPt] = PtMin[iPt];
         PtLims[iPt+1] = PtMax[iPt];
-        if(bkgfunc[iPt] == "kExpo") BkgFunc[iPt] = AliHFInvMassFitter::kExpo; 
-        else if(bkgfunc[iPt] == "kLin") BkgFunc[iPt] = AliHFInvMassFitter::kLin; 
-        else if(bkgfunc[iPt] == "kPol2") BkgFunc[iPt] = AliHFInvMassFitter::kPol2; 
-        if(sgnfunc[iPt] == "kGaus") SgnFunc[iPt] = AliHFInvMassFitter::kGaus; 
-        else if(sgnfunc[iPt] == "k2Gaus") SgnFunc[iPt] = AliHFInvMassFitter::k2Gaus; 
+        if(bkgfunc[iPt] == "kExpo") BkgFunc[iPt] = AliHFInvMassFitter::kExpo;
+        else if(bkgfunc[iPt] == "kLin") BkgFunc[iPt] = AliHFInvMassFitter::kLin;
+        else if(bkgfunc[iPt] == "kPol2") BkgFunc[iPt] = AliHFInvMassFitter::kPol2;
+        if(sgnfunc[iPt] == "kGaus") SgnFunc[iPt] = AliHFInvMassFitter::kGaus;
+        else if(sgnfunc[iPt] == "k2Gaus") SgnFunc[iPt] = AliHFInvMassFitter::k2Gaus;
     }
 
     TString massaxistit = "";
@@ -94,6 +94,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     if(!infile || !infile->IsOpen()) return -1;
     TH1F* hMass[nPtBins];
     TH1F* hEv = NULL;
+
     for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
         if(!isMC)
             hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10)));
@@ -104,7 +105,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hPromptSecPeakMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10))));
                 hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hFDSecPeakMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10))));
             }
-        }   
+        }
         hEv = static_cast<TH1F*>(infile->Get("hEvForNorm"));
         hMass[iPt]->SetDirectory(0);
         hEv->SetDirectory(0);
@@ -158,7 +159,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     SetHistoStyle(hRawYieldsSecondPeakTrue,kRed+1);
     SetHistoStyle(hRelDiffRawYieldsFitTrue);
     SetHistoStyle(hRelDiffRawYieldsSecondPeakFitTrue,kRed+1);
-  
+
     TH1D *hSigmaToFix = NULL;
     if(fixSigma) {
         auto infileSigma = TFile::Open(infilenameSigma.data());
@@ -185,6 +186,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     TCanvas* cMass = new TCanvas("cMass","cMass",1920,1080);
     DivideCanvas(cMass,nPtBins);
+    TCanvas* cResiduals = new TCanvas("cResiduals","cResiduals",1920,1080);
+    DivideCanvas(cResiduals,nPtBins);
     for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
 
         hMassForFit[iPt]=reinterpret_cast<TH1F*>(AliVertexingHFUtils::RebinHisto(hMass[iPt],Rebin[iPt]));
@@ -214,11 +217,11 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 parsigma2 = 3;
                 parfrac2gaus = 4;
                 if(!(InclSecPeak[iPt] && meson==kDs)) {
-                    massFunc = new TF1(Form("massFunc%d",iPt),DoubleGaus,MassMin[iPt],MassMax[iPt],5); 
+                    massFunc = new TF1(Form("massFunc%d",iPt),DoubleGaus,MassMin[iPt],MassMax[iPt],5);
                     massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9);
                 }
                 else {
-                    massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakDoubleGaus,MassMin[iPt],MassMax[iPt],8); 
+                    massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakDoubleGaus,MassMin[iPt],MassMax[iPt],8);
                     massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
                     parrawyieldsecpeak = 5;
                     parmeansecpeak = 6;
@@ -226,12 +229,12 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 }
             }
 
-            if(nPtBins>1) 
+            if(nPtBins>1)
                 cMass->cd(iPt+1);
-            else 
+            else
                 cMass->cd();
             hMassForFit[iPt]->Fit(massFunc,"E"); //fit with chi2
-      
+
             double rawyield = massFunc->GetParameter(parrawyield);
             double rawyielderr = massFunc->GetParError(parrawyield);
             double sigma = massFunc->GetParameter(parsigma1);
@@ -287,16 +290,16 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         else { //data
             auto massFitter = new AliHFInvMassFitter(hMassForFit[iPt],MassMin[iPt],MassMax[iPt],BkgFunc[iPt],SgnFunc[iPt]);
             if(UseLikelihood) massFitter->SetUseLikelihoodFit();
-            if(fixMean) 
+            if(fixMean)
                 massFitter->SetFixGaussianMean(hMeanToFix->GetBinContent(iPt+1));
             else
                 massFitter->SetInitialGaussianMean(massForFit);
-            if(fixSigma) 
+            if(fixSigma)
                 massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
-            
+
             if(InclSecPeak[iPt] && meson==kDs) massFitter->IncludeSecondGausPeak(massDplus,false,0.008,true); //TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
             massFitter->MassFitter(false);
-      
+
             double rawyield = massFitter->GetRawYield();
             double rawyielderr = massFitter->GetRawYieldError();
             double sigma = massFitter->GetSigma();
@@ -389,21 +392,36 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 hRawYieldsBkgSecondPeak->SetBinError(iPt+1,bkgsecpeakerr);
             }
 
-            if(nPtBins>1) 
+            if(nPtBins>1)
                 cMass->cd(iPt+1);
-            else 
+            else
                 cMass->cd();
-      
+
             hMassForFit[iPt]->GetYaxis()->SetRangeUser(hMassForFit[iPt]->GetMinimum()*0.95,hMassForFit[iPt]->GetMaximum()*1.2);
             massFitter->DrawHere(gPad);
+
+            if(!isMC)
+            {
+                //residuals
+                if(nPtBins>1)
+                    cResiduals->cd(iPt+1);
+                else
+                    cResiduals->cd();
+                massFitter->DrawHistoMinusFit(gPad);
+            }
         }
         cMass->Modified();
         cMass->Update();
+
+        cResiduals->Modified();
+        cResiduals->Update();
     }
 
     //save output histos
     TFile outFile(outFileName.Data(),"RECREATE");
     cMass->Write();
+    if(!isMC)
+        cResiduals->Write();
     for(unsigned int iPt=0; iPt<nPtBins; iPt++)
         hMass[iPt]->Write();
     hRawYields->Write();
@@ -433,6 +451,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     outFileName.ReplaceAll(".root",".pdf");
     cMass->SaveAs(outFileName.Data());
+    outFileName = outFileName.ReplaceAll(".pdf", "_Residuals.pdf")
+    cResiduals->SaveAs(outFileName.Data());
 
     return 0;
 }
