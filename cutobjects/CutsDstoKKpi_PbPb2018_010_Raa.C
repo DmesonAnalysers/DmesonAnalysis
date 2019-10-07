@@ -19,6 +19,8 @@
 // 5) MakeFileForCutsDs010_FiltTreeCreator2018QM --> filtering cuts of 2018 analysis, application on grid, QM (tree creator)
 //____________________________________________________________________________________________________//
 
+enum presel {kLooseQM, kMediumQM, kTightQM};
+
 AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2015(bool fUseStrongPID = true, double maxPtstrongPID = 8.0, bool fIsMC=false, double ptmin=2., double ptmax=50.) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
@@ -836,7 +838,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018(bool fUseStrongPID
     return analysiscuts;
 }
 
-AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false, double ptmin=2., double ptmax=50.) {
+AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false, double ptmin=2., double ptmax=50., int preselType=kTightQM) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(false);
@@ -858,6 +860,48 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     float** anacutsval=new float*[nvars];
     for(int ic=0;ic<nvars;ic++){anacutsval[ic]=new float[nptbins];}
 
+    TString preselname = "";
+    switch(preselType)
+    {
+        case kLooseQM:
+        {
+            preselname = "_loosepresel";
+            anacutsval[7][0]=0.02;
+            anacutsval[9][0]=0.96;
+            anacutsval[12][0]=0.015;
+            anacutsval[18][0]=3.;
+            break;
+        }
+        case kMediumQM:
+        {
+            preselname = "_mediumpresel";
+            anacutsval[7][0]=0.03;
+            anacutsval[9][0]=0.97;
+            anacutsval[12][0]=0.010;
+            anacutsval[18][0]=4.;
+            break;
+        }
+        case kTightQM:
+        {
+            preselname = "_tightpresel";
+            anacutsval[7][0]=0.05;
+            anacutsval[9][0]=0.97;
+            anacutsval[12][0]=0.010;
+            anacutsval[18][0]=5.;
+            break;
+        }
+        default:
+        {
+            std::cout << "WARNING: preselection type not implemented, setting loose QM preselections!" << std::endl;
+            preselname = "_undefinedpresel";
+            anacutsval[7][0]=0.02;
+            anacutsval[9][0]=0.96;
+            anacutsval[12][0]=0.015;
+            anacutsval[18][0]=3.;
+            break;
+        }
+    }
+
     anacutsval[0][0]=0.25;
     anacutsval[1][0]=0.6;
     anacutsval[2][0]=0.6;
@@ -865,18 +909,14 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     anacutsval[4][0]=0.;
     anacutsval[5][0]=0.;
     anacutsval[6][0]=0.04;
-    anacutsval[7][0]=0.02;
     anacutsval[8][0]=0.;
-    anacutsval[9][0]=0.96;
     anacutsval[10][0]=0.;
     anacutsval[11][0]=1000.0;
-    anacutsval[12][0]=0.015;
     anacutsval[13][0]=0.001;
     anacutsval[14][0]=0.;
     anacutsval[15][0]=1.;
     anacutsval[16][0]=0.;
     anacutsval[17][0]=0.;
-    anacutsval[18][0]=3.;
     anacutsval[19][0]=0.96;
 
     anacutsval[0][1]=0.3;
@@ -944,7 +984,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     TString triggername = "kINT7_kCentral";
     if(fIsMC) triggername = "kMB";
 
-    TFile* fout=new TFile(Form("DstoKKpiCuts_010_filttreecreatorQM_Raa_%s_pt%0.f_%0.f.root",triggername.Data(), ptmin, ptmax),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_010_filttreecreatorQM_Raa_%s_pt%0.f_%0.f%s.root", triggername.Data(), ptmin, ptmax, preselname.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();

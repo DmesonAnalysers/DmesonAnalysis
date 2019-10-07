@@ -20,7 +20,7 @@
 
 enum centclasses {k010, k3050, k6080};
 
-void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cent=k010, bool fIsMC=false, double ptDsmin=2., double ptDsmax=50.)
+void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cent=k010, bool fIsMC=false, double ptDsmin=2., double ptDsmax=50., int preselType=kTightQM)
 {
     if(!fIncludeDs && !fIncludeDplus) {
         std::cerr << "You have to enable at least a meson species! Exit " << std::endl;
@@ -41,7 +41,7 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             centname="010";
             triggername="kINT7_kCentral";
             if(fIncludeDs) {
-                cutsDsFilt = MakeFileForCutsDs010_FiltTreeCreator2018QM(fIsMC, ptDsmin, ptDsmax);
+                cutsDsFilt = MakeFileForCutsDs010_FiltTreeCreator2018QM(fIsMC, ptDsmin, ptDsmax, preselType);
                 cutsDsCent = MakeFileForCutsDs010_Central2018(true, 8.0, fIsMC, ptDsmin, ptDsmax);
             }
             if(fIncludeDplus) {
@@ -93,8 +93,20 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
     TString mesonname = "";
     if(fIncludeDs) mesonname += "Ds";
     if(fIncludeDplus) mesonname += "Dplus";
+    TString preselname = "";
+    if(cent==k010)
+    {
+        if(preselType == kLooseQM)
+            preselname = "_loosepresel";
+        else if(preselType == kMediumQM)
+            preselname = "_mediumpresel";
+        else if(preselType == kTightQM)
+            preselname = "_tightpresel";
+        else
+            preselname = "_undefinedpresel";
+    }
 
-    TFile fout(Form("%sCuts_treecreator_PbPb2018_%s_%s_ptDs%0.f_%0.f.root",mesonname.Data(), centname.Data(), triggername.Data(), ptDsmin, ptDsmax),"recreate");
+    TFile fout(Form("%sCuts_treecreator_PbPb2018_%s_%s_ptDs%0.f_%0.f%s.root",mesonname.Data(), centname.Data(), triggername.Data(), ptDsmin, ptDsmax, preselname.Data()),"recreate");
     fout.cd();
     if(fIncludeDs) {
         cutsDsFilt->SetName("DstoKKpiFilteringCuts");
