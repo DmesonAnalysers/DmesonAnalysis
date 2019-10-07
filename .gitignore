@@ -13,3 +13,4 @@ configfiles/*_local.yml
 treecreator/AODfiles
 treecreator/*.pdf
 treecreator/*.root
+treecreator/*.xml
