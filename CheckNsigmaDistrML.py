@@ -142,10 +142,10 @@ for iDet, det in enumerate(hNsigmaVsPtVsML):
                     his.Scale(1./his.Integral())
                 if hissel.Integral() > 0:
                     hissel.Scale(1./hissel.Integral())
-                his.SetTitle(' %0.f < #it{p}_{T} < %0.f GeV/#it{c};#it{N}_{#sigma}^{%s} (%s);Normalised entries' % (
-                    ptmin, ptmax, det, spe))
-                hissel.SetTitle(' %0.f < #it{p}_{T} < %0.f GeV/#it{c};#it{N}_{#sigma}^{%s} (%s);Normalised entries' % (
-                    ptmin, ptmax, det, spe))
+                his.SetTitle(' %0.f < #it{p}_{T} < %0.f GeV/#it{c};#it{N}_{#sigma}^{%s} (%s) prong%d;Normalised entries' % (
+                    ptmin, ptmax, det, spe, iProng))
+                hissel.SetTitle(' %0.f < #it{p}_{T} < %0.f GeV/#it{c};#it{N}_{#sigma}^{%s} (%s) prong%d;Normalised entries' % (
+                    ptmin, ptmax, det, spe, iProng))
                 his.GetYaxis().SetRangeUser(1.e-5, 1.)
                 his.GetXaxis().SetTitleSize(0.055)
                 hissel.GetXaxis().SetTitleSize(0.055)
