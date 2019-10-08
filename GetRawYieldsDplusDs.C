@@ -451,7 +451,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     outFileName.ReplaceAll(".root",".pdf");
     cMass->SaveAs(outFileName.Data());
-    outFileName = outFileName.ReplaceAll(".pdf", "_Residuals.pdf")
+    outFileName = outFileName.ReplaceAll(".pdf", "_Residuals.pdf");
     cResiduals->SaveAs(outFileName.Data());
 
     return 0;
