@@ -89,7 +89,7 @@ fi
 if $DoDataProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Projecting data sparse 
+    echo Projecting data sparse
     python3 ProjectDplusDsSparse.py ${cfgFileData} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml ${OutDirRawyields}/Distr_Ds_data${CutSets[$iCutSet]}.root
   done
 fi
@@ -97,7 +97,7 @@ fi
 if $DoMCProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Projecting MC sparses 
+    echo Projecting MC sparses
     python3 ProjectDplusDsSparse.py ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root
   done
 fi
@@ -164,7 +164,7 @@ if $DoDmesonYield; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute corrected yield
-    echo '.x ComputeDmesonYield.C+ (kDs,'${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrumDs'${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaaDs'${CutSets[$iCutSet]}'.root","","'${OutDirCrossSec}'","'${CutSets[$iCutSet]}'",1,1./3,3,1)' | root -l -b
+    echo '.x ComputeDmesonYield.C+ (kDs,'${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrumDs'${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaaDs'${CutSets[$iCutSet]}'.root","","'${OutDirCrossSec}'","'${CutSets[$iCutSet]}'",1,1./3,3,false,1)' | root -l -b
     echo '.q'
   done
 fi
