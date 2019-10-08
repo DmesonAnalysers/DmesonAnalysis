@@ -54,8 +54,8 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
 		    const char *efffilename="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/eff/AcceptanceTimesEfficiency_Ds_010_centralcuts.root",
 		    const char *recofilename="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/rawyields/RawYieldsDs_010_centralcuts.root",
 		    const char *recohistoname="hRawYields",
-        const char *effhistonameprompt="hAccEffPrompt",
-        const char *effhistonameFD="hAccEffFD",
+            const char *effhistonameprompt="hAccEffPrompt",
+            const char *effhistonameFD="hAccEffFD",
 		    const char *nevhistoname="hEvForNorm",
 		    const char *outfilename="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/crosssec/HFPtSpectrum.root",
 		    Int_t fdMethod=kNb,
@@ -71,7 +71,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
 		    Int_t rapiditySlice=kdefault,
 		    Int_t analysisSpeciality=kTopological,
 		    Bool_t setUsePtDependentEffUncertainty=true,
-        Double_t nevents = 1.0) {
+            Double_t nevents = 1.0) {
 
 
   //  gROOT->Macro("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/LoadLibraries.C");
@@ -131,11 +131,11 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
       tab = 0.0690; tabUnc = 0.0062;
     }
   }
-  if( (ccestimator == kV0M) && (Energy==k5dot023) ) {//values from https://alice-notes.web.cern.ch/system/files/notes/public/711/2019-03-05-ALICE_public_note.pdf
+  if( (ccestimator == kV0M) && (Energy==k5dot023) ) {
     if ( cc == k010 ) {
-      tab = 23.26; tabUnc = 0.44;
+      tab = 23.07; tabUnc = 0.44;
     } else if ( cc == k3050 ) {
-      tab = 3.917; tabUnc = 0.11;
+      tab = 3.897; tabUnc = 0.11;
     } else if ( cc == k6080 ) {
       tab = 0.4173; tabUnc = 0.014;
     }
@@ -206,7 +206,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
   // Define/Get the input histograms
   //
   Int_t decay=0;
-  
+
   if(gSystem->Exec(Form("ls -l %s > /dev/null 2>&1",mcfilename)) !=0){
     printf("File %s with FONLL predictions does not exist -> exiting\n",mcfilename);
     return;
@@ -474,7 +474,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
   else if(year==k2016) systematics->SetRunNumber(16);
   else if(year==k2017) systematics->SetRunNumber(17);
   else if(year==k2018) systematics->SetRunNumber(18);
-  
+
   if( cc==kpp276 ) {
     systematics->SetIsLowEnergy(true);
   }
