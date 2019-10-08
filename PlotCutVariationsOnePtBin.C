@@ -22,22 +22,22 @@
 
 #endif
 
-const TString inputdirname = "outputs/cutvarsyst";
+const TString inputdirname = "../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_highpt";
 const TString inputfilecommonname_crosssec = "DsYield_method2_fd1_br1";
-const TString inputfilecommonname_rawyield =  "RawyieldsDs";
+const TString inputfilecommonname_rawyield =  "RawYieldsDs";
 const TString inputfilecommonname_eff = "Efficiency_Ds";
-const TString inputfilesuffix[] = {"_010_central_2018", "_010_cospkphi3_loose_1", "_010_cospkphi3_loose_2", "_010_cospkphi3_tight_1", "_010_cospkphi3_tight_2", "_010_cp_loose_1", "_010_cp_loose_2",
-                                   "_010_cp_tight_1", "_010_cp_tight_2", "_010_cpxy_loose_1", "_010_cpxy_loose_2", "_010_cpxy_tight_1", "_010_cpxy_tight_2", "_010_d0_loose_1", "_010_d0_loose_2",
-                                   "_010_d0_tight_1", "_010_d0_tight_2", "_010_deltamKK_loose_1", "_010_deltamKK_loose_2", "_010_deltamKK_tight_1", "_010_deltamKK_tight_2", "_010_dl_loose_1", "_010_dl_loose_2",
-                                   "_010_dl_tight_1", "_010_dl_tight_2", "_010_dlxy_loose_1", "_010_dlxy_loose_2", "_010_dlxy_tight_1", "_010_dlxy_tight_2", "_010_ndlxy_loose_1", "_010_ndlxy_loose_2",
-                                   "_010_ndlxy_tight_1", "_010_ndlxy_tight_2", "_010_sigvtx_loose_1", "_010_sigvtx_loose_2", "_010_sigvtx_tight_1", "_010_sigvtx_tight_2", "_010_topo_loose_1", "_010_topo_loose_2",
-                                   "_010_topo_tight_1", "_010_topo_tight_2"};
+const TString inputfilesuffix[] = {
+                                   };
 
-double minaccsignif = 3;
+double minsignif = 3;
+double minrelsignif = 0.5;
+double minreleff = 0.3;
+double maxreleff = 1.65;
+double fillthrreleff = 0.005;
 
-const  double relassignedsyst[] = {0.10,0.10,0.10,0.06,0.05,0.05,0.05,0.05};
+const  double relassignedsyst[] = {0.06,0.06,0.06,0.05};
 
-const TString outfilename = "outputs/cutvarsyst/systvalues/CutVarSyst_Ds_010.root";
+const TString outfilename = "../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_lowpt/CutVarSyst_Ds_3050_hight.root";
 
 int PlotCutVariationsOnePtBin( bool fRelativeVariation=kFALSE);
 void SetStyle();
@@ -60,11 +60,11 @@ void SetStyle();
   TH1D* hEffFD[nFiles];
 
   for( int iFile=0; iFile<nFiles; iFile++) {
-    TFile* infile_crossec = TFile::Open(Form("%s/%s%s.root",inputdirname.Data(),inputfilecommonname_crosssec.Data(),inputfilesuffix[iFile].Data()));
+    TFile* infile_crossec = TFile::Open(Form("%s/%s%s.root",inputdirname.Data(),Form("crosssec/%s",inputfilecommonname_crosssec.Data()),inputfilesuffix[iFile].Data()));
     if(!infile_crossec) return iFile+1;
     hCrossSection[iFile] = (TH1D*)infile_crossec->Get("hAAC");
     hCrossSection[iFile]->SetDirectory(0);
-    TFile* infile_rawyield = TFile::Open(Form("%s/%s%s.root",inputdirname.Data(),inputfilecommonname_rawyield.Data(),inputfilesuffix[iFile].Data()));
+    TFile* infile_rawyield = TFile::Open(Form("%s/%s%s.root",inputdirname.Data(),Form("rawyields/%s",inputfilecommonname_rawyield.Data()),inputfilesuffix[iFile].Data()));
     if(!infile_rawyield) return iFile+11;
     hRawYield[iFile] = (TH1D*)infile_rawyield->Get("hRawYields");
     hSignificance[iFile] = (TH1D*)infile_rawyield->Get("hRawYieldsSignificance");
@@ -73,7 +73,7 @@ void SetStyle();
     hSignificance[iFile]->SetDirectory(0);
     hSoverB[iFile]->SetDirectory(0);
     infile_rawyield->Close();
-    TFile* infile_eff = TFile::Open(Form("%s/%s%s.root",inputdirname.Data(),inputfilecommonname_eff.Data(),inputfilesuffix[iFile].Data()));
+    TFile* infile_eff = TFile::Open(Form("%s/%s%s.root",inputdirname.Data(),Form("efficiency/%s",inputfilecommonname_eff.Data()),inputfilesuffix[iFile].Data()));
     if(!infile_eff) return iFile+111;
     hEffPrompt[iFile] = (TH1D*)infile_eff->Get("hEffPrompt");
     hEffFD[iFile] = (TH1D*)infile_eff->Get("hEffFD");
@@ -242,8 +242,12 @@ void SetStyle();
       gSoverBVsCutSet[iPtRaw]->SetPointError(iFile,0.5,hSoverB[iFile]->GetBinError(iPtRaw+1));      
     
       if(iFile!=0) {
-        if(TMath::Abs(1-hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin))<0.01 && TMath::Abs(1-hEffFD[iFile]->GetBinContent(iPtRaw+1)/hEffFD[0]->GetBinContent(iPtRaw+1))<0.01) continue;
-        if(hSignificance[iFile]->GetBinContent(iPtRaw+1)<minaccsignif) continue;
+        if(TMath::Abs(1-hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < fillthrreleff && 
+           TMath::Abs(1-hEffFD[iFile]->GetBinContent(iPtRaw+1)/hEffFD[0]->GetBinContent(iPtRaw+1)) < fillthrreleff) continue;
+        if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < minreleff) continue;
+        if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) > maxreleff) continue;
+        if(hSignificance[iFile]->GetBinContent(iPtRaw+1) < minsignif) continue;
+        if((hSignificance[iFile]->GetBinContent(iPtRaw+1)/hSignificance[0]->GetBinContent(iPtRaw+1)) < minrelsignif) continue;
         hCrossSectionRatioDist[iPtRaw]->Fill(hCrossSection[iFile]->GetBinContent(crossptbin)/hCrossSection[0]->GetBinContent(crossptbin));
       }
     }

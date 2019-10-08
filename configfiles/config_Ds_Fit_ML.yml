@@ -1,24 +1,33 @@
 Cent010:
     Meson: 'Ds'
-    FixSigma: 0
+    FixSigma: 1
     SigmaFile: 'outputs/0_10/RawYieldsDs_010_central_2018.root'
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
-    PtMin: [ 2, 3, 4, 5, 6, 8, 12, 16, 24]    
-    PtMax: [ 3, 4, 5, 6, 8, 12, 16, 24, 36]    
-    MassMin: [ 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78]    
-    MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
-    Rebin: [ 3, 4, 4, 4, 4, 4, 4, 5, 5]
-    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1, 1]
+    #PtMin: [ 2, 3, 4, 5, 6, 8, 12, 16, 24, 36]    
+    #PtMax: [ 3, 4, 5, 6, 8, 12, 16, 24, 36, 50]    
+    #MassMin: [ 1.81, 1.80, 1.80, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.81]    
+    #MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
+    #Rebin: [ 3, 4, 4, 4, 4, 4, 4, 5, 5, 6]
+    #InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    #UseLikelihood: 1
+    #BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
+    #SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
+    PtMin: [ 3, 4, 5, 6, 8, 12, 16, 24]    
+    PtMax: [ 4, 5, 6, 8, 12, 16, 24, 36]    
+    MassMin: [ 1.80, 1.80, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78]    
+    MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
+    Rebin: [ 4, 4, 4, 4, 4, 4, 5, 5]
+    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1]
     UseLikelihood: 1
-    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
-    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
 
 Cent3050:
     Meson: 'Ds'
     FixSigma: 0
-    SigmaFile: 'outputs/fine_bin/raw_yields/RawYields_Ds_MC_3050_100419cuts_Improver.root'
+    SigmaFile: 'outputs/3_24bin_merge/raw_yields/RawYieldsDs_3050_100419cuts.root'
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
@@ -31,4 +40,13 @@ Cent3050:
     UseLikelihood: 1
     BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
     SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
+    #PtMin: [ 3, 4, 6, 8, 12, 16]    
+    #PtMax: [ 4, 6, 8, 12, 16, 24]    
+    #MassMin: [ 1.78, 1.78, 1.78, 1.78, 1.78, 1.78]    
+    #MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
+    #Rebin: [ 4, 4, 4, 4, 4, 5]
+    #InclSecPeak: [ 1, 1, 1, 1, 1, 1]
+    #UseLikelihood: 1
+    #BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
+    #SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
 

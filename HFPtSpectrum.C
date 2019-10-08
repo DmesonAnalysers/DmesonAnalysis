@@ -50,18 +50,18 @@ enum rapidity{ kdefault, k08to04, k07to04, k04to01, k01to01, k01to04, k04to07, k
 enum particularity{ kTopological, kLowPt, kPP7TeVPass4, kBDT };
 
 void HFPtSpectrum (Int_t decayChan=kDsKKpi,
-		    const char *mcfilename="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/models/D0DplusDstarPredictions_502TeV_y05_all_021016_BDShapeCorrected.root",
-		    const char *efffilename="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/eff/AcceptanceTimesEfficiency_Ds_010_centralcuts.root",
-		    const char *recofilename="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/rawyields/RawYieldsDs_010_centralcuts.root",
+		    const char *mcfilename="models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root",
+		    const char *efffilename="../ML_DsAnalysis/QM_prel/outputs/3050/eff/Eff_times_Acc_3050_Ds_corr.root",
+		    const char *recofilename="../ML_DsAnalysis/QM_prel/outputs/3050/raw_yields/RawYieldsDs_3050_pt2_36.root",
 		    const char *recohistoname="hRawYields",
-            const char *effhistonameprompt="hAccEffPrompt",
-            const char *effhistonameFD="hAccEffFD",
+        const char *effhistonameprompt="hEffAccPrompt",
+        const char *effhistonameFD="hEffAccFD",
 		    const char *nevhistoname="hEvForNorm",
-		    const char *outfilename="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/crosssec/HFPtSpectrum.root",
+		    const char *outfilename="../ML_DsAnalysis/QM_prel/outputs/3050/cross_sec/HFPtSpectrum_Ds_3050_pt2_36.root",
 		    Int_t fdMethod=kNb,
 		    Double_t sigma=1.0, // sigma[pb]
 		    Bool_t isParticlePlusAntiParticleYield=true,
-		    Int_t cc=k010,
+		    Int_t cc=k3050,
 		    Int_t year=k2018,
 		    Bool_t PbPbEloss=true,
 		    Int_t Energy=k5dot023,
@@ -329,8 +329,16 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
     return;
   }
   hDirectEffpt = (TH1D*)efffile->Get(effhistonameprompt);
+  if(!hDirectEffpt){
+    printf("File %s with efficiencies not opened -> exiting\n",effhistonameprompt);
+    return;
+  }
   hDirectEffpt->SetNameTitle("hDirectEffpt","direct acc x eff");
   hFeedDownEffpt = (TH1D*)efffile->Get(effhistonameFD);
+  if(!hFeedDownEffpt){
+    printf("File %s with efficiencies not opened -> exiting\n",effhistonameFD);
+    return;
+  }
   hFeedDownEffpt->SetNameTitle("hFeedDownEffpt","feed-down acc x eff");
   //
   //

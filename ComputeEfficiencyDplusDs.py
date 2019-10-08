@@ -36,7 +36,7 @@ parser.add_argument("--batch", help="suppress video output", action="store_true"
 args = parser.parse_args()
 
 with open(args.fitConfigFileName, 'r') as ymlfitConfigFile:
-    fitConfig = yaml.load(ymlfitConfigFile)
+    fitConfig = yaml.load(ymlfitConfigFile, yaml.FullLoader)
 
 cent = ''
 if args.centClass == 'k010':

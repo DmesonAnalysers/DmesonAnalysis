@@ -3,36 +3,41 @@ DoDataProjection=true
 DoMCProjection=true
 DoDataRawYields=true
 DoMCRawYields=false
-DoEfficiency=false
-DoAccEff=false
-DoHFPtSpec=false
-DoHFPtSpecRaa=false
-DoDmesonYield=false
+DoEfficiency=true
+DoAccEff=true
+DoHFPtSpec=true
+DoHFPtSpecRaa=true
+DoDmesonYield=true
 
 #PARAMETERS TO BE SET
 ################################################################################################
-Cent="k010"
+Cent="k3050"
 
-cfgFileData="configfiles/config_Ds_data_010.yml"
-cfgFileMC="configfiles/config_Ds_MC_010.yml"
-cfgFileFit="configfiles/config_Ds_Fit.yml"
+cfgFileData="configfiles/config_Ds_data_3050.yml"
+cfgFileMC="configfiles/config_Ds_MC_3050.yml"
+cfgFileFit="configfiles/config_Ds_Fit_ML_lowpt.yml"
 
 accFileName="accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root"
 predFileName="models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root"
-pprefFileName="ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_5_6_8_12_16_24_36_50.root"
+pprefFileName="ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_6_8_12_16_24_36_50.root"
 
-PtWeightsFileName="ptweights/PtWeigths_LHC19c3a.root"
+PtWeightsFileName="ptweights/PtWeigths_LHC19c3b.root"
 PtWeightsHistoName="hPtWeightsFONLLtimesTAMUcent"
 
 #assuming cutsets config files starting with "cutset" and are .yml
-CutSetsDir="configfiles"
-declare -a CutSets=("_010_central_2018")
+CutSetsDir="configfiles/syst_cuts_Ds3050_MLlowpt"
+declare -a CutSets=()
+for filename in ${CutSetsDir}/*.yml; do
+    tmp_name="$(basename -- ${filename} .yml)"
+    tmp_name=${tmp_name:6}
+    CutSets+=("${tmp_name}")
+done
 arraylength=${#CutSets[@]}
 
-OutDirRawyields="outputs/rawyields"
-OutDirEfficiency="outputs/efficiency"
-OutDirCrossSec="outputs/crosssec"
-OutDirRaa="outputs/raa"
+OutDirRawyields="../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_lowpt/rawyields"
+OutDirEfficiency="../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_lowpt/efficiency"
+OutDirCrossSec="../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_lowpt/crosssec"
+OutDirRaa="../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_lowpt/raa"
 ################################################################################################
 
 if [ ! -f "${cfgFileData}" ]; then

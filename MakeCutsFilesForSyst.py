@@ -1,4 +1,5 @@
 import os
+import argparse
 import copy
 import yaml
 
@@ -54,9 +55,9 @@ def make_cuts():
         os.makedirs(out_dir)
 
     with open(in_dir + cut_file_central, 'r') as cut_file_yml:
-        cutset = yaml.load(cut_file_yml)
+        cutset = yaml.load(cut_file_yml, yaml.FullLoader)
     with open(in_dir + cut_file_loose, 'r') as cut_file_loose_yml:
-        cutset_loose = yaml.load(cut_file_loose_yml)
+        cutset_loose = yaml.load(cut_file_loose_yml, yaml.FullLoader)
 
     cutset_central = copy.deepcopy(cutset)
     with open(out_dir + cut_file_central, 'w') as outfile:
@@ -80,4 +81,63 @@ def make_cuts():
             with open(out_dir + cut_file_mod, 'w') as outfile_mod:
                 yaml.dump(cutset_mod, outfile_mod, default_flow_style=False)
 
-make_cuts()
+def make_cuts_ml():
+    var_key = 'BDTout'
+    step_variation = {"2": 0.00005, 
+                      "3": 0.0001,
+                      "4": 0.0001,
+                      "5": 0.00015,
+                      "6": 0.00015
+                      }
+    num_step_pos = 20
+    num_step_neg = 30
+
+    in_dir = 'configfiles/'
+    cut_file_central = 'cutset_3050_ML_011019_lowpt.yml'
+    out_dir = 'configfiles/syst_cuts_Ds3050_MLlowpt/'
+
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+
+    with open(in_dir + cut_file_central, 'r') as cut_file_yml:
+        cutset = yaml.load(cut_file_yml, yaml.FullLoader)
+
+    cutset_central = copy.deepcopy(cutset)
+    with open(out_dir + cut_file_central, 'w') as outfile:
+        yaml.dump(cutset_central, outfile, default_flow_style=False)
+
+    neg_steps = [-i for i in range(1, num_step_neg + 1)]
+    neg_steps = neg_steps[::-1]
+    pos_steps = [i for i in range(1, num_step_pos + 1)]
+    steps = neg_steps + pos_steps
+    index = range(1, len(steps)+1)
+
+    for step, i in zip(steps, index):
+        cutset_mod = copy.deepcopy(cutset)
+        modified_list = []
+        for value, max_val, pt_min in zip(cutset_mod['cutvars'][var_key]['min'],
+                                          cutset_mod['cutvars'][var_key]['max'],
+                                          cutset_mod['cutvars']['Pt']['min']):
+            new_value = value + step * step_variation[f'{pt_min:.0f}']
+            if(new_value < 0. or new_value > max_val):
+                new_value = value
+            modified_list.append(new_value)
+        cutset_mod['cutvars'][var_key]['min'] = modified_list
+        step_name = 'pos'
+        if step < 0.:
+            step_name = 'neg'
+        i_name = str(i).zfill(3)
+        cut_file_mod = cut_file_central.replace('.yml', f'_{step_name}_{i_name}.yml')
+        with open(out_dir + cut_file_mod, 'w') as outfile_mod:
+            yaml.dump(cutset_mod, outfile_mod, default_flow_style=False)
+
+def main():
+    parser = argparse.ArgumentParser(description='Arguments')
+    parser.add_argument("--ml", help="make cuts for ml", action="store_true")
+    args = parser.parse_args()
+    if args.ml:
+        make_cuts_ml()
+    else:
+        make_cuts()
+
+main()
