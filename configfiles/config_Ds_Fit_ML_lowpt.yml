@@ -7,8 +7,8 @@ Cent010:
     MeanFile: ''
     PtMin: [ 2, 3, 4, 5, 6]    
     PtMax: [ 3, 4, 5, 6, 8]    
-    MassMin: [ 1.78, 1.78, 1.78, 1.78, 1.78]    
-    MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10]
+    MassMin: [ 1.80, 1.80, 1.80, 1.78, 1.78]    
+    MassMax: [ 2.08, 2.08, 2.08, 2.10, 2.10]
     Rebin: [ 3, 4, 4, 4, 4]
     InclSecPeak: [1, 1, 1, 1, 1]
     UseLikelihood: 1

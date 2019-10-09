@@ -9,6 +9,8 @@ cutvars:
         name: 'Pt'
     BDTout: # not final!!
         axisnum: 13
-        min: [ 0.9993, 0.9992, 0.9992, 0.9987, 0.9988] #0.9996 in 2-3 tight #0.09989 old
+        # min: [ 0.9993, 0.9992, 0.9992, 0.9987, 0.9988] #loose pre
+        # min: [ 0.997, 0.998, 0.9989, 0.9978, 0.9985] #medium pre
+        min: [ 0.9925, 0.995, 0.9983, 0.9975, 0.9985] #tight pre
         max: [ 1., 1., 1., 1., 1.]
         name: 'BDToutput'

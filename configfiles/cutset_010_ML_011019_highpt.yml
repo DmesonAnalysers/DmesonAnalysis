@@ -9,6 +9,6 @@ cutvars:
         name: 'Pt'
     BDTout:
         axisnum: 13
-        min: [ 0.9965, 0.96, 0.94, 0.98, 0.95]
+        min: [ 0.9965, 0.96, 0.94, 0.98, 0.955]
         max: [ 1., 1., 1., 1., 1.]
         name: 'BDToutput'

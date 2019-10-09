@@ -1,7 +1,7 @@
 isMC: no
-filename: ../ML_DsAnalysis/QM_prel/inputs/data/010_run_041019/AnalysisResultsDs_Data_010_18qr_Tot_wTRcut.root
-dirname: PWG3_D2H_InvMassDs_MLappl010_pt2_8
-listname: coutputDs_MLappl010_pt2_8
+filename: ../ML_DsAnalysis/QM_prel/inputs/data/010_run_071019_tightPre/AnalysisResultsDs_Data_010_18qr_Tot_wTRcut_tightPre.root
+dirname: PWG3_D2H_InvMassDs_MLappl010_pt2_8_tightPre
+listname: coutputDs_MLappl010_pt2_8_tightPre
 sparsenameAll: fnSparse
 normname: NormalizationCounter
 histoevname: hNEvents
