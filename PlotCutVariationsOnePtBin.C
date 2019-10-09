@@ -29,6 +29,7 @@ const TString inputfilecommonname_eff = "Efficiency_Ds";
 const TString inputfilesuffix[] = {
                                    };
 
+double maxchi2 = 2.;
 double minsignif = 3;
 double minrelsignif = 0.5;
 double minreleff = 0.3;
@@ -56,6 +57,7 @@ void SetStyle();
   TH1D* hRawYield[nFiles];
   TH1D* hSignificance[nFiles];
   TH1D* hSoverB[nFiles];
+  TH1D* hchi2[nFiles];
   TH1D* hEffPrompt[nFiles];
   TH1D* hEffFD[nFiles];
 
@@ -69,9 +71,11 @@ void SetStyle();
     hRawYield[iFile] = (TH1D*)infile_rawyield->Get("hRawYields");
     hSignificance[iFile] = (TH1D*)infile_rawyield->Get("hRawYieldsSignificance");
     hSoverB[iFile] = (TH1D*)infile_rawyield->Get("hRawYieldsSoverB");
+    hchi2[iFile] = (TH1D*)infile_rawyield->Get("hRawYieldsChiSquare");
     hRawYield[iFile]->SetDirectory(0);
     hSignificance[iFile]->SetDirectory(0);
     hSoverB[iFile]->SetDirectory(0);
+    hchi2[iFile]->SetDirectory(0);
     infile_rawyield->Close();
     TFile* infile_eff = TFile::Open(Form("%s/%s%s.root",inputdirname.Data(),Form("efficiency/%s",inputfilecommonname_eff.Data()),inputfilesuffix[iFile].Data()));
     if(!infile_eff) return iFile+111;
@@ -242,6 +246,7 @@ void SetStyle();
       gSoverBVsCutSet[iPtRaw]->SetPointError(iFile,0.5,hSoverB[iFile]->GetBinError(iPtRaw+1));      
     
       if(iFile!=0) {
+        if(hchi2[iFile]->GetBinContent(iPtRaw+1) > maxchi2) continue;
         if(TMath::Abs(1-hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < fillthrreleff && 
            TMath::Abs(1-hEffFD[iFile]->GetBinContent(iPtRaw+1)/hEffFD[0]->GetBinContent(iPtRaw+1)) < fillthrreleff) continue;
         if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < minreleff) continue;
