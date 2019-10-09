@@ -1,9 +1,8 @@
-from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
-
 '''
 python script with helper functions to load objects from task
 '''
 
+from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
 
 def LoadSparseFromTask(infilename, inputCfg):
     print('Loading THnSparses from file', infilename)
@@ -31,6 +30,15 @@ def LoadSparseFromTask(infilename, inputCfg):
                 inputCfg['sparsenameGenFDSecPeak'])
 
     return sparses, sparsesGen
+
+def LoadSingleSparseFromTask(infilename, inputCfg, sparsetype='sparsenameBkg'):
+    print('Loading THnSparse from file', infilename)
+    infileData = TFile(infilename)
+    indirData = infileData.Get(inputCfg['dirname'])
+    inlistData = indirData.Get(inputCfg['listname'])
+    sparse = inlistData.FindObject(inputCfg[sparsetype])
+
+    return sparse
 
 
 def LoadNormObjFromTask(infilename, inputCfg):
