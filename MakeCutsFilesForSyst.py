@@ -83,18 +83,24 @@ def make_cuts():
 
 def make_cuts_ml():
     var_key = 'BDTout'
-    step_variation = {"2": 0.00005, 
-                      "3": 0.0001,
-                      "4": 0.0001,
-                      "5": 0.00015,
-                      "6": 0.00015
+    #step_variation = {"2": 0.00005,
+    #                  "3": 0.0001,
+    #                  "4": 0.0001,
+    #                  "5": 0.00015,
+    #                  "6": 0.00015
+    #                  }
+    step_variation = {"8": 0.001,
+                      "12": 0.0015,
+                      "16": 0.0015,
+                      "24": 0.001,
+                      "36": 0.001
                       }
-    num_step_pos = 20
-    num_step_neg = 30
+    num_step_pos = 12 #20
+    num_step_neg = 38 #30
 
     in_dir = 'configfiles/'
-    cut_file_central = 'cutset_3050_ML_011019_lowpt.yml'
-    out_dir = 'configfiles/syst_cuts_Ds3050_MLlowpt/'
+    cut_file_central = 'cutset_3050_ML_011019_highpt.yml'
+    out_dir = 'configfiles/syst_cuts_Ds3050_MLhighpt/'
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)

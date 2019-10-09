@@ -18,17 +18,17 @@ Cent010:
 Cent3050:
     Meson: 'Ds'
     FixSigma: 0
-    SigmaFile: 'outputs/fine_bin/raw_yields/RawYields_Ds_MC_3050_100419cuts_Improver.root'
+    SigmaFile: '../ML_DsAnalysis/QM_prel/outputs/3050/raw_yields/RawYieldsDs_3050_pt8_50.root'
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
-    PtMin: [ 8, 12, 16, 24, 36]    
-    PtMax: [ 12, 16, 24, 36, 50]    
-    MassMin: [ 1.78, 1.78, 1.78, 1.78, 1.78]    
-    MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10]
-    Rebin: [ 4, 4, 5, 6, 6]
-    InclSecPeak: [ 1, 1, 1, 1, 0]
+    PtMin: [ 8, 12, 16, 24]    
+    PtMax: [ 12, 16, 24, 36]    
+    MassMin: [ 1.78, 1.78, 1.78, 1.78]    
+    MassMax: [ 2.10, 2.10, 2.10, 2.10]
+    Rebin: [ 4, 4, 5, 6]
+    InclSecPeak: [ 1, 1, 1, 1]
     UseLikelihood: 1
-    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
-    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo']
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus']
 
