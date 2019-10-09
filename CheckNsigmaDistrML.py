@@ -8,7 +8,7 @@ import copy
 import string
 import six
 import yaml
-from ROOT import TFile, TCanvas, TH1F, TDirectoryFile, TLegend, gStyle  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TDirectoryFile, TLegend, gStyle  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlue, kRed, kFullCircle, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 from TaskFileLoader import LoadPIDTH3
 
@@ -48,8 +48,10 @@ ARGS = PARSER.parse_args()
 
 if six.PY2:
     outFileNamePDF = string.replace(ARGS.outFileName, '.root', '.pdf')
+    outFileNameNormPDF = string.replace(outFileNamePDF, '.pdf', '_Norm.pdf')
 elif six.PY3:
     outFileNamePDF = ARGS.outFileName.replace('.root', '.pdf')
+    outFileNameNormPDF = outFileNamePDF.replace('.pdf', '_Norm.pdf')
 
 with open(ARGS.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
@@ -121,9 +123,10 @@ leg.AddEntry(list(hNsigmaSel[det][spe][prong].values())[0], 'w/ ML selection', '
 
 #plot on canvases and save on root file
 outfile = TFile(ARGS.outFileName, 'recreate')
-cNsigma, dirNsigma = {}, {}
+cNsigma, cNsigmaNorm, dirNsigma = {}, {}, {}
 for iDet, det in enumerate(hNsigmaVsPtVsML):
     cNsigma[det] = {}
+    cNsigmaNorm[det] = {}
     outfile.cd()
     dirNsigma[det] = TDirectoryFile(det, det)
     dirNsigma[det].Write()
@@ -133,36 +136,61 @@ for iDet, det in enumerate(hNsigmaVsPtVsML):
             TCanvas('cNsigma{:s}_Pt{:.0f}_{:.0f}'.format(
                 det, ptmin, ptmax), '', 1920, 1080)
         cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Divide(3, 2)
+        cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)] = \
+            TCanvas('cNsigmaNorm{:s}_Pt{:.0f}_{:.0f}'.format(
+                det, ptmin, ptmax), '', 1920, 1080)
+        cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Divide(3, 2)
         for iSpe, spe in enumerate(hNsigmaVsPtVsML[det]):
             for iProng, prong in enumerate(hNsigmaVsPtVsML[det][spe]):
-                cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].cd(3*iSpe+iProng+1).SetLogy()
                 his = hNsigma[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)]
                 hissel = hNsigmaSel[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)]
-                if his.Integral() > 0:
-                    his.Scale(1./his.Integral())
-                if hissel.Integral() > 0:
-                    hissel.Scale(1./hissel.Integral())
-                his.SetTitle(' %0.f < #it{p}_{T} < %0.f GeV/#it{c};#it{N}_{#sigma}^{%s} (%s) prong%d;Normalised entries' % (
+                his.SetTitle(' %0.f < #it{p}_{T} < %0.f GeV/#it{c};#it{N}_{#sigma}^{%s} (%s) prong%d;Entries' % (
                     ptmin, ptmax, det, spe, iProng))
-                hissel.SetTitle(' %0.f < #it{p}_{T} < %0.f GeV/#it{c};#it{N}_{#sigma}^{%s} (%s) prong%d;Normalised entries' % (
+                hissel.SetTitle(' %0.f < #it{p}_{T} < %0.f GeV/#it{c};#it{N}_{#sigma}^{%s} (%s) prong%d;Entries' % (
                     ptmin, ptmax, det, spe, iProng))
-                his.GetYaxis().SetRangeUser(1.e-5, 1.)
                 his.GetXaxis().SetTitleSize(0.055)
                 hissel.GetXaxis().SetTitleSize(0.055)
                 his.GetXaxis().SetLabelSize(0.050)
                 hissel.GetXaxis().SetLabelSize(0.050)
+                his.GetYaxis().SetRangeUser(0.8, his.GetMaximum()*10)
+
+                hisnorm = his.Clone(his.GetName() + '_Norm')
+                hisselnorm = hissel.Clone(hissel.GetName() + '_Norm')
+
+                if hisnorm.Integral() > 0:
+                    hisnorm.Scale(1./hisnorm.Integral())
+                    hisnorm.GetYaxis().SetTitle('Normalised entries')
+                    hisnorm.GetYaxis().SetRangeUser(1.e-5, 1.)
+
+                if hisselnorm.Integral() > 0:
+                    hisselnorm.Scale(1./hisselnorm.Integral())
+                    hisselnorm.GetYaxis().SetTitle('Normalised entries')
+                    hisselnorm.GetYaxis().SetRangeUser(1.e-5, 1.)
+
+                cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].cd(3*iSpe+iProng+1).SetLogy()
                 his.DrawCopy('hist')
                 his.DrawCopy('Esame')
                 hissel.DrawCopy('histsame')
                 hissel.DrawCopy('Esame')
-                his.Write()
-                hissel.Write()
+                leg.Draw('same')
+
+                cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].cd(3*iSpe+iProng+1).SetLogy()
+                hisnorm.DrawCopy('hist')
+                hisnorm.DrawCopy('Esame')
+                hisselnorm.DrawCopy('histsame')
+                hisselnorm.DrawCopy('Esame')
                 leg.Draw('same')
 
                 cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].cd(3*iSpe+iProng+1).Modified()
                 cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].cd(3*iSpe+iProng+1).Update()
+                cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].cd(3*iSpe+iProng+1).Modified()
+                cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].cd(3*iSpe+iProng+1).Update()
+
+                his.Write()
+                hissel.Write()
 
         cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Write()
+        cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Write()
 
         #save also pdf
         if iDet == 0 and iPt == 0:
@@ -170,6 +198,12 @@ for iDet, det in enumerate(hNsigmaVsPtVsML):
         cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print(outFileNamePDF)
         if iDet == len(hNsigmaVsPtVsML)-1 and iPt == len(cutVars['Pt']['min'])-1:
             cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print('{0}]'.format(outFileNamePDF))
+
+        if iDet == 0 and iPt == 0:
+            cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print('{0}['.format(outFileNameNormPDF))
+        cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print(outFileNameNormPDF)
+        if iDet == len(hNsigmaVsPtVsML)-1 and iPt == len(cutVars['Pt']['min'])-1:
+            cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print('{0}]'.format(outFileNameNormPDF))
 
 outfile.Close()
 
