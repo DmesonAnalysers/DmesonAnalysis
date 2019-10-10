@@ -40,8 +40,8 @@
 
 //________________________________________________________________________________________________________________
 //global variables
-const TString reffilename = "../ML_DsAnalysis/QM_prel/outputs/3050/raw_yields/RawYieldsDs_3050_pt2_36.root";
-const TString reffileMCname = "../ML_DsAnalysis/QM_prel/outputs/3050/raw_yields/RawYieldsDs_3050_MC_pt2_36.root";
+const TString reffilename = "../ML_DsAnalysis/QM_prel/outputs/010/raw_yields/RawYieldsDs_010_pt2_50.root";
+const TString reffileMCname = "../ML_DsAnalysis/QM_prel/outputs/010/raw_yields/RawYieldsDs_010_MC_pt2_50.root";
 const TString reffileMCname2 = "";
 const int ptshifttoref = 0;
 
@@ -57,9 +57,18 @@ const int nMean = 1;
 // const double mins[nMins] = {1.76,1.77,1.78,1.79,1.80}; // Low pt 30-50%
 // const double maxs[nMaxs] = {2.06,2.08,2.10,2.12,2.14};
 // const int rebin[nReb] = {2,3,4,5};
-const double mins[nMins] = {1.76,1.77,1.78,1.79,1.80};
+// const double mins[nMins] = {1.76,1.77,1.78,1.79,1.80}; // High pt 30-50%
+// const double maxs[nMaxs] = {2.06,2.08,2.10,2.12,2.14};
+// const int rebin[nReb] = {3,4,5,6,7};
+// const double mins[nMins] = {1.79,1.80,1.81,1.82, 1.83}; // Low pt 0-10%
+// const double maxs[nMaxs] = {2.02,2.04,2.06,2.08,2.10};
+// const int rebin[nReb] = {2,3,4,5};
+const double mins[nMins] = {1.76,1.77,1.78,1.79,1.80}; // High pt 0-10%
 const double maxs[nMaxs] = {2.06,2.08,2.10,2.12,2.14};
 const int rebin[nReb] = {3,4,5,6,7};
+// const double mins[nMins] = {1.76,1.77,1.78,1.79,1.80}; // pt 36-50 0-10%
+// const double maxs[nMaxs] = {2.06,2.08,2.10,2.12,2.14};
+// const int rebin[nReb] = {4,5,6,7,8};
 const int sgnfcn[nSgnFunc] = {AliHFInvMassFitter::kGaus};
 const int bkgfcn[nBkgFunc] = {AliHFInvMassFitter::kExpo,AliHFInvMassFitter::kLin,AliHFInvMassFitter::kPol2};
 const double maxchisquare = 2.;
