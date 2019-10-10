@@ -1,5 +1,5 @@
 #!/bin/bash
-CutSetsDir="configfiles/syst_cuts_Ds3050_MLlowpt"
+CutSetsDir="configfiles/syst_cuts_Ds010_MLlowpt"
 declare -a CutSets=()
 for filename in ${CutSetsDir}/*.yml; do
     tmp_name="$(basename -- ${filename} .yml)"

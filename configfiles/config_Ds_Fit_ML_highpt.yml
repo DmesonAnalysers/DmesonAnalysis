@@ -1,7 +1,7 @@
 Cent010:
     Meson: 'Ds'
-    FixSigma: 0
-    SigmaFile: 'outputs/0_10/RawYieldsDs_010_central_2018.root'
+    FixSigma: 1
+    SigmaFile: '../ML_DsAnalysis/QM_prel/outputs/010/raw_yields/tightPre/RawYieldsDs_010_pt8_50_tightPre.root'
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
