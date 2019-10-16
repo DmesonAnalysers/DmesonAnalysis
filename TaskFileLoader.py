@@ -89,3 +89,19 @@ def LoadPIDTH3(infilename, inputCfg):
                     'fHistNsigma{0}{1}Prong{2}'.format(det, spe, iprong))
 
     return hNsigmaVsPtVsML
+
+
+def LoadPIDSparses(infilename, inputCfg):
+    print('Loading PID THnSparses from file', infilename)
+    infileData = TFile(infilename)
+    indirData = infileData.Get(inputCfg['dirname'])
+    inlistData = indirData.Get(inputCfg['listname'])
+    sparsePIDNsigma = inlistData.FindObject('fnSparsePID')
+    sparsePIDNsigmaComb = inlistData.FindObject('fnSparsePIDcomb')
+
+    #dictionary of sparse axes with detectors, mass hypothesis, daughter number
+    axes = {'TPC': {'Pi':{'0':2, '1':6, '2':10}, 'K':{'0':3, '1':7, '2':11}},
+            'TOF': {'Pi':{'0':4, '1':8, '2':12}, 'K':{'0':5, '1':9, '2':13}},
+            'Comb': {'Pi':{'0':2, '1':4, '2':6}, 'K':{'0':3, '1':5, '2':7}}}
+
+    return sparsePIDNsigma, sparsePIDNsigmaComb, axes
