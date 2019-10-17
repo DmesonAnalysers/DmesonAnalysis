@@ -1,13 +1,16 @@
 '''
-python script for the projection of Nsigma distributions from TH3 with PID var vs. ML output vs. pT
+python script for the projection of Nsigma distributions from THnSparses with PID var vs. ML output vs. pT
 run: python CheckNsigmaDistrML.py cfgFileName.yml cutSetFileName.yml outFileName.root
 '''
 
 import argparse
 import copy
 import string
+import os
 import six
+import numpy as np
 import yaml
+from PIL import Image
 from ROOT import TFile, TCanvas, TDirectoryFile, TLegend, gStyle  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlue, kRed, kFullCircle, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 from TaskFileLoader import LoadPIDSparses
@@ -47,9 +50,9 @@ PARSER.add_argument('outFileName', metavar='text', default='outFileName.root',
 ARGS = PARSER.parse_args()
 
 if six.PY2:
-    outFileNamePDF = string.replace(ARGS.outFileName, '.root', '.pdf')
+    outFileNameWoExt = string.replace(ARGS.outFileName, '.root', '')
 elif six.PY3:
-    outFileNamePDF = ARGS.outFileName.replace('.root', '.pdf')
+    outFileNameWoExt = ARGS.outFileName.replace('.root', '')
 
 with open(ARGS.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
@@ -95,7 +98,7 @@ for det in axes:
                 ptbinmax = sPIDNsigma.GetAxis(0).FindBin(ptmax*0.9999)
 
                 MLbinmin = sPIDNsigma.GetAxis(1).FindBin(MLmin[iPt]*1.0001)
-                MLbimax = sPIDNsigma.GetAxis(1).FindBin(MLmax[iPt]*0.9999)
+                MLbinmax = sPIDNsigma.GetAxis(1).FindBin(MLmax[iPt]*0.9999)
 
 
                 if det != 'Comb':
@@ -112,7 +115,7 @@ for det in axes:
                 SetHistoStyle(hNsigma[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
                     ptmin, ptmax)], kBlue, 0.25, 1, kFullCircle, 0.5)
 
-                sparse.GetAxis(1).SetRange(MLbinmin, MLbimax)
+                sparse.GetAxis(1).SetRange(MLbinmin, MLbinmax)
 
                 hNsigmaSel[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)] = \
                     sparse.Projection(axes[det][spe][prong])
@@ -136,7 +139,7 @@ for spe in axes[det]:
             ptbinmax = sPIDNsigma.GetAxis(0).FindBin(ptmax*0.9999)
 
             MLbinmin = sPIDNsigma.GetAxis(1).FindBin(MLmin[iPt]*1.0001)
-            MLbimax = sPIDNsigma.GetAxis(1).FindBin(MLmax[iPt]*0.9999)
+            MLbinmax = sPIDNsigma.GetAxis(1).FindBin(MLmax[iPt]*0.9999)
 
             sPIDNsigma.GetAxis(0).SetRange(ptbinmin, ptbinmax)
 
@@ -147,7 +150,7 @@ for spe in axes[det]:
             SetHistoStyle(hNsigma['TPCTOF'][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
                 ptmin, ptmax)], kBlue, 0.25, 0.5, kFullCircle, 0.3)
 
-            sPIDNsigma.GetAxis(1).SetRange(MLbinmin, MLbimax)
+            sPIDNsigma.GetAxis(1).SetRange(MLbinmin, MLbinmax)
 
             hNsigmaSel['TPCTOF'][spe][prong]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)] = \
                 sPIDNsigma.Projection(axes['TPC'][spe][prong], axes['TOF'][spe][prong])
@@ -169,7 +172,7 @@ for det in axes:
             ptbinmax = sPIDNsigma.GetAxis(0).FindBin(ptmax*0.9999)
 
             MLbinmin = sPIDNsigma.GetAxis(1).FindBin(MLmin[iPt]*1.0001)
-            MLbimax = sPIDNsigma.GetAxis(1).FindBin(MLmax[iPt]*0.9999)
+            MLbinmax = sPIDNsigma.GetAxis(1).FindBin(MLmax[iPt]*0.9999)
 
 
             if det != 'Comb':
@@ -186,7 +189,7 @@ for det in axes:
             SetHistoStyle(hNsigma[det][spe]['0-2']['Pt{:.0f}_{:.0f}'.format(\
                 ptmin, ptmax)], kBlue, 0.25, 0.5, kFullCircle, 0.3)
 
-            sparse.GetAxis(1).SetRange(MLbinmin, MLbimax)
+            sparse.GetAxis(1).SetRange(MLbinmin, MLbinmax)
 
             hNsigmaSel[det][spe]['0-2']['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)] = \
                 sparse.Projection(axes[det][spe]['0'], axes[det][spe]['2'])
@@ -212,6 +215,7 @@ leg2D.AddEntry(list(hNsigma['TPC']['Pi']['0'].values())[0], 'w/o ML sel', 'fp')
 leg2D.AddEntry(list(hNsigmaSel['TPC']['Pi']['0'].values())[0], 'w/ ML sel', 'fp')
 
 #plot on canvases and save on root file
+listoffigures = []
 outfile = TFile(ARGS.outFileName, 'recreate')
 cNsigma, cNsigma02, cNsigmaNorm, dirNsigma = {}, {}, {}, {}
 for iDet, det in enumerate(hNsigma):
@@ -331,17 +335,27 @@ for iDet, det in enumerate(hNsigma):
             cNsigma02[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Write()
 
         #save also pdf
-        if iDet == 0 and iPt == 0:
-            cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print('{0}['.format(outFileNamePDF))
-        cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print(outFileNamePDF)
-        if det != 'TPCTOF':
-            cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print(outFileNamePDF)
-            cNsigma02[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print(outFileNamePDF)
-        if iDet == len(hNsigma)-1 and iPt == len(cutVars['Pt']['min'])-1:
-            cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].Print('{0}]'.format(outFileNamePDF))
 
+        cNsigma[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SaveAs('{:s}{:s}{:d}.png'.format(outFileNameWoExt, det, iPt))
+        listoffigures.append('{:s}{:s}{:d}.png'.format(outFileNameWoExt, det, iPt))
+
+        if det != 'TPCTOF':
+            cNsigmaNorm[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SaveAs('{:s}{:s}{:d}Norm.png'.format(outFileNameWoExt, det, iPt))
+            cNsigma02[det]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SaveAs('{:s}{:s}{:d}02.png'.format(outFileNameWoExt, det, iPt))
+            listoffigures.append('{:s}{:s}{:d}Norm.png'.format(outFileNameWoExt, det, iPt))
+            listoffigures.append('{:s}{:s}{:d}02.png'.format(outFileNameWoExt, det, iPt))
 
 outfile.Close()
+
+# combine png files
+figures = [Image.open(figures) for figures in listoffigures]
+min_shape = sorted([(np.sum(fig.size), fig.size) for fig in figures])[0][1]
+imgs_comb = np.vstack(figures)
+imgs_comb = Image.fromarray(imgs_comb)
+imgs_comb.save('{:s}.png'.format(outFileNameWoExt))
+
+for fig in listoffigures:
+    os.remove(fig)
 
 if six.PY2:
     raw_input('Press enter to exit')
