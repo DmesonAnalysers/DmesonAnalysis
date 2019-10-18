@@ -109,6 +109,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         hEv = static_cast<TH1F*>(infile->Get("hEvForNorm"));
         hMass[iPt]->SetDirectory(0);
         hEv->SetDirectory(0);
+        // hEv->Scale(0.5); // quick fix for normalization
         SetHistoStyle(hMass[iPt]);
         SetHistoStyle(hEv);
     }
