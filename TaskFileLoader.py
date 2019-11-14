@@ -105,3 +105,34 @@ def LoadPIDSparses(infilename, inputCfg):
             'Comb': {'Pi':{'0':2, '1':4, '2':6}, 'K':{'0':3, '1':5, '2':7}}}
 
     return sparsePIDNsigma, sparsePIDNsigmaComb, axes
+
+def LoadSparseFromTaskV2(inputCfg):
+    infilename = inputCfg['filename']
+    print(f'Loading THnSparses from file {infilename}')
+    sparses = []
+    infileData = TFile(infilename)
+
+    for dirname, listname in zip(inputCfg['dirname'], inputCfg['listname']):
+        indirData = infileData.Get(dirname)
+        if not indirData:
+            print(f'Directory {dirname} not found!')
+            return []
+        inlistData = indirData.Get(listname)
+        if not inlistData:
+            print(f'List {listname} not found!')
+            return []
+        sparse = inlistData.FindObject(inputCfg['sparsename'])
+        if not sparse:
+            print('Sparse not found!')
+            return []
+        sparses.append(sparse)
+
+    return sparses
+
+def LoadListFromTaskV2(infilename, dirname, listname):
+    print('Loading TList from file', infilename)
+    infileData = TFile(infilename)
+    indirData = infileData.Get(dirname)
+    inlistData = indirData.Get(listname)
+
+    return inlistData

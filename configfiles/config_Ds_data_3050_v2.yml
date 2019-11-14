@@ -1,0 +1,7 @@
+filename: ../ML_DsAnalysis/final/v2/input/AnalysisResults_Ds_ML_3050_v2_LHC18qr_TOT_wTRcut.root
+dirname: [PWGHF_D2H_HFvn_Ds_v2_3050_MLappl_pt2_8VZEROC_EvShapeSP, PWGHF_D2H_HFvn_Ds_v2_3050_MLappl_pt8_50VZEROC_EvShapeSP]
+listname: [coutputvnDs_v2_3050_MLappl_pt2_8VZEROC_EvShapeSP, coutputvnDs_v2_3050_MLappl_pt8_50VZEROC_EvShapeSP]
+sparsename: fHistMassPtPhiqnCentr
+outfilename: ../ML_DsAnalysis/final/v2/input/AnalysisResults_Ds_ML_3050_v2_LHC18qr_TOT_wTRcut_forv2.root
+outdirname: PWGHF_D2H_HFvn_Ds_v2_3050_MLappl_VZEROC_EvShapeSP
+outlistname: coutputvnDs_v2_3050_MLappl_VZEROC_EvShapeSP
