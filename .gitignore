@@ -14,3 +14,4 @@ treecreator/AODfiles
 treecreator/*.pdf
 treecreator/*.root
 treecreator/*.xml
+cutobjects/*.root
