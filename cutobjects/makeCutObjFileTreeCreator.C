@@ -42,11 +42,11 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             triggername="kINT7_kCentral";
             if(fIncludeDs) {
                 cutsDsFilt = MakeFileForCutsDs010_FiltTreeCreator2018QM(fIsMC, ptDsmin, ptDsmax, preselType);
-                cutsDsCent = MakeFileForCutsDs010_Central2018(true, 8.0, fIsMC, ptDsmin, ptDsmax);
+                cutsDsCent = MakeFileForCutsDs010_Central2018(true, 8.0, fIsMC, 0, ptDsmin, ptDsmax);
             }
             if(fIncludeDplus) {
                 cutsDplusFilt = MakeFileForCutsDplus010_FiltTreeCreator2018(false, -1.0, fIsMC);
-                cutsDplusCent = MakeFileForCutsDplus010_Central2018(true, 3.0, fIsMC);
+                cutsDplusCent = MakeFileForCutsDplus010_Central2018(true, 3.0, fIsMC, 0);
             }
 
             break;
@@ -57,11 +57,11 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             triggername="kINT7_kSemiCentral";
             if(fIncludeDs) {
                 cutsDsFilt = MakeFileForCutsDs3050_FiltTreeCreator2018QM(fIsMC, ptDsmin, ptDsmax);
-                cutsDsCent = MakeFileForCutsDs3050_Central2018(true, 8.0, fIsMC, ptDsmin, ptDsmax);
+                cutsDsCent = MakeFileForCutsDs3050_Central2018(true, 8.0, fIsMC, 0, ptDsmin, ptDsmax);
             }
             if(fIncludeDplus) {
                 cutsDplusFilt = MakeFileForCutsDplus3050_FiltTreeCreator2018(false, -1.0, fIsMC);
-                cutsDplusCent = MakeFileForCutsDplus3050_Central2018(false, -1.0, fIsMC);
+                cutsDplusCent = MakeFileForCutsDplus3050_Central2018(false, -1.0, fIsMC, 0);
             }
 
             break;
@@ -72,11 +72,11 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             triggername="kINT7";
             if(fIncludeDs) {
                 cutsDsFilt = MakeFileForCutsDs6080_FiltTreeCreator2018(false, -1.0, fIsMC, ptDsmin, ptDsmax);
-                cutsDsCent = MakeFileForCutsDs6080_Central2018(true, 8.0, fIsMC, ptDsmin, ptDsmax);
+                cutsDsCent = MakeFileForCutsDs6080_Central2018(true, 8.0, fIsMC, 0, ptDsmin, ptDsmax);
             }
             if(fIncludeDplus) {
                 cutsDplusFilt = MakeFileForCutsDplus3050_FiltTreeCreator2018(false, -1.0, fIsMC);
-                cutsDplusCent = MakeFileForCutsDplus3050_Central2018(false, -1.0, fIsMC);
+                cutsDplusCent = MakeFileForCutsDplus3050_Central2018(false, -1.0, fIsMC, 0);
             }
 
             break;
