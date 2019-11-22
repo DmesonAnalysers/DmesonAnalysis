@@ -197,8 +197,6 @@ def main():
     parser.add_argument('--plot', action='store_true', help='flag to enable plots')
     args = parser.parse_args()
 
-    print(args.cutSetFileNames)
-
     if not args.v2:
         FiltFunc(args)
     else:

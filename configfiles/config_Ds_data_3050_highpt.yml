@@ -1,5 +1,5 @@
 isMC: no
-filename: ../ML_DsAnalysis/QM_prel/inputs/data/AnalysisResultsDs_Data_010_3050_18qr_Tot_wTRcut.root
+filename: ../ML_DsAnalysis/final/v2/input/AnalysisResults_Ds_ML_3050_v2_LHC18qr_Tot_wTRcut.root
 dirname: PWG3_D2H_InvMassDs_MLappl3050_pt8_50
 listname: coutputDs_MLappl3050_pt8_50
 sparsenameAll: fnSparse
