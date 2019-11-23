@@ -11,35 +11,14 @@ import six
 import numpy as np
 import yaml
 from PIL import Image
-from ROOT import TFile, TCanvas, TDirectoryFile, TLegend, gStyle  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TDirectoryFile, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlue, kRed, kFullCircle, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 from TaskFileLoader import LoadPIDSparses
-
-
-def SetHistoStyle(histo, color, alpha, alphamarker, marker, markersize=1.5, linewidth=2):
-    '''
-    method to set histo style
-    '''
-    histo.SetMarkerColorAlpha(color, alphamarker)
-    histo.SetFillColorAlpha(color, alpha)
-    histo.SetLineColorAlpha(color, alpha)
-    histo.SetLineWidth(linewidth)
-    histo.SetMarkerStyle(marker)
-    histo.SetMarkerSize(markersize)
+from StyleFormatter import SetObjectStyle, SetGlobalStyle
 
 
 # main function
-gStyle.SetPadRightMargin(0.035)
-gStyle.SetPadLeftMargin(0.16)
-gStyle.SetPadBottomMargin(0.14)
-gStyle.SetPadTopMargin(0.08)
-gStyle.SetTitleSize(0.055, 'xyz')
-gStyle.SetLabelSize(0.050, 'xyz')
-gStyle.SetPadTickX(1)
-gStyle.SetPadTickY(1)
-gStyle.SetLegendBorderSize(0)
-gStyle.SetOptStat(0)
-
+SetGlobalStyle()
 PARSER = argparse.ArgumentParser(description='Arguments to pass')
 PARSER.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
                     help='config file name with root input files')
@@ -112,8 +91,8 @@ for det in axes:
                     sparse.Projection(axes[det][spe][prong])
                 hNsigma[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SetName(\
                     'hNsigma{0}_{1}_Prong{2}_Pt{3:.0f}_{4:.0f}'.format(det, spe, prong, ptmin, ptmax))
-                SetHistoStyle(hNsigma[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
-                    ptmin, ptmax)], kBlue, 0.25, 1, kFullCircle, 0.5)
+                SetObjectStyle(hNsigma[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
+                    ptmin, ptmax)], color=kBlue, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kFullCircle, markersize=0.5, linewidth=1)
 
                 sparse.GetAxis(1).SetRange(MLbinmin, MLbinmax)
 
@@ -121,8 +100,8 @@ for det in axes:
                     sparse.Projection(axes[det][spe][prong])
                 hNsigmaSel[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SetName(\
                     'hNsigmaSel{0}_{1}_Prong{2}_Pt{3:.0f}_{4:.0f}'.format(det, spe, prong, ptmin, ptmax))
-                SetHistoStyle(hNsigmaSel[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
-                    ptmin, ptmax)], kRed, 0.25, 1, kOpenCircle, 0.5)
+                SetObjectStyle(hNsigmaSel[det][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
+                    ptmin, ptmax)], color=kRed, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kOpenCircle, markersize=0.5, linewidth=1)
 
                 sparse.GetAxis(0).SetRange(-1, -1)
                 sparse.GetAxis(1).SetRange(-1, -1)
@@ -147,8 +126,8 @@ for spe in axes[det]:
                 sPIDNsigma.Projection(axes['TPC'][spe][prong], axes['TOF'][spe][prong])
             hNsigma['TPCTOF'][spe][prong]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SetName(\
                 'hNsigmaTPCTOF_{0}_Prong{1}_Pt{2:.0f}_{3:.0f}'.format(spe, prong, ptmin, ptmax))
-            SetHistoStyle(hNsigma['TPCTOF'][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
-                ptmin, ptmax)], kBlue, 0.25, 0.5, kFullCircle, 0.3)
+            SetObjectStyle(hNsigma['TPCTOF'][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
+                ptmin, ptmax)], color=kBlue, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kFullCircle, markersize=0.3, linewidth=1)
 
             sPIDNsigma.GetAxis(1).SetRange(MLbinmin, MLbinmax)
 
@@ -156,8 +135,8 @@ for spe in axes[det]:
                 sPIDNsigma.Projection(axes['TPC'][spe][prong], axes['TOF'][spe][prong])
             hNsigmaSel['TPCTOF'][spe][prong]['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SetName(\
                 'hNsigmaSelTPCTOF_{0}_Prong{1}_Pt{2:.0f}_{3:.0f}'.format(spe, prong, ptmin, ptmax))
-            SetHistoStyle(hNsigmaSel['TPCTOF'][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
-                ptmin, ptmax)], kRed, 0.25, 0.5, kFullCircle, 0.3)
+            SetObjectStyle(hNsigmaSel['TPCTOF'][spe][prong]['Pt{:.0f}_{:.0f}'.format(\
+                ptmin, ptmax)], color=kRed, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kOpenCircle, markersize=0.3, linewidth=1)
 
             sPIDNsigma.GetAxis(0).SetRange(-1, -1)
             sPIDNsigma.GetAxis(1).SetRange(-1, -1)
@@ -186,8 +165,8 @@ for det in axes:
                 sparse.Projection(axes[det][spe]['0'], axes[det][spe]['2'])
             hNsigma[det][spe]['0-2']['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SetName(\
                 'hNsigma{0}_{1}_Pront02_Pt{2:.0f}_{3:.0f}'.format(det, spe, ptmin, ptmax))
-            SetHistoStyle(hNsigma[det][spe]['0-2']['Pt{:.0f}_{:.0f}'.format(\
-                ptmin, ptmax)], kBlue, 0.25, 0.5, kFullCircle, 0.3)
+            SetObjectStyle(hNsigma[det][spe]['0-2']['Pt{:.0f}_{:.0f}'.format(\
+                ptmin, ptmax)], color=kBlue, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kFullCircle, markersize=0.3, linewidth=1)
 
             sparse.GetAxis(1).SetRange(MLbinmin, MLbinmax)
 
@@ -195,8 +174,8 @@ for det in axes:
                 sparse.Projection(axes[det][spe]['0'], axes[det][spe]['2'])
             hNsigmaSel[det][spe]['0-2']['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)].SetName(\
                 'hNsigmaSel{:s}_{:s}_Prong02_Pt{:.0f}_{:.0f}'.format(det, spe, ptmin, ptmax))
-            SetHistoStyle(hNsigmaSel[det][spe]['0-2']['Pt{:.0f}_{:.0f}'.format(\
-                ptmin, ptmax)], kRed, 0.25, 0.5, kFullCircle, 0.3)
+            SetObjectStyle(hNsigmaSel[det][spe]['0-2']['Pt{:.0f}_{:.0f}'.format(\
+                ptmin, ptmax)], color=kRed, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kOpenCircle, markersize=0.3, linewidth=1)
 
             sparse.GetAxis(0).SetRange(-1, -1)
             sparse.GetAxis(1).SetRange(-1, -1)

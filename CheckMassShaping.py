@@ -6,20 +6,11 @@ run: python CheckMassShaping.py cfgFileName.yml PtMin PtMax MLoutMin MLoutMax ML
 import argparse
 import six
 import yaml
-from ROOT import TCanvas, TLegend, gStyle, kFullCircle, kRed  # pylint: disable=import-error,no-name-in-module
+from ROOT import TCanvas, TLegend, kFullCircle, kRed  # pylint: disable=import-error,no-name-in-module
 from TaskFileLoader import LoadSingleSparseFromTask
+from StyleFormatter import SetObjectStyle, SetGlobalStyle
 
-gStyle.SetPadRightMargin(0.1)
-gStyle.SetPadLeftMargin(0.15)
-gStyle.SetPadBottomMargin(0.12)
-gStyle.SetPadTopMargin(0.035)
-gStyle.SetTitleSize(0.05, 'xyz')
-gStyle.SetLabelSize(0.045, 'xyz')
-gStyle.SetPadTickX(1)
-gStyle.SetPadTickY(1)
-gStyle.SetLegendBorderSize(0)
-gStyle.SetOptStat(0)
-gStyle.SetOptTitle(0)
+SetGlobalStyle()
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -77,8 +68,6 @@ if MLoutStepBin == 0:
     print('ERROR: ML step passed is smaller than THnSparse binning! Exit')
     exit()
 
-print(MLoutStepBin)
-
 leg = TLegend(0.45, 0.6, 0.85, 0.9)
 leg.SetTextSize(0.04)
 
@@ -91,10 +80,7 @@ cMassMLSel.cd().DrawFrame(hMassVsML.GetYaxis().GetBinLowEdge(1), 0., \
 for iBin, MLbin in enumerate(range(MLoutBinMin, MLoutBinMax+MLoutStepBin, MLoutStepBin)):
     MLoutBinMax = sparseBkg.GetAxis(13).SetRange(MLbin, nMLbins+1)
     hMass.append(sparseBkg.Projection(0))
-    hMass[iBin].SetLineColor(kRed-5+iBin)
-    hMass[iBin].SetMarkerColor(kRed-5+iBin)
-    hMass[iBin].SetMarkerStyle(kFullCircle)
-    hMass[iBin].SetLineWidth(2)
+    SetObjectStyle(hMass[iBin], color=kRed-5+iBin, markerstyle=kFullCircle, linewidth=2)
     if args.rebin:
         hMass[iBin].Rebin(args.rebin)
     hMass[iBin].Draw('Esame')

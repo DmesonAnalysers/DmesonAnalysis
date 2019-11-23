@@ -1,5 +1,5 @@
 '''
-python script for the computation of the D+ and Ds+ efficiency mesons from ProjectDplusDsSparse.py output
+Script for the computation of the D+ and Ds+ efficiency mesons from ProjectDplusDsSparse.py output
 run: python ComputeEfficiencyDplusDs.py fitConfigFileName.yml centClass inputFileName.root outFileName.root
 '''
 
@@ -10,8 +10,8 @@ import argparse
 import six
 import yaml
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, gStyle, kRed, kBlue, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
-
+from ROOT import gROOT, kRed, kBlue, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
+from StyleFormatter import SetGlobalStyle, SetObjectStyle
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -25,18 +25,6 @@ def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     hTmpDen.SetBinError(1, genCountsError)
     hTmpNum.Divide(hTmpNum, hTmpDen, 1., 1, 'B')
     return hTmpNum.GetBinContent(1), hTmpNum.GetBinError(1)
-
-
-def SetHistoStyle(histo, color, marker, markersize=1.5, linewidth=2, linestyle=1):
-    '''
-    method to set histo style
-    '''
-    histo.SetMarkerColor(color)
-    histo.SetLineColor(color)
-    histo.SetLineStyle(linestyle)
-    histo.SetLineWidth(linewidth)
-    histo.SetMarkerStyle(marker)
-    histo.SetMarkerSize(markersize)
 
 
 parser = argparse.ArgumentParser(description='Arguments')
@@ -59,12 +47,13 @@ elif args.centClass == 'k3050':
     cent = 'Cent3050'
 
 gROOT.SetBatch(args.batch)
+SetGlobalStyle()
 
 PtMin = fitConfig[cent]['PtMin']
 PtMax = fitConfig[cent]['PtMax']
 PtLims = list(PtMin)
 nPtBins = len(PtMin)
-PtLims.append(PtMax[nPtBins - 1])
+PtLims.append(PtMax[- 1])
 
 hEffPrompt = TH1F('hEffPrompt', ';#it{p}_{T} (GeV/#it{c});Efficiency', nPtBins, array.array('f', PtLims))
 hEffFD = TH1F('hEffFD', ';#it{p}_{T} (GeV/#it{c});Efficiency', nPtBins, array.array('f', PtLims))
@@ -72,12 +61,12 @@ hYieldPromptGen = TH1F('hYieldPromptGen', ';#it{p}_{T} (GeV/#it{c}); # Generated
 hYieldFDGen = TH1F('hYieldFDGen', ';#it{p}_{T} (GeV/#it{c}); # Generated MC', nPtBins, array.array('f', PtLims))
 hYieldPromptReco = TH1F('hYieldPromptReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, array.array('f', PtLims))
 hYieldFDReco = TH1F('hYieldFDReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, array.array('f', PtLims))
-SetHistoStyle(hEffPrompt, kRed, kFullCircle)
-SetHistoStyle(hEffFD, kBlue, kOpenSquare, 1.5, 2, 7)
-SetHistoStyle(hYieldPromptGen, kRed, kFullCircle)
-SetHistoStyle(hYieldFDGen, kBlue, kOpenSquare, 1.5, 2, 7)
-SetHistoStyle(hYieldPromptReco, kRed, kFullCircle)
-SetHistoStyle(hYieldFDReco, kBlue, kOpenSquare, 1.5, 2, 7)
+SetObjectStyle(hEffPrompt, color=kRed, markerstyle=kFullCircle)
+SetObjectStyle(hEffFD, color=kBlue, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+SetObjectStyle(hYieldPromptGen, color=kRed, markerstyle=kFullCircle)
+SetObjectStyle(hYieldFDGen, color=kBlue, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+SetObjectStyle(hYieldPromptReco, color=kRed, markerstyle=kFullCircle)
+SetObjectStyle(hYieldFDReco, color=kBlue, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
 
 if args.ptweights:
     infileWeigts = TFile.Open(args.ptweights[0])
@@ -86,11 +75,11 @@ if args.ptweights:
 hRecoPrompt, hRecoFD, hGenPrompt, hGenFD = ([] for iHisto in range(4))
 
 infile = TFile(args.inFileName)
-for iPt in range(len(PtMin)):
-    hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (PtMin[iPt]*10, PtMax[iPt]*10)))
-    hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (PtMin[iPt]*10, PtMax[iPt]*10)))
-    hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (PtMin[iPt]*10, PtMax[iPt]*10)))
-    hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (PtMin[iPt]*10, PtMax[iPt]*10)))
+for iPt, (ptMin, ptMax) in enumerate(zip(PtMin, PtMax)):
+    hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+    hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+    hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+    hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
 
     # get unweighted yields (for uncertainty)
     nRecoPrompt = hRecoPrompt[iPt].Integral()
@@ -99,12 +88,10 @@ for iPt in range(len(PtMin)):
     nGenFD = hGenFD[iPt].Integral()
 
     # get weighted yields
-    nRecoPromptWeighted, nGenPromptWeighted, nRecoFDWeighted, nGenFDWeighted = (
-        0 for i in range(4))
+    nRecoPromptWeighted, nGenPromptWeighted, nRecoFDWeighted, nGenFDWeighted = (0 for iVal in range(4))
     for iBin in range(hRecoPrompt[iPt].GetNbinsX()):
         if args.ptweights:
-            binweigths = hPtWeights.GetXaxis().FindBin(
-                hRecoPrompt[iPt].GetBinCenter(iBin+1))
+            binweigths = hPtWeights.GetXaxis().FindBin(hRecoPrompt[iPt].GetBinCenter(iBin+1))
             weight = hPtWeights.GetBinContent(binweigths)
         else:
             weight = 1
@@ -130,16 +117,6 @@ for iPt in range(len(PtMin)):
     hYieldPromptReco.SetBinError(iPt+1, nRecoPromptWeighted/math.sqrt(nRecoPrompt))
     hYieldFDReco.SetBinContent(iPt+1, nRecoFDWeighted)
     hYieldFDReco.SetBinError(iPt+1, nRecoFDWeighted/math.sqrt(nRecoFD))
-
-gStyle.SetPadRightMargin(0.035)
-gStyle.SetPadLeftMargin(0.14)
-gStyle.SetPadTopMargin(0.035)
-gStyle.SetTitleSize(0.045, 'xy')
-gStyle.SetLabelSize(0.040, 'xy')
-gStyle.SetPadTickX(1)
-gStyle.SetPadTickY(1)
-gStyle.SetLegendBorderSize(0)
-gStyle.SetOptStat(0)
 
 leg = TLegend(0.6, 0.2, 0.8, 0.4)
 leg.SetTextSize(0.045)

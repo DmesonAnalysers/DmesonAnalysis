@@ -10,35 +10,13 @@ import six
 import numpy as np
 import yaml
 from PIL import Image
-from ROOT import TFile, TCanvas, TDirectoryFile, TLegend, gStyle  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TDirectoryFile, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlue, kRed, kFullCircle, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 from TaskFileLoader import LoadSparseFromTask
-
-
-def SetHistoStyle(histo, color, alpha, alphamarker, marker, markersize=1.5, linewidth=2):
-    '''
-    method to set histo style
-    '''
-    histo.SetMarkerColorAlpha(color, alphamarker)
-    histo.SetFillColorAlpha(color, alpha)
-    histo.SetLineColorAlpha(color, alpha)
-    histo.SetLineWidth(linewidth)
-    histo.SetMarkerStyle(marker)
-    histo.SetMarkerSize(markersize)
-
+from StyleFormatter import SetObjectStyle, SetGlobalStyle
 
 # main function
-gStyle.SetPadRightMargin(0.035)
-gStyle.SetPadLeftMargin(0.16)
-gStyle.SetPadBottomMargin(0.14)
-gStyle.SetPadTopMargin(0.08)
-gStyle.SetTitleSize(0.055, 'xyz')
-gStyle.SetLabelSize(0.050, 'xyz')
-gStyle.SetPadTickX(1)
-gStyle.SetPadTickY(1)
-gStyle.SetLegendBorderSize(0)
-gStyle.SetOptStat(0)
-
+SetGlobalStyle()
 
 PARSER = argparse.ArgumentParser(description='Arguments to pass')
 PARSER.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -156,22 +134,22 @@ for iPt, (ptmin, ptmax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             ptmin, ptmax)][topovars[axis]] = sparseReco['RecoPrompt'].Projection(axis)
         hVars['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)][topovars[axis]].SetName(
             'hVarsSel_{:s}_Pt{:.0f}_{:.0f}'.format(topovars[axis], ptmin, ptmax))
-        SetHistoStyle(hVars['Pt{:.0f}_{:.0f}'.format(
-            ptmin, ptmax)][topovars[axis]], kBlue, 0.25, 1, kFullCircle, 0.5)
+        SetObjectStyle(hVars['Pt{:.0f}_{:.0f}'.format(
+            ptmin, ptmax)][topovars[axis]], color=kBlue, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kFullCircle, markersize=0.5, linewidth=1)
 
         hVarsVsPt['Pt{:.0f}_{:.0f}'.format(
             ptmin, ptmax)][topovars[axis]] = sparseReco['RecoPrompt'].Projection(axis, 1)
         hVarsVsPt['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)][topovars[axis]].SetName(
             'hVarsSel_{:s}_Pt{:.0f}_{:.0f}'.format(topovars[axis], ptmin, ptmax))
-        SetHistoStyle(hVarsVsPt['Pt{:.0f}_{:.0f}'.format(
-            ptmin, ptmax)][topovars[axis]], kBlue, 0.25, 0.2, kFullCircle, 0.3)
+        SetObjectStyle(hVarsVsPt['Pt{:.0f}_{:.0f}'.format(
+            ptmin, ptmax)][topovars[axis]], color=kBlue, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kFullCircle, markersize=0.3, linewidth=1)
 
         hVarsVsML['Pt{:.0f}_{:.0f}'.format(
             ptmin, ptmax)][topovars[axis]] = sparseReco['RecoPrompt'].Projection(axis, 13)
         hVarsVsML['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)][topovars[axis]].SetName(
             'hVarsSel_{:s}_Pt{:.0f}_{:.0f}'.format(topovars[axis], ptmin, ptmax))
-        SetHistoStyle(hVarsVsML['Pt{:.0f}_{:.0f}'.format(
-            ptmin, ptmax)][topovars[axis]], kBlue, 0.25, 0.2, kFullCircle, 0.3)
+        SetObjectStyle(hVarsVsML['Pt{:.0f}_{:.0f}'.format(
+            ptmin, ptmax)][topovars[axis]], color=kBlue, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kFullCircle, markersize=0.3, linewidth=1)
 
         sparseReco['RecoPrompt'].GetAxis(13).SetRange(MLbinmin, MLbinmax)
 
@@ -179,22 +157,22 @@ for iPt, (ptmin, ptmax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             ptmin, ptmax)][topovars[axis]] = sparseReco['RecoPrompt'].Projection(axis)
         hVarsSel['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)][topovars[axis]].SetName(
             'hVarsSel_{:s}_Pt{:.0f}_{:.0f}'.format(topovars[axis], ptmin, ptmax))
-        SetHistoStyle(hVarsSel['Pt{:.0f}_{:.0f}'.format(
-            ptmin, ptmax)][topovars[axis]], kRed, 0.25, 1, kOpenCircle, 0.5)
+        SetObjectStyle(hVarsSel['Pt{:.0f}_{:.0f}'.format(
+            ptmin, ptmax)][topovars[axis]], color=kRed, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kOpenCircle, markersize=0.5, linewidth=1)
 
         hVarsSelVsPt['Pt{:.0f}_{:.0f}'.format(
             ptmin, ptmax)][topovars[axis]] = sparseReco['RecoPrompt'].Projection(axis, 1)
         hVarsSelVsPt['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)][topovars[axis]].SetName(
             'hVarsSelVsPt_{:s}_Pt{:.0f}_{:.0f}'.format(topovars[axis], ptmin, ptmax))
-        SetHistoStyle(hVarsSelVsPt['Pt{:.0f}_{:.0f}'.format(
-            ptmin, ptmax)][topovars[axis]], kRed, 0.25, 0.2, kFullCircle, 0.3)
+        SetObjectStyle(hVarsSelVsPt['Pt{:.0f}_{:.0f}'.format(
+            ptmin, ptmax)][topovars[axis]], color=kRed, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kOpenCircle, markersize=0.3, linewidth=1)
 
         hVarsSelVsML['Pt{:.0f}_{:.0f}'.format(
             ptmin, ptmax)][topovars[axis]] = sparseReco['RecoPrompt'].Projection(axis, 13)
         hVarsSelVsML['Pt{:.0f}_{:.0f}'.format(ptmin, ptmax)][topovars[axis]].SetName(
             'hVarsSelVsML_{:s}_Pt{:.0f}_{:.0f}'.format(topovars[axis], ptmin, ptmax))
-        SetHistoStyle(hVarsSelVsML['Pt{:.0f}_{:.0f}'.format(
-            ptmin, ptmax)][topovars[axis]], kRed, 0.25, 0.2, kFullCircle, 0.3)
+        SetObjectStyle(hVarsSelVsML['Pt{:.0f}_{:.0f}'.format(
+            ptmin, ptmax)][topovars[axis]], color=kRed, linealpha=0.25, fillalpha=0.25, markeralpha=1, markerstyle=kOpenCircle, markersize=0.3, linewidth=1)
 
         sparseReco['RecoPrompt'].GetAxis(13).SetRange(-1, -1)
 
