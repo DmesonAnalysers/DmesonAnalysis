@@ -28,6 +28,11 @@ def SetGlobalStyle(**kwargs):
     - labelsizey (float), default = 0.045
     - labelsizez (float), default = 0.045
 
+    - titleoffset (float), default = 1.2
+    - titleoffsetx (float), default = 1.2
+    - titleoffsey (float), default = 1.2
+    - titleoffsetz (float), default = 1.2
+
     - opttitle (int), default = 0
     - optstat (int), default = 0
 
@@ -45,8 +50,8 @@ def SetGlobalStyle(**kwargs):
     else:
         gStyle.SetPadLeftMargin(0.12)
 
-    if 'padbottommargin' in kwargs:
-        gStyle.SetPadTopMargin(kwargs['padbottommargin'])
+    if 'padtopmargin' in kwargs:
+        gStyle.SetPadTopMargin(kwargs['padtopmargin'])
     else:
         gStyle.SetPadTopMargin(0.035)
 
@@ -80,6 +85,19 @@ def SetGlobalStyle(**kwargs):
         gStyle.SetLabelSize(kwargs['labelsizex'], 'y')
     if 'labelsizez' in kwargs:
         gStyle.SetLabelSize(kwargs['labelsizex'], 'z')
+
+    #title offsets
+    if 'titleoffset' in kwargs:
+        gStyle.SetTitleOffset(kwargs['titleoffset'], 'xyz')
+    else:
+        gStyle.SetTitleOffset(1.2, 'xyz')
+
+    if 'titleoffsetx' in kwargs:
+        gStyle.SetTitleOffset(kwargs['titleoffsetx'], 'x')
+    if 'titleoffsety' in kwargs:
+        gStyle.SetTitleOffset(kwargs['titleoffsety'], 'y')
+    if 'titleoffsetz' in kwargs:
+        gStyle.SetTitleOffset(kwargs['titleoffsetz'], 'z')
 
     #other options
     if 'opttitle' in kwargs:
