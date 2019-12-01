@@ -84,9 +84,9 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
     bool useImprover = static_cast<bool>(config["improver"]["enable"].as<int>());
     string improverPeriod = config["improver"]["period"].as<string>();
 
-    string wagonName = config["wagonname"].as<string>();
-    string cutFileName = config["cuts"]["infile"].as<string>();
-    string cutObjName = config["cuts"]["objname"].as<string>();
+    string wagonName = config["task"]["wagonname"].as<string>();
+    string cutFileName = config["task"]["cuts"]["infile"].as<string>();
+    string cutObjName = config["task"]["cuts"]["objname"].as<string>();
     //_________________________________________________________________________________________________________________
 
     // if compile a class, tell root where to look for headers
@@ -120,7 +120,7 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
     //D+ or Ds tasks
     if (meson == "Dplus")
     {
-        AliAnalysisTaskSEDplus *taskDplus = reinterpret_cast<AliAnalysisTaskSEDplus *>(gInterpreter->ProcessLine(Form(".x %s(%d,%f,%f,%d,%d,%d,%d,\"%s\",\"%s\",\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/AddTaskDplus.C"), system, 0., 100., 0, 1, false, isRunOnMC, "FilteringCuts", cutFileName.data(), cutObjName.data())));
+        AliAnalysisTaskSEDplus *taskDplus = reinterpret_cast<AliAnalysisTaskSEDplus *>(gInterpreter->ProcessLine(Form(".x %s(%d,%f,%f,%d,%d,%d,%d,\"%s\",\"%s\",\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskDplus.C"), system, 0., 100., 0, 1, false, isRunOnMC, "FilteringCuts", cutFileName.data(), cutObjName.data())));
     }
     else if (meson == "Ds")
     {
@@ -191,7 +191,7 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
 
         // specify how many seconds your job may take
         alienHandler->SetTTL(30000);
-        alienHandler->SetJDLName(Form("%s.jdl", gridDataDir.data()));
+        alienHandler->SetJDLName(Form("%s.jdl", gridWorkingDir.data()));
 
         alienHandler->SetOutputToRunNo(true);
         alienHandler->SetKeepLogs(true);

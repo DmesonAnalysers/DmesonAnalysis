@@ -85,16 +85,16 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     bool useImprover = static_cast<bool>(config["improver"]["enable"].as<int>());
     string improverPeriod = config["improver"]["period"].as<string>();
 
-    string wagonName = config["wagonname"].as<string>();
-    string cutFileName = config["cuts"]["infile"].as<string>();
-    string cutObjName = config["cuts"]["objname"].as<string>();
+    string wagonName = config["task"]["wagonname"].as<string>();
+    string cutFileName = config["task"]["cuts"]["infile"].as<string>();
+    string cutObjName = config["task"]["cuts"]["objname"].as<string>();
 
     //task options
     bool storeSparse = static_cast<bool>(config["task"]["storesparse"].as<int>());
-    bool storeTreeML = static_cast<bool>(config["task"]["ML"]["tree"]["storetree"].as<int>());
-    bool fillOnlySignalTreeML = static_cast<bool>(config["task"]["ML"]["tree"]["fillonlysignal"].as<int>());
-    bool enableTrackVarsTreeML = static_cast<bool>(config["task"]["ML"]["tree"]["enabletrackvars"].as<int>());
-    string sPidTreeOpt = config["task"]["ML"]["tree"]["PIDoption"].as<string>();
+    bool storeTreeML = static_cast<bool>(config["task"]["treeML"]["storetree"].as<int>());
+    bool fillOnlySignalTreeML = static_cast<bool>(config["task"]["treeML"]["fillonlysignal"].as<int>());
+    bool enableTrackVarsTreeML = static_cast<bool>(config["task"]["treeML"]["enabletrackvars"].as<int>());
+    string sPidTreeOpt = config["task"]["treeML"]["PIDoption"].as<string>();
     int pidTreeOpt = -1;
     if(sPidTreeOpt == "kNoPID")
         pidTreeOpt = AliHFMLVarHandler::kNoPID;
@@ -108,11 +108,11 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
         pidTreeOpt = AliHFMLVarHandler::kNsigmaDetAndCombPID;
     else if(sPidTreeOpt == "kRawAndNsigmaPID")
         pidTreeOpt = AliHFMLVarHandler::kRawAndNsigmaPID;
-    bool applyML = static_cast<bool>(config["task"]["ML"]["application"]["doapplyML"].as<int>());
-    string confFileML = config["task"]["ML"]["application"]["configfile"].as<string>();
-    int nMLbins = config["task"]["ML"]["application"]["bins4sparse"]["nbins"].as<int>();
-    double MLmin = config["task"]["ML"]["application"]["bins4sparse"]["min"].as<double>();
-    double MLmax = config["task"]["ML"]["application"]["bins4sparse"]["max"].as<double>();
+    bool applyML = static_cast<bool>(config["task"]["applyML"]["doapplyML"].as<int>());
+    string confFileML = config["task"]["applyML"]["configfile"].as<string>();
+    int nMLbins = config["task"]["applyML"]["nbins"].as<int>();
+    double MLmin = config["task"]["applyML"]["min"].as<double>();
+    double MLmax = config["task"]["applyML"]["max"].as<double>();
     //_________________________________________________________________________________________________________________
 
     // if compile a class, tell root where to look for headers
@@ -149,7 +149,7 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     //D+ or Ds tasks
     if (meson == "Dplus")
     {
-        AliAnalysisTaskSEDplus *taskDplus = reinterpret_cast<AliAnalysisTaskSEDplus *>(gInterpreter->ProcessLine(Form(".x %s(%d,%f,%f,%d,%d,%d,%d,\"%s\",\"%s\",\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/AddTaskDplus.C"), system, 0., 100., storeTreeML, storeSparse, false, isRunOnMC, wagonName.data(), cutFileName.data(), cutObjName.data())));
+        AliAnalysisTaskSEDplus *taskDplus = reinterpret_cast<AliAnalysisTaskSEDplus *>(gInterpreter->ProcessLine(Form(".x %s(%d,%f,%f,%d,%d,%d,%d,\"%s\",\"%s\",\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskDplus.C"), system, 0., 100., storeTreeML, storeSparse, false, isRunOnMC, wagonName.data(), cutFileName.data(), cutObjName.data())));
         if(applyML)
         {
             taskDplus->SetDoMLApplication();
@@ -165,7 +165,7 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     }
     else if (meson == "Ds")
     {
-        AliAnalysisTaskSEDs *taskDs = reinterpret_cast<AliAnalysisTaskSEDs *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d,%d,%d,\"%s\",\"%s\",%d,%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/AddTaskDs.C"), system, isRunOnMC, 1, storeSparse, cutFileName.data(), wagonName.data(), storeTreeML, applyML, confFileML.data(), cutObjName.data(), storeSparse)));
+        AliAnalysisTaskSEDs *taskDs = reinterpret_cast<AliAnalysisTaskSEDs *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d,%d,%d,\"%s\",\"%s\",%d,%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskDs.C"), system, isRunOnMC, 1, storeSparse, cutFileName.data(), wagonName.data(), storeTreeML, applyML, confFileML.data(), cutObjName.data(), storeSparse)));
         if(applyML)
         {
             taskDs->SetDoMLApplication();
@@ -240,11 +240,11 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
 
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(splitmaxinputfilenum);
-        alienHandler->SetExecutable(Form("%s.sh", gridDataDir.data()));
+        alienHandler->SetExecutable(Form("%s.sh", gridWorkingDir.data()));
 
         // specify how many seconds your job may take
         alienHandler->SetTTL(30000);
-        alienHandler->SetJDLName(Form("%s.jdl", gridDataDir.data()));
+        alienHandler->SetJDLName(Form("%s.jdl", gridWorkingDir.data()));
 
         alienHandler->SetOutputToRunNo(true);
         alienHandler->SetKeepLogs(true);
