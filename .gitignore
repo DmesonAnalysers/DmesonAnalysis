@@ -9,9 +9,12 @@ configfiles/*_local.yml
 *.pcm
 *.d
 *.so
+*/*.pcm
+*/*.d
+*/*.so
 .DS_Store
-treecreator/AODfiles
-treecreator/*.pdf
-treecreator/*.root
-treecreator/*.xml
+runanalysistask/AODfiles
+runanalysistask/*.pdf
+runanalysistask/*.root
+runanalysistask/*.xml
 cutobjects/*.root

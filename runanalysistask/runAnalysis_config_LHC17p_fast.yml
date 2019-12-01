@@ -1,0 +1,35 @@
+runtype: grid #local, test, grid
+pathtolocalAOD: '.'
+meson: Dplus
+system: pp
+datadir: /alice/data/2017/LHC17p/
+datapattern: pass1_FAST/AOD
+gridworkdir: NonPromptDplus
+splitmaxinputfilenum: 20
+AliPhysicVersion: vAN-20191130_ROOT6-1
+runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 282306, 282305, 
+       282304, 282303, 282302, 282247, 282230, 282229, 282227, 282224, 282206, 282189, 282147, 
+       282146, 282127, 282126, 282125, 282123, 282122, 282120, 282119, 282118, 282099, 282098, 
+       282078, 282051, 282050, 282031, 282030, 282025, 282021, 282016, 282008]
+
+improver:
+    enable: 0
+    period: ''
+
+task:
+    wagonname: Loose_kMB
+    cuts:
+        infile: .root
+        objname: AnalysisCuts
+    storesparse: 0
+    treeML:
+        storetree: 1
+        fillonlysignal: 0
+        enabletrackvars: 0
+        PIDoption: kNsigmaDetAndCombPID
+    applyML:
+        doapplyML: 0
+        configfile: ''
+        nbins: 300
+        min: 0.85
+        max: 1.
