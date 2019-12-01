@@ -133,7 +133,7 @@ AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = 
 
     analysiscuts->PrintAll();
     analysiscuts->PrintTrigger();
-    TString filename = Form("DplustoKpipiCuts_pp_nonprompt_loose%s_%s%s.root", PIDsuffix.Data(), triggername.Data(), trackCutName.Data());
+    TString filename = Form("DplustoKpipiCuts_pp_nonprompt_loose%s_%s%s.root", PIDsuffix.Data(), triggername.Data());
     TFile *fout = new TFile(filename.Data(), "recreate");
     fout->cd();
     analysiscuts->Write();
