@@ -16,7 +16,7 @@
 //____________________________________________________________________________________________________//
 
 //__________________________________________________________________________________________
-AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = true, double maxPtstrongPID = 3.0, bool fIsMC = false)
+AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = false, double maxPtstrongPID = -1.0, bool fIsMC = false)
 {
 
     AliESDtrackCuts *esdTrackCuts = new AliESDtrackCuts();
