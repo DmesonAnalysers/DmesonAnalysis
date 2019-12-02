@@ -77,14 +77,14 @@ AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = 
 
     //pT 1-5
     anacutsval[6][0] = 0.040; //sigvert
-    anacutsval[7][0] = 0.020; //declen
-    anacutsval[9][0] = 0.80;  //cosp
+    anacutsval[7][0] = 0.030; //declen
+    anacutsval[9][0] = 0.85;  //cosp
     anacutsval[13][0] = 0.80; //cospXY
 
     //pT 5-50
     anacutsval[6][1] = 0.060; //sigvert
-    anacutsval[7][1] = 0.030; //declen
-    anacutsval[9][1] = 0.70;  //cosp
+    anacutsval[7][1] = 0.040; //declen
+    anacutsval[9][1] = 0.75;  //cosp
     anacutsval[13][1] = 0.70; //cospXY
 
     AliRDHFCutsDplustoKpipi *analysiscuts = new AliRDHFCutsDplustoKpipi();
