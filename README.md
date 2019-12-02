@@ -24,7 +24,7 @@ where ```files_to_merge.yml``` is the configuration file containing the informat
 ## Main analysis with THnSparses
 
 ### Pre-filter ThnSparses
-*The THnSparse in the task outputs be pre-filtered to reduce the file size (useful if the train outputs are too large and cannot be merged) with:
+* The THnSparse in the task outputs be pre-filtered to reduce the file size (useful if the train outputs are too large and cannot be merged) with:
 ```
 python FilterSparse configfile.yml cutset.yml
 ```
