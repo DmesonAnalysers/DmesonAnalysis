@@ -18,3 +18,4 @@ runanalysistask/*.pdf
 runanalysistask/*.root
 runanalysistask/*.xml
 cutobjects/*.root
+cutobjects/*/*.root
