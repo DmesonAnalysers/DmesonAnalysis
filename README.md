@@ -1,27 +1,36 @@
 # DmesonStdAnalysisPbPb
 Code for the measurement of Ds and D+ meson pT-differential yields starting from the outputs of the [AliPhysics](https://github.com/alisw/AliPhysics) tasks [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDplus.cxx), using rectangular or ML selections
 
-## Significance optimisation
+## Run analysis tasks
 
-* Compute expected significance for all combinations of different selection criteria:
-```
-python ScanSignificanceSparse.py configfile.yml output.root
-```
-where ```configfile.yml``` is a configuration file such as [config_Ds_010_SignOpt.yml](configfiles/config_Ds_010_SignOpt.yml) 
+### Creation of files with selections to be applied on the tasks
+* In the [cutobjects](https://github.com/fgrosa/DmesonStdAnalysisPbPb/tree/master/cutobjects) folder all the macros needed to produce the cut-object files used in the tasks are stored
 
-* Project ntuple with expected significance as a function of relevant variables:
-```
-python ProjectSignifNtuple.py configfile.yml input.root PtMin PtMax minSignificance maxSignificance minEffPrompt maxEffPrompt
-```
-where the input file ```input.root``` is the one produced in the previous step
+### Run D+ and Ds tasks with private jobs
+The [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDplus.cxx) and [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) tasks can be run with private jobs using the ```RunAnalysisDsDplusTask.C``` script in the ```runanalysistask``` folder:
 
-* Produce plots for expected significance as a function of pT:
 ```
-python GetExpectedSignificance.py configfile.yml cutset.yml outputname
+RunAnalysisDsDplusTask.C (TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
 ```
-where the configuration file ```cutset.yml``` contains the selection that you want to apply, such as [cutset_010_central_2018.yml](configfiles/cutset_010_central_2018.yml) if you want to apply rectangular selections or [cutset_010_ML_test.yml](configfiles/cutset_010_ML_test.yml) if you want to apply a selection on the ML output.
+where ```configfile.yml``` is a configuration file (such as [runAnalysis_config_LHC17p_cent.yml](runanalysistask/runAnalysis_config_LHC17p_cent.yml)) with the information about the dataset, the AliPhysics version, and the task options to be used. The tasks options include the possibility to create a tree for the ML studies or apply a ML model trained with [xgboost](https://xgboost.readthedocs.io/en/latest/) or [scikit learn](https://scikit-learn.org/stable/).
 
-## Main analysis 
+### Train output merge
+* The by-hand merge of unmerged outputs of a [ALICE analysis train](http://alimonitor.cern.ch/map.jsp) or private jobs can be performed with the script in the ```merge``` folder:
+```
+python MergeTrainOutputs.py files_to_merge.yml
+```
+where ```files_to_merge.yml``` is the configuration file containing the information about the outputs that has to be merged such as [files_to_merge_LHC18q.yml](merge/files_to_merge_LHC18q.yml)
+
+## Main analysis with THnSparses
+
+### Pre-filter ThnSparses
+*The THnSparse in the task outputs be pre-filtered to reduce the file size (useful if the train outputs are too large and cannot be merged) with:
+```
+python FilterSparse configfile.yml cutset.yml
+```
+where ```configfile.yml``` is the config file with the info of the input files and ```cutset.yml``` is the set of selections to be applied in the filtering. It creates output files as the input ones, with the ThnSparses filtered. 
+With the option ```--suffix suffixname```, a suffix is added to the output file names, otherwise the input files are overwritten.
+With the option ```--plot``` it creates control plots that are saved in .pdf files 
 
 ### Projection of invariant-mass distributions from THnSparse
 * Project the THnSparse with the desired selections into invariant-mass distributions (TH1F):
@@ -73,6 +82,26 @@ sh RunFullAnalysis.sh
 ```
 can be used by setting some hard-coded parameters 
 
+## Significance optimisation
+
+* Compute expected significance for all combinations of different selection criteria:
+```
+python ScanSignificanceSparse.py configfile.yml output.root
+```
+where ```configfile.yml``` is a configuration file such as [config_Ds_010_SignOpt.yml](configfiles/config_Ds_010_SignOpt.yml) 
+
+* Project ntuple with expected significance as a function of relevant variables:
+```
+python ProjectSignifNtuple.py configfile.yml input.root PtMin PtMax minSignificance maxSignificance minEffPrompt maxEffPrompt
+```
+where the input file ```input.root``` is the one produced in the previous step
+
+* Produce plots for expected significance as a function of pT:
+```
+python GetExpectedSignificance.py configfile.yml cutset.yml outputname
+```
+where the configuration file ```cutset.yml``` contains the selection that you want to apply, such as [cutset_010_central_2018.yml](configfiles/cutset_010_central_2018.yml) if you want to apply rectangular selections or [cutset_010_ML_test.yml](configfiles/cutset_010_ML_test.yml) if you want to apply a selection on the ML output.
+
 ## Systematic uncertainties
 ### Selection efficiency
 * For the cut-variation studies, the configuration files for each set of selection criteria can be created using:
@@ -88,27 +117,8 @@ Once the configuration files are created they can be used to repeat the main ana
 RawYieldSystematics(TString outfilerawname = "output.root")
 ```
 
-## Creation of files with selections to be applied on the tasks
-* In the [cutobjects](https://github.com/fgrosa/DmesonStdAnalysisPbPb/tree/master/cutobjects) folder all the macros needed to produce the cut-object files used in the tasks are stored
-
-## Train output merge
-* The by-hand merge of unmerged outputs of a [ALICE analysis train](http://alimonitor.cern.ch/map.jsp) can be performed with the script in the ```merge``` folder:
-```
-python MergeTrainOutputs.py files_to_merge.yml
-```
-where ```files_to_merge.yml``` is the configuration file containing the information about the outputs that has to be merged such as [files_to_merge_LHC18q.yml](merge/files_to_merge_LHC18q.yml)
-
-## Pre-filter ThnSparses
-* If the train outputs are too large and cannot be merged, they can be pre-filtered with:
-```
-python FilterSparse configfile.yml cutset.yml
-```
-where ```configfile.yml``` is the config file with the info of the input files and ```cutset.yml``` is the set of selections to be applied in the filtering. It creates output files as the input ones, with the ThnSparses filtered. 
-With the option ```--suffix suffixname```, a suffix is added to the output file names, otherwise the input files are overwritten.
-With the option ```--plot``` it creates control plots that are saved in .pdf files 
-
 ## Test and validation of code for production of trees used in ML studies
-The validation of the code for production of trees used in ML studies can be done using the scripts in the ```treecreator``` folder
+The validation of the code for production of trees used in ML studies can be done using the scripts in the ```runanalysistask``` folder
 
 * To run the [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx) on the same files:
 ```
