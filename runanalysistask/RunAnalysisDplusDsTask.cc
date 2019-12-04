@@ -143,7 +143,7 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     //improver task (if MC)
     if (isRunOnMC && useImprover && improverPeriod != "")
     {
-        AliAnalysisTaskSEImproveITS *taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITS *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskImprover.C"), false, improverPeriod.data())));
+        AliAnalysisTaskSEImproveITS *taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITS *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskImproveITS.C"), false, improverPeriod.data())));
     }
 
     //D+ or Ds tasks
