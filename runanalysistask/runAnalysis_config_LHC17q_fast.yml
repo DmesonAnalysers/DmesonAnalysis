@@ -4,9 +4,9 @@ meson: Dplus
 system: pp
 datadir: /alice/data/2017/LHC17q/
 datapattern: pass1_FAST/AOD
-gridworkdir: NonPromptDplus
+gridworkdir: NonPromptDplus_fast
 splitmaxinputfilenum: 20
-AliPhysicVersion: vAN-20191130_ROOT6-1
+AliPhysicVersion: vAN-20191202_ROOT6-1
 runs: [282367, 282366, 282365]
 
 improver:
@@ -16,7 +16,7 @@ improver:
 task:
     wagonname: Loose_kMB
     cuts:
-        infile: .root
+        infile: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonStdAnalysisPbPb/cutobjects/pp/DplustoKpipiCuts_pp_nonprompt_loose_kINT7.root
         objname: AnalysisCuts
     storesparse: 0
     treeML:

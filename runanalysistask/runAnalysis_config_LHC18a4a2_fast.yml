@@ -3,8 +3,8 @@ pathtolocalAOD: '.'
 meson: Dplus
 system: pp
 datadir: /alice/sim/2018/LHC18a4a2_fast/
-datapattern: pass1/AOD
-gridworkdir: NonPromptDplus
+datapattern: AOD
+gridworkdir: NonPromptDplusMC_fast
 splitmaxinputfilenum: 20
 AliPhysicVersion: vAN-20191130_ROOT6-1
 runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 282306, 282305, 
@@ -19,7 +19,7 @@ improver:
 task:
     wagonname: Loose_kMB
     cuts:
-        infile: .root
+        infile: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonStdAnalysisPbPb/cutobjects/pp/DplustoKpipiCuts_pp_nonprompt_loose_kINT7.root
         objname: AnalysisCuts
     storesparse: 1
     treeML:
