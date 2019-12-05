@@ -240,7 +240,7 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
 
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(splitmaxinputfilenum);
-        alienHandler->SetExecutable(Form("%s.sh", gridWorkingDir.data()));
+        alienHandler->SetExecutable("myAnalysis.sh");
 
         // specify how many seconds your job may take
         alienHandler->SetTTL(30000);
