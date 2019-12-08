@@ -4,6 +4,11 @@ max-line-length=120
 
 [BASIC]
 variable-rgx=(?:(?P<snake>[a-z_]+))
+function-naming-style=camelCase
+argument-naming-style=camelCase
+variable-naming-style=camelCase
+method-naming-style=camelCase
+attr-naming-style=camelCase
 
 [TYPECHECK]
 generated-members=RdBu
