@@ -7,28 +7,21 @@ import argparse
 import six
 import yaml
 from ROOT import TCanvas, TLegend, kFullCircle, kRed  # pylint: disable=import-error,no-name-in-module
-from TaskFileLoader import LoadSingleSparseFromTask
-from StyleFormatter import SetObjectStyle, SetGlobalStyle
+from utils.TaskFileLoader import LoadSingleSparseFromTask
+from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle
 
 SetGlobalStyle()
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
                     help='config file name with root input files')
-parser.add_argument('PtMin', type=float, default=2.,
-                    help='minimum pT')
-parser.add_argument('PtMax', type=float, default=3.,
-                    help='maximum pT')
-parser.add_argument('MLoutMin', type=float, default=0.99,
-                    help='minimum value of ML output to be checked')
-parser.add_argument('MLoutMax', type=float, default=0.999,
-                    help='maximum value of ML output to be checked')
-parser.add_argument('MLoutStep', type=float, default=0.001,
-                    help='step of ML output to be checked')
-parser.add_argument('outFileName', metavar='text', default='outFileName',
-                    help='output file name w/o extension')
-parser.add_argument('--rebin', type=int, required=False, default=1,
-                    help='mass rebin (optional)')
+parser.add_argument('PtMin', type=float, default=2., help='minimum pT')
+parser.add_argument('PtMax', type=float, default=3., help='maximum pT')
+parser.add_argument('MLoutMin', type=float, default=0.99, help='minimum value of ML output to be checked')
+parser.add_argument('MLoutMax', type=float, default=0.999, help='maximum value of ML output to be checked')
+parser.add_argument('MLoutStep', type=float, default=0.001, help='step of ML output to be checked')
+parser.add_argument('outFileName', metavar='text', default='outFileName', help='output file name w/o extension')
+parser.add_argument('--rebin', type=int, required=False, default=1, help='mass rebin (optional)')
 args = parser.parse_args()
 
 with open(args.cfgFileName, 'r') as ymlCfgFile:

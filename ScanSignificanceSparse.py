@@ -1,8 +1,7 @@
-#********************************************************************************#
-# python script for the significance scan of Ds+ mesons with THnSparses          #
-# run: python ScanSignificanceSparse.py cfgFileName.yml outFileName.root         #
-# author: Fabrizio Grosa, fabrizio.grosa@to.infn.it ,INFN Torino                 #
-#********************************************************************************#
+'''
+python script for the significance scan of Ds+ mesons with THnSparses 
+run: python ScanSignificanceSparse.py cfgFileName.yml outFileName.root
+'''
 
 import sys
 import itertools
@@ -11,17 +10,21 @@ import array
 import time
 import six
 import yaml
-from ReadModel import ReadFONLL, ReadTAMU
+from utils.ReadModel import ReadFONLL, ReadTAMU
 from ROOT import TFile, TF1, TNtuple, TSpline3, gROOT # pylint: disable=import-error,no-name-in-module
 
 # pylint: disable=redefined-outer-name,invalid-name
 def ApplyCuts(sparse, bins, axesnum, upperlowercuts, name):
+    '''
+    method to apply selections to a sparse
+    '''
     index = ''
     cutvalues = []
     for iVar, _ in enumerate(axesnum):
         if upperlowercuts[iVar] == 'Upper':
             sparse.GetAxis(axesnum[iVar]).SetRange(0, bins[iVar])
-            cutvalues.append(sparse.GetAxis(axesnum[iVar]).GetBinLowEdge(bins[iVar])+sparse.GetAxis(axesnum[iVar]).GetBinWidth(bins[iVar]))
+            cutvalues.append(sparse.GetAxis(axesnum[iVar]).GetBinLowEdge(bins[iVar]) + \
+                sparse.GetAxis(axesnum[iVar]).GetBinWidth(bins[iVar]))
         elif upperlowercuts[iVar] == 'Lower':
             sparse.GetAxis(axesnum[iVar]).SetRange(bins[iVar], sparse.GetAxis(axesnum[iVar]).GetNbins()+1)
             cutvalues.append(sparse.GetAxis(axesnum[iVar]).GetBinLowEdge(bins[iVar]))
@@ -33,6 +36,9 @@ def ApplyCuts(sparse, bins, axesnum, upperlowercuts, name):
     return hProj, index, cutvalues
 
 def GetSideBandHisto(hMassData, mean, sigma):
+    '''
+    method that returns a mass histogram with the side-bands 
+    '''
     hMassDataReb = hMassData.Clone('hSB')
     hMassDataReb.Rebin(5)
     hSB = hMassDataReb.Clone('hSB')
@@ -48,23 +54,35 @@ def GetSideBandHisto(hMassData, mean, sigma):
     return hSB
 
 def GetExpectedBackgroundFromSB(hSB, mean, sigma, Nexp, Nanal):
+    '''
+    method that returns the expected background from a side-band histogram 
+    '''
     fMassBkg = TF1('fMassBkg', 'expo', 1.8, 2.12)
     hSB.Fit('fMassBkg', 'QR')
     B = fMassBkg.Integral(mean-3*sigma, mean+3*sigma) / hSB.GetBinWidth(1) * Nexp / Nanal
     return B
 
 def GetExpectedBackgroundFromMC(hBkgMC, mean, sigma, Nexp, Nanal):
+    '''
+    method that returns the expected background from the MC 
+    '''
     binmin = hBkgMC.GetXaxis().FindBin(mean-3*sigma)
     binmax = hBkgMC.GetXaxis().FindBin(mean+3*sigma)
     B = hBkgMC.Integral(binmin, binmax) / hBkgMC.GetBinWidth(1) * Nexp / Nanal
     return B
 
 def GetExpectedSignal(DeltaPt, sigma, Raa, Taa, effPrompt, Acc, fprompt, BR, fractoD, Nexp):
+    '''
+    method that returns the expected signal
+    '''
     corrYield = sigma * fractoD * Raa * Taa / DeltaPt
     rawYield = 2 * DeltaPt * corrYield * effPrompt * Acc * BR * Nexp / fprompt
     return rawYield
 
 def ComputeExpectedFprompt(ptmin, ptmax, effPrompt, hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt):
+    '''
+    method that returns the expected prompt fraction (fc method)
+    '''
     ptbinmin = hPredPrompt.GetXaxis().FindBin(ptmin*1.001)
     ptbinmax = hPredFD.GetXaxis().FindBin(ptmax*0.999)
     predPrompt, predFD = (0 for iPred in range(2))
@@ -281,7 +299,8 @@ for iPt, _ in enumerate(PtMin):
             B = GetExpectedBackgroundFromSB(hMassSB, mean, sigma, Nexp, nEvBkg)
 
         if inputCfg['PredForFprompt']['estimateFprompt']:
-            fprompt = ComputeExpectedFprompt(PtMin[iPt], PtMax[iPt], effPrompt, hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt)
+            fprompt = ComputeExpectedFprompt(PtMin[iPt], PtMax[iPt], effPrompt, \
+                hPredPrompt, effFD, hPredFD, RatioRaaFDPrompt)
         else:
             fprompt = inputCfg['fprompt']
 

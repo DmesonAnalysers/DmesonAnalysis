@@ -13,8 +13,8 @@ import yaml
 from PIL import Image
 from ROOT import TFile, TCanvas, TDirectoryFile, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlue, kRed, kFullCircle, kOpenCircle  # pylint: disable=import-error,no-name-in-module
-from TaskFileLoader import LoadPIDSparses
-from StyleFormatter import SetObjectStyle, SetGlobalStyle
+from utils.TaskFileLoader import LoadPIDSparses
+from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle
 
 
 # main function

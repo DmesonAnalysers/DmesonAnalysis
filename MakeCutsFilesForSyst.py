@@ -1,3 +1,7 @@
+'''
+python script to create yaml files with set of cuts for cut-variation studies
+'''
+
 import os
 import argparse
 import copy

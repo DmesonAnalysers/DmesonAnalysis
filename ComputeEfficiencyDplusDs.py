@@ -11,7 +11,7 @@ import six
 import yaml
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRed, kBlue, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
-from StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -47,7 +47,7 @@ elif args.centClass == 'k3050':
     cent = 'Cent3050'
 
 gROOT.SetBatch(args.batch)
-SetGlobalStyle()
+SetGlobalStyle(padleftmargin=0.14, titlesize=0.045, labelsize=0.04)
 
 PtMin = fitConfig[cent]['PtMin']
 PtMax = fitConfig[cent]['PtMax']

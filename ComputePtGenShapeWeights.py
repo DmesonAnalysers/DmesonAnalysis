@@ -4,7 +4,7 @@ Script for the computation of pT shape weights
 
 import array
 from ROOT import TFile, TSpline3  # pylint: disable=import-error,no-name-in-module
-from ReadModel import ReadTAMU, ReadPHSD, ReadGossiaux, ReadCatania
+from utils.ReadModel import ReadTAMU, ReadPHSD, ReadGossiaux, ReadCatania
 
 infileGenPtShape = TFile.Open('ptweights/GenPtShape_LHC19c3a.root')
 hPtGen = infileGenPtShape.Get('hPtPromptStep0')

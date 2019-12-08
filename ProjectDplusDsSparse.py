@@ -6,10 +6,13 @@ run: python ProjectDplusDsSparse.py cfgFileName.yml cutSetFileName.yml outFileNa
 import argparse
 import yaml
 from ROOT import TFile, TH1F, TList  # pylint: disable=import-error,no-name-in-module
-from TaskFileLoader import LoadSparseFromTask, LoadNormObjFromTask
+from utils.TaskFileLoader import LoadSparseFromTask, LoadNormObjFromTask
 
 
 def merge_hist(first_hist, second_hist):
+    '''
+    method to merge histos for adjacent pT bins
+    '''
     h_merged = first_hist.Clone()
     merge_list = TList()
     merge_list.Add(second_hist)

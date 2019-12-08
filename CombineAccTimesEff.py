@@ -9,7 +9,7 @@ import string
 import six
 from ROOT import gROOT, TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kFullDiamond  # pylint: disable=import-error,no-name-in-module
-from StyleFormatter import SetGlobalStyle
+from utils.StyleFormatter import SetGlobalStyle
 
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('effFileName', metavar='text', default='')
