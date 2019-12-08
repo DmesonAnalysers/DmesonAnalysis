@@ -1,3 +1,9 @@
+'''
+Script for validation of tree creator output
+run: python ValidateTreeCreator inputfile.root inputdir inputlist
+if the output is from MC, use --mc option
+'''
+
 import argparse
 import pandas as pd
 import numba
@@ -5,18 +11,15 @@ import six
 import uproot
 from root_numpy import fill_hist # pylint: disable=import-error, no-name-in-module
 from ROOT import TFile, TCanvas, TH1F, TLegend # pylint: disable=import-error, no-name-in-module
-from ROOT import gStyle, kBlack, kRed, kFullCircle, kOpenSquare # pylint: disable=import-error, no-name-in-module
+from ROOT import kBlack, kRed, kFullCircle, kOpenSquare # pylint: disable=import-error, no-name-in-module
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
-# pylint: disable=invalid-name
-def SetHistoStyle(histo, color, marker, markersize=1, lineewidth=2):
-    histo.SetLineWidth(lineewidth)
-    histo.SetLineColor(color)
-    histo.SetMarkerColor(color)
-    histo.SetMarkerStyle(marker)
-    histo.SetMarkerSize(markersize)
 
 @numba.njit
 def FidAccSel(arrayPt, arrayY):
+    '''
+    method for the appliction of the fiducial acceptance selection
+    '''
     arrayIsSel = []
     for icand, pt in enumerate(arrayPt):
         if pt > 5:
@@ -32,18 +35,8 @@ def FidAccSel(arrayPt, arrayY):
                 arrayIsSel.append(False)
     return arrayIsSel
 
-# Main function
-gStyle.SetPadRightMargin(0.035)
-gStyle.SetPadLeftMargin(0.15)
-gStyle.SetPadTopMargin(0.05)
-gStyle.SetTitleSize(0.045, 'xy')
-gStyle.SetLabelSize(0.040, 'xy')
-gStyle.SetPadTickX(1)
-gStyle.SetPadTickY(1)
-gStyle.SetLegendBorderSize(0)
-gStyle.SetOptStat(0)
 
-#Variables to be checked
+# Main function
 Vars = {'inv_mass':0}
 
 parser = argparse.ArgumentParser(description='Arguments')
@@ -57,6 +50,8 @@ if args.mc:
     print('MC validation not yet implemented. Exit')
     exit()
 
+SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.05, titlesize=0.045, labelsize=0.04)
+
 hMassTask, hMassTreeCreator, cComparison = ({} for iDic in range(3))
 
 infile = TFile.Open(args.inputfile)
@@ -65,7 +60,7 @@ hEv = listTask.FindObject('hNEvents')
 sparse = listTask.FindObject('fnSparse')
 for iVar in Vars:
     hMassTask[iVar] = sparse.Projection(Vars[iVar])
-    SetHistoStyle(hMassTask[iVar], kBlack, kFullCircle)
+    SetObjectStyle(hMassTask[iVar], color=kBlack, markerstyle=kFullCircle)
 
 treeD = uproot.open(args.inputfile)['PWGHF_TreeCreator/tree_Ds'] #tree_event_char
 dfD = treeD.pandas.df()
@@ -79,14 +74,14 @@ isSel = FidAccSel(dfMerged.pt_cand.values, dfMerged.y_cand.values)
 dfMerged['fidacc'] = isSel
 dfMergedSel = dfMerged.query('fidacc==True')
 
-leg = TLegend(0.4,0.6,0.8,0.8)
+leg = TLegend(0.4, 0.6, 0.8, 0.8)
 for counter, iVar in enumerate(Vars):
     nbins = hMassTask[iVar].GetNbinsX()
     mmin = hMassTask[iVar].GetBinLowEdge(1)
     mmax = hMassTask[iVar].GetBinLowEdge(nbins)+hMassTask[iVar].GetBinWidth(nbins)
     hMassTreeCreator[iVar] = TH1F('hMassTreeCreator{0}'.format(iVar), '', nbins, mmin, mmax)
     fill_hist(hMassTreeCreator[iVar], dfMergedSel[iVar].values)
-    SetHistoStyle(hMassTreeCreator[iVar], kRed, kOpenSquare)
+    SetObjectStyle(hMassTreeCreator[iVar], color=kRed, markerstyle=kOpenSquare)
     cComparison[iVar] = TCanvas('cComparison{0}'.format(iVar), '', 800, 800)
     ymax = hMassTask[iVar].GetMaximum()*2
     cComparison[iVar].DrawFrame(mmin, 0.1, mmax, ymax, ';{0}; Counts'.format(iVar))
@@ -103,7 +98,7 @@ hSelEv.GetXaxis().SetBinLabel(1, 'task')
 hSelEv.GetXaxis().SetBinLabel(2, 'tree creator')
 hSelEv.SetBinContent(1, hEv.GetBinContent(5))
 hSelEv.SetBinContent(2, len(dfEvSel))
-SetHistoStyle(hSelEv, kBlack, kFullCircle)
+SetObjectStyle(hSelEv, color=kBlack, markerstyle=kFullCircle)
 
 cEvents = TCanvas('cEvents', '', 800, 800)
 hSelEv.Draw('E')
