@@ -82,7 +82,7 @@ sh RunFullAnalysis.sh
 ```
 can be used by setting some hard-coded parameters 
 
-## Significance optimisation
+### Significance optimisation
 
 * Compute expected significance for all combinations of different selection criteria:
 ```
@@ -104,7 +104,7 @@ where the configuration file ```cutset.yml``` contains the selection that you wa
 
 ## Systematic uncertainties
 ### Selection efficiency
-* For the cut-variation studies, the configuration files for each set of selection criteria can be created using:
+* For the cut-variation studies with THnSparses, the configuration files for each set of selection criteria can be created using:
 ```
 MakeCutsFilesForSyst.py
 ```
