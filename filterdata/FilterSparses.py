@@ -9,7 +9,7 @@ import argparse
 import array
 import yaml
 from ROOT import TFile, TDirectoryFile, TCanvas  # pylint: disable=import-error,no-name-in-module
-from utils.TaskFileLoader import LoadSparseFromTask, LoadListFromTask, LoadNormObjFromTask, LoadCutObjFromTask
+from utils.TaskFileLoader import LoadSparseFromTask, LoadListFromTask, LoadNormObjFromTask, LoadCutObjFromTask # pylint: disable=line-too-long
 from utils.TaskFileLoader import LoadSparseFromTaskV2, LoadListFromTaskV2
 
 def FilterSparses(sparsesOrig, cutvars, axestokeep):
