@@ -5,7 +5,7 @@ Script with helper methods for style settings
 from ROOT import gStyle, TGaxis  # pylint: disable=import-error,no-name-in-module
 
 
-# pylint: disable=too-many-branches
+# pylint: disable=too-many-branches, too-many-statements
 def SetGlobalStyle(**kwargs):
     '''
     Method to set global style.
