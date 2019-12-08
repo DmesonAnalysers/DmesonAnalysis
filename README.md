@@ -24,9 +24,9 @@ where ```files_to_merge.yml``` is the configuration file containing the informat
 ## Main analysis with THnSparses
 
 ### Pre-filter ThnSparses
-* The THnSparse in the task outputs be pre-filtered to reduce the file size (useful if the train outputs are too large and cannot be merged) with:
+* The THnSparse in the task outputs can be pre-filtered to reduce the file size (useful if the train outputs are too large and cannot be merged) with the ```FilterSparse.py``` script in the ```filterdata``` folder:
 ```
-python FilterSparse configfile.yml cutset.yml
+python FilterSparse.py configfile.yml cutset.yml
 ```
 where ```configfile.yml``` is the config file with the info of the input files and ```cutset.yml``` is the set of selections to be applied in the filtering. It creates output files as the input ones, with the ThnSparses filtered. 
 With the option ```--suffix suffixname```, a suffix is added to the output file names, otherwise the input files are overwritten.
@@ -100,7 +100,7 @@ where the input file ```input.root``` is the one produced in the previous step
 ```
 python GetExpectedSignificance.py configfile.yml cutset.yml outputname
 ```
-where the configuration file ```cutset.yml``` contains the selection that you want to apply, such as [cutset_010_central_2018.yml](configfiles/cutset_010_central_2018.yml) if you want to apply rectangular selections or [cutset_010_ML_test.yml](configfiles/cutset_010_ML_test.yml) if you want to apply a selection on the ML output.
+where the configuration file ```cutset.yml``` contains the selection that you want to apply, such as [cutset_010_central_2018.yml](configfiles/cutsets/cutset_010_central_2018.yml) if you want to apply rectangular selections or [cutset_010_ML_test.yml](configfiles/cutsets/cutset_010_ML_test.yml) if you want to apply a selection on the ML output.
 
 ## Systematic uncertainties
 ### Selection efficiency
@@ -116,6 +116,15 @@ Once the configuration files are created they can be used to repeat the main ana
 ```
 RawYieldSystematics(TString outfilerawname = "output.root")
 ```
+
+## Main analysis with ML
+
+### Filter trees to prepare data sets for ML studies
+To filter trees produced with the Ds and D+ tasks and divide each cathegory (data, MC prompt D, MC feed-down D, MC background) in a separated file (tree) to prepare the datasets for the ML analyses, the ```FilterTrees4ML.cc``` script in the ```filterdata``` folder can be used:
+```
+FilterTrees4ML.C (TString configfilename = configfile.yml)
+```
+where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files.
 
 ## Test and validation of code for production of trees used in ML studies
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```runanalysistask``` folder
