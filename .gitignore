@@ -2,7 +2,8 @@ __pycache__
 inputs
 outputs
 *.eps
-configfiles/*_local.yml
+*/*_local.yml
+*/*/*_local.yml
 *.pyc
 *.pdf
 .vscode
@@ -19,3 +20,4 @@ runanalysistask/*.root
 runanalysistask/*.xml
 cutobjects/*.root
 cutobjects/*/*.root
+filterdata/*.root
