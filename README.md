@@ -122,7 +122,7 @@ RawYieldSystematics(TString outfilerawname = "output.root")
 ### Filter trees to prepare data sets for ML studies
 To filter trees produced with the Ds and D+ tasks and divide each cathegory (data, MC prompt D, MC feed-down D, MC background) in a separated file (tree) to prepare the datasets for the ML analyses, the ```FilterTrees4ML.cc``` script in the ```filterdata``` folder can be used:
 ```
-FilterTrees4ML.C (TString configfilename = configfile.yml)
+FilterTrees4ML.cc (TString configfilename = configfile.yml)
 ```
 where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files.
 
