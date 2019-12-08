@@ -1,4 +1,9 @@
 # !/usr/bin/python3
+'''
+Script to merge unmerged outputs of tasks run on the grid
+run: python MergeTrainOutputs.py files_to_merge.yml
+'''
+
 import os
 import argparse
 import six
@@ -7,7 +12,7 @@ from ROOT import TGrid, TFileMerger #pylint: disable=import-error, no-name-in-mo
 from ROOT import gROOT #pylint: disable=import-error, no-name-in-module
 
 
-def merge(merger, outfilename, objtomerge=None, mode=None):
+def Merge(merger, outfilename, objtomerge=None, mode=None):
     '''
     general function for merging
     '''
@@ -82,13 +87,13 @@ for iRun, run in enumerate(runs):
                 print('Merging up to ', inname)
                 outname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(nBunch))
                 outname = os.path.join(inputCfg['OutputPath'], outname)
-                merge(fileMerger, outname, objToMerge, Mode)
+                Merge(fileMerger, outname, objToMerge, Mode)
                 nBunch += 1
             dirnum += 1
         print('Merging up to ', inname)
         outname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(nBunch))
         outname = os.path.join(inputCfg['OutputPath'], outname)
-        merge(fileMerger, outname, objToMerge, Mode)
+        Merge(fileMerger, outname, objToMerge, Mode)
         nBunch += 1
     else:
         inname = os.path.join(dirname, inputCfg['InputFileName'])
@@ -97,7 +102,7 @@ for iRun, run in enumerate(runs):
             print('Merging up to ', inname)
             outname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(nBunch))
             outname = os.path.join(inputCfg['OutputPath'], outname)
-            merge(fileMerger, outname, objToMerge, Mode)
+            Merge(fileMerger, outname, objToMerge, Mode)
             nBunch += 1
 
 fileMerger.Reset()
@@ -111,7 +116,7 @@ if inputCfg['MergeOptions']['DoTotalMerge']:
             inname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(iMergedFile))
             inname = os.path.join(inputCfg['OutputPath'], inname)
             fileMerger.AddFile(inname)
-        merge(fileMerger, outname)
+        Merge(fileMerger, outname)
         for iMergedFile in range(nBunch):
             inname = inputCfg['OutputFileName'].replace('.root', '_{:04d}.root'.format(iMergedFile))
             inname = os.path.join(inputCfg['OutputPath'], inname)
