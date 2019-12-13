@@ -120,11 +120,15 @@ RawYieldSystematics(TString outfilerawname = "output.root")
 ## Main analysis with ML
 
 ### Filter trees to prepare data sets for ML studies
-To filter trees produced with the Ds and D+ tasks and divide each cathegory (data, MC prompt D, MC feed-down D, MC background) in a separated file (tree) to prepare the datasets for the ML analyses, the ```FilterTrees4ML.cc``` script in the ```filterdata``` folder can be used:
+To filter trees produced with the Ds and D+ tasks and divide each category (data, MC prompt D, MC feed-down D, MC background) in a separated file (tree or dataframe) to prepare the datasets for the ML analyses, the ```FilterTrees4ML.cc``` and ```FilterTrees4ML.py``` scripts in the ```filterdata``` folder can be used:
 ```
-FilterTrees4ML.cc (TString configfilename = configfile.yml)
+root -l FilterTrees4ML.cc(TString configfilename = configfile.yml)
 ```
-where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files.
+or 
+```
+python3 FilterTrees4ML.py configfile.yml
+```
+where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files. The output files are by default ```root``` files. In the case of the python script, if the ```--parquet``` option is used, the output data are saved into ```parquet``` files instead of ```root``` files. 
 
 ## Test and validation of code for production of trees used in ML studies
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```runanalysistask``` folder
