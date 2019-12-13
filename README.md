@@ -10,7 +10,7 @@ Code for the measurement of Ds and D+ meson pT-differential yields starting from
 The [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDplus.cxx) and [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) tasks can be run with private jobs using the ```RunAnalysisDsDplusTask.C``` script in the ```runanalysistask``` folder:
 
 ```
-RunAnalysisDsDplusTask.C (TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
+root -l RunAnalysisDsDplusTask.cc+(TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
 ```
 where ```configfile.yml``` is a configuration file (such as [runAnalysis_config_LHC17p_cent.yml](runanalysistask/runAnalysis_config_LHC17p_cent.yml)) with the information about the dataset, the AliPhysics version, and the task options to be used. The tasks options include the possibility to create a tree for the ML studies or apply a ML model trained with [xgboost](https://xgboost.readthedocs.io/en/latest/) or [scikit learn](https://scikit-learn.org/stable/).
 
@@ -41,7 +41,7 @@ python ProjectDplusDsSparse.py configfile.yml cutset.yml output.root
 ### Raw yield extraction
 * Perform raw-yield extraction (root)
 ```
-GetRawYieldsDplusDs.C+ (int cent, bool isMC = false, TString infilename = "distributions.root", TString cfgfilename = "config_Fit.yml", TString outFileName = "output.root")
+root -l GetRawYieldsDplusDs.C+(int cent, bool isMC = false, TString infilename = "distributions.root", TString cfgfilename = "config_Fit.yml", TString outFileName = "output.root")
 ```
 where ```distributions.root``` is the file obtained projecting the data or MC THnSparse and ```config_Fit.yml``` is a configuration file with the inputs needed to perform the invariant-mass fits such as [config_Ds_Fit.yml](configfiles/config_Ds_Fit.yml)
 
@@ -114,7 +114,7 @@ Once the configuration files are created they can be used to repeat the main ana
 ### Raw-yield extraction
 * For the raw-yield extraction uncertainty a multi-trial study can be run with:
 ```
-RawYieldSystematics(TString outfilerawname = "output.root")
+root -l RawYieldSystematics.C+(TString outfilerawname = "output.root")
 ```
 
 ## Main analysis with ML
@@ -122,7 +122,7 @@ RawYieldSystematics(TString outfilerawname = "output.root")
 ### Filter trees to prepare data sets for ML studies
 To filter trees produced with the Ds and D+ tasks and divide each category (data, MC prompt D, MC feed-down D, MC background) in a separated file (tree or dataframe) to prepare the datasets for the ML analyses, the ```FilterTrees4ML.cc``` and ```FilterTrees4ML.py``` scripts in the ```filterdata``` folder can be used:
 ```
-root -l FilterTrees4ML.cc(TString configfilename = configfile.yml)
+root -l FilterTrees4ML.cc+(TString configfilename = configfile.yml)
 ```
 or 
 ```
@@ -135,7 +135,7 @@ The validation of the code for production of trees used in ML studies can be don
 
 * To run the [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx) on the same files:
 ```
-RunAnalysisTreeCreator.C (TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
+root -l RunAnalysisTreeCreator.cc+(TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
 ```
 where ```configfile.yml``` is a configuration file with the information about the dataset and the AliPhysics version to be used
 
