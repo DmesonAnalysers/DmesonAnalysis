@@ -13,5 +13,5 @@ skimming:
     pt:
         min: 2
         max: 3
-    preselections: (pt_cand < 2.5 & cos_p > 0.95) | pt_cand > 2.5 #empty string if you don't want to apply preselections
+    preselections: (pt_cand < 2.5 && cos_p > 0.95) || pt_cand > 2.5 #empty string if you don't want to apply preselections
     colstokeep: [inv_mass, pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, sig_vert, max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2, cand_type] #empty list if you want to keep everything

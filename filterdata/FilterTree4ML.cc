@@ -46,6 +46,8 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     string outSuffix = config["outfile"]["suffix"].as<string>();
     string outDirName = config["outfile"]["dirpath"].as<string>();
 
+    string preSelections = config["skimming"]["preselections"].as<string>();
+
     vector<string> colsToKeep = config["skimming"]["colstokeep"].as<vector<string> >();
     if(std::find(colsToKeep.begin(), colsToKeep.end(), "inv_mass") == colsToKeep.end())
         cout << "Warning: invariant mass branch (inv_mass) disabled. Are you sure you don't want to keep it?" << endl;
@@ -68,50 +70,51 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     //select desired pT bin
     cout << "Applying pT selection" << endl;
     auto dataFramePtCut = dataFrame.Filter(Form("pt_cand > %f && pt_cand < %f", PtMin, PtMax));
+    auto dataFramePtCutSel = dataFramePtCut.Filter(preSelections.data());
 
     if(isMC)
     {
         cout << "Getting bkg dataframe" << endl;
-        auto dataFramePtCutBkg = dataFrame.Filter(Form("(cand_type & %d) > 0", bitBkg));
+        auto dataFramePtCutSelBkg = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0", bitBkg));
         cout << "Getting prompt dataframe" << endl;
-        auto dataFramePtCutPrompt = dataFrame.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl));
+        auto dataFramePtCutSelPrompt = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl));
         cout << "Getting FD dataframe" << endl;
-        auto dataFramePtCutFD = dataFrame.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl));
+        auto dataFramePtCutSelFD = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl));
         cout << "Getting reflected prompt dataframe" << endl;
-        auto dataFramePtCutPromptRefl = dataFrame.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitPrompt, bitRefl));
+        auto dataFramePtCutSelPromptRefl = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitPrompt, bitRefl));
         cout << "Getting reflected signal dataframe" << endl;
-        auto dataFramePtCutFDRefl = dataFrame.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitFD, bitRefl));
+        auto dataFramePtCutSelFDRefl = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitFD, bitRefl));
 
-        if(*dataFramePtCutBkg.Count() > 0)
+        if(*dataFramePtCutSelBkg.Count() > 0)
         {
             cout << "Saving bkg tree" << endl;
-            dataFramePtCutBkg.Snapshot(outTreeName.data(), Form("%s/Bkg%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+            dataFramePtCutSelBkg.Snapshot(outTreeName.data(), Form("%s/Bkg%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
-        if(*dataFramePtCutPrompt.Count() > 0)
+        if(*dataFramePtCutSelPrompt.Count() > 0)
         {
             cout << "Saving prompt tree" << endl;
-            dataFramePtCutPrompt.Snapshot(outTreeName.data(), Form("%s/Prompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+            dataFramePtCutSelPrompt.Snapshot(outTreeName.data(), Form("%s/Prompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
-        if(*dataFramePtCutFD.Count() > 0)
+        if(*dataFramePtCutSelFD.Count() > 0)
         {
             cout << "Saving FD tree" << endl;
-            dataFramePtCutFD.Snapshot(outTreeName.data(), Form("%s/FD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+            dataFramePtCutSelFD.Snapshot(outTreeName.data(), Form("%s/FD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
-        if(*dataFramePtCutPromptRefl.Count() > 0)
+        if(*dataFramePtCutSelPromptRefl.Count() > 0)
         {    
             cout << "Saving prompt reflected tree" << endl;
-            dataFramePtCutPromptRefl.Snapshot(outTreeName.data(), Form("%s/PromptRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+            dataFramePtCutSelPromptRefl.Snapshot(outTreeName.data(), Form("%s/PromptRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
-        if(*dataFramePtCutFDRefl.Count() > 0)
+        if(*dataFramePtCutSelFDRefl.Count() > 0)
         {
             cout << "Saving FD reflected tree" << endl;
-            dataFramePtCutFDRefl.Snapshot(outTreeName.data(), Form("%s/FDRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+            dataFramePtCutSelFDRefl.Snapshot(outTreeName.data(), Form("%s/FDRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
     }
     else
     {
         cout << "Saving data tree" << endl;
-        dataFramePtCut.Snapshot(outTreeName.data(), Form("%s/Data%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+        dataFramePtCutSel.Snapshot(outTreeName.data(), Form("%s/Data%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
     }
 }
 
