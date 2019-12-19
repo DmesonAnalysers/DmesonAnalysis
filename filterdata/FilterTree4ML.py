@@ -39,6 +39,7 @@ outTreeName = cfg['outfile']['treename']
 outSuffix = cfg['outfile']['suffix']
 outDirName = cfg['outfile']['dirpath']
 
+preSelections = cfg['skimming']['preselections']
 colsToKeep = cfg['skimming']['colstokeep']
 
 if colsToKeep and 'inv_mass' not in colsToKeep:
@@ -61,71 +62,73 @@ if not colsToKeep:
     colsToKeep.remove('cand_type')
 
 print('Applying pT selection')
-dataFramePtCut = dataFrame.query(
-    'pt_cand > {0} & pt_cand < {1}'.format(PtMin, PtMax))
+dataFramePtCut = dataFrame.query('pt_cand > {0} & pt_cand < {1}'.format(PtMin, PtMax))
 del dataFrame
+dataFramePtCutSel = dataFramePtCut.query(preSelections)
+del dataFramePtCut
 
 if isMC:
     print('Getting bkg dataframe')
-    dataFramePtCutBkg = FilterBitDf(dataFramePtCut, 'cand_type', [bitBkg])
+    dataFramePtCutSelBkg = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitBkg])
     print('Getting prompt dataframe')
-    dataFramePtCutPrompt = FilterBitDf(dataFramePtCut, 'cand_type', [bitSignal, bitPrompt], 'and')
+    dataFramePtCutSelPrompt = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitPrompt], 'and')
     print('Getting FD dataframe')
-    dataFramePtCutFD = FilterBitDf(dataFramePtCut, 'cand_type', [bitSignal, bitFD], 'and')
+    dataFramePtCutSelFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitFD], 'and')
     print('Getting reflected prompt dataframe')
-    dataFramePtCutPromptRefl = FilterBitDf(dataFramePtCut, 'cand_type', [bitSignal, bitPrompt, bitRefl], 'and')
+    dataFramePtCutSelPromptRefl = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitPrompt, bitRefl], 'and')
     print('Getting reflected signal dataframe')
-    dataFramePtCutFDRefl = FilterBitDf(dataFramePtCut, 'cand_type', [bitSignal, bitFD, bitRefl], 'and')
-    del dataFramePtCut
+    dataFramePtCutSelFDRefl = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitFD, bitRefl], 'and')
+    del dataFramePtCutSel
 
     if not args.parquet:
-        if not dataFramePtCutBkg.empty:
+        if not dataFramePtCutSelBkg.empty:
             print('Saving bkg tree')
-            WriteTree(dataFramePtCutBkg, colsToKeep, outTreeName, \
+            WriteTree(dataFramePtCutSelBkg, colsToKeep, outTreeName, \
                 '{0}/Bkg{1}_pT_{2:.0f}_{3:.0f}.root'.format(outDirName, outSuffix, PtMin, PtMax))
-        if not dataFramePtCutPrompt.empty:
+        if not dataFramePtCutSelPrompt.empty:
             print('Saving prompt tree')
-            WriteTree(dataFramePtCutPrompt, colsToKeep, outTreeName, \
+            WriteTree(dataFramePtCutSelPrompt, colsToKeep, outTreeName, \
                 '{0}/Prompt{1}_pT_{2:.0f}_{3:.0f}.root'.format(outDirName, outSuffix, PtMin, PtMax))
-        if not dataFramePtCutFD.empty:
+        if not dataFramePtCutSelFD.empty:
             print('Saving FD tree')
-            WriteTree(dataFramePtCutFD, colsToKeep, outTreeName, \
+            WriteTree(dataFramePtCutSelFD, colsToKeep, outTreeName, \
                 '{0}/FD{1}_pT_{2:.0f}_{3:.0f}.root'.format(outDirName, outSuffix, PtMin, PtMax))
-        if not dataFramePtCutPromptRefl.empty:
+        if not dataFramePtCutSelPromptRefl.empty:
             print('Saving prompt refl tree')
-            WriteTree(dataFramePtCutPromptRefl, colsToKeep, outTreeName, \
+            WriteTree(dataFramePtCutSelPromptRefl, colsToKeep, outTreeName, \
                 '{0}/PromptRefl{1}_pT_{2:.0f}_{3:.0f}.root'.format(outDirName, outSuffix, PtMin, PtMax))
-        if not dataFramePtCutFDRefl.empty:
+        if not dataFramePtCutSelFDRefl.empty:
             print('Saving FD refl tree')
-            WriteTree(dataFramePtCutFDRefl, colsToKeep, outTreeName, \
+            WriteTree(dataFramePtCutSelFDRefl, colsToKeep, outTreeName, \
                 '{0}/FDRefl{1}_pT_{2:.0f}_{3:.0f}.root'.format(outDirName, outSuffix, PtMin, PtMax))
     else:
-        if not dataFramePtCutBkg.empty:
+        if not dataFramePtCutSelBkg.empty:
             print('Saving bkg parquet')
-            dataFramePtCutBkg[colsToKeep].to_parquet('{0}/Bkg{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
+            dataFramePtCutSelBkg[colsToKeep].to_parquet('{0}/Bkg{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
                 outDirName, outSuffix, PtMin, PtMax), compression='gzip')
-        if not dataFramePtCutPrompt.empty:
+        if not dataFramePtCutSelPrompt.empty:
             print('Saving prompt parquet')
-            dataFramePtCutPrompt[colsToKeep].to_parquet('{0}/Prompt{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
+            dataFramePtCutSelPrompt[colsToKeep].to_parquet('{0}/Prompt{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
                 outDirName, outSuffix, PtMin, PtMax), compression='gzip')
-        if not dataFramePtCutFD.empty:
+        if not dataFramePtCutSelFD.empty:
             print('Saving FD parquet')
-            dataFramePtCutFD[colsToKeep].to_parquet('{0}/FD{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
+            dataFramePtCutSelFD[colsToKeep].to_parquet('{0}/FD{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
                 outDirName, outSuffix, PtMin, PtMax), compression='gzip')
-        if not dataFramePtCutPromptRefl.empty:
+        if not dataFramePtCutSelPromptRefl.empty:
             print('Saving prompt refl parquet')
-            dataFramePtCutPromptRefl[colsToKeep].to_parquet('{0}/PromptRefl{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
-                outDirName, outSuffix, PtMin, PtMax), compression='gzip')
-        if not dataFramePtCutFDRefl.empty:
+            dataFramePtCutSelPromptRefl[colsToKeep].to_parquet(\
+                '{0}/PromptRefl{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
+                    outDirName, outSuffix, PtMin, PtMax), compression='gzip')
+        if not dataFramePtCutSelFDRefl.empty:
             print('Saving FD refl parquet')
-            dataFramePtCutFDRefl[colsToKeep].to_parquet('{0}/FDRefl{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
+            dataFramePtCutSelFDRefl[colsToKeep].to_parquet('{0}/FDRefl{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
                 outDirName, outSuffix, PtMin, PtMax), compression='gzip')
 else:
     if not args.parquet:
         print('Saving data tree')
-        WriteTree(dataFramePtCut, colsToKeep, outTreeName, \
+        WriteTree(dataFramePtCutSel, colsToKeep, outTreeName, \
             '{0}/Data{1}_pT_{2:.0f}_{3:.0f}.root'.format(outDirName, outSuffix, PtMin, PtMax))
     else:
         print('Saving data parquet')
-        dataFramePtCut[colsToKeep].to_parquet('{0}/Data{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
+        dataFramePtCutSel[colsToKeep].to_parquet('{0}/Data{1}_pT_{2:.0f}_{3:.0f}.parquet.gzip'.format(\
             outDirName, outSuffix, PtMin, PtMax), compression='gzip')
