@@ -237,7 +237,11 @@ def main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statem
     hEvForNorm.GetXaxis().SetBinLabel(1, "norm counter")
     hEvForNorm.GetXaxis().SetBinLabel(2, "accepted events")
     hEvForNorm.SetBinContent(1, normCounter.GetNEventsForNorm())
-    hEvForNorm.SetBinContent(2, hEv.GetBinContent(5))
+    for iBin in range(1, hEv.GetNbinsX()+1):
+        binLabel = hEv.GetXaxis().GetBinLabel(iBin)
+        if binLabel.Contains('isEvSelected') or binLabel.Contains('accepted'):
+            hEvForNorm.SetBinContent(2, hEv.GetBinContent(iBin))
+            break
 
     hEvForNorm.Write()
     outfile.Close()
