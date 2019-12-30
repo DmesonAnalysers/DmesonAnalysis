@@ -44,16 +44,14 @@ def main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statem
             sparseReco, sparseGen = LoadSparseFromTask(infilename, inputCfg)
             hEv, normCounter = LoadNormObjFromTask(infilename, inputCfg)
         else:
-            sparseRecoPart, sparseGenPart = LoadSparseFromTask(
-                infilename, inputCfg)
-            hEvPart, normCounterPart = LoadNormObjFromTask(
-                infilename, inputCfg)
+            sparseRecoPart, sparseGenPart = LoadSparseFromTask(infilename, inputCfg)
+            hEvPart, normCounterPart = LoadNormObjFromTask(infilename, inputCfg)
             for sparsetype in sparseRecoPart:
                 sparseReco[sparsetype].Add(sparseRecoPart[sparsetype])
             for sparsetype in sparseGenPart:
                 sparseGen[sparsetype].Add(sparseGenPart[sparsetype])
             hEv.Add(hEvPart)
-            normCounterPart.Add(normCounterPart)
+            normCounter.Add(normCounterPart)
 
     with open(args.cutSetFileName, 'r') as ymlCutSetFile:
         cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
@@ -78,9 +76,9 @@ def main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statem
             if iVar == 'InvMass':
                 continue
             binMin = sparseReco['RecoAll'].GetAxis(
-                cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['min'][iPt]*1.0001)
+                cutVars[iVar]['axisnum']).FindBin(ptMin*1.0001)
             binMax = sparseReco['RecoAll'].GetAxis(
-                cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['max'][iPt]*0.9999)
+                cutVars[iVar]['axisnum']).FindBin(ptMax*0.9999)
             sparseReco['RecoAll'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
             if isMC:
                 sparseReco['RecoPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
@@ -114,8 +112,8 @@ def main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statem
                     fd_dict_secpeak[iVar].append(hVarFDSecPeak)
                     hVarFDSecPeak.Write()
         if isMC:
-            binGenMin = sparseGen['GenPrompt'].GetAxis(0).FindBin(cutVars['Pt']['min'][iPt]*1.0001)
-            binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(cutVars['Pt']['max'][iPt]*0.9999)
+            binGenMin = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMin*1.0001)
+            binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax*0.9999)
             sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
             sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
             hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
@@ -123,7 +121,7 @@ def main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statem
             prompt_gen_list.append(hGenPtPrompt)
             hGenPtPrompt.Write()
             hGenPtFD = sparseGen['GenFD'].Projection(0)
-            hGenPtFD.SetName('hFDGenPt_%0.f_%0.f' % (cutVars['Pt']['min'][iPt]*10, cutVars['Pt']['max'][iPt]*10))
+            hGenPtFD.SetName('hFDGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10))
             fd_gen_list.append(hGenPtFD)
             hGenPtFD.Write()
             if enableSecPeak:
@@ -205,7 +203,7 @@ def main():  # pylint: disable=too-many-locals,too-many-branches,too-many-statem
     hEvForNorm.SetBinContent(1, normCounter.GetNEventsForNorm())
     for iBin in range(1, hEv.GetNbinsX()+1):
         binLabel = hEv.GetXaxis().GetBinLabel(iBin)
-        if binLabel.Contains('isEvSelected') or binLabel.Contains('accepted'):
+        if 'isEvSelected' in binLabel or 'accepted' in binLabel:
             hEvForNorm.SetBinContent(2, hEv.GetBinContent(iBin))
             break
 

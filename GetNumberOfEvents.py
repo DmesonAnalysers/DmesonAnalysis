@@ -18,15 +18,15 @@ args = parser.parse_args()
 with open(args.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 
-infilenames = inputCfg['filename']
-if not isinstance(infilenames, list):
-    infilenames = [infilenames]
+inFileNames = inputCfg['filename']
+if not isinstance(inFileNames, list):
+    inFileNames = [inFileNames]
 
-for iFile, infilename in enumerate(infilenames):
+for iFile, inFileName in enumerate(inFileNames):
     if iFile == 0:
-        hEv, normCounter = LoadNormObjFromTask(infilename, inputCfg)
+        hEv, normCounter = LoadNormObjFromTask(inFileName, inputCfg)
     else:
-        hEvPart, normCounterPart = LoadNormObjFromTask(infilename, inputCfg)
+        hEvPart, normCounterPart = LoadNormObjFromTask(inFileName, inputCfg)
         hEv.Add(hEvPart)
         normCounterPart.Add(normCounterPart)
 
@@ -36,7 +36,7 @@ hEvForNorm.GetXaxis().SetBinLabel(2, "accepted events")
 hEvForNorm.SetBinContent(1, normCounter.GetNEventsForNorm())
 for iBin in range(1, hEv.GetNbinsX()+1):
     binLabel = hEv.GetXaxis().GetBinLabel(iBin)
-    if binLabel.Contains('isEvSelected') or binLabel.Contains('accepted'):
+    if 'isEvSelected' in binLabel or 'accepted' in binLabel:
         hEvForNorm.SetBinContent(2, hEv.GetBinContent(iBin))
         break
 

@@ -1,0 +1,15 @@
+isMC: no
+filename: ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC17pq/AnalysisResults_Dplus_Loose_MB_Tree.root
+dirname: PWG3_D2H_InvMassDplus
+listname: coutputDplusLoose_kMB0100
+sparsenameAll: fnSparse
+enableSecPeak: no #always no for data
+normname: coutputDplusNormLoose_kMB0100
+histoevname: fHistNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    meson: Dplus #needed to define binning for invariant-mass histo
+    filenameAll: ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC17pq/AnalysisResults_Dplus_Loose_MB_Tree.root
+    dirname: PWG3_D2H_InvMassDplus
+    treename: treeMLDs
