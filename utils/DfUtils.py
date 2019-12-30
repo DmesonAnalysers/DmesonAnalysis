@@ -66,8 +66,10 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
     elif logic == 'and':
         flags -= maskOfBits
         flags = ~flags.astype('bool')
+    elif logic == 'not':
+        flags = ~flags.astype('bool')
     else:
-        print('Error: only and and or logics are supported for bitwise operations')
+        print('Error: only and, or, and not logics are supported for bitwise operations')
         return None
 
     dfFilt = dfToFilter[flags.values]
