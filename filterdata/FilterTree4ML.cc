@@ -46,7 +46,9 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     string outSuffix = config["outfile"]["suffix"].as<string>();
     string outDirName = config["outfile"]["dirpath"].as<string>();
 
-    string preSelections = config["skimming"]["preselections"].as<string>();
+    string preSelections = "";
+    if(config["skimming"]["preselections"].Type() != YAML::NodeType::Null)
+        preSelections = config["skimming"]["preselections"].as<string>();
 
     vector<string> colsToKeep = config["skimming"]["colstokeep"].as<vector<string> >();
     if(std::find(colsToKeep.begin(), colsToKeep.end(), "inv_mass") == colsToKeep.end())
@@ -68,9 +70,14 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     }
 
     //select desired pT bin
-    cout << "Applying pT selection" << endl;
-    auto dataFramePtCut = dataFrame.Filter(Form("pt_cand > %f && pt_cand < %f", PtMin, PtMax));
-    auto dataFramePtCutSel = dataFramePtCut.Filter(preSelections.data());
+    cout << "Applying selections" << endl;
+    TString totsel = Form("pt_cand > %f && pt_cand < %f", PtMin, PtMax);
+    if(preSelections != "")
+    {
+        totsel.Append(" & ");
+        totsel.Append(preSelections.data());
+    }
+    auto dataFramePtCutSel = dataFrame.Filter(totsel.Data());
 
     if(isMC)
     {

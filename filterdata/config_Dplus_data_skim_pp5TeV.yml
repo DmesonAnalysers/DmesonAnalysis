@@ -1,17 +1,17 @@
 infile:
     isMC: 0
-    filename: [Dplus_LHC17p_cent.root, Dplus_LHC17p_fast.root, Dplus_LHC17q_cent.root, Dplus_LHC17q_fast.root]
+    filename: [~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC17pq/AnalysisResults_Dplus_Loose_MB_Tree.root]
     dirname: PWG3_D2H_InvMassDplus
     treename: treeMLDs
 
 outfile:
-    dirpath: '.'
+    dirpath: '../../AnalysisNonPromptDpp2017/Dplus/data/LHC17pq'
     suffix: _Dpluspp5TeV
     treename: treeMLDplus
     
 skimming:
     pt:
-        min: 2
-        max: 3
-    preselections: (pt_cand < 2.5 && cos_p > 0.95) || pt_cand > 2.5 #empty string if you don't want to apply preselections
+        min: 1
+        max: 50
+    preselections: null #null if you don't want to apply preselections
     colstokeep: [inv_mass, pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, sig_vert, max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2] #empty list if you want to keep everything

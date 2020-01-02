@@ -61,11 +61,14 @@ if not colsToKeep:
     colsToKeep = list(dataFrame.columns)
     colsToKeep.remove('cand_type')
 
-print('Applying pT selection')
+print('Applying selections')
 dataFramePtCut = dataFrame.query('pt_cand > {0} & pt_cand < {1}'.format(PtMin, PtMax))
 del dataFrame
-dataFramePtCutSel = dataFramePtCut.query(preSelections)
-del dataFramePtCut
+if preSelections:
+    dataFramePtCutSel = dataFramePtCut.query(preSelections)
+    del dataFramePtCut
+else:
+    dataFramePtCutSel = dataFramePtCut
 
 if isMC:
     print('Getting bkg dataframe')
