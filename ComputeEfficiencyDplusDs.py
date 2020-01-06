@@ -45,9 +45,15 @@ if args.centClass == 'k010':
     cent = 'Cent010'
 elif args.centClass == 'k3050':
     cent = 'Cent3050'
+elif args.centClass == 'k6080':
+    cent = 'Cent6080'
+elif args.centClass == 'kpp5TeVPrompt':
+    cent = 'pp5TeVPrompt'
+elif args.centClass == 'kpp5TeVFD':
+    cent = 'pp5TeVFD'
 
 gROOT.SetBatch(args.batch)
-SetGlobalStyle(padleftmargin=0.14, titlesize=0.045, labelsize=0.04)
+SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, titlesize=0.045, labelsize=0.04)
 
 PtMin = fitConfig[cent]['PtMin']
 PtMax = fitConfig[cent]['PtMax']

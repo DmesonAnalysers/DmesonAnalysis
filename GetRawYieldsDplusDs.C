@@ -28,7 +28,7 @@
 
 using namespace std;
 
-enum {k010, k3050, k6080};
+enum {k010, k3050, k6080, kpp5TeVPrompt, kpp5TeVFD};
 enum {kDplus, kDs};
 
 //__________________________________________________________________________________________________________________
@@ -51,6 +51,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     if(cent==k010) centname = "Cent010";
     else if(cent==k3050) centname = "Cent3050";
     else if(cent==k6080) centname = "Cent6080";
+    else if(cent==kpp5TeVPrompt) centname = "pp5TeVPrompt";
+    else if(cent==kpp5TeVFD) centname = "pp5TeVFD";
 
     YAML::Node config = YAML::LoadFile(cfgfilename.Data());
     string mesonname = config[centname.Data()]["Meson"].as<string>();
