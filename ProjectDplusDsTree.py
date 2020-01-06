@@ -104,13 +104,14 @@ if isMC:
             if iFile == 0:
                 dataFramePrompt = inTree.pandas.df()
             else:
-                dataFramePrompt.append(inTree.pandas.df())
+                dataFramePrompt = pd.concat([dataFramePrompt, inTree.pandas.df()])
         elif '.parquet' in inFile:
             print('Loading dataframe for prompt from file', inFile)
             if iFile == 0:
                 dataFramePrompt = pd.read_parquet(inFile)
             else:
-                dataFramePrompt.append(pd.read_parquet(inFile))
+                dataFramePrompt = pd.concat([dataFramePrompt, pd.read_parquet(inFile)])
+
         if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only FD and not reflected
             dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
             dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
@@ -122,13 +123,14 @@ if isMC:
             if iFile == 0:
                 dataFrameFD = inTree.pandas.df()
             else:
-                dataFrameFD.append(inTree.pandas.df())
+                dataFrameFD = pd.concat([dataFrameFD, inTree.pandas.df()])
         elif '.parquet' in inFile:
             print('Loading dataframe for FD from file', inFile)
             if iFile == 0:
                 dataFrameFD = pd.read_parquet(inFile)
             else:
-                dataFrameFD.append(pd.read_parquet(inFile))
+                dataFrameFD = pd.concat([dataFrameFD, pd.read_parquet(inFile)])
+
         if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and not reflected
             dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
             dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
@@ -177,13 +179,13 @@ else:
             if iFile == 0:
                 dataFrame = inTree.pandas.df()
             else:
-                dataFrame.append(inTree.pandas.df())
+                dataFrame = pd.concat([dataFrame, inTree.pandas.df()])
         elif '.parquet' in inFile:
             print('Loading dataframe from file', inFile)
             if iFile == 0:
                 dataFrame = pd.read_parquet(inFile)
             else:
-                dataFrame.append(pd.read_parquet(inFile))
+                dataFrame = pd.concat([dataFrame, pd.read_parquet(inFile)])
 
     for iPt, (cuts, ptMin, ptMax) in enumerate(zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max'])):
         print("Projecting distributions for %0.1f < pT < %0.1f GeV/c" % (ptMin, ptMax))
