@@ -147,8 +147,8 @@ if isMC:
         hGenPtFD.SetName('hFDGenPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10))
         FDGenList.append(hGenPtFD)
         #reco histos from trees
-        dataFramePromptSel = dataFramePrompt.query(cuts)
-        dataFrameFDSel = dataFrameFD.query(cuts)
+        dataFramePromptSel = dataFramePrompt.astype(float).query(cuts)
+        dataFrameFDSel = dataFrameFD.astype(float).query(cuts)
         hPtPrompt = TH1F('hPromptPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 500, 0., 50.)
         hInvMassPrompt = TH1F('hPromptInvMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 400, mD-0.2, mD+0.2)
         hPtFD = TH1F('hFDPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 500, 0., 50.)
@@ -187,7 +187,7 @@ else:
 
     for iPt, (cuts, ptMin, ptMax) in enumerate(zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max'])):
         print("Projecting distributions for %0.1f < pT < %0.1f GeV/c" % (ptMin, ptMax))
-        dataFrameSel = dataFrame.query(cuts)
+        dataFrameSel = dataFrame.astype(float).query(cuts)
         hPt = TH1F('hPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 500, 0., 50.)
         hInvMass = TH1F('hInvMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 400, mD-0.2, mD+0.2)
         fill_hist(hPt, dataFrameSel['pt_cand'])
