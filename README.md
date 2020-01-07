@@ -1,5 +1,5 @@
 # DmesonStdAnalysisPbPb
-Code for the measurement of Ds and D+ meson pT-differential yields starting from the outputs of the [AliPhysics](https://github.com/alisw/AliPhysics) tasks [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDplus.cxx), using rectangular or ML selections
+Code for the measurement of Ds and D+ meson pT-differential yields starting from the outputs of the [AliPhysics](https://github.com/alisw/AliPhysics) tasks [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx), using rectangular or ML selections
 
 ## Run analysis tasks
 
@@ -7,7 +7,7 @@ Code for the measurement of Ds and D+ meson pT-differential yields starting from
 * In the [cutobjects](https://github.com/fgrosa/DmesonStdAnalysisPbPb/tree/master/cutobjects) folder all the macros needed to produce the cut-object files used in the tasks are stored
 
 ### Run D+ and Ds tasks with private jobs
-The [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDplus.cxx) and [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) tasks can be run with private jobs using the ```RunAnalysisDsDplusTask.C``` script in the ```runanalysistask``` folder:
+The [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx) and [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx) tasks can be run with private jobs using the ```RunAnalysisDsDplusTask.C``` script in the ```runanalysistask``` folder:
 
 ```
 root -l RunAnalysisDsDplusTask.cc+(TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
@@ -81,7 +81,7 @@ To apply pT weights the ```--ptweights``` argument followed by the name of the i
 ```
 python CombineAccTimesEff.py effFileName.root accFileName.root outFileName.root
 ```
-where ```effFileName.root``` is the file with the efficiencies computed in the previous step and ```accFileName.root``` is the file with the acceptance computed using the [ComputeAcceptance.C](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/macros/ComputeAcceptance.C) macro from [AliPhysics](https://github.com/alisw/AliPhysics)
+where ```effFileName.root``` is the file with the efficiencies computed in the previous step and ```accFileName.root``` is the file with the acceptance computed using the [ComputeAcceptance.C](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/macros/ComputeAcceptance.C)
 
 both can be run with the ```--batch``` argument to avoid the canvas window
 
@@ -144,7 +144,7 @@ root -l RawYieldSystematics.C+(TString outfilerawname = "output.root")
 ## Test and validation of code for production of trees ([AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx))
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```runanalysistask``` folder
 
-* To run the [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx) on the same files:
+* To run the [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx) on the same files:
 ```
 root -l RunAnalysisTreeCreator.cc+(TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
 ```
