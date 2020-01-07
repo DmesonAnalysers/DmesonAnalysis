@@ -37,6 +37,28 @@ With the option ```--plot``` it creates control plots that are saved in .pdf fil
 ```
 python ProjectDplusDsSparse.py configfile.yml cutset.yml output.root
 ```
+## Main analysis with TTrees or dataframes
+
+### Filter trees to prepare data sets for ML studies
+To filter trees produced with the Ds and D+ tasks and divide each category (data, MC prompt D, MC feed-down D, MC background) in a separated file (tree or dataframe) to prepare the datasets for the ML analyses, the ```FilterTrees4ML.cc``` and ```FilterTrees4ML.py``` scripts in the ```filterdata``` folder can be used:
+```
+root -l FilterTrees4ML.cc+(TString configfilename = configfile.yml)
+```
+or 
+```
+python3 FilterTrees4ML.py configfile.yml
+```
+where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files. The output files are by default ```root``` files. In the case of the python script, if the ```--parquet``` option is used, the output data are saved into ```parquet``` files instead of ```root``` files. 
+
+### Projection of invariant-mass distributions from THnSparse
+* Project the TTree or dataframe with the desired selections into invariant-mass distributions (TH1F):
+```
+python ProjectDplusDsTree.py configfile.yml cutset.yml output.root
+```
+It autodetects whether the input files are ```root``` files containing TTrees or ```parquet``` files containing pandas dataframes.
+
+## Common analysis
+The following steps can be performed after having projected THnSparse or TTree (dataframe) objects
 
 ### Raw yield extraction
 * Perform raw-yield extraction (root)
@@ -82,7 +104,9 @@ sh RunFullAnalysis.sh
 ```
 can be used by setting some hard-coded parameters 
 
-### Significance optimisation
+## Significance optimisation
+
+### Optimisation with THnSparse
 
 * Compute expected significance for all combinations of different selection criteria:
 ```
@@ -117,20 +141,7 @@ Once the configuration files are created they can be used to repeat the main ana
 root -l RawYieldSystematics.C+(TString outfilerawname = "output.root")
 ```
 
-## Main analysis with ML
-
-### Filter trees to prepare data sets for ML studies
-To filter trees produced with the Ds and D+ tasks and divide each category (data, MC prompt D, MC feed-down D, MC background) in a separated file (tree or dataframe) to prepare the datasets for the ML analyses, the ```FilterTrees4ML.cc``` and ```FilterTrees4ML.py``` scripts in the ```filterdata``` folder can be used:
-```
-root -l FilterTrees4ML.cc+(TString configfilename = configfile.yml)
-```
-or 
-```
-python3 FilterTrees4ML.py configfile.yml
-```
-where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files. The output files are by default ```root``` files. In the case of the python script, if the ```--parquet``` option is used, the output data are saved into ```parquet``` files instead of ```root``` files. 
-
-## Test and validation of code for production of trees used in ML studies
+## Test and validation of code for production of trees ([AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx))
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```runanalysistask``` folder
 
 * To run the [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx) on the same files:
