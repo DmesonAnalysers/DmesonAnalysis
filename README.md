@@ -1,4 +1,4 @@
-# DmesonStdAnalysisPbPb
+# DmesonAnalysis
 Code for the measurement of Ds and D+ meson pT-differential yields starting from the outputs of the [AliPhysics](https://github.com/alisw/AliPhysics) tasks [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx), using rectangular or ML selections
 
 ## Run analysis tasks
@@ -37,6 +37,8 @@ With the option ```--plot``` it creates control plots that are saved in .pdf fil
 ```
 python ProjectDplusDsSparse.py configfile.yml cutset.yml output.root
 ```
+where ```configfile.yml``` is a configuration file with the info of the input files (such as [config_Dplus_pp_data_tree.yml](configfiles/config_Ds_MC_3050.yml)), while ```cutset.yml``` is the set of selections to be applied.
+
 ## Main analysis with TTrees or dataframes
 
 ### Filter trees to prepare data sets for ML studies
@@ -55,6 +57,7 @@ where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_s
 ```
 python ProjectDplusDsTree.py configfile.yml cutset.yml output.root
 ```
+where ```configfile.yml``` is a configuration file with the info of the input files, including the original task output (such as [config_Dplus_pp_data_tree.yml](configfiles/config_Dplus_pp_data_tree.yml)), while ```cutset.yml``` is the set of selections to be applied.
 It autodetects whether the input files are ```root``` files containing TTrees or ```parquet``` files containing pandas dataframes.
 
 ## Common analysis
