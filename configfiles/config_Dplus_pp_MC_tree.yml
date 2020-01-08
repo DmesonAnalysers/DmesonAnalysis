@@ -19,7 +19,15 @@ histoevname: fHistNEvents
 tree:
     meson: Dplus #needed to define binning for invariant-mass histo
     filenameAll: null #not needed for MC
-    filenamePrompt: ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC18a4a2/AnalysisResults_Dplus_Loose_MB_Tree.root
-    filenameFD: ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC18a4a2/AnalysisResults_Dplus_Loose_MB_Tree.root
+    filenamePrompt: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_1_2_ModelApplied.parquet.gzip, 
+                    ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip,
+                    ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_4_6_ModelApplied.parquet.gzip,
+                    ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_6_12_ModelApplied.parquet.gzip,
+                    ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_12_50_ModelApplied.parquet.gzip]
+    filenameFD: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_1_2_ModelApplied.parquet.gzip, 
+                ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip,
+                ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_4_6_ModelApplied.parquet.gzip,
+                ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_6_12_ModelApplied.parquet.gzip,
+                ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_12_50_ModelApplied.parquet.gzip]
     dirname: PWG3_D2H_InvMassDplus
     treename: treeMLDs
