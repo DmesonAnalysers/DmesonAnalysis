@@ -6,17 +6,17 @@
 #include <TParameter.h>
 
 #include "AliESDtrackCuts.h"
-#include "AliRDHFCutsDplustoKpipi.h"
+#include "AliRDHFCutsDstoKKpi.h"
 
 #endif
 
 //____________________________________________________________________________________________________//
 // Methods:
-// 1) MakeFileForCutsDpluspp5TeV_TreeML --> loose cuts for 2019 analysis (non-prompt)
+// 1) MakeFileForCutsDspp5TeV_TreeML --> loose cuts for 2019 analysis (non-prompt)
 //____________________________________________________________________________________________________//
 
 //__________________________________________________________________________________________
-AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = false, double maxPtstrongPID = -1.0, bool fIsMC = false)
+AliRDHFCutsDstoKKpi *MakeFileForCutsDspp5TeV_TreeML(bool fUseStrongPID = false, double maxPtstrongPID = -1.0, bool fIsMC = false)
 {
 
     AliESDtrackCuts *esdTrackCuts = new AliESDtrackCuts();
@@ -33,82 +33,85 @@ AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = 
     ptbins = new float[nptbins + 1];
 
     ptbins[0] = 1.;
-    ptbins[1] = 5.;
+    ptbins[1] = 6.;
     ptbins[2] = 50.;
 
-    const int nvars = 14;
+    const int nvars = 20;
     float **anacutsval;
     anacutsval = new float *[nvars];
     for (int ic = 0; ic < nvars; ic++)
         anacutsval[ic] = new float[nptbins];
 
     /*
-     Cut list
-     0          "inv. mass [GeV]",
-     1			"pTK [GeV/c]",
-     2			"pTPi [GeV/c]",
-     3			"d0K [cm]",
-     4			"d0Pi [cm]",
-     5			"dist12 [cm]",
-     6			"sigmavert [cm]",
-     7			"decLen [cm]",
-     8			"ptMax [GeV/c]",
-     9			"cosThetaPoint",
-     10			"Sum d0^2 (cm^2)",
-     11			"dca [cm]",
-     12			"norm decay length XY",
-     13			"cosThetaPointXY";
-     */
+     Cut list                                   Rejection condition
+     0 inv. mass [GeV]",                        invmassDS-massDspdg>fCutsRD
+     1 pTK [GeV/c]",                            pTK<fCutsRd
+     2 pTPi [GeV/c]",                           pTPi<fCutsRd
+     3 d0K [cm]",                               d0K<fCutsRd
+     4 d0Pi [cm]",                              d0Pi<fCutsRd
+     5 dist12 [cm]",                            dist12<fCutsRd
+     6 sigmavert [cm]",                         sigmavert>fCutsRd
+     7 decLen [cm]",                            decLen<fCutsRD
+     8 ptMax [GeV/c]",                          ptMax<fCutsRD
+     9 cosThetaPoint",                          CosThetaPoint<fCutsRD
+     10 Sum d0^2 (cm^2)",                       sumd0<fCutsRD
+     11 dca [cm]",                              dca(i)>fCutsRD
+     12 inv. mass (Mphi-MKK) [GeV]",            invmass-pdg>fCutsRD
+     13 inv. mass (MKo*-MKpi) [GeV]",           invmass-pdg>fCutsRD
+     14 Abs(CosineKpiPhiRFrame)^3",
+     15 CosPiDsLabFrame",
+     16 decLenXY [cm]"
+     17 NormdecLen",
+     18 NormdecLenXY [cm]",
+     19 cosThetaPointXY"
+    */
 
     for (int ipt = 0; ipt < nptbins; ipt++)
     {
-        anacutsval[0][ipt]  = 0.2;   //minv
-        anacutsval[1][ipt]  = 0.3;   //ptK
-        anacutsval[2][ipt]  = 0.3;   //ptPi
-        anacutsval[3][ipt]  = 0.0;   //d0K
-        anacutsval[4][ipt]  = 0.0;   //d0Pi
-        anacutsval[5][ipt]  = 0.0;   //dist12
-        anacutsval[8][ipt]  = 0.0;   //pM
-        anacutsval[10][ipt] = 0.0;   //sumd02
-        anacutsval[11][ipt] = 1.e10; //dca
-        anacutsval[12][ipt] = 0.0;   //ndlXY
+        anacutsval[0][ipt]=0.25;
+        anacutsval[1][ipt]=0.3;
+        anacutsval[2][ipt]=0.3;
+        anacutsval[3][ipt]=0.;
+        anacutsval[4][ipt]=0.;
+        anacutsval[5][ipt]=0.;
+        anacutsval[6][ipt]=0.08;
+        anacutsval[7][ipt]=0.0;
+        anacutsval[8][ipt]=0.;
+        anacutsval[9][ipt]=0.85;
+        anacutsval[10][ipt]=0.;
+        anacutsval[11][ipt]=1000.0;
+        anacutsval[12][ipt]=0.015;
+        anacutsval[13][ipt]=0.001;
+        anacutsval[14][ipt]=0.;
+        anacutsval[15][ipt]=1.;
+        anacutsval[16][ipt]=0.;
+        anacutsval[17][ipt]=0.;
+        anacutsval[18][ipt]=0.;
+        anacutsval[19][ipt]=0.85;
     }
 
-    //pT 1-5
-    anacutsval[6][0] = 0.040; //sigvert
-    anacutsval[7][0] = 0.030; //declen
-    anacutsval[9][0] = 0.85;  //cosp
-    anacutsval[13][0] = 0.80; //cospXY
-
-    //pT 5-50
-    anacutsval[6][1] = 0.060; //sigvert
-    anacutsval[7][1] = 0.040; //declen
-    anacutsval[9][1] = 0.75;  //cosp
-    anacutsval[13][1] = 0.70; //cospXY
-
-    AliRDHFCutsDplustoKpipi *analysiscuts = new AliRDHFCutsDplustoKpipi();
+    AliRDHFCutsDstoKKpi *analysiscuts = new AliRDHFCutsDstoKKpi();
     analysiscuts->SetName("AnalysisCuts");
-    analysiscuts->SetTitle("Cuts for Dplus Analysis and CF");
+    analysiscuts->SetTitle("Cuts for Ds non-prompt analysis");
     analysiscuts->SetPtBins(nptbins + 1, ptbins);
     analysiscuts->SetCuts(nvars, nptbins, anacutsval);
     analysiscuts->AddTrackCuts(esdTrackCuts);
-    analysiscuts->SetScaleNormDLxyBypOverPt(false);
 
     analysiscuts->SetUsePID(true);
     if (fUseStrongPID)
     {
-        analysiscuts->SetUseStrongPid(3);
+        analysiscuts->SetPidOption(AliRDHFCutsDstoKKpi::kStrong);
         analysiscuts->SetMaxPtStrongPid(maxPtstrongPID);
-        analysiscuts->SetMaxPStrongPidK(1);
-        analysiscuts->SetMaxPStrongPidpi(1);
+    }
+    else
+    {
+       analysiscuts->SetPidOption(AliRDHFCutsDstoKKpi::kConservative);
     }
 
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentOff); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerMask(AliVEvent::kINT7);
     if (fIsMC)
         analysiscuts->SetTriggerMask(AliVEvent::kMB);
-
-    analysiscuts->SetUseImpParProdCorrCut(false);
 
     analysiscuts->SetOptPileup(AliRDHFCuts::kRejectMVPileupEvent);
     analysiscuts->SetRemoveDaughtersFromPrim(true);
@@ -128,7 +131,7 @@ AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = 
 
     analysiscuts->PrintAll();
     analysiscuts->PrintTrigger();
-    TString filename = Form("DplustoKpipiCuts_pp_nonprompt_loose%s_%s.root", PIDsuffix.Data(), triggername.Data());
+    TString filename = Form("DstoKKpiCuts_pp_nonprompt_loose%s_%s.root", PIDsuffix.Data(), triggername.Data());
     TFile *fout = new TFile(filename.Data(), "recreate");
     fout->cd();
     analysiscuts->Write();
