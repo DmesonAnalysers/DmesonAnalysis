@@ -104,6 +104,7 @@ AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = 
     }
 
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentOff); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
+    analysiscuts->SetTriggerClass("");
     analysiscuts->SetTriggerMask(AliVEvent::kINT7);
     if (fIsMC)
         analysiscuts->SetTriggerMask(AliVEvent::kMB);
