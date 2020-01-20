@@ -13,14 +13,14 @@ The [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master
 ```
 root -l RunAnalysisDsDplusTask.cc+(TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
 ```
-where ```configfile.yml``` is a configuration file (such as [runAnalysis_config_LHC17p_cent.yml](runanalysistask/runAnalysis_config_LHC17p_cent.yml)) with the information about the dataset, the AliPhysics version, and the task options to be used. The tasks options include the possibility to create a tree for the ML studies or apply a ML model trained with [xgboost](https://xgboost.readthedocs.io/en/latest/) or [scikit learn](https://scikit-learn.org/stable/).
+where ```configfile.yml``` is a configuration file (such as [runAnalysis_config_LHC17p_cent.yml](../runanalysistask/runAnalysis_config_LHC17p_cent.yml)) with the information about the dataset, the AliPhysics version, and the task options to be used. The tasks options include the possibility to create a tree for the ML studies or apply a ML model trained with [xgboost](https://xgboost.readthedocs.io/en/latest/) or [scikit learn](https://scikit-learn.org/stable/).
 
 ### Train output merge
 * The by-hand merge of unmerged outputs of a [ALICE analysis train](http://alimonitor.cern.ch/map.jsp) or private jobs can be performed with the script in the ```merge``` folder:
 ```
 python MergeTrainOutputs.py files_to_merge.yml
 ```
-where ```files_to_merge.yml``` is the configuration file containing the information about the outputs that has to be merged such as [files_to_merge_LHC18q.yml](merge/files_to_merge_LHC18q.yml)
+where ```files_to_merge.yml``` is the configuration file containing the information about the outputs that has to be merged such as [files_to_merge_LHC18q.yml](../merge/files_to_merge_LHC18q.yml)
 
 ## Main analysis with THnSparses
 
@@ -38,7 +38,7 @@ With the option ```--plot``` it creates control plots that are saved in .pdf fil
 ```
 python ProjectDplusDsSparse.py configfile.yml cutset.yml output.root
 ```
-where ```configfile.yml``` is a configuration file with the info of the input files (such as [config_Dplus_pp_data_tree.yml](configfiles/config_Ds_MC_3050.yml)), while ```cutset.yml``` is the set of selections to be applied.
+where ```configfile.yml``` is a configuration file with the info of the input files (such as [config_Dplus_pp_data_tree.yml](../configfiles/config_Ds_MC_3050.yml)), while ```cutset.yml``` is the set of selections to be applied.
 
 ## Main analysis with TTrees or dataframes
 
@@ -51,14 +51,14 @@ or
 ```
 python3 FilterTrees4ML.py configfile.yml
 ```
-where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files. The output files are by default ```root``` files. In the case of the python script, if the ```--parquet``` option is used, the output data are saved into ```parquet``` files instead of ```root``` files. 
+where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](../filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files. The output files are by default ```root``` files. In the case of the python script, if the ```--parquet``` option is used, the output data are saved into ```parquet``` files instead of ```root``` files. 
 
 ### Projection of invariant-mass distributions from THnSparse
 * Project the TTree or dataframe with the desired selections into invariant-mass distributions (TH1F):
 ```
 python ProjectDplusDsTree.py configfile.yml cutset.yml output.root
 ```
-where ```configfile.yml``` is a configuration file with the info of the input files, including the original task output (such as [config_Dplus_pp_data_tree.yml](configfiles/config_Dplus_pp_data_tree.yml)), while ```cutset.yml``` is the set of selections to be applied.
+where ```configfile.yml``` is a configuration file with the info of the input files, including the original task output (such as [config_Dplus_pp_data_tree.yml](../configfiles/config_Dplus_pp_data_tree.yml)), while ```cutset.yml``` is the set of selections to be applied.
 It autodetects whether the input files are ```root``` files containing TTrees or ```parquet``` files containing pandas dataframes.
 
 ## Common analysis
@@ -69,7 +69,7 @@ The following steps can be performed after having projected THnSparse or TTree (
 ```
 root -l GetRawYieldsDplusDs.C+(int cent, bool isMC = false, TString infilename = "distributions.root", TString cfgfilename = "config_Fit.yml", TString outFileName = "output.root")
 ```
-where ```distributions.root``` is the file obtained projecting the data or MC THnSparse and ```config_Fit.yml``` is a configuration file with the inputs needed to perform the invariant-mass fits such as [config_Ds_Fit.yml](configfiles/config_Ds_Fit.yml)
+where ```distributions.root``` is the file obtained projecting the data or MC THnSparse and ```config_Fit.yml``` is a configuration file with the inputs needed to perform the invariant-mass fits such as [config_Ds_Fit.yml](../configfiles/config_Ds_Fit.yml)
 
 ### Efficiency-times-acceptance computation
 The efficiency-times-acceptance computation is done in two steps:
@@ -116,7 +116,7 @@ can be used by setting some hard-coded parameters
 ```
 python ScanSignificanceSparse.py configfile.yml output.root
 ```
-where ```configfile.yml``` is a configuration file such as [config_Ds_010_SignOpt.yml](configfiles/config_Ds_010_SignOpt.yml) 
+where ```configfile.yml``` is a configuration file such as [config_Ds_010_SignOpt.yml](../configfiles/config_Ds_010_SignOpt.yml) 
 
 * Project ntuple with expected significance as a function of relevant variables:
 ```
@@ -128,7 +128,7 @@ where the input file ```input.root``` is the one produced in the previous step
 ```
 python GetExpectedSignificance.py configfile.yml cutset.yml outputname
 ```
-where the configuration file ```cutset.yml``` contains the selection that you want to apply, such as [cutset_010_central_2018.yml](configfiles/cutsets/cutset_010_central_2018.yml) if you want to apply rectangular selections or [cutset_010_ML_test.yml](configfiles/cutsets/cutset_010_ML_test.yml) if you want to apply a selection on the ML output.
+where the configuration file ```cutset.yml``` contains the selection that you want to apply, such as [cutset_010_central_2018.yml](../configfiles/cutsets/cutset_010_central_2018.yml) if you want to apply rectangular selections or [cutset_010_ML_test.yml](../configfiles/cutsets/cutset_010_ML_test.yml) if you want to apply a selection on the ML output.
 
 ## Systematic uncertainties
 ### Selection efficiency
