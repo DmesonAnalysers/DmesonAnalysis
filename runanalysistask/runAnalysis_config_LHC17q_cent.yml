@@ -10,9 +10,14 @@ AliPhysicVersion: vAN-20191202_ROOT6-1
 runs: [282367, 282366, 282365]
 
 improver:
-    enable: 0
-    period: ''
-
+    current:
+        enable: 0
+        period: ''
+    upgrade:
+        enable: 0
+        currentresolfile: ''
+        upgraderesolfile: ''
+    
 task:
     wagonname: Loose_kMB
     cuts:

@@ -30,9 +30,14 @@ runs: [296623, 296622, 296621, 296619, 296618, 296616, 296615, 296594, 296553, 2
        297029, 297194, 297219]
 
 improver:
-    enable: 1
-    period: 'LHC18qr'
-
+    current:
+        enable: 1
+        period: 'LHC18qr'
+    upgrade:
+        enable: 0
+        currentresolfile: ''
+        upgraderesolfile: ''
+    
 task:
     wagonname: Loose_kMB
     cuts:

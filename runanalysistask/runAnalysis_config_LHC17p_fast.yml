@@ -13,9 +13,14 @@ runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 2
        282078, 282051, 282050, 282031, 282030, 282025, 282021, 282016, 282008]
 
 improver:
+current:
     enable: 0
     period: ''
-
+upgrade:
+    enable: 0
+    currentresolfile: ''
+    upgraderesolfile: ''
+    
 task:
     wagonname: Loose_kMB
     cuts:

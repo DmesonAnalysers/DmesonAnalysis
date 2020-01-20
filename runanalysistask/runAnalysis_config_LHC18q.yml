@@ -21,9 +21,14 @@ runs: [296623, 296622, 296621, 296619, 296618, 296616, 296615, 296594, 296553, 2
        295610, 295589, 295588, 295586, 295585]
 
 improver:
-    enable: 0
-    period: ''
-
+    current:
+        enable: 0
+        period: ''
+    upgrade:
+        enable: 0
+        currentresolfile: ''
+        upgraderesolfile: ''
+    
 task:
     wagonname: Loose_kMB
     cuts:

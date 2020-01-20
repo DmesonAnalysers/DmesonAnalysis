@@ -18,8 +18,13 @@ runs: [297595, 297590, 297588, 297558, 297544, 297542, 297541, 297540, 297537, 2
        296691, 296690, 296749, 296750, 296849, 296890, 297029, 297194, 297219]
 
 improver:
-    enable: 0
-    period: ''
+    current:
+        enable: 0
+        period: ''
+    upgrade:
+        enable: 0
+        currentresolfile: ''
+        upgraderesolfile: ''
 
 task:
     wagonname: Loose_kMB

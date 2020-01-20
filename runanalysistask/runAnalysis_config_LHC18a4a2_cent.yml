@@ -13,9 +13,14 @@ runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 2
        282078, 282051, 282050, 282031, 282030, 282025, 282021, 282016, 282008, 282367, 282366, 282365]
 
 improver:
-    enable: 1
-    period: LHC17pq_G3MC_cent
-
+    current:
+        enable: 1
+        period: LHC17pq_G3MC_cent
+    upgrade:
+        enable: 0
+        currentresolfile: ''
+        upgraderesolfile: ''
+        
 task:
     wagonname: Loose_kMB
     cuts:
