@@ -33,7 +33,7 @@ where ```configfile.yml``` is the config file with the info of the input files a
 With the option ```--suffix suffixname```, a suffix is added to the output file names, otherwise the input files are overwritten.
 With the option ```--plot``` it creates control plots that are saved in .pdf files 
 
-### Projection of invariant-mass distributions from THnSparse
+### Projection of invariant-mass distributions from THnSparses
 * Project the THnSparse with the desired selections into invariant-mass distributions (TH1F):
 ```
 python ProjectDplusDsSparse.py configfile.yml cutset.yml output.root
@@ -53,7 +53,7 @@ python3 FilterTrees4ML.py configfile.yml
 ```
 where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files. The output files are by default ```root``` files. In the case of the python script, if the ```--parquet``` option is used, the output data are saved into ```parquet``` files instead of ```root``` files. 
 
-### Projection of invariant-mass distributions from THnSparse
+### Projection of invariant-mass distributions from TTrees
 * Project the TTree or dataframe with the desired selections into invariant-mass distributions (TH1F):
 ```
 python ProjectDplusDsTree.py configfile.yml cutset.yml output.root
