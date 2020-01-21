@@ -1,0 +1,37 @@
+runtype: grid #local, test, grid
+pathtolocalAOD: 'AODfiles/LHC19h1a2'
+meson: Ds
+system: Upgr
+datadir: /alice/sim/2019/LHC19h1a_1/
+datapattern: AOD
+gridworkdir: DsITS3
+splitmaxinputfilenum: 21
+AliPhysicVersion: vAN-20200121_ROOT6-1
+runs: [246392]
+
+improver:
+    current:
+        enable: 0
+        period: ''
+    upgrade:
+        enable: 0
+        currentresolfile: '$ALICE_PHYSICS/PWGHF/vertexingHF/upgrade/ITS2_res_4um_eta0.5.root'
+        upgraderesolfile: '$ALICE_PHYSICS/PWGHF/vertexingHF/upgrade/CylIB_pb17_B05Tnew.root'
+    
+task:
+    wagonname: FilterCuts_kAny
+    cuts:
+        infile: ../cutobjects/ITS3/DstoKKpiCutsITS3_filttree_kAny_consPID_pt1_50.root
+        objname: AnalysisCuts
+    storesparse: 0
+    treeML:
+        storetree: 1
+        fillonlysignal: 0
+        enabletrackvars: 0
+        PIDoption: kNsigmaDetAndCombPID
+    applyML:
+        doapplyML: 0
+        configfile: ''
+        nbins: 300
+        min: 0.85
+        max: 1.

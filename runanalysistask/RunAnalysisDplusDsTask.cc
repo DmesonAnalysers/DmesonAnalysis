@@ -62,9 +62,14 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
         else if (meson == "Ds")
             system = AliAnalysisTaskSEDs::kPbPb;
     }
+    else if (sSystem == "Upgr")
+    {
+        if (meson == "Ds")
+            system = AliAnalysisTaskSEDs::kUpgr;
+    }
     else
     {
-        cerr << "ERROR: Only pp and PbPb are supported, please check your config file. Exit" << endl;
+        cerr << "ERROR: Only pp, PbPb, and Upgr systems are supported, please check your config file. Exit" << endl;
         return;
     }
 
@@ -156,10 +161,10 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     //physics selection task
     AliPhysicsSelectionTask *physseltask = nullptr;
     if (runMode != "terminate")
-        physseltask = reinterpret_cast<AliPhysicsSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s (%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"), isRunOnMC)));
+        physseltask = reinterpret_cast<AliPhysicsSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s(%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"), isRunOnMC)));
 
     //pid response task
-    AliAnalysisTaskPIDResponse *pidResp = reinterpret_cast<AliAnalysisTaskPIDResponse *>(gInterpreter->ProcessLine(Form(".x %s (%d)", gSystem->ExpandPathName("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"), isRunOnMC)));
+    AliAnalysisTaskPIDResponse *pidResp = reinterpret_cast<AliAnalysisTaskPIDResponse *>(gInterpreter->ProcessLine(Form(".x %s(%d)", gSystem->ExpandPathName("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"), isRunOnMC)));
 
     //mult sel task
     if(system == AliAnalysisTaskSEDplus::kPbPb || system == AliAnalysisTaskSEDs::kPbPb) {
@@ -217,7 +222,7 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     }
 
     //cleanup task (if PbPb)
-    if (system == AliAnalysisTaskSEDplus::kPbPb || system == AliAnalysisTaskSEDs::kPbPb)
+    if (system == AliAnalysisTaskSEDplus::kPbPb || system == AliAnalysisTaskSEDs::kPbPb || system == AliAnalysisTaskSEDs::kUpgr)
     {
         AliAnalysisTaskSECleanupVertexingHF *taskclean = reinterpret_cast<AliAnalysisTaskSECleanupVertexingHF *>(gInterpreter->ProcessLine(Form(".x %s", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskCleanupVertexingHF.C"))));
     }
