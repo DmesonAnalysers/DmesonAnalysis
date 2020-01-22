@@ -31,6 +31,7 @@ def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
 
     return hTmpNum.GetBinContent(1), hTmpNum.GetBinError(1)
 
+
 def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList, \
     effPromptUncList, effFDUncList, rawYieldUncList, precision=1.e-8, nMaxIter=100):
     '''
