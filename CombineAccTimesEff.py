@@ -5,18 +5,15 @@ run: python CombineAccTimesEff.py effFileName.root accFileName.root outFileName.
 
 import math
 import argparse
-import string
-import six
 from ROOT import gROOT, TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
-from ROOT import kBlack, kFullDiamond  # pylint: disable=import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle
+from ROOT import kBlack, kFullDiamond, kRed, kAzure, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('effFileName', metavar='text', default='')
 parser.add_argument('accFileName', metavar='text', default='')
 parser.add_argument('outFileName', metavar='text', default='')
-parser.add_argument("--batch", help="suppress video output",
-                    action="store_true")
+parser.add_argument("--batch", help="suppress video output", action="store_true")
 args = parser.parse_args()
 
 gROOT.SetBatch(args.batch)
@@ -25,6 +22,8 @@ SetGlobalStyle()
 effFile = TFile.Open(args.effFileName)
 hEffPrompt = effFile.Get('hEffPrompt')
 hEffFD = effFile.Get('hEffFD')
+SetObjectStyle(hEffPrompt, color=kRed+1, markerstyle=kFullCircle)
+SetObjectStyle(hEffFD, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
 
 accFile = TFile.Open(args.accFileName)
 hAccNum = accFile.Get('hPtGenAcc')
@@ -83,11 +82,6 @@ hAccEffFD.Write()
 outFile.Close()
 
 if not args.batch:
-    if six.PY2:
-        outFileNamePDF = string.replace(args.outFileName, '.root', '.pdf')
-        cAccEff.SaveAs(outFileNamePDF)
-        raw_input('Press enter to exit')
-    elif six.PY3:
-        outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-        cAccEff.SaveAs(outFileNamePDF)
-        input('Press enter to exit')
+    outFileNamePDF = args.outFileName.replace('.root', '.pdf')
+    cAccEff.SaveAs(outFileNamePDF)
+    input('Press enter to exit')

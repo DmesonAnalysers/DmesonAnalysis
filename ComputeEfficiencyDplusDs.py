@@ -5,26 +5,12 @@ run: python ComputeEfficiencyDplusDs.py fitConfigFileName.yml centClass inputFil
 
 import array
 import math
-import string
 import argparse
-import six
 import yaml
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, kRed, kBlue, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, kRed, kAzure, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
+from utils.AnalysisUtils import ComputeEfficiency
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-
-def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
-    '''
-    method to compute efficiency
-    '''
-    hTmpNum = TH1F('hTmpNum', '', 1, 0, 1)
-    hTmpDen = TH1F('hTmpDen', '', 1, 0, 1)
-    hTmpNum.SetBinContent(1, recoCounts)
-    hTmpDen.SetBinContent(1, genCounts)
-    hTmpNum.SetBinError(1, recoCountsError)
-    hTmpDen.SetBinError(1, genCountsError)
-    hTmpNum.Divide(hTmpNum, hTmpDen, 1., 1, 'B')
-    return hTmpNum.GetBinContent(1), hTmpNum.GetBinError(1)
 
 
 parser = argparse.ArgumentParser(description='Arguments')
@@ -67,12 +53,12 @@ hYieldPromptGen = TH1F('hYieldPromptGen', ';#it{p}_{T} (GeV/#it{c}); # Generated
 hYieldFDGen = TH1F('hYieldFDGen', ';#it{p}_{T} (GeV/#it{c}); # Generated MC', nPtBins, array.array('f', PtLims))
 hYieldPromptReco = TH1F('hYieldPromptReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, array.array('f', PtLims))
 hYieldFDReco = TH1F('hYieldFDReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, array.array('f', PtLims))
-SetObjectStyle(hEffPrompt, color=kRed, markerstyle=kFullCircle)
-SetObjectStyle(hEffFD, color=kBlue, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
-SetObjectStyle(hYieldPromptGen, color=kRed, markerstyle=kFullCircle)
-SetObjectStyle(hYieldFDGen, color=kBlue, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
-SetObjectStyle(hYieldPromptReco, color=kRed, markerstyle=kFullCircle)
-SetObjectStyle(hYieldFDReco, color=kBlue, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+SetObjectStyle(hEffPrompt, color=kRed+1, markerstyle=kFullCircle)
+SetObjectStyle(hEffFD, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+SetObjectStyle(hYieldPromptGen, color=kRed+1, markerstyle=kFullCircle)
+SetObjectStyle(hYieldFDGen, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+SetObjectStyle(hYieldPromptReco, color=kRed+1, markerstyle=kFullCircle)
+SetObjectStyle(hYieldFDReco, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
 
 if args.ptweights:
     infileWeigts = TFile.Open(args.ptweights[0])
@@ -130,8 +116,6 @@ leg.SetFillStyle(0)
 leg.AddEntry(hEffPrompt, "Prompt", "p")
 leg.AddEntry(hEffFD, "Feed-down", "p")
 
-hEffPrompt.SetDirectory(0)
-hEffFD.SetDirectory(0)
 cEff = TCanvas('cEff', '', 800, 800)
 cEff.DrawFrame(PtMin[0], 1.e-5, PtMax[nPtBins-1], 1.,
                ';#it{p}_{T} (GeV/#it{c});Efficiency;')
@@ -150,11 +134,6 @@ hYieldFDReco.Write()
 outFile.Close()
 
 if not args.batch:
-    if six.PY2:
-        outFileNamePDF = string.replace(args.outFileName, '.root', '.pdf')
-        cEff.SaveAs(outFileNamePDF)
-        raw_input('Press enter to exit')
-    elif six.PY3:
-        outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-        cEff.SaveAs(outFileNamePDF)
-        input('Press enter to exit')
+    outFileNamePDF = args.outFileName.replace('.root', '.pdf')
+    cEff.SaveAs(outFileNamePDF)
+    input('Press enter to exit')

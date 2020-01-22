@@ -1,0 +1,8 @@
+rawyields:
+    inputfiles: [../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot1.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot3.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot5.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot7.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot9.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD1dot1.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD1dot3.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD1dot5.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD1dot7.root]
+    histoname: hRawYields
+efficiencies:
+    inputfiles: [../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot1.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot3.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot5.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot7.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot9.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD1dot1.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD1dot3.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD1dot5.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD1dot7.root]
+    histonames:
+        prompt: hAccEffPrompt
+        feeddown: hAccEffFD
