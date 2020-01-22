@@ -20,6 +20,7 @@ args = parser.parse_args()
 
 outFileNameEffPDF = args.outFileName.replace('.root', '_Eff.pdf')
 outFileNameDistrPDF = args.outFileName.replace('.root', '_Distr.pdf')
+outFileNameFracPDF = args.outFileName.replace('.root', '_Frac.pdf')
 
 with open(args.cfgFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
@@ -206,22 +207,28 @@ hCorrYieldFD.Write()
 for iPt in range(hRawYields[0].GetNbinsX()):
     cDistr[iPt].Write()
     cEff[iPt].Write()
+    cFrac[iPt].Write()
     hRawYieldsVsCut[iPt].Write()
     hRawYieldPromptVsCut[iPt].Write()
     hRawYieldFDVsCut[iPt].Write()
     hRawYieldsVsCutReSum[iPt].Write()
     hEffPromptVsCut[iPt].Write()
     hEffFDVsCut[iPt].Write()
+    hPromptFracVsCut[iPt].Write()
+    hFDFracVsCut[iPt].Write()
 outFile.Close()
 
 for iPt in range(hRawYields[0].GetNbinsX()):
     if iPt == 0:
         cEff[iPt].SaveAs('{}['.format(outFileNameEffPDF))
         cDistr[iPt].SaveAs('{}['.format(outFileNameDistrPDF))
+        cFrac[iPt].SaveAs('{}['.format(outFileNameFracPDF))
     cEff[iPt].SaveAs(outFileNameEffPDF)
     cDistr[iPt].SaveAs(outFileNameDistrPDF)
+    cFrac[iPt].SaveAs(outFileNameFracPDF)
     if iPt == hRawYields[0].GetNbinsX()-1:
         cEff[iPt].SaveAs('{}]'.format(outFileNameEffPDF))
         cDistr[iPt].SaveAs('{}]'.format(outFileNameDistrPDF))
+        cFrac[iPt].SaveAs('{}]'.format(outFileNameFracPDF))
 
 input('Press enter to exit')
