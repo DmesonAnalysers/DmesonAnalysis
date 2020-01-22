@@ -2,7 +2,7 @@ runtype: grid #local, test, grid
 pathtolocalAOD: 'AODfiles/LHC19h1a2'
 meson: Ds
 system: Upgr
-datadir: /alice/sim/2019/LHC19h1a_1/
+datadir: /alice/sim/2019/LHC19h1a2_1
 datapattern: AOD
 gridworkdir: DsITS3
 splitmaxinputfilenum: 21
