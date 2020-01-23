@@ -2,7 +2,7 @@
 Script with helper methods for style settings
 '''
 
-from ROOT import gStyle, TGaxis  # pylint: disable=import-error,no-name-in-module
+from ROOT import gStyle, TGaxis, gROOT # pylint: disable=import-error,no-name-in-module
 
 
 # pylint: disable=too-many-branches, too-many-statements
@@ -156,9 +156,15 @@ def SetObjectStyle(obj, **kwargs):
 
     # line styles
     if 'linecolor' in kwargs:
-        obj.SetLineColorAlpha(kwargs['linecolor'], lalpha)
+        if lalpha < 1:
+            obj.SetLineColorAlpha(kwargs['color'], lalpha)
+        else:
+            obj.SetLineColor(kwargs['color'])
     else:
-        obj.SetLineColorAlpha(1, lalpha)
+        if lalpha < 1:
+            obj.SetLineColorAlpha(1, lalpha)
+        else:
+            obj.SetLineColor(1)
 
     if 'linewidth' in kwargs:
         obj.SetLineWidth(kwargs['linewidth'])
@@ -172,9 +178,15 @@ def SetObjectStyle(obj, **kwargs):
 
     # marker styles
     if 'markercolor' in kwargs:
-        obj.SetMarkerColorAlpha(kwargs['markercolor'], malpha)
+        if malpha < 1:
+            obj.SetMarkerColorAlpha(kwargs['color'], malpha)
+        else:
+            obj.SetMarkerColor(kwargs['color'])
     else:
-        obj.SetMarkerColorAlpha(1, malpha)
+        if malpha < 1:
+            obj.SetMarkerColorAlpha(1, malpha)
+        else:
+            obj.SetMarkerColor(1)
 
     if 'markersize' in kwargs:
         obj.SetMarkerSize(kwargs['markersize'])
@@ -188,16 +200,28 @@ def SetObjectStyle(obj, **kwargs):
 
     # fill styles
     if 'fillcolor' in kwargs:
-        obj.SetFillColorAlpha(kwargs['fillcolor'], falpha)
+        if falpha < 1:
+            obj.SetFillColorAlpha(kwargs['color'], falpha)
+        else:
+            obj.SetFillColor(kwargs['color'])
 
     if 'fillstyle' in kwargs:
         obj.SetFillStyle(kwargs['fillstyle'])
 
     #global color
     if 'color' in kwargs:
-        obj.SetLineColorAlpha(kwargs['color'], lalpha)
-        obj.SetMarkerColorAlpha(kwargs['color'], malpha)
-        obj.SetFillColorAlpha(kwargs['color'], falpha)
+        if lalpha < 1:
+            obj.SetLineColorAlpha(kwargs['color'], lalpha)
+        else:
+            obj.SetLineColor(kwargs['color'])
+        if malpha < 1:
+            obj.SetMarkerColorAlpha(kwargs['color'], malpha)
+        else:
+            obj.SetMarkerColor(kwargs['color'])
+        if falpha < 1:
+            obj.SetFillColorAlpha(kwargs['color'], falpha)
+        else:
+            obj.SetFillColor(kwargs['color'])
 
 
 def DivideCanvas(canv, nPads):
