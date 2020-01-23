@@ -3,9 +3,8 @@ Script for the computation of the D+ and Ds+ efficiency mesons from ProjectDplus
 run: python ComputeEfficiencyDplusDs.py fitConfigFileName.yml centClass inputFileName.root outFileName.root
 '''
 
-import array
-import math
 import argparse
+import numpy as np
 import yaml
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRed, kAzure, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
@@ -41,18 +40,18 @@ elif args.centClass == 'kpp5TeVFD':
 gROOT.SetBatch(args.batch)
 SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, titlesize=0.045, labelsize=0.04)
 
-PtMin = fitConfig[cent]['PtMin']
-PtMax = fitConfig[cent]['PtMax']
-PtLims = list(PtMin)
-nPtBins = len(PtMin)
-PtLims.append(PtMax[- 1])
+ptMins = fitConfig[cent]['PtMin']
+ptMaxs = fitConfig[cent]['PtMax']
+ptLims = list(ptMins)
+nPtBins = len(ptMins)
+ptLims.append(ptMaxs[-1])
 
-hEffPrompt = TH1F('hEffPrompt', ';#it{p}_{T} (GeV/#it{c});Efficiency', nPtBins, array.array('f', PtLims))
-hEffFD = TH1F('hEffFD', ';#it{p}_{T} (GeV/#it{c});Efficiency', nPtBins, array.array('f', PtLims))
-hYieldPromptGen = TH1F('hYieldPromptGen', ';#it{p}_{T} (GeV/#it{c}); # Generated MC', nPtBins, array.array('f', PtLims))
-hYieldFDGen = TH1F('hYieldFDGen', ';#it{p}_{T} (GeV/#it{c}); # Generated MC', nPtBins, array.array('f', PtLims))
-hYieldPromptReco = TH1F('hYieldPromptReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, array.array('f', PtLims))
-hYieldFDReco = TH1F('hYieldFDReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, array.array('f', PtLims))
+hEffPrompt = TH1F('hEffPrompt', ';#it{p}_{T} (GeV/#it{c});Efficiency', nPtBins, np.asarray(ptLims, 'd'))
+hEffFD = TH1F('hEffFD', ';#it{p}_{T} (GeV/#it{c});Efficiency', nPtBins, np.asarray(ptLims, 'd'))
+hYieldPromptGen = TH1F('hYieldPromptGen', ';#it{p}_{T} (GeV/#it{c}); # Generated MC', nPtBins, np.asarray(ptLims, 'd'))
+hYieldFDGen = TH1F('hYieldFDGen', ';#it{p}_{T} (GeV/#it{c}); # Generated MC', nPtBins, np.asarray(ptLims, 'd'))
+hYieldPromptReco = TH1F('hYieldPromptReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, np.asarray(ptLims, 'd'))
+hYieldFDReco = TH1F('hYieldFDReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, np.asarray(ptLims, 'd'))
 SetObjectStyle(hEffPrompt, color=kRed+1, markerstyle=kFullCircle)
 SetObjectStyle(hEffFD, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
 SetObjectStyle(hYieldPromptGen, color=kRed+1, markerstyle=kFullCircle)
@@ -67,7 +66,7 @@ if args.ptweights:
 hRecoPrompt, hRecoFD, hGenPrompt, hGenFD = ([] for iHisto in range(4))
 
 infile = TFile(args.inFileName)
-for iPt, (ptMin, ptMax) in enumerate(zip(PtMin, PtMax)):
+for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
     hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
     hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
@@ -93,22 +92,22 @@ for iPt, (ptMin, ptMax) in enumerate(zip(PtMin, PtMax)):
         nGenFDWeighted += weight*hGenFD[iPt].GetBinContent(iBin+1)
 
     effPrompt, effPromptUnc = ComputeEfficiency(nRecoPromptWeighted, nGenPromptWeighted, \
-        nRecoPromptWeighted/math.sqrt(nRecoPrompt), nGenPromptWeighted/math.sqrt(nGenPrompt))
+        nRecoPromptWeighted/np.sqrt(nRecoPrompt), nGenPromptWeighted/np.sqrt(nGenPrompt))
     effFD, effFDUnc = ComputeEfficiency(\
-        nRecoFDWeighted, nGenFDWeighted, nRecoFDWeighted/math.sqrt(nRecoFD), nGenFDWeighted/math.sqrt(nGenFD))
+        nRecoFDWeighted, nGenFDWeighted, nRecoFDWeighted/np.sqrt(nRecoFD), nGenFDWeighted/np.sqrt(nGenFD))
     hEffPrompt.SetBinContent(iPt+1, effPrompt)
     hEffPrompt.SetBinError(iPt+1, effPromptUnc)
     hEffFD.SetBinContent(iPt+1, effFD)
     hEffFD.SetBinError(iPt+1, effFDUnc)
 
     hYieldPromptGen.SetBinContent(iPt+1, nGenPromptWeighted)
-    hYieldPromptGen.SetBinError(iPt+1, nGenPromptWeighted/math.sqrt(nGenPrompt))
+    hYieldPromptGen.SetBinError(iPt+1, nGenPromptWeighted/np.sqrt(nGenPrompt))
     hYieldFDGen.SetBinContent(iPt+1, nGenFDWeighted)
-    hYieldFDGen.SetBinError(iPt+1, nGenFDWeighted/math.sqrt(nGenFD))
+    hYieldFDGen.SetBinError(iPt+1, nGenFDWeighted/np.sqrt(nGenFD))
     hYieldPromptReco.SetBinContent(iPt+1, nRecoPromptWeighted)
-    hYieldPromptReco.SetBinError(iPt+1, nRecoPromptWeighted/math.sqrt(nRecoPrompt))
+    hYieldPromptReco.SetBinError(iPt+1, nRecoPromptWeighted/np.sqrt(nRecoPrompt))
     hYieldFDReco.SetBinContent(iPt+1, nRecoFDWeighted)
-    hYieldFDReco.SetBinError(iPt+1, nRecoFDWeighted/math.sqrt(nRecoFD))
+    hYieldFDReco.SetBinError(iPt+1, nRecoFDWeighted/np.sqrt(nRecoFD))
 
 leg = TLegend(0.6, 0.2, 0.8, 0.4)
 leg.SetTextSize(0.045)
@@ -117,7 +116,7 @@ leg.AddEntry(hEffPrompt, "Prompt", "p")
 leg.AddEntry(hEffFD, "Feed-down", "p")
 
 cEff = TCanvas('cEff', '', 800, 800)
-cEff.DrawFrame(PtMin[0], 1.e-5, PtMax[nPtBins-1], 1.,
+cEff.DrawFrame(ptMins[0], 1.e-5, ptMaxs[nPtBins-1], 1.,
                ';#it{p}_{T} (GeV/#it{c});Efficiency;')
 cEff.SetLogy()
 hEffPrompt.Draw('same')
