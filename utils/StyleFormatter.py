@@ -39,7 +39,7 @@ def SetGlobalStyle(**kwargs):
     - maxdigits (int), default no max value
     '''
 
-    #pad margins
+    # pad margins
     if 'padrightmargin' in kwargs:
         gStyle.SetPadRightMargin(kwargs['padrightmargin'])
     else:
@@ -60,7 +60,7 @@ def SetGlobalStyle(**kwargs):
     else:
         gStyle.SetPadBottomMargin(0.1)
 
-    #title sizes
+    # title sizes
     if 'titlesize' in kwargs:
         gStyle.SetTitleSize(kwargs['titlesize'], 'xyz')
     else:
@@ -73,7 +73,7 @@ def SetGlobalStyle(**kwargs):
     if 'titlesizez' in kwargs:
         gStyle.SetTitleSize(kwargs['titlesizex'], 'z')
 
-    #label sizes
+    # label sizes
     if 'labelsize' in kwargs:
         gStyle.SetLabelSize(kwargs['labelsize'], 'xyz')
     else:
@@ -86,7 +86,7 @@ def SetGlobalStyle(**kwargs):
     if 'labelsizez' in kwargs:
         gStyle.SetLabelSize(kwargs['labelsizex'], 'z')
 
-    #title offsets
+    # title offsets
     if 'titleoffset' in kwargs:
         gStyle.SetTitleOffset(kwargs['titleoffset'], 'xyz')
     else:
@@ -99,7 +99,7 @@ def SetGlobalStyle(**kwargs):
     if 'titleoffsetz' in kwargs:
         gStyle.SetTitleOffset(kwargs['titleoffsetz'], 'z')
 
-    #other options
+    # other options
     if 'opttitle' in kwargs:
         gStyle.SetOptTitle(kwargs['opttitle'])
     else:
@@ -145,7 +145,7 @@ def SetObjectStyle(obj, **kwargs):
     - alpha (float) sets same alpha for line, marker and fill
     '''
 
-    #alpha parameters
+    # alpha parameters
     lalpha = kwargs.get('linealpha', 1)
     malpha = kwargs.get('markeralpha', 1)
     falpha = kwargs.get('fillalpha', 1)
@@ -154,7 +154,7 @@ def SetObjectStyle(obj, **kwargs):
         malpha = kwargs['markeralpha']
         falpha = kwargs['fillalpha']
 
-    #line styles
+    # line styles
     if 'linecolor' in kwargs:
         obj.SetLineColorAlpha(kwargs['linecolor'], lalpha)
     else:
@@ -170,7 +170,7 @@ def SetObjectStyle(obj, **kwargs):
     else:
         obj.SetLineStyle(1)
 
-    #marker styles
+    # marker styles
     if 'markercolor' in kwargs:
         obj.SetMarkerColorAlpha(kwargs['markercolor'], malpha)
     else:
@@ -186,7 +186,7 @@ def SetObjectStyle(obj, **kwargs):
     else:
         obj.SetMarkerStyle(20)
 
-    #fill styles
+    # fill styles
     if 'fillcolor' in kwargs:
         obj.SetFillColorAlpha(kwargs['fillcolor'], falpha)
 
@@ -198,3 +198,32 @@ def SetObjectStyle(obj, **kwargs):
         obj.SetLineColorAlpha(kwargs['color'], lalpha)
         obj.SetMarkerColorAlpha(kwargs['color'], malpha)
         obj.SetFillColorAlpha(kwargs['color'], falpha)
+
+
+def DivideCanvas(canv, nPads):
+    if nPads < 2:
+        canv.cd()
+    elif nPads in [2, 3]:
+        canv.Divide(nPads, 1)
+    elif nPads in [4, 6, 8]:
+        canv.Divide(nPads/2, 2)
+    elif nPads in [5, 7]:
+        canv.Divide((nPads+1)/2, 2)
+    elif nPads in [12, 15]:
+        canv.Divide(nPads/3, 3)
+    elif nPads in [10, 11]:
+        canv.Divide(4, 3)
+    elif nPads in [13, 14]:
+        canv.Divide(5, 3)
+    elif 15 < nPads <= 20 and nPads % 4 == 0:
+        canv.Divide(nPads/4, 4)
+    elif 15 < nPads <= 20 and nPads % 4 != 0:
+        canv.Divide(5, 4)
+    elif nPads == 21:
+        canv.Divide(7, 3)
+    elif 21 < nPads <= 25:
+        canv.Divide(5, 5)
+    elif nPads > 25 and nPads % 2 == 0:
+        canv.Divide(nPads/2, 2)
+    else:
+        canv.Divide((nPads+1)/2, 2)
