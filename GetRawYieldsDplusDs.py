@@ -36,7 +36,7 @@ with open(args.fitConfigFileName, 'r') as ymlfitConfigFile:
     fitConfig = yaml.load(ymlfitConfigFile, yaml.FullLoader)
 
 gROOT.SetBatch(args.batch)
-SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, titlesize=0.045, labelsize=0.04)
+SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.08, padtopmargin=0.12, opttitle=1)
 
 ptMins = fitConfig[cent]['PtMin']
 ptMaxs = fitConfig[cent]['PtMax']
@@ -68,9 +68,9 @@ for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]
         exit()
 
 if mesonName == 'Dplus':
-    massAxisTit = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
+    massAxisTit = ';#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
 elif mesonName == 'Ds':
-    massAxisTit = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
+    massAxisTit = ';#it{M}(KK#pi) (GeV/#it{c}^{2})'
 
 # load inv-mass histos
 infile = TFile.Open(args.inFileName)
@@ -89,11 +89,13 @@ for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
             hMass[iPt].Add(infile.Get('hPromptSecPeakMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
             hMass[iPt].Add(infile.Get('hFDSecPeakMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
             hMass[iPt].SetDirectory(0)
-
-    hEv = infile.Get('hEvForNorm')
-    hEv.SetDirectory(0)
+    hMass[iPt].Sumw2()
     SetObjectStyle(hMass[iPt], color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hEv, color=kBlack, markerstyle=kFullCircle)
+
+hEv = infile.Get('hEvForNorm')
+hEv.SetDirectory(0)
+hEv.Sumw2()
+SetObjectStyle(hEv, color=kBlack, markerstyle=kFullCircle)
 
 infile.Close()
 
@@ -113,52 +115,47 @@ if fitConfig[cent]['FixMean']:
     if hMeanToFix.GetNbinsX() != nPtBins:
         print("WARNING: Different number of bins for this analysis and histo for fix mean")
 
-hRawYields = TH1D(
-    'hRawYields', '#it{p}_{T} (GeV/#it{c})raw yield', nPtBins, np.array(ptLims))
-hRawYieldsSigma = TH1D(
-    'hRawYieldsSigma', '#it{p}_{T} (GeV/#it{c})width (GeV/#it{c}^{2})', nPtBins, np.array(ptLims))
-hRawYieldsSigma2 = TH1D(
-    'hRawYieldsSigma2', '#it{p}_{T} (GeV/#it{c})width (GeV/#it{c}^{2})', nPtBins, np.array(ptLims))
-hRawYieldsMean = TH1D(
-    'hRawYieldsMean', '#it{p}_{T} (GeV/#it{c})mean (GeV/#it{c}^{2})', nPtBins, np.array(ptLims))
-hRawYieldsFracGaus2 = TH1D(
-    'hRawYieldsFracGaus2', '#it{p}_{T} (GeV/#it{c})second-gaussian fraction', nPtBins, np.array(ptLims))
-hRawYieldsSignificance = TH1D(
-    'hRawYieldsSignificance', '#it{p}_{T} (GeV/#it{c})significance (3#sigma)', nPtBins, np.array(ptLims))
-hRawYieldsSoverB = TH1D(
-    'hRawYieldsSoverB', '#it{p}_{T} (GeV/#it{c})S/B (3#sigma)', nPtBins, np.array(ptLims))
-hRawYieldsSignal = TH1D(
-    'hRawYieldsSignal', '#it{p}_{T} (GeV/#it{c})Signal (3#sigma)', nPtBins, np.array(ptLims))
-hRawYieldsBkg = TH1D(
-    'hRawYieldsBkg', '#it{p}_{T} (GeV/#it{c})Background (3#sigma)', nPtBins, np.array(ptLims))
-hRawYieldsChiSquare = TH1D(
-    'hRawYieldsChiSquare', '#it{p}_{T} (GeV/#it{c})#chi^{2}/#it{ndf}', nPtBins, np.array(ptLims))
-hRawYieldsSecPeak = TH1D(
-    'hRawYieldsSecPeak', '#it{p}_{T} (GeV/#it{c})raw yield second peak', nPtBins, np.array(ptLims))
-hRawYieldsMeanSecPeak = TH1D(
-    'hRawYieldsMeanSecPeak', '#it{p}_{T} (GeV/#it{c})mean second peak (GeV/#it{c}^{2})', nPtBins, np.array(ptLims))
-hRawYieldsSigmaSecPeak = TH1D(
-    'hRawYieldsSigmaSecPeak', '#it{p}_{T} (GeV/#it{c})width second peak (GeV/#it{c}^{2})', nPtBins, np.array(ptLims))
-hRawYieldsSignificanceSecPeak = TH1D(
-    'hRawYieldsSignificanceSecPeak', '#it{p}_{T} (GeV/#it{c})signficance second peak (3#sigma)', nPtBins, np.array(ptLims))
-hRawYieldsSigmaRatioSecondFirstPeak = TH1D(
-    'hRawYieldsSigmaRatioSecondFirstPeak',
-    '#it{p}_{T} (GeV/#it{c})width second peak / width first peak', nPtBins, np.array(ptLims))
-hRawYieldsSoverBSecPeak = TH1D(
-    'hRawYieldsSoverBSecPeak', '#it{p}_{T} (GeV/#it{c})S/B second peak (3#sigma)', nPtBins, np.array(ptLims))
-hRawYieldsSignalSecPeak = TH1D(
-    'hRawYieldsSignalSecPeak', '#it{p}_{T} (GeV/#it{c})Signal second peak (3#sigma)', nPtBins, np.array(ptLims))
-hRawYieldsBkgSecPeak = TH1D(
-    'hRawYieldsBkgSecPeak', '#it{p}_{T} (GeV/#it{c})Background second peak (3#sigma)', nPtBins, np.array(ptLims))
-hRawYieldsTrue = TH1D(
-    'hRawYieldsTrue', '#it{p}_{T} (GeV/#it{c})true signal', nPtBins, np.array(ptLims))
-hRawYieldsSecPeakTrue = TH1D(
-    'hRawYieldsSecPeakTrue', '#it{p}_{T} (GeV/#it{c})true signal second peak', nPtBins, np.array(ptLims))
-hRelDiffRawYieldsFitTrue = TH1D(
-    'hRelDiffRawYieldsFitTrue', '#it{p}_{T} (GeV/#it{c}) (Y_{fit} - Y_{true}) / Y_{true}', nPtBins, np.array(ptLims))
-hRelDiffRawYieldsSecPeakFitTrue = TH1D(
-    'hRelDiffRawYieldsSecPeakFitTrue',
-    '#it{p}_{T} (GeV/#it{c})(Y_{fit} - Y_{true}) / Y_{true} second peak', nPtBins, np.array(ptLims))
+hRawYields = TH1D('hRawYields', ';#it{p}_{T} (GeV/#it{c});raw yield', nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSigma = TH1D('hRawYieldsSigma', ';#it{p}_{T} (GeV/#it{c});width (GeV/#it{c}^{2})', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSigma2 = TH1D('hRawYieldsSigma2', ';#it{p}_{T} (GeV/#it{c});width (GeV/#it{c}^{2})', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsMean = TH1D('hRawYieldsMean', ';#it{p}_{T} (GeV/#it{c});mean (GeV/#it{c}^{2})', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsFracGaus2 = TH1D('hRawYieldsFracGaus2', ';#it{p}_{T} (GeV/#it{c});second-gaussian fraction', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSignificance = TH1D('hRawYieldsSignificance', ';#it{p}_{T} (GeV/#it{c});significance (3#sigma)', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSoverB = TH1D('hRawYieldsSoverB', ';#it{p}_{T} (GeV/#it{c});S/B (3#sigma)', nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSignal = TH1D('hRawYieldsSignal', ';#it{p}_{T} (GeV/#it{c});Signal (3#sigma)', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsBkg = TH1D('hRawYieldsBkg', ';#it{p}_{T} (GeV/#it{c});Background (3#sigma)', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsChiSquare = TH1D('hRawYieldsChiSquare', ';#it{p}_{T} (GeV/#it{c});#chi^{2}/#it{ndf}', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSecPeak = TH1D('hRawYieldsSecPeak', ';#it{p}_{T} (GeV/#it{c});raw yield second peak', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsMeanSecPeak = TH1D('hRawYieldsMeanSecPeak', ';#it{p}_{T} (GeV/#it{c});mean second peak (GeV/#it{c}^{2})', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSigmaSecPeak = TH1D('hRawYieldsSigmaSecPeak', \
+    ';#it{p}_{T} (GeV/#it{c});width second peak (GeV/#it{c}^{2})', nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSignificanceSecPeak = TH1D('hRawYieldsSignificanceSecPeak', \
+    ';#it{p}_{T} (GeV/#it{c});signficance second peak (3#sigma)', nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSigmaRatioSecondFirstPeak = TH1D('hRawYieldsSigmaRatioSecondFirstPeak', \
+    ';#it{p}_{T} (GeV/#it{c});width second peak / width first peak', nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSoverBSecPeak = TH1D('hRawYieldsSoverBSecPeak', ';#it{p}_{T} (GeV/#it{c});S/B second peak (3#sigma)', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSignalSecPeak = TH1D('hRawYieldsSignalSecPeak', ';#it{p}_{T} (GeV/#it{c});Signal second peak (3#sigma)', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsBkgSecPeak = TH1D('hRawYieldsBkgSecPeak', ';#it{p}_{T} (GeV/#it{c});Background second peak (3#sigma)', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsTrue = TH1D('hRawYieldsTrue', ';#it{p}_{T} (GeV/#it{c});true signal', nPtBins, np.asarray(ptLims, 'd'))
+hRawYieldsSecPeakTrue = TH1D('hRawYieldsSecPeakTrue', ';#it{p}_{T} (GeV/#it{c});true signal second peak', \
+    nPtBins, np.asarray(ptLims, 'd'))
+hRelDiffRawYieldsFitTrue = TH1D('hRelDiffRawYieldsFitTrue', \
+    ';#it{p}_{T} (GeV/#it{c}); (Y_{fit} - Y_{true}) / Y_{true}', nPtBins, np.asarray(ptLims, 'd'))
+hRelDiffRawYieldsSecPeakFitTrue = TH1D('hRelDiffRawYieldsSecPeakFitTrue', \
+    ';#it{p}_{T} (GeV/#it{c});(Y_{fit} - Y_{true}) / Y_{true} second peak', nPtBins, np.asarray(ptLims, 'd'))
 
 SetObjectStyle(hRawYields, color=kBlack, markerstyle=kFullCircle)
 SetObjectStyle(hRawYieldsSigma, color=kBlack, markerstyle=kFullCircle)
