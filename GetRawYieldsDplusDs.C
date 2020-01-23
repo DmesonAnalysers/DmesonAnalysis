@@ -55,8 +55,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     else if(cent==kpp5TeVFD) centname = "pp5TeVFD";
 
     YAML::Node config = YAML::LoadFile(cfgfilename.Data());
-    string mesonname = config[centname.Data()]["Meson"].as<string>();
-    int meson = (mesonname=="Dplus") ? kDplus : kDs;
+    string mesonName = config[centname.Data()]["Meson"].as<string>();
+    int meson = (mesonName=="Dplus") ? kDplus : kDs;
     bool fixSigma = static_cast<bool>(config[centname.Data()]["FixSigma"].as<int>());
     string infilenameSigma = config[centname.Data()]["SigmaFile"].as<string>();
     double sigmaMult = config[centname.Data()]["SigmaMultFactor"].as<double>();
@@ -200,8 +200,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         SetHistoStyle(hMassForFit[iPt]);
 
         if(isMC) { //MC
-            int parrawyield = 0, parmean = 1., parsigma1 = 2; //always the same
-            int parsigma2 = -1, parfrac2gaus = -1, parrawyieldsecpeak = -1, parmeansecpeak = -1, parsigmasecpeak = -1;
+            int parRawYield = 0, parMean = 1., parSigma1 = 2; //always the same
+            int parSigma2 = -1, parFrac2Gaus = -1, parRawYieldSecPeak = -1, parMeanSecPeak = -1, parSigmaSecPeak = -1;
             TF1* massFunc = NULL;
             if(SgnFunc[iPt]==AliHFInvMassFitter::kGaus) {
                 if(!(InclSecPeak[iPt] && meson==kDs)) {
@@ -211,14 +211,14 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 else {
                     massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakSingleGaus,MassMin[iPt],MassMax[iPt],6);
                     massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
-                    parrawyieldsecpeak = 3;
-                    parmeansecpeak = 4;
-                    parsigmasecpeak = 5;
+                    parRawYieldSecPeak = 3;
+                    parMeanSecPeak = 4;
+                    parSigmaSecPeak = 5;
                 }
             }
             else if(SgnFunc[iPt]==AliHFInvMassFitter::k2Gaus){
-                parsigma2 = 3;
-                parfrac2gaus = 4;
+                parSigma2 = 3;
+                parFrac2Gaus = 4;
                 if(!(InclSecPeak[iPt] && meson==kDs)) {
                     massFunc = new TF1(Form("massFunc%d",iPt),DoubleGaus,MassMin[iPt],MassMax[iPt],5);
                     massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9);
@@ -226,9 +226,9 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 else {
                     massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakDoubleGaus,MassMin[iPt],MassMax[iPt],8);
                     massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
-                    parrawyieldsecpeak = 5;
-                    parmeansecpeak = 6;
-                    parsigmasecpeak = 7;
+                    parRawYieldSecPeak = 5;
+                    parMeanSecPeak = 6;
+                    parSigmaSecPeak = 7;
                 }
             }
 
@@ -238,12 +238,12 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 cMass->cd();
             hMassForFit[iPt]->Fit(massFunc,"E"); //fit with chi2
 
-            double rawyield = massFunc->GetParameter(parrawyield);
-            double rawyielderr = massFunc->GetParError(parrawyield);
-            double sigma = massFunc->GetParameter(parsigma1);
-            double sigmaerr = massFunc->GetParError(parsigma1);
-            double mean = massFunc->GetParameter(parmean);
-            double meanerr = massFunc->GetParError(parmean);
+            double rawyield = massFunc->GetParameter(parRawYield);
+            double rawyielderr = massFunc->GetParError(parRawYield);
+            double sigma = massFunc->GetParameter(parSigma1);
+            double sigmaerr = massFunc->GetParError(parSigma1);
+            double mean = massFunc->GetParameter(parMean);
+            double meanerr = massFunc->GetParError(parMean);
             double redchi2 = massFunc->GetChisquare() / massFunc->GetNDF();
 
             hRawYields->SetBinContent(iPt+1,rawyield);
@@ -261,14 +261,14 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             hRelDiffRawYieldsFitTrue->SetBinError(iPt+1,TMath::Sqrt(rawyielderr*rawyielderr+hMassForFit[iPt]->Integral()));
 
             if(InclSecPeak[iPt] && meson==kDs) {
-                double rawyieldsecpeak = massFunc->GetParameter(parrawyieldsecpeak);
-                double rawyieldsecpeakerr = massFunc->GetParError(parrawyieldsecpeak);
-                double sigmasecondpeak = massFunc->GetParameter(parsigmasecpeak);
-                double sigmasecondpeakerr = massFunc->GetParError(parsigmasecpeak);
-                double meansecondpeak = massFunc->GetParameter(parmeansecpeak);
-                double meansecondpeakerr = massFunc->GetParError(parmeansecpeak);
-                hRawYieldsSecondPeak->SetBinContent(iPt+1,rawyieldsecpeak);
-                hRawYieldsSecondPeak->SetBinError(iPt+1,rawyieldsecpeakerr);
+                double rawyieldSecPeak = massFunc->GetParameter(parRawYieldSecPeak);
+                double rawyieldSecPeakerr = massFunc->GetParError(parRawYieldSecPeak);
+                double sigmasecondpeak = massFunc->GetParameter(parSigmaSecPeak);
+                double sigmasecondpeakerr = massFunc->GetParError(parSigmaSecPeak);
+                double meansecondpeak = massFunc->GetParameter(parMeanSecPeak);
+                double meansecondpeakerr = massFunc->GetParError(parMeanSecPeak);
+                hRawYieldsSecondPeak->SetBinContent(iPt+1,rawyieldSecPeak);
+                hRawYieldsSecondPeak->SetBinError(iPt+1,rawyieldSecPeakerr);
                 hRawYieldsMeanSecondPeak->SetBinContent(iPt+1,meansecondpeak);
                 hRawYieldsMeanSecondPeak->SetBinError(iPt+1,meansecondpeakerr);
                 hRawYieldsSigmaSecondPeak->SetBinContent(iPt+1,sigmasecondpeak);
@@ -280,10 +280,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 hRelDiffRawYieldsSecondPeakFitTrue->SetBinContent(iPt+1,rawyield);
             }
             if(SgnFunc[iPt]==AliHFInvMassFitter::k2Gaus) {
-                double sigma2 = massFunc->GetParameter(parsigma2);
-                double sigma2err = massFunc->GetParError(parsigma2);
-                double frac2gaus = massFunc->GetParameter(parfrac2gaus);
-                double frac2gauserr = massFunc->GetParError(parfrac2gaus);
+                double sigma2 = massFunc->GetParameter(parSigma2);
+                double sigma2err = massFunc->GetParError(parSigma2);
+                double frac2gaus = massFunc->GetParameter(parFrac2Gaus);
+                double frac2gauserr = massFunc->GetParError(parFrac2Gaus);
                 hRawYieldsSigma2->SetBinContent(iPt+1,sigma2);
                 hRawYieldsSigma2->SetBinError(iPt+1,sigma2err);
                 hRawYieldsFracGaus2->SetBinContent(iPt+1,frac2gaus);
@@ -337,21 +337,21 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             TF1* fTotFunc = massFitter->GetMassFunc();
             TF1* fBkgFunc = massFitter->GetBackgroundRecalcFunc();
 
-            double parfrac2gaus = -1, parsecondsigma = -1;
+            double parFrac2Gaus = -1, parsecondsigma = -1;
             if(SgnFunc[iPt]==AliHFInvMassFitter::k2Gaus) {
-                    if(!(InclSecPeak[iPt] && meson==kDs)) {
-                        parfrac2gaus = fTotFunc->GetNpar()-2;
-                        parsecondsigma = fTotFunc->GetNpar()-1;
-                    }
-                    else {
-                        parfrac2gaus = fTotFunc->GetNpar()-5;
-                        parsecondsigma = fTotFunc->GetNpar()-4;
-                    }
+                if(!(InclSecPeak[iPt] && meson==kDs)) {
+                    parFrac2Gaus = fTotFunc->GetNpar()-2;
+                    parsecondsigma = fTotFunc->GetNpar()-1;
+                }
+                else {
+                    parFrac2Gaus = fTotFunc->GetNpar()-5;
+                    parsecondsigma = fTotFunc->GetNpar()-4;
+                }
 
                 double sigma2 = fTotFunc->GetParameter(parsecondsigma);
                 double sigma2err = fTotFunc->GetParError(parsecondsigma);
-                double frac2gaus = fTotFunc->GetParameter(parfrac2gaus);
-                double frac2gauserr = fTotFunc->GetParError(parfrac2gaus);
+                double frac2gaus = fTotFunc->GetParameter(parFrac2Gaus);
+                double frac2gauserr = fTotFunc->GetParError(parFrac2Gaus);
                 hRawYieldsSigma2->SetBinContent(iPt+1,sigma2);
                 hRawYieldsSigma2->SetBinError(iPt+1,sigma2err);
                 hRawYieldsFracGaus2->SetBinContent(iPt+1,frac2gaus);
@@ -359,40 +359,40 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             }
 
             if(InclSecPeak[iPt] && meson==kDs) {
-                int paryieldsecpeak = fTotFunc->GetNpar()-3;
-                int parmeansecondpeak = fTotFunc->GetNpar()-2;
-                int parsigmasecondpeak = fTotFunc->GetNpar()-1;
+                int paryieldSecPeak = fTotFunc->GetNpar()-3;
+                int parMeansecondpeak = fTotFunc->GetNpar()-2;
+                int parSigmasecondpeak = fTotFunc->GetNpar()-1;
 
-                double rawyieldsecpeak = fTotFunc->GetParameter(paryieldsecpeak)/hMassForFit[iPt]->GetBinWidth(1);
-                double rawyieldsecpeakerr = fTotFunc->GetParError(paryieldsecpeak)/hMassForFit[iPt]->GetBinWidth(1);
-                double meansecondpeak = fTotFunc->GetParameter(parmeansecondpeak);
-                double meansecondpeakerr = fTotFunc->GetParError(parmeansecondpeak);
-                double sigmasecondpeak = fTotFunc->GetParameter(parsigmasecondpeak);
-                double sigmasecondpeakerr = fTotFunc->GetParError(parsigmasecondpeak);
+                double rawyieldSecPeak = fTotFunc->GetParameter(paryieldSecPeak)/hMassForFit[iPt]->GetBinWidth(1);
+                double rawyieldSecPeakerr = fTotFunc->GetParError(paryieldSecPeak)/hMassForFit[iPt]->GetBinWidth(1);
+                double meansecondpeak = fTotFunc->GetParameter(parMeansecondpeak);
+                double meansecondpeakerr = fTotFunc->GetParError(parMeansecondpeak);
+                double sigmasecondpeak = fTotFunc->GetParameter(parSigmasecondpeak);
+                double sigmasecondpeakerr = fTotFunc->GetParError(parSigmasecondpeak);
 
-                double bkgsecpeak = fBkgFunc->Integral(meansecondpeak-3*sigmasecondpeak,meansecondpeak+3*sigmasecondpeak)/hMassForFit[iPt]->GetBinWidth(1);
-                double bkgsecpeakerr = TMath::Sqrt(bkgsecpeak);
-                double signalsecpeak = fTotFunc->Integral(meansecondpeak-3*sigmasecondpeak,meansecondpeak+3*sigmasecondpeak)/hMassForFit[iPt]->GetBinWidth(1)-bkgsecpeak;
-                double signalsecpeakerr = TMath::Sqrt(signalsecpeak+bkgsecpeak);
-                double signifsecpeak = -1., signifsecpeakerr = -1.;
-                AliVertexingHFUtils::ComputeSignificance(signalsecpeak,signalsecpeakerr,bkgsecpeak,bkgsecpeakerr,signifsecpeak,signifsecpeakerr);
+                double bkgSecPeak = fBkgFunc->Integral(meansecondpeak-3*sigmasecondpeak,meansecondpeak+3*sigmasecondpeak)/hMassForFit[iPt]->GetBinWidth(1);
+                double bkgSecPeakerr = TMath::Sqrt(bkgSecPeak);
+                double signalSecPeak = fTotFunc->Integral(meansecondpeak-3*sigmasecondpeak,meansecondpeak+3*sigmasecondpeak)/hMassForFit[iPt]->GetBinWidth(1)-bkgSecPeak;
+                double signalSecPeakerr = TMath::Sqrt(signalSecPeak+bkgSecPeak);
+                double signifSecPeak = -1., signifSecPeakerr = -1.;
+                AliVertexingHFUtils::ComputeSignificance(signalSecPeak,signalSecPeakerr,bkgSecPeak,bkgSecPeakerr,signifSecPeak,signifSecPeakerr);
 
-                hRawYieldsSecondPeak->SetBinContent(iPt+1,rawyieldsecpeak);
-                hRawYieldsSecondPeak->SetBinError(iPt+1,rawyieldsecpeakerr);
+                hRawYieldsSecondPeak->SetBinContent(iPt+1,rawyieldSecPeak);
+                hRawYieldsSecondPeak->SetBinError(iPt+1,rawyieldSecPeakerr);
                 hRawYieldsMeanSecondPeak->SetBinContent(iPt+1,meansecondpeak);
                 hRawYieldsMeanSecondPeak->SetBinError(iPt+1,meansecondpeakerr);
                 hRawYieldsSigmaSecondPeak->SetBinContent(iPt+1,sigmasecondpeak);
                 hRawYieldsSigmaSecondPeak->SetBinError(iPt+1,sigmasecondpeakerr);
-                hRawYieldsSignificanceSecondPeak->SetBinContent(iPt+1,signifsecpeak);
-                hRawYieldsSignificanceSecondPeak->SetBinError(iPt+1,signifsecpeakerr);
+                hRawYieldsSignificanceSecondPeak->SetBinContent(iPt+1,signifSecPeak);
+                hRawYieldsSignificanceSecondPeak->SetBinError(iPt+1,signifSecPeakerr);
                 hRawYieldsSigmaRatioSecondFirstPeak->SetBinContent(iPt+1,sigmasecondpeak/sigma);
                 hRawYieldsSigmaRatioSecondFirstPeak->SetBinError(iPt+1,TMath::Sqrt(sigmaerr*sigmaerr/(sigma*sigma)+sigmasecondpeakerr*sigmasecondpeakerr/(sigmasecondpeak*sigmasecondpeak))*sigmasecondpeak/sigma); //neglected correlation between parameters
-                hRawYieldsSoverBSecondPeak->SetBinContent(iPt+1,signalsecpeak/bkgsecpeak);
-                hRawYieldsSoverBSecondPeak->SetBinError(iPt+1,signalsecpeak/bkgsecpeak*TMath::Sqrt(signalsecpeakerr/signalsecpeak*signalsecpeakerr/signalsecpeak+bkgsecpeakerr/bkgsecpeak*bkgsecpeakerr/bkgsecpeak));
-                hRawYieldsSignalSecondPeak->SetBinContent(iPt+1,signalsecpeak);
-                hRawYieldsSignalSecondPeak->SetBinError(iPt+1,signalsecpeakerr);
-                hRawYieldsBkgSecondPeak->SetBinContent(iPt+1,bkgsecpeak);
-                hRawYieldsBkgSecondPeak->SetBinError(iPt+1,bkgsecpeakerr);
+                hRawYieldsSoverBSecondPeak->SetBinContent(iPt+1,signalSecPeak/bkgSecPeak);
+                hRawYieldsSoverBSecondPeak->SetBinError(iPt+1,signalSecPeak/bkgSecPeak*TMath::Sqrt(signalSecPeakerr/signalSecPeak*signalSecPeakerr/signalSecPeak+bkgSecPeakerr/bkgSecPeak*bkgSecPeakerr/bkgSecPeak));
+                hRawYieldsSignalSecondPeak->SetBinContent(iPt+1,signalSecPeak);
+                hRawYieldsSignalSecondPeak->SetBinError(iPt+1,signalSecPeakerr);
+                hRawYieldsBkgSecondPeak->SetBinContent(iPt+1,bkgSecPeak);
+                hRawYieldsBkgSecondPeak->SetBinError(iPt+1,bkgSecPeakerr);
             }
 
             if(nPtBins>1)
@@ -421,7 +421,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     }
 
     //save output histos
-    TFile outFile(outFileName.Data(),"RECREATE");
+    TFile outFile(outFileName.Data(),"recreate");
     cMass->Write();
     if(!isMC)
         cResiduals->Write();
