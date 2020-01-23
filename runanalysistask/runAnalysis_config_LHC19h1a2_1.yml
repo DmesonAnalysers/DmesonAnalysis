@@ -5,8 +5,8 @@ system: Upgr
 datadir: /alice/sim/2019/LHC19h1a2_1
 datapattern: AOD
 gridworkdir: DsITS3
-splitmaxinputfilenum: 21
-AliPhysicVersion: vAN-20200121_ROOT6-1
+splitmaxinputfilenum: 2
+AliPhysicVersion: vAN-20200122_ROOT6-1
 runs: [246392]
 
 improver:
