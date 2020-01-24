@@ -22,6 +22,9 @@ python3 MergeTrainOutputs.py files_to_merge.yml
 ```
 where ```files_to_merge.yml``` is the configuration file containing the information about the outputs that has to be merged such as [files_to_merge_LHC18q.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/merge/files_to_merge_LHC18q.yml)
 
+## Machine Learning analsyis for D-meson candidate selections
+*This has to be added*
+
 ## Main analysis with THnSparses
 
 ### Pre-filter ThnSparses
@@ -74,7 +77,7 @@ root -l GetRawYieldsDplusDs.C+(int cent, bool isMC = false, TString infilename =
 ```python
 python3 GetRawYieldsDplusDs.py config_Fit.yml centName distributions.root output.root
 ```
-where ```distributions.root``` is the file obtained projecting the data or MC THnSparse and ```config_Fit.yml``` is a configuration file with the inputs needed to perform the invariant-mass fits such as [config_Ds_Fit.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/config_Ds_Fit.yml) and ```output.root``` is the name of the output ```.root``` file name. In case of the python script, the ```--isMC``` option can be used to specify if the input distributions are from MC simulations and the ```--batch``` option can be used to execute the script in batch mode.
+where ```distributions.root``` is the file obtained projecting the data or MC THnSparse and ```config_Fit.yml``` is a configuration file with the inputs needed to perform the invariant-mass fits such as [config_Ds_Fit.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/fit/config_Ds_Fit.yml) and ```output.root``` is the name of the output ```.root``` file name. In case of the python script, the ```--isMC``` option can be used to specify if the input distributions are from MC simulations and the ```--batch``` option can be used to execute the script in batch mode.
 
 ### Efficiency-times-acceptance computation
 The efficiency-times-acceptance computation is done in two steps:
@@ -94,6 +97,7 @@ where ```effFileName.root``` is the file with the efficiencies computed in the p
 
 both can be run with the ```--batch``` argument to avoid the canvas window
 
+## Standard analysis with theory-driven prompt fraction evaluation
 ### Cross section
 
 * For the computation of the cross section, a modified version of [HFPtSpectrum.C](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/macros/HFPtSpectrum.C) present in this repository, is used:
@@ -111,7 +115,15 @@ both can be run with the ```--batch``` argument to avoid the canvas window
 ```sh
 sh RunFullAnalysis.sh
 ```
-can be used by setting some hard-coded parameters 
+can be used by setting some hard-coded parameters
+
+## Analysis with data-driven evaluation of prompt / feed-down fraction
+* The evaluation of the prompt / feed-down fractions can be performed with the *cut-variation* method with the script:
+
+```python
+python3 ComputeCutVarPromptFrac.py cfgFileName.yml outFileName.root
+```
+where ```cfgFileName.yml``` is a configuration file such as [config_Dplus_PromptFrac_pp5TeV.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/datadrivenfprompt/config_Dplus_PromptFrac_pp5TeV.yml)). The method requires several raw yields and efficiency files obtained with different topological selections applied to enrich/reduce the prompt or the feed-down contribution.
 
 ## Significance optimisation
 
@@ -150,7 +162,7 @@ Once the configuration files are created they can be used to repeat the main ana
 root -l RawYieldSystematics.C+(TString outfilerawname = "output.root")
 ```
 
-## Test and validation of code for production of trees ([AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx))
+## Test and validation of alternative code for production of TTrees ([AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx))
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```runanalysistask``` folder
 
 * To run the [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx) on the same files:
