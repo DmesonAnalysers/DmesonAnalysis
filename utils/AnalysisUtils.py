@@ -105,8 +105,48 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     return mCorrYield, mCovariance
 
 
+def GetPromptFDFractionFc(accEffPrompt, accEffFD, sigmaPrompt, sigmaFD, raaPrompt, raaFD):
+    '''
+    Parameters
+    ----------
+
+    - accEffPrompt: efficiency times acceptance of prompt D
+    - accEffFD: efficiency times acceptance of feed-down D
+    - sigmaPrompt: list of production cross sections (cent, min, max) of prompt D in pp collisions from theory
+    - sigmaFD: list of production cross sections (cent, min, max) of feed-down D in pp collisions from theory
+    - raaPrompt: list of nuclear modification factors (cent, min, max) of prompt D from theory
+    - raaFD: list of nuclear modification factors of (cent, min, max) feed-down D from theory
+
+    Returns
+    ----------
+
+    - fracPrompt: list of fraction of prompt D (cent, min, max)
+    - fracFD: list of fraction of feed-down D (cent, min, max)
+    '''
+    if not isinstance(sigmaPrompt, list):
+        sigmaPrompt = [sigmaPrompt]
+    if not isinstance(sigmaFD, list):
+        sigmaFD = [sigmaFD]
+
+    fracPrompt, fracFD = [], []
+    for iSigma, (sigmaF, sigmaP) in enumerate(zip(sigmaPrompt, sigmaFD)):
+        for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
+            if iSigma == 0 and iRaa == 0:
+                fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
+                fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
+            else:
+                fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
+                fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
+    fracPrompt.sort()
+    fracFD.sort()
+    fracPrompt = [fracPromptCent, fracPrompt[0], fracPrompt[-1]]
+    fracFD = [fracFDCent, fracFD[0], fracFD[-1]]
+    
+    return fracPrompt, fracFD
+
+
 def SingleGaus(x, par):
-    """
+    '''
     Gaussian function
 
     Parameters
@@ -117,12 +157,12 @@ def SingleGaus(x, par):
         par[0]: normalisation
         par[1]: mean
         par[2]: sigma
-    """
+    '''
     return par[0]*TMath.Gaus(x[0], par[1], par[2], True)
 
 
 def DoubleGaus(x, par):
-    """
+    '''
     Sum of two Gaussian functions with same mean and different sigma
 
     Parameters
@@ -135,14 +175,14 @@ def DoubleGaus(x, par):
         par[2]: first sigma
         par[3]: second sigma
         par[4]: fraction of integral in second Gaussian
-    """
+    '''
     firstGaus = TMath.Gaus(x[0], par[1], par[2], True)
     secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
     return par[0] * ((1-par[4])*firstGaus + par[4]*secondGaus)
 
 
 def DoublePeakSingleGaus(x, par):
-    """
+    '''
     Sum of two Gaussian functions with different mean and sigma
 
     Parameters
@@ -156,14 +196,14 @@ def DoublePeakSingleGaus(x, par):
         par[3]: normalisation second peak
         par[4]: mean second peak
         par[5]: sigma second peak
-    """
+    '''
     firstGaus = par[0]*TMath.Gaus(x[0], par[1], par[2], True)
     secondGaus = par[3]*TMath.Gaus(x[0], par[4], par[5], True)
     return firstGaus + secondGaus
 
 
 def DoublePeakDoubleGaus(x, par):
-    """
+    '''
     Sum of a double Gaussian function and a single Gaussian function
 
     Parameters
@@ -179,7 +219,7 @@ def DoublePeakDoubleGaus(x, par):
         par[5]: normalisation second peak
         par[6]: mean second peak
         par[7]: sigma second peak
-    """
+    '''
     firstGaus = TMath.Gaus(x[0], par[1], par[2], True)
     secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
     thirdGaus = par[5]*TMath.Gaus(x[0], par[6], par[7], True)
