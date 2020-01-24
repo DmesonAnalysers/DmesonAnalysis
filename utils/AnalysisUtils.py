@@ -123,10 +123,14 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, sigmaPrompt, sigmaFD, raaPromp
     - fracPrompt: list of fraction of prompt D (cent, min, max)
     - fracFD: list of fraction of feed-down D (cent, min, max)
     '''
-    if not isinstance(sigmaPrompt, list):
+    if not isinstance(sigmaPrompt, list) and isinstance(sigmaPrompt, float):
         sigmaPrompt = [sigmaPrompt]
-    if not isinstance(sigmaFD, list):
-        sigmaFD = [sigmaFD]
+    if not isinstance(sigmaFD, list) and isinstance(sigmaPrompt, float):
+        sigmaFD = [sigmaFD, sigmaFD, sigmaFD]
+    if not isinstance(raaPrompt, list) and isinstance(raaPrompt, float):
+        raaPrompt = [raaPrompt, raaPrompt, raaPrompt]
+    if not isinstance(raaFD, list) and isinstance(raaFD, float):
+        raaFD = [raaFD, raaFD, raaFD]
 
     fracPrompt, fracFD = [], []
     for iSigma, (sigmaF, sigmaP) in enumerate(zip(sigmaPrompt, sigmaFD)):
@@ -137,11 +141,16 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, sigmaPrompt, sigmaFD, raaPromp
             else:
                 fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
                 fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
-    fracPrompt.sort()
-    fracFD.sort()
-    fracPrompt = [fracPromptCent, fracPrompt[0], fracPrompt[-1]]
-    fracFD = [fracFDCent, fracFD[0], fracFD[-1]]
-    
+
+    if fracPrompt and fracFD:
+        fracPrompt.sort()
+        fracFD.sort()
+        fracPrompt = [fracPromptCent, fracPrompt[0], fracPrompt[-1]]
+        fracFD = [fracFDCent, fracFD[0], fracFD[-1]]
+    else:
+        fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
+        fracFD = [fracFDCent, fracFDCent, fracFDCent]
+
     return fracPrompt, fracFD
 
 
