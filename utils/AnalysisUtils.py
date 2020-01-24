@@ -105,8 +105,124 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     return mCorrYield, mCovariance
 
 
+def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt, raaFD):
+    '''
+    Parameters
+    ----------
+
+    - accEffPrompt: efficiency times acceptance of prompt D
+    - accEffFD: efficiency times acceptance of feed-down D
+    - crossSecPrompt: list of production cross sections (cent, min, max) of prompt D in pp collisions from theory
+    - crossSecFD: list of production cross sections (cent, min, max) of feed-down D in pp collisions from theory
+    - raaPrompt: list of nuclear modification factors (cent, min, max) of prompt D from theory
+    - raaFD: list of nuclear modification factors of (cent, min, max) feed-down D from theory
+
+    Returns
+    ----------
+
+    - fracPrompt: list of fraction of prompt D (cent, min, max)
+    - fracFD: list of fraction of feed-down D (cent, min, max)
+    '''
+    if not isinstance(crossSecPrompt, list) and isinstance(crossSecPrompt, float):
+        crossSecPrompt = [crossSecPrompt]
+    if not isinstance(crossSecFD, list) and isinstance(crossSecPrompt, float):
+        crossSecFD = [crossSecFD, crossSecFD, crossSecFD]
+    if not isinstance(raaPrompt, list) and isinstance(raaPrompt, float):
+        raaPrompt = [raaPrompt, raaPrompt, raaPrompt]
+    if not isinstance(raaFD, list) and isinstance(raaFD, float):
+        raaFD = [raaFD, raaFD, raaFD]
+
+    fracPrompt, fracFD = [], []
+    for iSigma, (sigmaF, sigmaP) in enumerate(zip(crossSecPrompt, crossSecFD)):
+        for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
+            if iSigma == 0 and iRaa == 0:
+                fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
+                fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
+            else:
+                fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
+                fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
+
+    if fracPrompt and fracFD:
+        fracPrompt.sort()
+        fracFD.sort()
+        fracPrompt = [fracPromptCent, fracPrompt[0], fracPrompt[-1]]
+        fracFD = [fracFDCent, fracFD[0], fracFD[-1]]
+    else:
+        fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
+        fracFD = [fracFDCent, fracFDCent, fracFDCent]
+
+    return fracPrompt, fracFD
+
+
+# pylint: disable=too-many-arguments
+def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, BR, nEvents, \
+    sigmaMB, raaRatio=1., taa=1., ppRef=1.):
+    '''
+    Method to get fraction of prompt / FD fraction with Nb method
+
+    Parameters
+    ----------
+
+    - accEffSame: efficiency times acceptance of prompt (feed-down) D
+    - accEffOther: efficiency times acceptance of feed-down (prompt) D
+    - crossSec: list of production cross sections (cent, min, max) of feed-down (prompt)
+      D in pp collisions from theory
+    - deltaPt: width of pT interval
+    - deltaY: width of Y interval
+    - BR: branching ratio for the chosen decay channel
+    - nEvents: number of events corresponding to the raw yields
+    - sigmaMB: MB cross section (=1 for p-Pb and Pb-Pb)
+    - raaRatio: list of D nuclear modification factor ratios
+      feed-down / prompt (prompt / feed-down) (cent, min, max) (=1 in case of pp)
+    - taa: average nuclear overlap function (=1 in case of pp)
+    - ppRef: value of pp reference for prompt (feed-down) D (=1 in case of pp)
+
+    Returns
+    ----------
+
+    - frac: list of fraction of prompt (feed-down) D (cent, min, max)
+    '''
+    if not isinstance(crossSec, list) and isinstance(crossSec, float):
+        crossSec = [crossSec, crossSec, crossSec]
+
+    if not isinstance(raaRatio, list) and isinstance(raaRatio, float):
+        raaRatio = [raaRatio, raaRatio, raaRatio]
+
+    frac = []
+    for iSigma, sigma in enumerate(crossSec):
+        for iRaaRatio, raaRat in enumerate(raaRatio):
+            raaOther = 1.
+            if iSigma == 0 and iRaaRatio == 0:
+                if raaRat == 1. and ppRef == 1. and taa == 1.: #pp
+                    fracCent = 1 - sigma * deltaPt * deltaY * accEffOther * BR * nEvents * 2 / rawYield / sigmaMB
+                else: #p-Pb or Pb-Pb: iterative evaluation of Raa needed
+                    deltaRaa = 1.
+                    while deltaRaa > 1.e-3:
+                        fracCent = 1 - taa * raaRat * raaOther * sigma * \
+                            deltaPt * deltaY * accEffOther * BR * nEvents * 2 / rawYield
+                        raaOtherOld = raaOther
+                        raaOther = fracCent * rawYield * sigmaMB / (2 * accEffSame * deltaPt * deltaY * BR * nEvents)
+                        deltaRaa = abs((raaOther-raaOtherOld) / raaOther)
+
+            else:
+                if raaRat == 1. and ppRef == 1. and taa == 1.: #pp
+                    frac.append(1 - sigma * deltaPt * deltaY * accEffOther * BR * nEvents * 2 / rawYield / sigmaMB)
+                else:
+                    deltaRaa = 1.
+                    fracTmp = 1.
+                    while deltaRaa > 1.e-3:
+                        fracTmp = 1 - taa * raaRat * raaOther * sigma * \
+                            deltaPt * deltaY * accEffOther * BR * nEvents * 2 / rawYield
+                        raaOtherOld = raaOther
+                        raaOther = fracTmp * rawYield * sigmaMB / (2 * accEffSame * deltaPt * deltaY * BR * nEvents)
+                        deltaRaa = abs((raaOther-raaOtherOld) / raaOther)
+                    frac.append(fracTmp)
+
+    return frac
+
+
 def SingleGaus(x, par):
-    """
+    '''
     Gaussian function
 
     Parameters
@@ -117,12 +233,12 @@ def SingleGaus(x, par):
         par[0]: normalisation
         par[1]: mean
         par[2]: sigma
-    """
+    '''
     return par[0]*TMath.Gaus(x[0], par[1], par[2], True)
 
 
 def DoubleGaus(x, par):
-    """
+    '''
     Sum of two Gaussian functions with same mean and different sigma
 
     Parameters
@@ -135,14 +251,14 @@ def DoubleGaus(x, par):
         par[2]: first sigma
         par[3]: second sigma
         par[4]: fraction of integral in second Gaussian
-    """
+    '''
     firstGaus = TMath.Gaus(x[0], par[1], par[2], True)
     secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
     return par[0] * ((1-par[4])*firstGaus + par[4]*secondGaus)
 
 
 def DoublePeakSingleGaus(x, par):
-    """
+    '''
     Sum of two Gaussian functions with different mean and sigma
 
     Parameters
@@ -156,14 +272,14 @@ def DoublePeakSingleGaus(x, par):
         par[3]: normalisation second peak
         par[4]: mean second peak
         par[5]: sigma second peak
-    """
+    '''
     firstGaus = par[0]*TMath.Gaus(x[0], par[1], par[2], True)
     secondGaus = par[3]*TMath.Gaus(x[0], par[4], par[5], True)
     return firstGaus + secondGaus
 
 
 def DoublePeakDoubleGaus(x, par):
-    """
+    '''
     Sum of a double Gaussian function and a single Gaussian function
 
     Parameters
@@ -179,7 +295,7 @@ def DoublePeakDoubleGaus(x, par):
         par[5]: normalisation second peak
         par[6]: mean second peak
         par[7]: sigma second peak
-    """
+    '''
     firstGaus = TMath.Gaus(x[0], par[1], par[2], True)
     secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
     thirdGaus = par[5]*TMath.Gaus(x[0], par[6], par[7], True)
