@@ -1,0 +1,17 @@
+infile:
+    isMC: 0
+    filename: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/data/AnalysisResults_Dspp5TeV_pT_1_50.root]
+    dirname: PWGHF_D2H_InvMassDs_TreeCreator
+    treename: treeMLDs
+
+outfile:
+    dirpath: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/data/ml
+    suffix: _Dspp5TeV
+    treename: treeMLDs
+    
+skimming:
+    pt:
+        min: 1
+        max: 50
+    preselections: null #null if you don't want to apply preselections
+    colstokeep: [] #empty list if you want to keep everything
