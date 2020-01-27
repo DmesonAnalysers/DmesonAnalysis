@@ -1,8 +1,11 @@
 '''
 python script to run basic training and application using the hipe4ml package
-run: python TrainTestMulticlass.py cfgFileName.yml
+run: python TrainTestMulticlass.py cfgFileNameML.yml
 '''
 
+import sys
+import argparse
+import yaml
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
@@ -11,28 +14,31 @@ import matplotlib.pyplot as plt
 from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
 
+# read config file
+parser = argparse.ArgumentParser(description='Arguments to pass')
+parser.add_argument('cfgFileName', metavar='text', default='cfgFileNameML.yml',
+                    help='config file name for ml')
+args = parser.parse_args()
+
+with open(args.cfgFileName, 'r') as ymlCfgFile:
+    inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
+
+PromptDf = pd.read_parquet(inputCfg['input']['prompt'])
+FDDf = pd.read_parquet(inputCfg['input']['FD'])
+DataDf = pd.read_parquet(inputCfg['input']['data'])
+
+LegLabels = inputCfg['output']['leg_labels']
+OutputLabels = inputCfg['output']['out_labels']
+OutPutDir = inputCfg['output']['dir']
+
 # data preparation
 #_____________________________________________
-
-# TODO: change hard coded parameters with parameters set ina config yaml file
-PtMins = [1, 2, 4, 6, 12]
-PtMaxs = [2, 4, 6, 12, 50]
-
-PromptDf = pd.read_parquet('../../AnalysisNonPromptDpp2017/Dplus/MC/LHC18a4a2/Prompt_Dpluspp5TeV_pT_1_50.parquet.gzip')
-FDDf = pd.read_parquet('../../AnalysisNonPromptDpp2017/Dplus/MC/LHC18a4a2/FD_Dpluspp5TeV_pT_1_50.parquet.gzip')
-DataDf = pd.read_parquet('../../AnalysisNonPromptDpp2017/Dplus/Data/LHC17pq/Data_Dpluspp5TeV_pT_1_50.parquet.gzip')
-
-LegLabels = ['Background', r'Prompt D$^+$', r'Feed-down D$^+$']
-OutputLabels = ['Bkg', 'Prompt', 'FD']
-
-OutPutDir = '../../AnalysisNonPromptDpp2017/Dplus/MLoutput'
-
-for (PtMin, PtMax) in zip(PtMins, PtMaxs):
+for (PtMin, PtMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max']):
 
     print('\nStarting ML analysis')
 
     DataDfPtSel = DataDf.query(f'{PtMin} < pt_cand < {PtMax}')
-    BkgDfPtSel = DataDfPtSel.query('inv_mass < 1.82 or 1.92 < inv_mass < 2.00')
+    BkgDfPtSel = DataDfPtSel.query(inputCfg['filtering']['bkg_mass'])
     PromptDfPtSel = PromptDf.query(f'{PtMin} < pt_cand < {PtMax}')
     FDDfPtSel = FDDf.query(f'{PtMin} < pt_cand < {PtMax}')
 
@@ -57,9 +63,9 @@ for (PtMin, PtMax) in zip(PtMins, PtMaxs):
         print(f'Remaining FD candidates ({nFD - nCandToKeep}) will be used for the efficiency together with test set\n')
 
     TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandToKeep].copy(), PromptDfPtSel.iloc[:nCandToKeep].copy(),
-                           FDDfPtSel.iloc[:nCandToKeep].copy()], sort=True)
+                            FDDfPtSel.iloc[:nCandToKeep].copy()], sort=True)
 
-    LabelsArray = [0 for _ in range(nCandToKeep)] + [1 for _ in range(nCandToKeep)] + [2 for _ in range(nCandToKeep)]
+    LabelsArray = [0] * nCandToKeep + [1] * nCandToKeep + [2] * nCandToKeep
 
     TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=0.5, random_state=42)
     TrainTestData = [TrainSet, yTrain, TestSet, yTest]
@@ -69,14 +75,13 @@ for (PtMin, PtMax) in zip(PtMins, PtMaxs):
                                     sort=False)
     FDDfPtSelForEff = pd.concat([FDDfPtSel.iloc[nCandToKeep:].copy(), TestSet[CandTypeFlags.values == 2]], sort=False)
 
-    #remove pT and inv-mass from training columns --> training columns to be set in a config yaml file
-    TrainCols = list(TotDfPtSel.columns)
-    TrainCols.remove('inv_mass')
-    TrainCols.remove('pt_cand')
-
     # training, testing, and model application
     #_____________________________________________
     modelClf = xgb.XGBClassifier()
+    TrainCols = inputCfg['ml']['training_columns']
+    if not TrainCols:
+        print('ERROR: training columns must be defined!')
+        sys.exit()
     ModelHandl = ModelHandler(modelClf, TrainCols)
 
     # hyperparams optimization --> not working with multi-class classification at the moment
@@ -88,9 +93,7 @@ for (PtMin, PtMax) in zip(PtMins, PtMaxs):
     #}
     #ModelHandl.optimize_params_bayes(TrainTestData, HypRanges, None)
 
-    # TODO: change hard coded hyperparameters!
-    HypPars = {'max_depth':3, 'learning_rate':0.12, 'n_estimators':250, 'min_child_weight':5, 'colsample':0.9}
-    ModelHandl.set_model_params(HypPars)
+    ModelHandl.set_model_params(inputCfg['ml']['hyper_par'])
 
     # train and test the model with the updated hyperparameters
     ModelHandl.train_test_model(TrainTestData)
@@ -121,15 +124,15 @@ for (PtMin, PtMax) in zip(PtMins, PtMaxs):
     DataDfPtSel.to_parquet(f'{OutPutDir}/Data_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to data dataframe: Done!')
 
-
-    # TODO: add possibility to save models instead or with the model application
+    # save model handler in pickle
+    #_____________________________________________
+    ModelHandl.dump_model_handler(f'{OutPutDir}/ModelHandler_pT_{PtMin}_{PtMax}.pickle')
 
     # plots
     #_____________________________________________
-    VarsToDraw = list(TotDfPtSel.columns)
-
+    VarsToDraw = inputCfg['ml']['plotting_columns']
     #_____________________________________________
-    FeatDistrFig = plot_utils.plot_distr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, (12, 7), 
+    FeatDistrFig = plot_utils.plot_distr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, (12, 7),
                                          100, True, LegLabels)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(f'{OutPutDir}/DistributionsAll_pT_{PtMin}_{PtMax}.pdf')
