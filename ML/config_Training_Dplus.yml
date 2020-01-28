@@ -4,7 +4,7 @@ input: # files to use
     data: ../../AnalysisNonPromptDpp2017/Dplus/Data/LHC17pq/Data_Dpluspp5TeV_pT_1_50.parquet.gzip
 
 output:
-    leg_labels: ['Background', r'Prompt D$^+$', r'Feed-down D$^+$'] #l egend labels
+    leg_labels: ['Background', 'Prompt D$^+$', 'Feed-down D$^+$'] # legend labels
     out_labels: ['Bkg', 'Prompt', 'FD'] # output labels
     dir: '../../AnalysisNonPromptDpp2017/Dplus/MLoutput' # output dir
 

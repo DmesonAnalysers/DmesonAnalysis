@@ -3,6 +3,7 @@ python script to run basic training and application using the hipe4ml package
 run: python TrainTestMulticlass.py cfgFileNameML.yml
 '''
 
+import os
 import sys
 import argparse
 import yaml
@@ -20,6 +21,7 @@ parser.add_argument('cfgFileName', metavar='text', default='cfgFileNameML.yml',
                     help='config file name for ml')
 args = parser.parse_args()
 
+print('Loading analysis configuration')
 with open(args.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 
@@ -35,7 +37,13 @@ OutPutDir = inputCfg['output']['dir']
 #_____________________________________________
 for (PtMin, PtMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max']):
 
-    print('\nStarting ML analysis')
+    print(f'\n\nStarting ML analysis --- {PtMin} < pT < {PtMax} GeV/c ')
+
+    OutPutDirPt = os.path.join(OutPutDir, f'pt{PtMin}_{PtMax}')
+    if os.path.isdir(OutPutDirPt):
+        print('\nOutput directory already exists, overwrites possibly ongoing!')
+    else:
+        os.mkdir(OutPutDirPt)
 
     DataDfPtSel = DataDf.query(f'{PtMin} < pt_cand < {PtMax}')
     BkgDfPtSel = DataDfPtSel.query(inputCfg['filtering']['bkg_mass'])
@@ -105,7 +113,7 @@ for (PtMin, PtMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['m
     PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
-    PromptDfPtSelForEff.to_parquet(f'{OutPutDir}/Prompt_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to prompt dataframe: Done!')
 
     print('Applying ML model to FD dataframe: ...', end='\r')
@@ -113,7 +121,7 @@ for (PtMin, PtMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['m
     FDDfPtSelForEff = FDDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         FDDfPtSelForEff[f'ML_output_{Lab}'] = yPredFDEff[:, Pred]
-    FDDfPtSelForEff.to_parquet(f'{OutPutDir}/FD_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to FD dataframe: Done!')
 
     print('Applying ML model to data dataframe: ...', end='\r')
@@ -121,12 +129,12 @@ for (PtMin, PtMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['m
     DataDfPtSel = DataDfPtSel.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
-    DataDfPtSel.to_parquet(f'{OutPutDir}/Data_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to data dataframe: Done!')
 
     # save model handler in pickle
     #_____________________________________________
-    ModelHandl.dump_model_handler(f'{OutPutDir}/ModelHandler_pT_{PtMin}_{PtMax}.pickle')
+    ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtMin}_{PtMax}.pickle')
 
     # plots
     #_____________________________________________
@@ -135,7 +143,7 @@ for (PtMin, PtMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['m
     FeatDistrFig = plot_utils.plot_distr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, (12, 7),
                                          100, True, LegLabels)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig(f'{OutPutDir}/DistributionsAll_pT_{PtMin}_{PtMax}.pdf')
+    plt.savefig(f'{OutPutDirPt}/DistributionsAll_pT_{PtMin}_{PtMax}.pdf')
     plt.close('all')
 
     #_____________________________________________
@@ -143,31 +151,31 @@ for (PtMin, PtMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['m
     for Fig, Lab in zip(CorrMatrixFig, OutputLabels):
         plt.figure(Fig.number)
         plt.subplots_adjust(left=0.2, bottom=0.25, right=0.95, top=0.9)
-        Fig.savefig(f'{OutPutDir}/CorrMatrix{Lab}_pT_{PtMin}_{PtMax}.pdf')
+        Fig.savefig(f'{OutPutDirPt}/CorrMatrix{Lab}_pT_{PtMin}_{PtMax}.pdf')
 
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 7)
     MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, True, LegLabels)
     for Fig, Lab in zip(MLOutputFig, OutputLabels):
-        Fig.savefig(f'{OutPutDir}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
+        Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
 
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (8, 7)
     ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], yPredTest, LegLabels)
-    ROCCurveFig.savefig(f'{OutPutDir}/ROCCurveAll_pT_{PtMin}_{PtMax}.pdf')
+    ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAll_pT_{PtMin}_{PtMax}.pdf')
 
     #_____________________________________________
     PrecisionRecallFig = plot_utils.plot_precision_recall(TrainTestData[3], yPredTest, LegLabels)
-    PrecisionRecallFig.savefig(f'{OutPutDir}/PrecisionRecallAll_pT_{PtMin}_{PtMax}.pdf')
+    PrecisionRecallFig.savefig(f'{OutPutDirPt}/PrecisionRecallAll_pT_{PtMin}_{PtMax}.pdf')
 
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (12, 7)
     FeaturesImportanceFig = plot_utils.plot_feature_imp(TrainSet[TrainCols], yTrain, ModelHandl)
     for iFig, Fig in enumerate(FeaturesImportanceFig):
         if iFig < 3:
-            Fig.savefig(f'{OutPutDir}/FeatureImportance{OutputLabels[iFig]}_pT_{PtMin}_{PtMax}.pdf')
+            Fig.savefig(f'{OutPutDirPt}/FeatureImportance{OutputLabels[iFig]}_pT_{PtMin}_{PtMax}.pdf')
         else:
-            Fig.savefig(f'{OutPutDir}/FeatureImportanceAll_pT_{PtMin}_{PtMax}.pdf')
+            Fig.savefig(f'{OutPutDirPt}/FeatureImportanceAll_pT_{PtMin}_{PtMax}.pdf')
 
     # delete dataframes to release memory
     del DataDfPtSel, BkgDfPtSel, PromptDfPtSel, FDDfPtSel, TrainSet, TestSet, yTrain, yTest
