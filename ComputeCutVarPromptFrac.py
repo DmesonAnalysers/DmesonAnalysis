@@ -34,7 +34,7 @@ nSets = len(cutSetCfg['rawyields']['inputfiles'])
 inputDirRaw = cutSetCfg['rawyields']['inputdir']
 inputDirEff = cutSetCfg['efficiencies']['inputdir']
 
-hRawYields, hEffPrompt, hEffFD, hEv = [], [], [], [] 
+hRawYields, hEffPrompt, hEffFD, hEv = [], [], [], []
 for iCutSet, (inFileNameRawYield, inFileNameEff) in enumerate(
         zip(cutSetCfg['rawyields']['inputfiles'], cutSetCfg['efficiencies']['inputfiles'])):
 
@@ -129,16 +129,16 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     hCorrYieldFD.SetBinError(iPt+1, np.sqrt(covMatrixCorrYields.item(1, 1)))
 
     hRawYieldsVsCut.append(TH1F(f'hRawYieldsVsCutPt_pT{ptMin:.0f}_{ptMax:.0f}',
-                                f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;raw yield', 
+                                f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;raw yield',
                                 nSets, 0.5, nSets+0.5))
     hRawYieldsVsCutReSum.append(TH1F(f'hRawYieldsVsCutReSum_pT{ptMin:.0f}_{ptMax:.0f}',
-                                     f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;raw yield', 
+                                     f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;raw yield',
                                      nSets, 0.5, nSets+0.5))
     hRawYieldPromptVsCut.append(TH1F(f'hRawYieldPromptVsCut_pT{ptMin:.0f}_{ptMax:.0f}',
                                      f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;raw yield',
                                      nSets, 0.5, nSets+0.5))
-    hRawYieldFDVsCut.append(TH1F(f'hRawYieldFDVsCut_pT{ptMin:.0f}_{ptMax:.0f}', 
-                                 f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;raw yield', 
+    hRawYieldFDVsCut.append(TH1F(f'hRawYieldFDVsCut_pT{ptMin:.0f}_{ptMax:.0f}',
+                                 f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;raw yield',
                                  nSets, 0.5, nSets+0.5))
     hEffPromptVsCut.append(TH1F(f'hEffPromptVsCut_pT{ptMin:.0f}_{ptMax:.0f}',
                                 f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;efficiency',
@@ -177,8 +177,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
 
             gFDFracFcVsCut.append(TGraphAsymmErrors(nSets))
             gFDFracFcVsCut[iPt].SetNameTitle(
-                 f'gFDFracFcVsCut_pT{ptMin:.0f}_{ptMax:.0f}',
-                 f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;#it{{f}}_{{FD}}')
+                f'gFDFracFcVsCut_pT{ptMin:.0f}_{ptMax:.0f}',
+                f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;#it{{f}}_{{FD}}')
 
             SetObjectStyle(gPromptFracFcVsCut[iPt], color=kRed+3, markerstyle=kOpenCircle)
             SetObjectStyle(gFDFracFcVsCut[iPt], color=kAzure+3, markerstyle=kOpenSquare)
