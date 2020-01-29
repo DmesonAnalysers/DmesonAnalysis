@@ -105,7 +105,7 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     return mCorrYield, mCovariance
 
 
-def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt, raaFD):
+def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt=1., raaFD=1.):
     '''
     Parameters
     ----------
@@ -126,14 +126,14 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
     if not isinstance(crossSecPrompt, list) and isinstance(crossSecPrompt, float):
         crossSecPrompt = [crossSecPrompt]
     if not isinstance(crossSecFD, list) and isinstance(crossSecPrompt, float):
-        crossSecFD = [crossSecFD, crossSecFD, crossSecFD]
+        crossSecFD = [crossSecFD]
     if not isinstance(raaPrompt, list) and isinstance(raaPrompt, float):
-        raaPrompt = [raaPrompt, raaPrompt, raaPrompt]
+        raaPrompt = [raaPrompt]
     if not isinstance(raaFD, list) and isinstance(raaFD, float):
-        raaFD = [raaFD, raaFD, raaFD]
+        raaFD = [raaFD]
 
     fracPrompt, fracFD = [], []
-    for iSigma, (sigmaF, sigmaP) in enumerate(zip(crossSecPrompt, crossSecFD)):
+    for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
         for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
             if iSigma == 0 and iRaa == 0:
                 fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
@@ -183,10 +183,10 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
     - frac: list of fraction of prompt (feed-down) D (cent, min, max)
     '''
     if not isinstance(crossSec, list) and isinstance(crossSec, float):
-        crossSec = [crossSec, crossSec, crossSec]
+        crossSec = [crossSec]
 
     if not isinstance(raaRatio, list) and isinstance(raaRatio, float):
-        raaRatio = [raaRatio, raaRatio, raaRatio]
+        raaRatio = [raaRatio]
 
     frac = []
     for iSigma, sigma in enumerate(crossSec):
@@ -217,6 +217,12 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
                         raaOther = fracTmp * rawYield * sigmaMB / (2 * accEffSame * deltaPt * deltaY * BR * nEvents)
                         deltaRaa = abs((raaOther-raaOtherOld) / raaOther)
                     frac.append(fracTmp)
+
+    if frac:
+        frac.sort()
+        frac = [fracCent, frac[0], frac[-1]]
+    else:
+        frac = [fracCent, fracCent, fracCent]
 
     return frac
 

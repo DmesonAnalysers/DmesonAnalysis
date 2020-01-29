@@ -157,9 +157,9 @@ def SetObjectStyle(obj, **kwargs):
     # line styles
     if 'linecolor' in kwargs:
         if lalpha < 1:
-            obj.SetLineColorAlpha(kwargs['color'], lalpha)
+            obj.SetLineColorAlpha(kwargs['linecolor'], lalpha)
         else:
-            obj.SetLineColor(kwargs['color'])
+            obj.SetLineColor(kwargs['linecolor'])
     else:
         if lalpha < 1:
             obj.SetLineColorAlpha(1, lalpha)
@@ -179,9 +179,9 @@ def SetObjectStyle(obj, **kwargs):
     # marker styles
     if 'markercolor' in kwargs:
         if malpha < 1:
-            obj.SetMarkerColorAlpha(kwargs['color'], malpha)
+            obj.SetMarkerColorAlpha(kwargs['markercolor'], malpha)
         else:
-            obj.SetMarkerColor(kwargs['color'])
+            obj.SetMarkerColor(kwargs['markercolor'])
     else:
         if malpha < 1:
             obj.SetMarkerColorAlpha(1, malpha)
@@ -201,9 +201,9 @@ def SetObjectStyle(obj, **kwargs):
     # fill styles
     if 'fillcolor' in kwargs:
         if falpha < 1:
-            obj.SetFillColorAlpha(kwargs['color'], falpha)
+            obj.SetFillColorAlpha(kwargs['fillcolor'], falpha)
         else:
-            obj.SetFillColor(kwargs['color'])
+            obj.SetFillColor(kwargs['fillcolor'])
 
     if 'fillstyle' in kwargs:
         obj.SetFillStyle(kwargs['fillstyle'])
