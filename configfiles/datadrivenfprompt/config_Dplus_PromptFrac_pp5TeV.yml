@@ -1,8 +1,25 @@
 rawyields:
-    inputfiles: [../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot1.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot3.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot5.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot7.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD0dot9.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD1dot1.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD1dot3.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD1dot5.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_FD1dot7.root]
+    inputdir: ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields
+    inputfiles: [RawYieldsDplus_FD0dot1.root, RawYieldsDplus_FD0dot3.root, RawYieldsDplus_FD0dot5.root, RawYieldsDplus_FD0dot7.root, RawYieldsDplus_FD0dot9.root, RawYieldsDplus_FD1dot1.root, RawYieldsDplus_FD1dot3.root, RawYieldsDplus_FD1dot5.root, RawYieldsDplus_FD1dot7.root]
     histoname: hRawYields
+
 efficiencies:
-    inputfiles: [../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot1.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot3.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot5.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot7.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD0dot9.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD1dot1.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD1dot3.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD1dot5.root, ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffAccDplus_FD1dot7.root]
+    inputdir: ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency
+    inputfiles: [EffAccDplus_FD0dot1.root, EffAccDplus_FD0dot3.root, EffAccDplus_FD0dot5.root, EffAccDplus_FD0dot7.root, EffAccDplus_FD0dot9.root, EffAccDplus_FD1dot1.root, EffAccDplus_FD1dot3.root, EffAccDplus_FD1dot5.root, EffAccDplus_FD1dot7.root]
     histonames:
         prompt: hAccEffPrompt
         feeddown: hAccEffFD
+
+theorydriven:
+    enableFc: false
+    enableNb: true
+    predictions:
+        crosssec: 
+            inputfile: models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
+            histonames: 
+                prompt: hDpluskpipipred
+                feeddown: hDpluskpipifromBpred
+        Raa: null   
+    # below only needed for Nb
+    BR: 0.0898
+    sigmaMB: 50.87e+9
