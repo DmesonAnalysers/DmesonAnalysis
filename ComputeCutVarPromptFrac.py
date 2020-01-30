@@ -7,7 +7,7 @@ import argparse
 import os
 import numpy as np
 import yaml
-from ROOT import TFile, TH1F, TCanvas, TLegend, TGraphAsymmErrors  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TCanvas, TLegend, TGraphAsymmErrors, TLatex  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kGreen, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, GetPromptFDFractionFc, GetFractionNb
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
@@ -33,6 +33,8 @@ if len(cutSetCfg['rawyields']['inputfiles']) != len(cutSetCfg['efficiencies']['i
 nSets = len(cutSetCfg['rawyields']['inputfiles'])
 inputDirRaw = cutSetCfg['rawyields']['inputdir']
 inputDirEff = cutSetCfg['efficiencies']['inputdir']
+
+areCorrSets = cutSetCfg['minimisation']['correlated']
 
 hRawYields, hEffPrompt, hEffFD, hEv = [], [], [], []
 for iCutSet, (inFileNameRawYield, inFileNameEff) in enumerate(
@@ -94,6 +96,12 @@ legFrac.SetFillStyle(0)
 legFrac.SetBorderSize(0)
 legFrac.SetTextSize(0.045)
 
+latInfo = TLatex()
+latInfo.SetNDC()
+latInfo.SetTextSize(0.045)
+latInfo.SetTextFont(42)
+latInfo.SetTextColor(1)
+
 hCorrYieldPrompt = hRawYields[0].Clone('hCorrYieldPrompt')
 hCorrYieldPrompt.SetTitle(';#it{p}_{T} (GeV/#it{c}); #it{N}_{prompt}')
 SetObjectStyle(hCorrYieldPrompt, color=kRed+1, fillcolor=kRed+1, markerstyle=kFullCircle)
@@ -120,8 +128,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     listEffFD = [hEffF.GetBinContent(iPt+1) for hEffF in hEffFD]
     listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD]
 
-    corrYields, covMatrixCorrYields = GetPromptFDYieldsAnalyticMinimisation(\
-        listEffPrompt, listEffFD, listRawYield, listEffPromptUnc, listEffFDUnc, listRawYieldUnc)
+    corrYields, covMatrixCorrYields, chiSquare = GetPromptFDYieldsAnalyticMinimisation(\
+        listEffPrompt, listEffFD, listRawYield, listEffPromptUnc, listEffFDUnc, listRawYieldUnc, areCorrSets)
 
     hCorrYieldPrompt.SetBinContent(iPt+1, corrYields.item(0))
     hCorrYieldPrompt.SetBinError(iPt+1, np.sqrt(covMatrixCorrYields.item(0, 0)))
@@ -288,7 +296,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
             legFrac.SetY1(0.83-deltaY)
 
     cEff.append(TCanvas(f'cEff_pT{ptMin:.0f}_{ptMax:.0f}', '', 800, 800))
-    cEff[iPt].DrawFrame(0.5, 1.e-5, nSets+0.5, 1., ';cut set;efficiency')
+    cEff[iPt].DrawFrame(0.5, 1.e-5, nSets+0.5, 1.,
+                        f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;efficiency')
     cEff[iPt].SetLogy()
     hEffPromptVsCut[iPt].DrawCopy('same')
     hEffFDVsCut[iPt].DrawCopy('same')
@@ -302,6 +311,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     hRawYieldFDVsCut[iPt].DrawCopy('histsame')
     hRawYieldsVsCutReSum[iPt].Draw('same')
     legDistr.Draw()
+    latInfo.DrawLatex(0.42, 0.65, f'#chi^{{2}} / ndf = {chiSquare:.3f}')
 
     cFrac.append(TCanvas(f'cFrac_pT{ptMin:.0f}_{ptMax:.0f}', '', 800, 800))
     cFrac[iPt].DrawFrame(0.5, 0., nSets+0.5, 1.8,

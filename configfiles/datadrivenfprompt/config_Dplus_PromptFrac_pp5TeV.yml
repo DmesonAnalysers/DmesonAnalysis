@@ -1,14 +1,17 @@
 rawyields:
     inputdir: ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields
-    inputfiles: [RawYieldsDplus_FD0dot1.root, RawYieldsDplus_FD0dot3.root, RawYieldsDplus_FD0dot5.root, RawYieldsDplus_FD0dot7.root, RawYieldsDplus_FD0dot9.root, RawYieldsDplus_FD1dot1.root, RawYieldsDplus_FD1dot3.root, RawYieldsDplus_FD1dot5.root, RawYieldsDplus_FD1dot7.root]
+    inputfiles: [ RawYieldsDplus_FD1dot1.root, RawYieldsDplus_FD1dot2.root, RawYieldsDplus_FD1dot3.root, RawYieldsDplus_FD1dot4.root, RawYieldsDplus_FD1dot5.root, RawYieldsDplus_FD1dot6.root, RawYieldsDplus_FD1dot7.root, RawYieldsDplus_FD1dot8.root, RawYieldsDplus_FD1dot9.root, RawYieldsDplus_FD2.root] #RawYieldsDplus_FDminus0dot3.root, RawYieldsDplus_FDminus0dot2.root, RawYieldsDplus_FDminus0dot1.root, RawYieldsDplus_FD0.root, RawYieldsDplus_FD0dot1.root, RawYieldsDplus_FD0dot2.root, RawYieldsDplus_FD0dot3.root, RawYieldsDplus_FD0dot4.root, RawYieldsDplus_FD0dot5.root, RawYieldsDplus_FD0dot6.root, RawYieldsDplus_FD0dot7.root, RawYieldsDplus_FD0dot8.root, RawYieldsDplus_FD0dot9.root, RawYieldsDplus_FD1.root, 
     histoname: hRawYields
 
 efficiencies:
     inputdir: ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency
-    inputfiles: [EffAccDplus_FD0dot1.root, EffAccDplus_FD0dot3.root, EffAccDplus_FD0dot5.root, EffAccDplus_FD0dot7.root, EffAccDplus_FD0dot9.root, EffAccDplus_FD1dot1.root, EffAccDplus_FD1dot3.root, EffAccDplus_FD1dot5.root, EffAccDplus_FD1dot7.root]
+    inputfiles: [EffAccDplus_FD1dot1.root, EffAccDplus_FD1dot2.root, EffAccDplus_FD1dot3.root, EffAccDplus_FD1dot4.root, EffAccDplus_FD1dot5.root, EffAccDplus_FD1dot6.root, EffAccDplus_FD1dot7.root, EffAccDplus_FD1dot8.root, EffAccDplus_FD1dot9.root, EffAccDplus_FD2.root] #EffAccDplus_FDminus0dot3.root, EffAccDplus_FDminus0dot2.root, EffAccDplus_FDminus0dot1.root, EffAccDplus_FD0.root, EffAccDplus_FD0dot1.root, EffAccDplus_FD0dot2.root, EffAccDplus_FD0dot3.root, EffAccDplus_FD0dot4.root, EffAccDplus_FD0dot5.root, EffAccDplus_FD0dot6.root, EffAccDplus_FD0dot7.root, EffAccDplus_FD0dot8.root, EffAccDplus_FD0dot9.root, EffAccDplus_FD1.root,
     histonames:
         prompt: hAccEffPrompt
         feeddown: hAccEffFD
+
+minimisation:
+    correlated: true #true --> fully correlated, false --> fully uncorrelated        
 
 theorydriven:
     enableFc: false
