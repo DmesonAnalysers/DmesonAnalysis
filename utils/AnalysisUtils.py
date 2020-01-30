@@ -33,7 +33,7 @@ def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
 
 
 def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList, \
-    effPromptUncList, effFDUncList, rawYieldUncList, precision=1.e-8, nMaxIter=100):
+    effPromptUncList, effFDUncList, rawYieldUncList, corr=True, precision=1.e-8, nMaxIter=100):
     '''
     method for retrieve prompt and FD corrected yields with an analytic system minimisation
 
@@ -54,17 +54,20 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
 
     - mCorrYield (numpy matrix): corrected yields (Nprompt, NFD)
     - mCovariance (numpy matrix): covariance matrix for corrected yields
+    - redChiSquare (float): reduced chi square
     '''
 
     nCutSets = len(effPromptList)
 
     mRawYield = np.zeros(shape=(nCutSets, 1))
     mEff = np.zeros(shape=(nCutSets, 2))
+    mCovSets = np.zeros(shape=(nCutSets, nCutSets))
     mWeights = np.zeros(shape=(nCutSets, nCutSets))
 
     mCorrYield = np.zeros(shape=(2, 1))
     mCorrYieldOld = np.zeros(shape=(2, 1))
     mCovariance = np.zeros(shape=(2, 2))
+    mRes = np.zeros(shape=(nCutSets, 1))
 
     for iCutSet, (rawYield, effPrompt, effFD) in enumerate(zip(rawYieldList, effPromptList, effFDList)):
         mRawYield.itemset(iCutSet, rawYield)
@@ -77,14 +80,31 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     for iIter in range(nMaxIter):
         #covariances not taken into account in weight matrix at the moment
         if iIter == 0:
-            mCorrYield.itemset(0, 10)
-            mCorrYield.itemset(1, 10000)
-        for iCutSet, (rawYieldUnc, effPromptUnc, effFDUnc) in enumerate(zip(\
-            rawYieldUncList, effPromptUncList, effFDUncList)):
-            mWeights.itemset((iCutSet, iCutSet), \
-                1. / (rawYieldUnc**2 + effPromptUnc**2 * mCorrYield.item(0) + effFDUnc**2 * mCorrYield.item(1)))
+            mCorrYield.itemset(0, 0)
+            mCorrYield.itemset(1, 0)
+        for iCutSetRow, (rawYieldRow, rawYieldUncRow, effPromptUncRow, effFDUncRow) in enumerate(\
+            zip(rawYieldList, rawYieldUncList, effPromptUncList, effFDUncList)):
+            for iCutSetCol, (rawYieldCol, rawYieldUncCol, effPromptUncCol, effFDUncCol) in enumerate(\
+                zip(rawYieldList, rawYieldUncList, effPromptUncList, effFDUncList)):
+                uncRow = np.sqrt(rawYieldUncRow**2 + effPromptUncRow**2 *
+                                 mCorrYield.item(0) + effFDUncRow**2 * mCorrYield.item(1))
+                uncCol = np.sqrt(rawYieldUncCol**2 + effPromptUncCol**2 *
+                                 mCorrYield.item(0) + effFDUncCol**2 * mCorrYield.item(1))
+                if corr and rawYieldRow > 0 and rawYieldCol > 0:
+                    if rawYieldRow < rawYieldCol:
+                        rho = np.sqrt(rawYieldRow/rawYieldCol)
+                    else:
+                        rho = np.sqrt(rawYieldCol/rawYieldRow)
+                else:
+                    if iCutSetRow == iCutSetCol:
+                        rho = 1.
+                    else:
+                        rho = 0.
+                covRowCol = rho * uncRow * uncCol
+                mCovSets.itemset((iCutSetRow, iCutSetCol), covRowCol)
 
-        mWeights = np.matrix(mWeights)
+        mCovSets = np.matrix(mCovSets)
+        mWeights = np.linalg.inv(mCovSets)
         mEffT = np.transpose(mEff)
 
         mCovariance = (mEffT * mWeights) * mEff
@@ -95,6 +115,8 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
             return None, None
 
         mCorrYield = mCovariance * (mEffT * mWeights) * mRawYield
+        mRes = mEff * mCorrYield - mRawYield
+        mResT = np.transpose(mRes)
 
         if (mCorrYield.item(0)-mCorrYieldOld.item(0)) / mCorrYield.item(0) < precision and \
             (mCorrYield.item(1)-mCorrYieldOld.item(1)) / mCorrYield.item(1) < precision:
@@ -102,7 +124,9 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
 
         mCorrYieldOld = np.copy(mCorrYield)
 
-    return mCorrYield, mCovariance
+    redChiSquare = mResT * mWeights * mRes / (nCutSets - 2)
+
+    return mCorrYield, mCovariance, float(redChiSquare)
 
 
 def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt=1., raaFD=1.):
