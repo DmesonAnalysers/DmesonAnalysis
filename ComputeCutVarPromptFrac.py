@@ -82,7 +82,7 @@ if compareToFc or compareToNb:
 
 SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.08, titleoffsetx=1., titleoffsety=1.4, opttitle=1, palette=kRainBow)
 
-legDistr = TLegend(0.4, 0.69, 0.7, 0.89)
+legDistr = TLegend(0.45, 0.69, 0.75, 0.89)
 legDistr.SetFillStyle(0)
 legDistr.SetBorderSize(0)
 legDistr.SetTextSize(0.045)
@@ -322,7 +322,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     hRawYieldFDVsCut[iPt].DrawCopy('histsame')
     hRawYieldsVsCutReSum[iPt].Draw('same')
     legDistr.Draw()
-    latInfo.DrawLatex(0.42, 0.65, f'#chi^{{2}} / ndf = {chiSquare:.3f}')
+    latInfo.DrawLatex(0.47, 0.65, f'#chi^{{2}} / ndf = {chiSquare:.3f}')
 
     cFrac.append(TCanvas(f'cFrac_pT{ptMin:.0f}_{ptMax:.0f}', '', 800, 800))
     cFrac[iPt].DrawFrame(0.5, 0., nSets+0.5, 1.8,
@@ -338,7 +338,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     legFrac.Draw()
 
     cCorrMatrix.append(TCanvas(f'cCorrMatrix_pT{ptMin:.0f}_{ptMax:.0f}', '', 800, 800))
-    cCorrMatrix[-1].cd().SetRightMargin(0.1)
+    cCorrMatrix[-1].cd().SetRightMargin(0.14)
     hCorrMatrixCutSets[iPt].Draw('colz')
 
 nPtBins = hCorrYieldPrompt.GetNbinsX()
