@@ -2,7 +2,7 @@
 Script with helper methods for style settings
 '''
 
-from ROOT import gStyle, TGaxis, gROOT # pylint: disable=import-error,no-name-in-module
+from ROOT import gStyle, TGaxis # pylint: disable=import-error,no-name-in-module
 
 
 # pylint: disable=too-many-branches, too-many-statements
@@ -116,6 +116,9 @@ def SetGlobalStyle(**kwargs):
 
     if 'maxdigits' in kwargs:
         TGaxis.SetMaxDigits(kwargs['maxdigits'])
+    
+    if 'palette' in kwargs:
+        gStyle.SetPalette(kwargs['palette'])
 
 
 def SetObjectStyle(obj, **kwargs):
