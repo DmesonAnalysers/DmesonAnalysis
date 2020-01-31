@@ -7,8 +7,8 @@ import argparse
 import os
 import numpy as np
 import yaml
-from ROOT import TFile, TH1F, TCanvas, TLegend, TGraphAsymmErrors, TLatex  # pylint: disable=import-error,no-name-in-module
-from ROOT import kBlack, kRed, kAzure, kGreen, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex  # pylint: disable=import-error,no-name-in-module
+from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, GetPromptFDFractionFc, GetFractionNb
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
@@ -22,6 +22,7 @@ args = parser.parse_args()
 outFileNameEffPDF = args.outFileName.replace('.root', '_Eff.pdf')
 outFileNameDistrPDF = args.outFileName.replace('.root', '_Distr.pdf')
 outFileNameFracPDF = args.outFileName.replace('.root', '_Frac.pdf')
+outFileNameCorrMatrixPDF = args.outFileName.replace('.root', '_CorrMatrix.pdf')
 
 with open(args.cfgFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
@@ -79,7 +80,7 @@ if compareToFc or compareToNb:
         BR = cutSetCfg['theorydriven']['BR']
         sigmaMB = cutSetCfg['theorydriven']['sigmaMB']
 
-SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.08, titleoffsetx=1., titleoffsety=1.4, opttitle=1)
+SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.08, titleoffsetx=1., titleoffsety=1.4, opttitle=1, palette=kRainBow)
 
 legDistr = TLegend(0.4, 0.69, 0.7, 0.89)
 legDistr.SetFillStyle(0)
@@ -114,6 +115,7 @@ hRawYieldsVsCut, hRawYieldsVsCutReSum, hRawYieldPromptVsCut, hRawYieldFDVsCut, c
 hEffPromptVsCut, hEffFDVsCut, cEff = ([] for _ in range(3))
 hPromptFracVsCut, hFDFracVsCut, gPromptFracFcVsCut, gFDFracFcVsCut, gPromptFracNbVsCut, gFDFracNbVsCut, cFrac = (
     [] for _ in range(7))
+hCorrMatrixCutSets, cCorrMatrix = ([] for _ in range(2))
 
 for iPt in range(hRawYields[0].GetNbinsX()):
     ptMin = hRawYields[0].GetBinLowEdge(iPt+1)
@@ -128,7 +130,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     listEffFD = [hEffF.GetBinContent(iPt+1) for hEffF in hEffFD]
     listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD]
 
-    corrYields, covMatrixCorrYields, chiSquare = GetPromptFDYieldsAnalyticMinimisation(\
+    corrYields, covMatrixCorrYields, chiSquare, matrices = GetPromptFDYieldsAnalyticMinimisation(\
         listEffPrompt, listEffFD, listRawYield, listEffPromptUnc, listEffFDUnc, listRawYieldUnc, areCorrSets)
 
     hCorrYieldPrompt.SetBinContent(iPt+1, corrYields.item(0))
@@ -169,6 +171,15 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     SetObjectStyle(hEffFDVsCut[iPt], color=kAzure+4, markerstyle=kFullSquare)
     SetObjectStyle(hPromptFracVsCut[iPt], color=kRed+1, markerstyle=kFullCircle)
     SetObjectStyle(hFDFracVsCut[iPt], color=kAzure+4, markerstyle=kFullSquare)
+
+    hCorrMatrixCutSets.append(TH2F(f'hCorrMatrixCutSets_pT{ptMin:.0f}_{ptMax:.0f}',
+                                   f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;cut set',
+                                   nSets, 0.5, nSets+0.5, nSets, 0.5, nSets+0.5))
+
+    for iCutSetRow in range(nSets):
+        for iCutSetCol in range(nSets):
+            hCorrMatrixCutSets[iPt].SetBinContent(
+                iCutSetRow+1, iCutSetCol+1, matrices['corrMatrix'].item(iCutSetRow, iCutSetCol))
 
     # cross sections from theory if comparison enabled
     if compareToFc or compareToNb:
@@ -326,6 +337,10 @@ for iPt in range(hRawYields[0].GetNbinsX()):
         gFDFracNbVsCut[iPt].Draw('PZ')
     legFrac.Draw()
 
+    cCorrMatrix.append(TCanvas(f'cCorrMatrix_pT{ptMin:.0f}_{ptMax:.0f}', '', 800, 800))
+    cCorrMatrix[-1].cd().SetRightMargin(0.1)
+    hCorrMatrixCutSets[iPt].Draw('colz')
+
 nPtBins = hCorrYieldPrompt.GetNbinsX()
 cCorrYield = TCanvas('cCorrYield', '', 800, 800)
 cCorrYield.DrawFrame(hCorrYieldPrompt.GetBinLowEdge(1), 1.,
@@ -352,6 +367,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     hEffFDVsCut[iPt].Write()
     hPromptFracVsCut[iPt].Write()
     hFDFracVsCut[iPt].Write()
+    hCorrMatrixCutSets[iPt].Write()
 outFile.Close()
 
 for iPt in range(hRawYields[0].GetNbinsX()):
@@ -359,12 +375,15 @@ for iPt in range(hRawYields[0].GetNbinsX()):
         cEff[iPt].SaveAs(f'{outFileNameEffPDF}[')
         cDistr[iPt].SaveAs(f'{outFileNameDistrPDF}[')
         cFrac[iPt].SaveAs(f'{outFileNameFracPDF}[')
+        cCorrMatrix[iPt].SaveAs(f'{outFileNameCorrMatrixPDF}[')
     cEff[iPt].SaveAs(outFileNameEffPDF)
     cDistr[iPt].SaveAs(outFileNameDistrPDF)
     cFrac[iPt].SaveAs(outFileNameFracPDF)
+    cCorrMatrix[iPt].SaveAs(outFileNameCorrMatrixPDF)
     if iPt == hRawYields[0].GetNbinsX()-1:
         cEff[iPt].SaveAs(f'{outFileNameEffPDF}]')
         cDistr[iPt].SaveAs(f'{outFileNameDistrPDF}]')
         cFrac[iPt].SaveAs(f'{outFileNameFracPDF}]')
+        cCorrMatrix[iPt].SaveAs(f'{outFileNameCorrMatrixPDF}]')
 
 input('Press enter to exit')

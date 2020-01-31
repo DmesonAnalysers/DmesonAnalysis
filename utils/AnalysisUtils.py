@@ -55,6 +55,7 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     - mCorrYield (numpy matrix): corrected yields (Nprompt, NFD)
     - mCovariance (numpy matrix): covariance matrix for corrected yields
     - redChiSquare (float): reduced chi square
+    - dicOfMatrices (dictionary): dictionary with all matrices used in minimisation procedure
     '''
 
     nCutSets = len(effPromptList)
@@ -62,6 +63,7 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     mRawYield = np.zeros(shape=(nCutSets, 1))
     mEff = np.zeros(shape=(nCutSets, 2))
     mCovSets = np.zeros(shape=(nCutSets, nCutSets))
+    mCorrSets = np.zeros(shape=(nCutSets, nCutSets))
     mWeights = np.zeros(shape=(nCutSets, nCutSets))
 
     mCorrYield = np.zeros(shape=(2, 1))
@@ -102,6 +104,7 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
                         rho = 0.
                 covRowCol = rho * uncRow * uncCol
                 mCovSets.itemset((iCutSetRow, iCutSetCol), covRowCol)
+                mCorrSets.itemset((iCutSetRow, iCutSetCol), rho)
 
         mCovSets = np.matrix(mCovSets)
         mWeights = np.linalg.inv(mCovSets)
@@ -124,9 +127,12 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
 
         mCorrYieldOld = np.copy(mCorrYield)
 
+    #reduced chi2
     redChiSquare = mResT * mWeights * mRes / (nCutSets - 2)
+    #dictionary with matrices used in minimisation procedure
+    dicOfMatrices = {'covMatrix':mCovSets, 'weightMatrix':mWeights, 'corrMatrix':mCorrSets}
 
-    return mCorrYield, mCovariance, float(redChiSquare)
+    return mCorrYield, mCovariance, float(redChiSquare), dicOfMatrices
 
 
 def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt=1., raaFD=1.):
