@@ -107,15 +107,13 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
                 mCorrSets.itemset((iCutSetRow, iCutSetCol), rho)
 
         mCovSets = np.matrix(mCovSets)
-        mWeights = np.linalg.inv(mCovSets)
-        mEffT = np.transpose(mEff)
+        mWeights = np.linalg.inv(np.linalg.cholesky(mCovSets))
+        mWeights = mWeights.T * mWeights
+        mEffT = mEff.T
 
         mCovariance = (mEffT * mWeights) * mEff
-        mCovariance = np.linalg.inv(mCovariance)
-        if mCovariance.item(0, 0) < 1.e-36 or mCovariance.item(1, 1) < 1.e-36:
-            print("ERROR: Close to zero or negative diagonal element in covariance matrix:"
-                  "likely inversion failed, cannot proceed!")
-            return None, None
+        mCovariance = np.linalg.inv(np.linalg.cholesky(mCovariance))
+        mCovariance = mCovariance.T * mCovariance
 
         mCorrYield = mCovariance * (mEffT * mWeights) * mRawYield
         mRes = mEff * mCorrYield - mRawYield
