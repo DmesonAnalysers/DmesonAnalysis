@@ -6,12 +6,13 @@ infile:
 
 outfile:
     dirpath: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/data/ml
-    suffix: _Dspp5TeV
+    suffix: _Dspp5TeVNoOutlier
     treename: treeMLDs
     
 skimming:
     pt:
         min: 1
         max: 50
-    preselections: null #null if you don't want to apply preselections
+    preselections: nsigComb_Pi_0 > 0 and nsigComb_Pi_1 > 0 and nsigComb_Pi_2 > 0 and 
+                   nsigComb_K_0 > 0 and nsigComb_K_1 > 0 and nsigComb_K_2 > 0 #null if you don't want to apply preselections
     colstokeep: [] #empty list if you want to keep everything

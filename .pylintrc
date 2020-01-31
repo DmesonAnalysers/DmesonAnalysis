@@ -20,4 +20,4 @@ max-args=10
 max-locals=40
 
 [MESSAGES CONTROL]
-disable=invalid-name
+disable=missing-docstring,invalid-name
