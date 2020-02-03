@@ -83,26 +83,26 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs_FiltTree(double ptmin=1., double ptmax=50
     anacutsval[18][0]=4.;
     anacutsval[19][0]=0.9;
 
-    anacutsval[0][0]=0.25;
-    anacutsval[1][0]=0.4;
-    anacutsval[2][0]=0.4;
-    anacutsval[3][0]=0.;
-    anacutsval[4][0]=0.;
-    anacutsval[5][0]=0.;
-    anacutsval[6][0]=0.04;
-    anacutsval[7][0]=0.02;
-    anacutsval[8][0]=0.;
-    anacutsval[9][0]=0.95;
-    anacutsval[10][0]=0.;
-    anacutsval[11][0]=100000.0;
-    anacutsval[12][0]=0.015;
-    anacutsval[13][0]=0.001;
-    anacutsval[14][0]=0.;
-    anacutsval[15][0]=1.;
-    anacutsval[16][0]=0.;
-    anacutsval[17][0]=0.;
-    anacutsval[18][0]=3.;
-    anacutsval[19][0]=0.9;
+    anacutsval[0][1]=0.25;
+    anacutsval[1][1]=0.4;
+    anacutsval[2][1]=0.4;
+    anacutsval[3][1]=0.;
+    anacutsval[4][1]=0.;
+    anacutsval[5][1]=0.;
+    anacutsval[6][1]=0.04;
+    anacutsval[7][1]=0.02;
+    anacutsval[8][1]=0.;
+    anacutsval[9][1]=0.95;
+    anacutsval[10][1]=0.;
+    anacutsval[11][1]=100000.0;
+    anacutsval[12][1]=0.015;
+    anacutsval[13][1]=0.001;
+    anacutsval[14][1]=0.;
+    anacutsval[15][1]=1.;
+    anacutsval[16][1]=0.;
+    anacutsval[17][1]=0.;
+    anacutsval[18][1]=3.;
+    anacutsval[19][1]=0.9;
  
     anacutsval[12][2]=0.015;
 
