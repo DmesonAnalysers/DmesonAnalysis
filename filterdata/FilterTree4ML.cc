@@ -24,11 +24,12 @@ using std::endl;
 //______________________________________________________________________________________________
 void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
 {
-    const int bitSignal = BIT(0);
-    const int bitBkg    = BIT(1);
-    const int bitPrompt = BIT(2);
-    const int bitFD     = BIT(3);
-    const int bitRefl   = BIT(4);
+    const int bitSignal  = BIT(0);
+    const int bitBkg     = BIT(1);
+    const int bitPrompt  = BIT(2);
+    const int bitFD      = BIT(3);
+    const int bitRefl    = BIT(4);
+    const int bitSecPeak = BIT(4);
 
     //Load configs from yaml file
     YAML::Node config = YAML::LoadFile(cfgFileName.Data());
@@ -91,6 +92,10 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         auto dataFramePtCutSelPromptRefl = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitPrompt, bitRefl));
         cout << "Getting reflected signal dataframe" << endl;
         auto dataFramePtCutSelFDRefl = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitFD, bitRefl));
+        cout << "Getting second-peak prompt dataframe" << endl;
+        auto dataFramePtCutSelSecPeakPrompt = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeak, bitPrompt, bitRefl));
+        cout << "Getting second-peak FD dataframe" << endl;
+        auto dataFramePtCutSelSecPeakFD = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeak, bitFD, bitRefl));
 
         if(*dataFramePtCutSelBkg.Count() > 0)
         {
@@ -116,6 +121,16 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         {
             cout << "Saving FD reflected tree" << endl;
             dataFramePtCutSelFDRefl.Snapshot(outTreeName.data(), Form("%s/FDRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+        }
+        if(*dataFramePtCutSelSecPeakPrompt.Count() > 0)
+        {
+            cout << "Saving prompt tree" << endl;
+            dataFramePtCutSelSecPeakPrompt.Snapshot(outTreeName.data(), Form("%s/SecPeakPrompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+        }
+        if(*dataFramePtCutSelSecPeakFD.Count() > 0)
+        {
+            cout << "Saving FD tree" << endl;
+            dataFramePtCutSelSecPeakFD.Snapshot(outTreeName.data(), Form("%s/SecPeakFD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
     }
     else
