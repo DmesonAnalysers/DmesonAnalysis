@@ -7,9 +7,8 @@ with option --parquet the output files are saved into parquet files instead of r
 import sys
 import argparse
 import yaml
-import uproot
 sys.path.append('..')
-from utils.DfUtils import WriteTree, FilterBitDf #pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.DfUtils import WriteTree, FilterBitDf, LoadDfFromRootOrParquet #pylint: disable=wrong-import-position,import-error,no-name-in-module
 
 
 bitSignal = 0
@@ -17,6 +16,7 @@ bitBkg = 1
 bitPrompt = 2
 bitFD = 3
 bitRefl = 4
+bitSecPeak = 9
 
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('configfile', metavar='text', default='cfgFileName.yml',
@@ -30,8 +30,6 @@ with open(args.configfile, 'r') as ymlCfgFile:
     cfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 
 inFileNames = cfg['infile']['filename']
-if not isinstance(inFileNames, list):
-    inFileNames = [inFileNames]
 inDirName = cfg['infile']['dirname']
 inTreeName = cfg['infile']['treename']
 isMC = cfg['infile']['isMC']
@@ -50,12 +48,7 @@ if colsToKeep and 'pt_cand' not in colsToKeep:
 PtMin = cfg['skimming']['pt']['min']
 PtMax = cfg['skimming']['pt']['max']
 
-for iFile, inFile in enumerate(inFileNames):
-    inTree = uproot.open(inFile)[f'{inDirName}/{inTreeName}']
-    if iFile == 0:
-        dataFrame = inTree.pandas.df()
-    else:
-        dataFrame.append(inTree.pandas.df())
+dataFrame = LoadDfFromRootOrParquet(inFileNames, inDirName, inTreeName)
 
 if not colsToKeep:
     colsToKeep = list(dataFrame.columns)
@@ -83,6 +76,12 @@ if isMC:
     dataFramePtCutSelPromptRefl = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitPrompt, bitRefl], 'and')
     print('Getting reflected signal dataframe')
     dataFramePtCutSelFDRefl = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitFD, bitRefl], 'and')
+    print('Getting second-peak prompt dataframe')
+    dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitPrompt], 'and')
+    dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSelPrompt, 'cand_type', [bitRefl], 'not')
+    print('Getting second-peak FD dataframe')
+    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitFD], 'and')
+    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSelFD, 'cand_type', [bitRefl], 'not')
     del dataFramePtCutSel
 
     if not args.parquet:
@@ -106,6 +105,14 @@ if isMC:
             print('Saving FD refl tree')
             WriteTree(dataFramePtCutSelFDRefl, colsToKeep, outTreeName,
                       f'{outDirName}/FDRefl{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
+        if not dataFramePtCutSelSecPeakPrompt.empty:
+            print('Saving prompt tree')
+            WriteTree(dataFramePtCutSelSecPeakPrompt, colsToKeep, outTreeName,
+                      f'{outDirName}/SecPeakPrompt{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
+        if not dataFramePtCutSelSecPeakFD.empty:
+            print('Saving FD tree')
+            WriteTree(dataFramePtCutSelSecPeakFD, colsToKeep, outTreeName,
+                      f'{outDirName}/SecPeakFD{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
     else:
         if not dataFramePtCutSelBkg.empty:
             print('Saving bkg parquet')
@@ -127,6 +134,14 @@ if isMC:
             print('Saving FD refl parquet')
             dataFramePtCutSelFDRefl[colsToKeep].to_parquet(\
                 f'{outDirName}/FDRefl{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
+        if not dataFramePtCutSelSecPeakPrompt.empty:
+            print('Saving prompt parquet')
+            dataFramePtCutSelSecPeakPrompt[colsToKeep].to_parquet(\
+                f'{outDirName}/SecPeakPrompt{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
+        if not dataFramePtCutSelSecPeakFD.empty:
+            print('Saving FD parquet')
+            dataFramePtCutSelSecPeakFD[colsToKeep].to_parquet(\
+                f'{outDirName}/SecPeakFD{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
 else:
     if not args.parquet:
         print('Saving data tree')
