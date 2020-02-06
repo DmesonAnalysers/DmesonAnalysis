@@ -1,4 +1,9 @@
+'''
+Script with utils methods for managment and operations on pandas dataframes
+'''
+
 import numpy as np
+import pandas as pd
 import uproot
 
 
@@ -75,3 +80,50 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
     dfFilt = dfToFilter[flags.values]
 
     return dfFilt
+
+
+def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
+    '''
+    Helper method to load a pandas dataframe from either root or parquet files
+
+    Arguments
+    ----------
+
+    - input file name of list of input file names
+    - input dir name of list of input dir names (needed only in case of root files)
+
+    Returns
+    ----------
+    - loaded pandas dataframe
+    '''
+
+    if not isinstance(inFileNames, list):
+        inFileNames = [inFileNames]
+    if not isinstance(inDirNames, list):
+        inDirName = inDirNames
+        inDirNames = []
+        for _, _ in enumerate(inFileNames):
+            inDirNames.append(inDirName)
+    if not isinstance(inTreeNames, list):
+        inTreeName = inTreeNames
+        inTreeNames = []
+        for _, _ in enumerate(inFileNames):
+            inTreeNames.append(inTreeName)
+
+    for iFile, (inFile, inDir, inTree) in enumerate(zip(inFileNames, inDirNames, inTreeNames)):
+        if '.root' in inFile:
+            inTree = uproot.open(inFile)[f'{inDir}/{inTree}']
+            if iFile == 0:
+                dfOut = inTree.pandas.df()
+            else:
+                dfOut.append(inTree.pandas.df())
+        elif '.parquet' in inFile:
+            if iFile == 0:
+                dfOut = pd.read_parquet(inFile)
+            else:
+                dfOut.append(pd.read_parquet(inFile))
+        else:
+            print('ERROR: only root or parquet files are supported! Returning empty dataframe')
+            return pd.DataFrame()
+
+    return dfOut
