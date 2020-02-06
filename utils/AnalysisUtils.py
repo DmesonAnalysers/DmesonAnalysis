@@ -3,11 +3,11 @@ Script with miscellanea utils methods for the analysis
 '''
 
 import numpy as np
-from ROOT import TH1F, TMath # pylint: disable=import-error,no-name-in-module
+from ROOT import TH1F, TF1, TMath # pylint: disable=import-error,no-name-in-module
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
-    method to compute efficiency
+    Method to compute efficiency
 
     Parameters
     ----------
@@ -32,10 +32,11 @@ def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     return hTmpNum.GetBinContent(1), hTmpNum.GetBinError(1)
 
 
+# pylint: disable=too-many-locals
 def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList, \
     effPromptUncList, effFDUncList, rawYieldUncList, corr=True, precision=1.e-8, nMaxIter=100):
     '''
-    method for retrieve prompt and FD corrected yields with an analytic system minimisation
+    Method to retrieve prompt and FD corrected yields with an analytic system minimisation
 
     Parameters
     ----------
@@ -135,6 +136,8 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
 
 def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt=1., raaFD=1.):
     '''
+    Method to get fraction of prompt / FD fraction with fc method
+
     Parameters
     ----------
 
@@ -182,7 +185,7 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
     return fracPrompt, fracFD
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments, too-many-branches
 def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, BR, nEvents, \
     sigmaMB, raaRatio=1., taa=1., ppRef=1.):
     '''
@@ -334,4 +337,124 @@ def DoublePeakDoubleGaus(x, par):
     secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
     thirdGaus = par[5]*TMath.Gaus(x[0], par[6], par[7], True)
     return par[0] * ((1-par[4])*firstGaus + par[4]*secondGaus) + thirdGaus
-    
+
+
+def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassSignal=None, mean=-1., sigma=-1.,
+                                hMassSecPeak=None, meanSecPeak=-1., sigmaSecPeak=-1.):
+    '''
+    Helper method to get the expected bkg from side-bands
+
+    Parameters
+    ----------
+
+    - hMassData: invariant-mass histogram from which extract the estimated bkg
+    - bkgFunc: expression for bkg fit function
+    - nSigmaForSB: number of sigmas away from the invariant-mass peak to define SB windows
+    - hMassSignal: invariant-mass histogram for the signal used to get mean and sigma
+                   not needed in case of passed mean and sigma parameters
+    - mean: mean of invariant-mass peak of the signal
+                   not needed in case of passed hMassSignal
+    - sigma: width of invariant-mass peak of the signal
+                   not needed in case of passed hMassSignal
+    - hMassSecPeak: invariant-mass histogram for the second peak (only Ds) used to get meanSecPeak and sigmaSecPeak
+                   not needed in case of passed meanSecPeak and sigmaSecPeak parameters
+    - meanSecPeak: mean of invariant-mass peak of the second peak (only Ds)
+                   not needed in case of passed hMassSecPeak
+    - sigmaSecPeak: width of invariant-mass peak of the second peak (only Ds)
+                   not needed in case of passed hMassSecPeak
+
+    Returns
+    ----------
+
+    - expBkg3s: expected background within 3 sigma from signal peak mean
+    '''
+    if hMassSignal:
+        funcSignal = TF1('funcSignal', SingleGaus, 3, 1.6, 2.2)
+        hMassSignal.Fit('funcSignal', 'Q0')
+        mean = funcSignal.GetParameter(1)
+        sigma = funcSignal.GetParameter(2)
+    if hMassSecPeak:
+        hMassSecPeak.Fit('funcSignal', 'Q0')
+        meanSecPeak = funcSignal.GetParameter(1)
+        meanSecPeak = funcSignal.GetParameter(2)
+
+    for iMassBin in range(1, hMassData.GetNbinsX()+1):
+        massLowLimit = hMassData.GetBinLowEdge(iMassBin)
+        massUpLimit = hMassData.GetBinLowEdge(iMassBin)+hMassData.GetBinWidth(iMassBin)
+
+        if (massLowLimit > mean - nSigmaForSB * sigma and massUpLimit < mean + nSigmaForSB * sigma):
+            hMassData.SetBinContent(iMassBin, 0.)
+            hMassData.SetBinError(iMassBin, 0.)
+        elif meanSecPeak > 0 and sigmaSecPeak > 0:
+            if (massLowLimit > meanSecPeak - nSigmaForSB * sigmaSecPeak and \
+                massUpLimit < meanSecPeak + nSigmaForSB * sigmaSecPeak):
+                hMassData.SetBinContent(iMassBin, 0.)
+                hMassData.SetBinError(iMassBin, 0.)
+
+    funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
+    hMassData.Fit(funcBkg, 'Q')
+    expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+
+    return expBkg3s
+
+
+def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1.):
+    '''
+    Helper method to get the expected bkg from MC
+
+    Parameters
+    ----------
+
+    - hMassBkg: invariant-mass histogram of background
+    - hMassSignal: invariant-mass histogram for the signal used to get mean and sigma
+                   not needed in case of passed mean and sigma parameters
+    - mean: mean of invariant-mass peak of the signal
+                   not needed in case of passed hMassSignal
+    - sigma: width of invariant-mass peak of the signal
+                   not needed in case of passed hMassSignal
+
+    Returns
+    ----------
+
+    - expBkg3s: expected background within 3 sigma from signal peak mean
+    '''
+    if hMassSignal:
+        funcSignal = TF1('funcSignal', SingleGaus, 3, 1.6, 2.2)
+        hMassSignal.Fit('funcSignal', 'Q0')
+        mean = funcSignal.GetParameter(1)
+        sigma = funcSignal.GetParameter(2)
+
+    massBinMin = hMassBkg.GetXaxis().FindBin(mean - 3 * sigma)
+    massBinMax = hMassBkg.GetXaxis().FindBin(mean + 3 * sigma)
+    expBkg3s = hMassBkg.Integral(massBinMin, massBinMax)
+
+    return expBkg3s
+
+
+def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD, nEv, sigmaMB=1, TAA=1, RAA=1):
+    '''
+    Helper method to get expected signal from MC and predictions
+
+    Parameters
+    ----------
+
+    - crossSec: prediction for differential cross section in pp
+    - deltaPt: pT interval
+    - deltaY: Y interval
+    - effTimesAcc: efficiency times acceptance for prompt or feed-down
+    - frac: eiter prompt or feed-down fraction
+    - BR: branching ratio of the decay channel
+    - fracToD: fragmentation fraction
+    - nEv: number of expected events
+    - sigmaMB: hadronic cross section for MB
+    - TAA: average overlap nuclear function
+    - RAA: expected nuclear modification factor
+
+    Returns
+    ----------
+
+    - expected signal
+
+    '''
+
+    return crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
