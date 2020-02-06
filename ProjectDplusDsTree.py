@@ -4,13 +4,11 @@ run: python ProjectDplusDsTree.py cfgFileName.yml cutSetFileName.yml outFileName
 '''
 
 import argparse
-import pandas as pd
 import yaml
-import uproot
 from root_numpy import fill_hist
 from ROOT import TFile, TH1F, TDatabasePDG # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadNormObjFromTask, LoadSparseFromTask
-from utils.DfUtils import FilterBitDf
+from utils.DfUtils import FilterBitDf, LoadDfFromRootOrParquet
 
 
 bitSignal = 0
@@ -31,20 +29,7 @@ args = parser.parse_args()
 with open(args.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 inFileNames = inputCfg['filename']
-if not isinstance(inFileNames, list):
-    inFileNames = [inFileNames]
 isMC = inputCfg['isMC']
-if isMC:
-    inFileTreePromptNames = inputCfg['tree']['filenamePrompt']
-    inFileTreeFDNames = inputCfg['tree']['filenameFD']
-    if not isinstance(inFileTreePromptNames, list):
-        inFileTreePromptNames = [inFileTreePromptNames]
-    if not isinstance(inFileTreeFDNames, list):
-        inFileTreeFDNames = [inFileTreeFDNames]
-else:
-    inFileTreeNames = inputCfg['tree']['filenameAll']
-    if not isinstance(inFileTreeNames, list):
-        inFileTreeNames = [inFileTreeNames]
 
 #define mass binning
 meson = inputCfg['tree']['meson']
@@ -68,8 +53,7 @@ for iPt, _ in enumerate(cutVars['Pt']['min']):
             continue
         if selToApply[iPt] != '':
             selToApply[iPt] += ' & '
-        selToApply[iPt] += '{0}<{1}<{2}'.format(cutVars[varName]['min'][iPt], \
-            cutVars[varName]['name'], cutVars[varName]['max'][iPt])
+        selToApply[iPt] += f"{cutVars[varName]['min'][iPt]}<{cutVars[varName]['name']}<{cutVars[varName]['max'][iPt]}"
 
 # dicts of TH1
 allDict = {'InvMass': [], 'Pt': []}
@@ -97,43 +81,19 @@ for iFile, inFileName in enumerate(inFileNames):
 
 #load trees
 if isMC:
-    for iFile, inFile in enumerate(inFileTreePromptNames): #load prompt trees
-        if '.root' in inFile:
-            print('Loading TTree for prompt from file', inFile)
-            inTree = uproot.open(inFile)['{0}/{1}'.format(inputCfg['tree']['dirname'], inputCfg['tree']['treename'])]
-            if iFile == 0:
-                dataFramePrompt = inTree.pandas.df()
-            else:
-                dataFramePrompt = pd.concat([dataFramePrompt, inTree.pandas.df()])
-        elif '.parquet' in inFile:
-            print('Loading dataframe for prompt from file', inFile)
-            if iFile == 0:
-                dataFramePrompt = pd.read_parquet(inFile)
-            else:
-                dataFramePrompt = pd.concat([dataFramePrompt, pd.read_parquet(inFile)])
+    dataFramePrompt = LoadDfFromRootOrParquet(inputCfg['tree']['filenamePrompt'], inputCfg['tree']['dirname'],
+                                              inputCfg['tree']['treename'])
 
-        if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only FD and not reflected
-            dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
-            dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
+    if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only FD and not reflected
+        dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
+        dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
 
-    for iFile, inFile in enumerate(inFileTreeFDNames): #load FD trees
-        if '.root' in inFile:
-            print('Loading TTree for FD from file', inFile)
-            inTree = uproot.open(inFile)['{0}/{1}'.format(inputCfg['tree']['dirname'], inputCfg['tree']['treename'])]
-            if iFile == 0:
-                dataFrameFD = inTree.pandas.df()
-            else:
-                dataFrameFD = pd.concat([dataFrameFD, inTree.pandas.df()])
-        elif '.parquet' in inFile:
-            print('Loading dataframe for FD from file', inFile)
-            if iFile == 0:
-                dataFrameFD = pd.read_parquet(inFile)
-            else:
-                dataFrameFD = pd.concat([dataFrameFD, pd.read_parquet(inFile)])
+    dataFrameFD = LoadDfFromRootOrParquet(inputCfg['tree']['filenameFD'], inputCfg['tree']['dirname'],
+                                          inputCfg['tree']['treename'])
 
-        if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and not reflected
-            dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
-            dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
+    if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and not reflected
+        dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
+        dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
 
     for iPt, (cuts, ptMin, ptMax) in enumerate(zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max'])):
         print("Projecting distributions for %0.1f < pT < %0.1f GeV/c" % (ptMin, ptMax))
@@ -172,20 +132,9 @@ if isMC:
         hPtFD.Write()
         hInvMassFD.Write()
 else:
-    for iFile, inFile in enumerate(inFileTreeNames):
-        if '.root' in inFile:
-            print('Loading TTree from file', inFile)
-            inTree = uproot.open(inFile)['{0}/{1}'.format(inputCfg['tree']['dirname'], inputCfg['tree']['treename'])]
-            if iFile == 0:
-                dataFrame = inTree.pandas.df()
-            else:
-                dataFrame = pd.concat([dataFrame, inTree.pandas.df()])
-        elif '.parquet' in inFile:
-            print('Loading dataframe from file', inFile)
-            if iFile == 0:
-                dataFrame = pd.read_parquet(inFile)
-            else:
-                dataFrame = pd.concat([dataFrame, pd.read_parquet(inFile)])
+
+    dataFrame = LoadDfFromRootOrParquet(inputCfg['tree']['filenameAll'], inputCfg['tree']['dirname'],
+                                        inputCfg['tree']['treename'])
 
     for iPt, (cuts, ptMin, ptMax) in enumerate(zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max'])):
         print("Projecting distributions for %0.1f < pT < %0.1f GeV/c" % (ptMin, ptMax))
