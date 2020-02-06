@@ -155,7 +155,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs_FiltTree_ITS2(double ptmin=1., double ptm
 
     analysiscuts->PrintAll();
 
-    TFile* fout=new TFile(Form("DstoKKpiCutsITS3_filttree_kAny_consPID_pt%0.f_%0.f_ITS2.root",ptmin,ptmax),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCutsITS2_filttree_kAny_consPID_pt%0.f_%0.f.root",ptmin,ptmax),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
@@ -301,7 +301,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs_FiltTree_ITS3(double ptmin=1., double ptm
 
     analysiscuts->PrintAll();
 
-    TFile* fout=new TFile(Form("DstoKKpiCutsITS3_filttree_kAny_consPID_pt%0.f_%0.f_ITS3.root",ptmin,ptmax),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCutsITS3_filttree_kAny_consPID_pt%0.f_%0.f.root",ptmin,ptmax),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
