@@ -156,7 +156,7 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
     '''
     if not isinstance(crossSecPrompt, list) and isinstance(crossSecPrompt, float):
         crossSecPrompt = [crossSecPrompt]
-    if not isinstance(crossSecFD, list) and isinstance(crossSecPrompt, float):
+    if not isinstance(crossSecFD, list) and isinstance(crossSecFD, float):
         crossSecFD = [crossSecFD]
     if not isinstance(raaPrompt, list) and isinstance(raaPrompt, float):
         raaPrompt = [raaPrompt]
@@ -369,33 +369,36 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
     - expBkg3s: expected background within 3 sigma from signal peak mean
     '''
     if hMassSignal:
-        funcSignal = TF1('funcSignal', SingleGaus, 3, 1.6, 2.2)
+        funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
+        funcSignal.SetParameters(
+            hMassSignal.Integral() * hMassSignal.GetBinWidth(1), hMassSignal.GetMean(), hMassSignal.GetRMS())
         hMassSignal.Fit('funcSignal', 'Q0')
         mean = funcSignal.GetParameter(1)
         sigma = funcSignal.GetParameter(2)
     if hMassSecPeak:
+        funcSignal.SetParameters(
+            hMassSecPeak.Integral() * hMassSecPeak.GetBinWidth(1), hMassSecPeak.GetMean(), hMassSecPeak.GetRMS())
         hMassSecPeak.Fit('funcSignal', 'Q0')
         meanSecPeak = funcSignal.GetParameter(1)
-        meanSecPeak = funcSignal.GetParameter(2)
+        sigmaSecPeak = funcSignal.GetParameter(2)
 
     for iMassBin in range(1, hMassData.GetNbinsX()+1):
         massLowLimit = hMassData.GetBinLowEdge(iMassBin)
-        massUpLimit = hMassData.GetBinLowEdge(iMassBin)+hMassData.GetBinWidth(iMassBin)
+        massUpLimit = hMassData.GetBinLowEdge(iMassBin) + hMassData.GetBinWidth(iMassBin)
 
-        if (massLowLimit > mean - nSigmaForSB * sigma and massUpLimit < mean + nSigmaForSB * sigma):
+        if massLowLimit > mean - nSigmaForSB * sigma and massUpLimit < mean + nSigmaForSB * sigma:
             hMassData.SetBinContent(iMassBin, 0.)
             hMassData.SetBinError(iMassBin, 0.)
         elif meanSecPeak > 0 and sigmaSecPeak > 0:
-            if (massLowLimit > meanSecPeak - nSigmaForSB * sigmaSecPeak and \
-                massUpLimit < meanSecPeak + nSigmaForSB * sigmaSecPeak):
+            if massLowLimit > meanSecPeak - nSigmaForSB * sigmaSecPeak and \
+                massUpLimit < meanSecPeak + nSigmaForSB * sigmaSecPeak:
                 hMassData.SetBinContent(iMassBin, 0.)
                 hMassData.SetBinError(iMassBin, 0.)
 
     funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
     hMassData.Fit(funcBkg, 'Q')
     expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
-
-    return expBkg3s
+    return expBkg3s, hMassData
 
 
 def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1.):
