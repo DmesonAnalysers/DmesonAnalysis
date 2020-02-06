@@ -103,9 +103,29 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs_FiltTree(double ptmin=1., double ptmax=50
     anacutsval[17][1]=0.;
     anacutsval[18][1]=3.;
     anacutsval[19][1]=0.9;
- 
-    anacutsval[12][2]=0.015;
 
+    anacutsval[0][2]=0.25;
+    anacutsval[1][2]=0.4;
+    anacutsval[2][2]=0.4;
+    anacutsval[3][2]=0.;
+    anacutsval[4][2]=0.;
+    anacutsval[5][2]=0.;
+    anacutsval[6][2]=0.04;
+    anacutsval[7][2]=0.02;
+    anacutsval[8][2]=0.;
+    anacutsval[9][2]=0.;
+    anacutsval[10][2]=0.;
+    anacutsval[11][2]=100000.0;
+    anacutsval[12][2]=0.015;
+    anacutsval[13][2]=0.001;
+    anacutsval[14][2]=0.;
+    anacutsval[15][2]=1.;
+    anacutsval[16][2]=0.;
+    anacutsval[17][2]=0.;
+    anacutsval[18][2]=0.;
+    anacutsval[19][2]=0.9;
+ 
+  
     AliRDHFCutsDstoKKpi* analysiscuts=new AliRDHFCutsDstoKKpi();
     analysiscuts->SetName("AnalysisCuts");
     analysiscuts->SetTitle("Cuts for Ds Analysis and CF");
