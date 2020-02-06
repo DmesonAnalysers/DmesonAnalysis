@@ -116,7 +116,7 @@ def SetGlobalStyle(**kwargs):
 
     if 'maxdigits' in kwargs:
         TGaxis.SetMaxDigits(kwargs['maxdigits'])
-    
+
     if 'palette' in kwargs:
         gStyle.SetPalette(kwargs['palette'])
 
