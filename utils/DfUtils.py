@@ -116,12 +116,12 @@ def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
             if iFile == 0:
                 dfOut = inTree.pandas.df()
             else:
-                dfOut.append(inTree.pandas.df())
+                dfOut = dfOut.append(inTree.pandas.df())
         elif '.parquet' in inFile:
             if iFile == 0:
                 dfOut = pd.read_parquet(inFile)
             else:
-                dfOut.append(pd.read_parquet(inFile))
+                dfOut = dfOut.append(pd.read_parquet(inFile))
         else:
             print('ERROR: only root or parquet files are supported! Returning empty dataframe')
             return pd.DataFrame()
