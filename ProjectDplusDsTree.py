@@ -29,6 +29,8 @@ args = parser.parse_args()
 with open(args.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 inFileNames = inputCfg['filename']
+if not isinstance(inFileNames, list):
+    inFileNames = [inFileNames]
 isMC = inputCfg['isMC']
 
 #define mass binning

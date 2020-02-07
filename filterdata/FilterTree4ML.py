@@ -80,7 +80,7 @@ if isMC:
     dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitPrompt], 'and')
     dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSelSecPeakPrompt, 'cand_type', [bitRefl], 'not')
     print('Getting second-peak FD dataframe')
-    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitFD], 'and'])
+    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitFD], 'and')
     dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSelSecPeakFD, 'cand_type', [bitRefl], 'not')
     del dataFramePtCutSel
 

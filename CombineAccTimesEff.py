@@ -3,11 +3,12 @@ Script for the combination of efficiency and acceptance factors
 run: python CombineAccTimesEff.py effFileName.root accFileName.root outFileName.root
 '''
 
-import math
 import argparse
-from ROOT import gROOT, TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
+import numpy as np
+from ROOT import gROOT, TFile, TCanvas, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kFullDiamond, kRed, kAzure, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.AnalysisUtils import ComputeEfficiency
 
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('effFileName', metavar='text', default='')
@@ -33,8 +34,6 @@ hAcc.SetMarkerColor(kBlack)
 hAcc.SetLineColor(kBlack)
 hAcc.SetMarkerStyle(kFullDiamond)
 
-hTmpNum = TH1F('hTmpNum', '', 1, 0, 1)
-hTmpDen = TH1F('hTmpDen', '', 1, 0, 1)
 nPtBins = hEffPrompt.GetNbinsX()
 for iPt in range(nPtBins):
     PtMin = hEffPrompt.GetBinLowEdge(iPt+1)
@@ -42,14 +41,11 @@ for iPt in range(nPtBins):
     PtBinMin = hAccNum.GetXaxis().FindBin(PtMin*1.0001)
     PtBinMax = hAccNum.GetXaxis().FindBin(PtMax*0.9999)
 
-    hTmpNum.SetBinContent(1, hAccNum.Integral(PtBinMin, PtBinMax))
-    hTmpNum.SetBinError(1, math.sqrt(hAccNum.Integral(PtBinMin, PtBinMax)))
-    hTmpDen.SetBinContent(1, hAccDen.Integral(PtBinMin, PtBinMax))
-    hTmpDen.SetBinError(1, math.sqrt(hAccDen.Integral(PtBinMin, PtBinMax)))
-
-    hTmpNum.Divide(hTmpNum, hTmpDen, 1., 1., 'B')
-    hAcc.SetBinContent(iPt+1, hTmpNum.GetBinContent(1))
-    hAcc.SetBinError(iPt+1, hTmpNum.GetBinError(1))
+    acc, accUnc = ComputeEfficiency(hAccNum.Integral(PtBinMin, PtBinMax), hAccDen.Integral(PtBinMin, PtBinMax),
+                                    np.sqrt(hAccNum.Integral(PtBinMin, PtBinMax)),
+                                    np.sqrt(hAccDen.Integral(PtBinMin, PtBinMax)))
+    hAcc.SetBinContent(iPt+1, acc)
+    hAcc.SetBinError(iPt+1, accUnc)
 
 hAccEffPrompt = hEffPrompt.Clone('hAccEffPrompt')
 hAccEffPrompt.Multiply(hAcc)
