@@ -1,11 +1,11 @@
 infiles:
     signal:
         prompt:
-            filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/Prompt_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip
+            filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/Prompt_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip
             dirname: null
             treename: null
         feeddown:
-            filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/FD_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip
+            filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/FD_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip
             dirname: null
             treename: null
     secpeak: # only for Ds
@@ -18,7 +18,7 @@ infiles:
             dirname: null
             treename: null
     background:
-        filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/Data_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip
+        filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/Data_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip
         dirname: null
         treename: null
         nEvents: 900000000 # number of events for bkg in dataframe
@@ -26,16 +26,16 @@ infiles:
         isMC: false # if false bkg from SB
 
     preseleff: 
-        filename: null
+        filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffDplus_Presel.root
         prompthistoname: hEffPrompt
-        effhistoname: hEffFD
-    acceptance: ../accfiles/Acceptance_Toy_DplusKpipi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
+        feeddownhistoname: hEffFD
+    acceptance: ~/cernbox/ALICE_WORK/DmesonAnalysis/accfiles/Acceptance_Toy_DplusKpipi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
 
 ppRefFile: null
 
 predictions:
     crosssec:
-        filename: ../models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
+        filename: ~/cernbox/ALICE_WORK/DmesonAnalysis/models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
         histonames: 
             prompt: hDpluskpipipred
             feeddown: hDpluskpipifromBpred
@@ -55,13 +55,13 @@ ptmax: [3, 4]
 cutvars:
     ML_output_Bkg:
         axisnum: null
-        min: -2.
+        min: -4.
         max: 2.
-        step: 1.
+        step: 0.2
         upperlowercut: Upper
     ML_output_FD:
         axisnum: null
         min: -1.
         max: 2.
-        step: 1.
+        step: 0.1
         upperlowercut: Lower
