@@ -29,7 +29,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     const int bitPrompt  = BIT(2);
     const int bitFD      = BIT(3);
     const int bitRefl    = BIT(4);
-    const int bitSecPeak = BIT(4);
+    const int bitSecPeak = BIT(9);
 
     //Load configs from yaml file
     YAML::Node config = YAML::LoadFile(cfgFileName.Data());

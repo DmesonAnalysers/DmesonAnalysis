@@ -25,7 +25,7 @@ parser.add_argument('--parquet', default=False, action='store_true',
                     help='flag to save output files into parquet files')
 
 args = parser.parse_args()
-
+print('Opening input file')
 with open(args.configfile, 'r') as ymlCfgFile:
     cfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 
@@ -78,10 +78,10 @@ if isMC:
     dataFramePtCutSelFDRefl = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitFD, bitRefl], 'and')
     print('Getting second-peak prompt dataframe')
     dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitPrompt], 'and')
-    dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSelPrompt, 'cand_type', [bitRefl], 'not')
+    dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSelSecPeakPrompt, 'cand_type', [bitRefl], 'not')
     print('Getting second-peak FD dataframe')
-    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitFD], 'and')
-    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSelFD, 'cand_type', [bitRefl], 'not')
+    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitFD], 'and'])
+    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSelSecPeakFD, 'cand_type', [bitRefl], 'not')
     del dataFramePtCutSel
 
     if not args.parquet:
