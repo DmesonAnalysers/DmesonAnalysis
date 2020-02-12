@@ -16,7 +16,7 @@
 //____________________________________________________________________________________________________//
 
 //__________________________________________________________________________________________
-AliRDHFCutsDstoKKpi *MakeFileForCutsDspp5TeV_TreeML(bool fUseStrongPID = false, double maxPtstrongPID = -1.0, bool fIsMC = false)
+AliRDHFCutsDstoKKpi *MakeFileForCutsDspp5TeV_TreeML(bool fIsMC = false, bool fIsQA = false, bool fUseStrongPID = false, double maxPtstrongPID = -1.0)
 {
 
     AliESDtrackCuts *esdTrackCuts = new AliESDtrackCuts();
@@ -91,7 +91,11 @@ AliRDHFCutsDstoKKpi *MakeFileForCutsDspp5TeV_TreeML(bool fUseStrongPID = false, 
     }
 
     AliRDHFCutsDstoKKpi *analysiscuts = new AliRDHFCutsDstoKKpi();
-    analysiscuts->SetName("AnalysisCuts");
+    if (fIsQA)
+        analysiscuts->SetName("DstoKKpiCuts");
+    else
+        analysiscuts->SetName("AnalysisCuts");
+    
     analysiscuts->SetTitle("Cuts for Ds non-prompt analysis");
     analysiscuts->SetPtBins(nptbins + 1, ptbins);
     analysiscuts->SetCuts(nvars, nptbins, anacutsval);
@@ -129,10 +133,13 @@ AliRDHFCutsDstoKKpi *MakeFileForCutsDspp5TeV_TreeML(bool fUseStrongPID = false, 
     TString PIDsuffix = "";
     if (fUseStrongPID)
         PIDsuffix = Form("_strongPIDpt%0.f", maxPtstrongPID);
+    TString QAsuffix = "";
+    if (fIsQA)
+        QAsuffix = "_forQA";
 
     analysiscuts->PrintAll();
     analysiscuts->PrintTrigger();
-    TString filename = Form("DstoKKpiCuts_pp_nonprompt_loose%s_%s.root", PIDsuffix.Data(), triggername.Data());
+    TString filename = Form("DstoKKpiCuts_pp_nonprompt_loose%s_%s%s.root", PIDsuffix.Data(), triggername.Data(), QAsuffix.Data());
     TFile *fout = new TFile(filename.Data(), "recreate");
     fout->cd();
     analysiscuts->Write();
