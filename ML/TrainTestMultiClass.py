@@ -21,15 +21,15 @@ def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pyl
     function for data preparation
     '''
     DataDfPtSel = DataDf.query(f'{PtMin} < pt_cand < {PtMax}')
-    BkgDfPtSel = DataDfPtSel.query(inputCfg['filtering']['bkg_mass'])
+    BkgDfPtSel = DataDfPtSel.query(inputCfg['data_prep']['filt_bkg_mass'])
     PromptDfPtSel = PromptDf.query(f'{PtMin} < pt_cand < {PtMax}')
     FDDfPtSel = FDDf.query(f'{PtMin} < pt_cand < {PtMax}')
 
     nPrompt = len(PromptDfPtSel)
     nFD = len(FDDfPtSel)
     nBkg = len(BkgDfPtSel)
-    print((f'\nNumber of available candidates in {PtMin} < pT < {PtMax} GeV/c:\nPrompt: {nPrompt}'
-           f'\nFD: {nFD}\nBkg: {nBkg}'))
+    print((f'Number of available candidates in {PtMin} < pT < {PtMax} GeV/c:\n     Prompt: {nPrompt}'
+           f'\n     FD: {nFD}\n     Bkg: {nBkg}'))
 
     dataset_opt = inputCfg['data_prep']['dataset_opt']
     seed_split = inputCfg['data_prep']['seed_split']
@@ -38,14 +38,14 @@ def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pyl
     if dataset_opt == 'equal':
 
         nCandToKeep = min([nPrompt, nFD, nBkg])
-        print(('\nKeep same number of prompt, FD, and background (minimum) for training and '
+        print(('Keep same number of prompt, FD, and background (minimum) for training and '
                f'testing ({1 - test_f}-{test_f}): {nCandToKeep}'))
-        print('Fraction of real data candidates used for ML: ', nCandToKeep / nBkg)
+        print(f'Fraction of real data candidates used for ML: {nCandToKeep/nBkg:.5f}')
 
-        if nPrompt > nFD:
+        if nPrompt > nCandToKeep:
             print((f'Remaining prompt candidates ({nPrompt - nCandToKeep})'
                    'will be used for the efficiency together with test set'))
-        elif nFD > nPrompt:
+        if nFD > nCandToKeep:
             print((f'Remaining FD candidates ({nFD - nCandToKeep}) will be used for the '
                    'efficiency together with test set'))
 
@@ -64,12 +64,12 @@ def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pyl
     elif dataset_opt == 'max_signal':
 
         nCandBkg = 2 * (nPrompt + nFD)
-        print((f'\nKeep all prompt and FD and use {nCandBkg} bkg candidates for training and '
+        print((f'Keep all prompt and FD and use {nCandBkg} bkg candidates for training and '
                f'testing ({1 - test_f}-{test_f})'))
         if nCandBkg >= nBkg:
             nCandBkg = nBkg
             print('WARNING: using all bkg available, not good!')
-        print('Fraction of real data candidates used for ML: ', nCandBkg / nBkg)
+        print(f'Fraction of real data candidates used for ML: {nCandBkg/nBkg:.5f}')
 
         TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandBkg], PromptDfPtSel, FDDfPtSel], sort=True)
         LabelsArray = [0] * nCandBkg + [1] * nPrompt + [2] * nFD
@@ -111,10 +111,14 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     '''
     modelClf = xgb.XGBClassifier()
     TrainCols = inputCfg['ml']['training_columns']
-    if not TrainCols:
+    HyperPars = inputCfg['ml']['hyper_par']
+    if not isinstance(TrainCols, list):
         print('ERROR: training columns must be defined!')
         sys.exit()
-    ModelHandl = ModelHandler(modelClf, TrainCols, inputCfg['ml']['hyper_par'])
+    if not isinstance(HyperPars, dict):
+        print('ERROR: hyper-parameters must be defined or be an empty dict!')
+        sys.exit()
+    ModelHandl = ModelHandler(modelClf, TrainCols, HyperPars)
 
     # hyperparams optimization --> not working with multi-class classification at the moment
     #HypRanges = {
@@ -194,21 +198,24 @@ def main():
     parser.add_argument("--apply", help="perform only application", action="store_true")
     args = parser.parse_args()
 
-    print('Loading analysis configuration')
+    print('Loading analysis configuration: ...', end='\r')
     with open(args.cfgFileName, 'r') as ymlCfgFile:
         inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
+    print('Loading analysis configuration: Done!')
 
+    print('Loading data files: ...', end='\r')
     PromptDf = pd.read_parquet(inputCfg['input']['prompt'])
     FDDf = pd.read_parquet(inputCfg['input']['FD'])
     DataDf = pd.read_parquet(inputCfg['input']['data'])
+    print('Loading data files: Done!')
 
     for iBin, (PtMin, PtMax) in enumerate(zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'])):
 
-        print(f'\n\nStarting ML analysis --- {PtMin} < pT < {PtMax} GeV/c ')
+        print(f'\n\033[94mStarting ML analysis --- {PtMin} < pT < {PtMax} GeV/c\033[0m')
 
         OutPutDirPt = os.path.join(inputCfg['output']['dir'], f'pt{PtMin}_{PtMax}')
         if os.path.isdir(OutPutDirPt):
-            print('\nOutput directory already exists, overwrites possibly ongoing!')
+            print('Output directory already exists, overwrites possibly ongoing!')
         else:
             os.mkdir(OutPutDirPt)
 
@@ -224,9 +231,10 @@ def main():
         else:
             ModelList = inputCfg['ml']['saved_models']
             ModelPath = ModelList[iBin]
-            if not isinstance(ModelPath, str()):
+            if not isinstance(ModelPath, str):
                 print(f'ERROR: path to model not correctly defined!')
                 sys.exit()
+            print(f'Loaded saved model: {ModelPath}')
             ModelHandl = ModelHandler()
             ModelHandl.load_model_handler(ModelPath)
 
