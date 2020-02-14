@@ -29,6 +29,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     const int bitPrompt  = BIT(2);
     const int bitFD      = BIT(3);
     const int bitRefl    = BIT(4);
+    const int bitHijing  = BIT(5);
     const int bitSecPeak = BIT(9);
 
     //Load configs from yaml file
@@ -96,6 +97,10 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         auto dataFramePtCutSelSecPeakPrompt = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeak, bitPrompt, bitRefl));
         cout << "Getting second-peak FD dataframe" << endl;
         auto dataFramePtCutSelSecPeakFD = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeak, bitFD, bitRefl));
+        // looking for Hijing events
+        cout << "Getting Hijing signal dataframe" << endl;
+        auto dataFramePtCutSelHijing = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0", bitHijing));
+
 
         if(*dataFramePtCutSelBkg.Count() > 0)
         {
@@ -131,6 +136,11 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         {
             cout << "Saving FD tree" << endl;
             dataFramePtCutSelSecPeakFD.Snapshot(outTreeName.data(), Form("%s/SecPeakFD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+        }
+        if(*dataFramePtCutSelHijing.Count() > 0)
+        {
+            cout << "Saving Hijing tree" << endl;
+            dataFramePtCutSelHijing.Snapshot(outTreeName.data(), Form("%s/Hijing%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
     }
     else
