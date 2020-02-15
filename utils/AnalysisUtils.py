@@ -85,19 +85,19 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
         if iIter == 0:
             mCorrYield.itemset(0, 0)
             mCorrYield.itemset(1, 0)
-        for iCutSetRow, (rawYieldRow, rawYieldUncRow, effPromptUncRow, effFDUncRow) in enumerate(\
-            zip(rawYieldList, rawYieldUncList, effPromptUncList, effFDUncList)):
-            for iCutSetCol, (rawYieldCol, rawYieldUncCol, effPromptUncCol, effFDUncCol) in enumerate(\
-                zip(rawYieldList, rawYieldUncList, effPromptUncList, effFDUncList)):
+        for iCutSetRow, (rawYieldUncRow, effPromptUncRow, effFDUncRow) in enumerate(\
+            zip(rawYieldUncList, effPromptUncList, effFDUncList)):
+            for iCutSetCol, (rawYieldUncCol, effPromptUncCol, effFDUncCol) in enumerate(\
+                zip(rawYieldUncList, effPromptUncList, effFDUncList)):
                 uncRow = np.sqrt(rawYieldUncRow**2 + effPromptUncRow**2 *
                                  mCorrYield.item(0) + effFDUncRow**2 * mCorrYield.item(1))
                 uncCol = np.sqrt(rawYieldUncCol**2 + effPromptUncCol**2 *
                                  mCorrYield.item(0) + effFDUncCol**2 * mCorrYield.item(1))
-                if corr and rawYieldRow > 0 and rawYieldCol > 0:
-                    if rawYieldRow < rawYieldCol:
-                        rho = np.sqrt(rawYieldRow/rawYieldCol)
+                if corr and uncRow > 0 and uncCol > 0:
+                    if uncRow < uncCol:
+                        rho = uncRow / uncCol
                     else:
-                        rho = np.sqrt(rawYieldCol/rawYieldRow)
+                        rho = uncCol / uncRow
                 else:
                     if iCutSetRow == iCutSetCol:
                         rho = 1.
