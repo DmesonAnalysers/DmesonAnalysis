@@ -5,6 +5,7 @@ run: python ComputeCutVarPromptFrac.py cfgFileName.yml outFileName.root
 
 import argparse
 import os
+from itertools import product
 import numpy as np
 import yaml
 from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex  # pylint: disable=import-error,no-name-in-module
@@ -111,6 +112,22 @@ hCorrYieldFD = hRawYields[0].Clone('hCorrYieldFD')
 hCorrYieldFD.SetTitle(';#it{p}_{T} (GeV/#it{c}); #it{N}_{non-prompt}')
 SetObjectStyle(hCorrYieldFD, color=kAzure+4, fillcolor=kAzure+4, markerstyle=kFullSquare)
 
+hCovCorrYields = [[hRawYields[0].Clone('hCovPromptPrompt'), hRawYields[0].Clone('hCovPromptFD')],
+                  [hRawYields[0].Clone('hCovFDPrompt'), hRawYields[0].Clone('hCovFDFD')]]
+for iRow, row in enumerate(hCovCorrYields):
+    for iCol, hCov in enumerate(row):
+        SetObjectStyle(hCov, linecolor=kBlack)
+        if iRow == 0:
+            rowName = '#it{N}_{prompt}'
+        else:
+            rowName = '#it{N}_{non-prompt}'
+        if iCol == 0:
+            colName = '#it{N}_{prompt}'
+        else:
+            colName = '#it{N}_{non-prompt}'
+
+        hCov.SetTitle(f';#it{{p}}_{{T}} (GeV/#it{{c}}); #sigma({rowName}, {colName})')
+
 hRawYieldsVsCut, hRawYieldsVsCutReSum, hRawYieldPromptVsCut, hRawYieldFDVsCut, cDistr = ([] for _ in range(5))
 hEffPromptVsCut, hEffFDVsCut, cEff = ([] for _ in range(3))
 hPromptFracVsCut, hFDFracVsCut, gPromptFracFcVsCut, gFDFracFcVsCut, gPromptFracNbVsCut, gFDFracNbVsCut, cFrac = (
@@ -137,6 +154,9 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     hCorrYieldPrompt.SetBinError(iPt+1, np.sqrt(covMatrixCorrYields.item(0, 0)))
     hCorrYieldFD.SetBinContent(iPt+1, corrYields.item(1))
     hCorrYieldFD.SetBinError(iPt+1, np.sqrt(covMatrixCorrYields.item(1, 1)))
+    for covElem in product(range(2), range(2)):
+        hCovCorrYields[covElem[0]][covElem[1]].SetBinContent(iPt+1, covMatrixCorrYields.item(covElem))
+        hCovCorrYields[covElem[0]][covElem[1]].SetBinError(iPt+1, 0.)
 
     hRawYieldsVsCut.append(TH1F(f'hRawYieldsVsCutPt_pT{ptMin:.0f}_{ptMax:.0f}',
                                 f'{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}};cut set;raw yield',
@@ -355,6 +375,8 @@ outFile = TFile(args.outFileName, 'recreate')
 cCorrYield.Write()
 hCorrYieldPrompt.Write()
 hCorrYieldFD.Write()
+for covElem in product(range(2), range(2)):
+    hCovCorrYields[covElem[0]][covElem[1]].Write()
 for iPt in range(hRawYields[0].GetNbinsX()):
     cDistr[iPt].Write()
     cEff[iPt].Write()
