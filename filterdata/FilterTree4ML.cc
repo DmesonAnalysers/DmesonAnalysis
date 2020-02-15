@@ -98,8 +98,10 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         cout << "Getting second-peak FD dataframe" << endl;
         auto dataFramePtCutSelSecPeakFD = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeak, bitFD, bitRefl));
         // looking for Hijing events
-        cout << "Getting Hijing signal dataframe" << endl;
-        auto dataFramePtCutSelHijing = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0", bitHijing));
+        cout << "Getting HijingFD signal dataframe" << endl;
+        auto dataFramePtCutSelHijingFD = dataFramePtCutSel.Filter(Form("(cand_type & %d ) > 0 && (cand_type & %d) > 0", bitHijing, bitFD));
+        cout << "Getting HijingPrompt signal dataframe" << endl;
+        auto dataFramePtCutSelHijingPrompt = dataFramePtCutSel.Filter(Form("(cand_type & %d ) > 0 && (cand_type & %d) > 0", bitHijing, bitPrompt));
 
 
         if(*dataFramePtCutSelBkg.Count() > 0)
@@ -137,10 +139,15 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
             cout << "Saving FD tree" << endl;
             dataFramePtCutSelSecPeakFD.Snapshot(outTreeName.data(), Form("%s/SecPeakFD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
-        if(*dataFramePtCutSelHijing.Count() > 0)
+        if(*dataFramePtCutSelHijingFD.Count() > 0)
         {
-            cout << "Saving Hijing tree" << endl;
-            dataFramePtCutSelHijing.Snapshot(outTreeName.data(), Form("%s/Hijing%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+            cout << "Saving HijingFD tree" << endl;
+            dataFramePtCutSelHijingFD.Snapshot(outTreeName.data(), Form("%s/HijingFD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+        }
+        if(*dataFramePtCutSelHijingPrompt.Count() > 0)
+        {
+            cout << "Saving HijingPrompt tree" << endl;
+            dataFramePtCutSelHijingPrompt.Snapshot(outTreeName.data(), Form("%s/HijingPrompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
         }
     }
     else
