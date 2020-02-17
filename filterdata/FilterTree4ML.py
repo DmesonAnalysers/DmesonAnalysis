@@ -16,6 +16,7 @@ bitBkg = 1
 bitPrompt = 2
 bitFD = 3
 bitRefl = 4
+bitHijng = 5
 bitSecPeak = 9
 
 parser = argparse.ArgumentParser(description='Arguments')
@@ -82,6 +83,10 @@ if isMC:
     print('Getting second-peak FD dataframe')
     dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitFD], 'and')
     dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSelSecPeakFD, 'cand_type', [bitRefl], 'not')
+    print('Getting Hijing FD dataframe')
+    dataFramePtCutSelHijingFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitHijng, bitFD], 'and'])
+    print('Getting Hijing Prompt dataframe')
+    dataFramePtCutSelHijingPrompt = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitHijng, bitFD], 'and')
     del dataFramePtCutSel
 
     if not args.parquet:
