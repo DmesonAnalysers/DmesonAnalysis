@@ -1,0 +1,15 @@
+isMC: no
+filename: ''
+dirname: PWGHF_D2H_InvMassDs_TreeCreator
+listname: ccoutputDs_TreeCreator
+sparsenameAll: fnSparse
+enableSecPeak: no #always no for data
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    meson: Ds #needed to define binning for invariant-mass histo
+    filenameAll: []
+    dirname: PWGHF_D2H_InvMassDs_TreeCreator
+    treename: treeMLDs
