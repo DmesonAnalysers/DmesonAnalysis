@@ -82,7 +82,7 @@ AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_TreeML(bool fUseStrongPID = 
 
     //pT 5-50
     anacutsval[6][1] = 0.060; //sigvert
-    anacutsval[7][1] = 0.040; //declen
+    anacutsval[7][1] = 0.030; //declen
     anacutsval[9][1] = 0.75;  //cosp
     anacutsval[13][1] = 0.70; //cospXY
 
