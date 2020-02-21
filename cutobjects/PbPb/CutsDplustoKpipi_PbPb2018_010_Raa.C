@@ -18,7 +18,7 @@
 //____________________________________________________________________________________________________//
 
 //__________________________________________________________________________________________
-AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=true, double maxPtstrongPID=3.0, bool fIsMC=false, int addTrackCut = 0){
+AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=true, double maxPtstrongPID=3.0, bool fIsMC=false, int addTrackCut = 0, int nTPCPIDcls=50, int addGeoCut=0){
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(false);
@@ -251,8 +251,48 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=
         trackCutName = "_addUseCutGeo";
         break;
 
+      case 5:
+        analysiscuts->SetMinNumTPCClsForPID(nTPCPIDcls);
+        trackCutName = Form("_addNTPCPIDcls%d", nTPCPIDcls);
+        break;
+
       default:
         break;
+    }
+
+    TString geoCutName = "";
+    switch(addGeoCut) {
+        case 0:
+            break;
+        case 1:
+            analysiscuts->SetUseCutGeoNcrNcl(true);
+            geoCutName = "_geocutstd";
+            break;
+        case 2:
+            analysiscuts->SetUseCutGeoNcrNcl(true);
+            analysiscuts->ConfigureCutGeoNcrNcl(2, 130, 1.5, 0.85, 0.7);
+            geoCutName = "_geocutDZ2Pt1dot5";
+            break;
+        case 3:
+            analysiscuts->SetUseCutGeoNcrNcl(true);
+            analysiscuts->ConfigureCutGeoNcrNcl(4, 130, 1.5, 0.85, 0.7);
+            geoCutName = "_geocutDZ4Pt1dot5";
+            break;
+        case 4:
+            analysiscuts->SetUseCutGeoNcrNcl(true);
+            analysiscuts->ConfigureCutGeoNcrNcl(3, 130, 2., 0.85, 0.7);
+            geoCutName = "_geocutDZ3Pt2";
+            break;
+        case 5:
+            analysiscuts->SetUseCutGeoNcrNcl(true);
+            analysiscuts->ConfigureCutGeoNcrNcl(3, 130, 4., 0.85, 0.7);
+            geoCutName = "_geocutDZ3Pt4";
+            break;
+        case 6:
+            analysiscuts->SetUseCutGeoNcrNcl(true);
+            analysiscuts->ConfigureCutGeoNcrNcl(2, 130, 2., 0.85, 0.7);
+            geoCutName = "_geocutDZ2Pt4";
+            break;
     }
 
     analysiscuts->SetMinPtCandidate(2.);
@@ -267,7 +307,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=
 
     analysiscuts->PrintAll();
     analysiscuts->PrintTrigger();
-    TString filename=Form("DplustoKpipiCuts_010_central%s_Raa_%s%s.root",PIDsuffix.Data(),triggername.Data(),trackCutName.Data());
+    TString filename=Form("DplustoKpipiCuts_010_central%s_Raa_%s%s%s.root",PIDsuffix.Data(),triggername.Data(),trackCutName.Data(),geoCutName.Data());
     TFile* fout=new TFile(filename.Data(),"recreate");
     fout->cd();
     analysiscuts->Write();
