@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
 
-def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pylint: disable=too-many-statements
+def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pylint: disable=too-many-statements
     '''
     function for data preparation
     '''
@@ -63,7 +63,7 @@ def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pyl
 
     elif dataset_opt == 'max_signal':
 
-        nCandBkg = 2 * (nPrompt + nFD)
+        nCandBkg = round(inputCfg['ml']['bkg_mult'][iBin] * (nPrompt + nFD))
         print((f'Keep all prompt and FD and use {nCandBkg} bkg candidates for training and '
                f'testing ({1 - test_f}-{test_f})'))
         if nCandBkg >= nBkg:
@@ -90,7 +90,7 @@ def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pyl
     LegLabels = inputCfg['output']['leg_labels']
     OutputLabels = inputCfg['output']['out_labels']
     #_____________________________________________
-    plot_utils.plot_distr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, (12, 7), 100, True, LegLabels)
+    plot_utils.plot_distr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, (12, 7), 100, True, LegLabels, 0.3)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(f'{OutPutDirPt}/DistributionsAll_pT_{PtMin}_{PtMax}.pdf')
     plt.close('all')
@@ -131,7 +131,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
 
     # train and test the model with the updated hyperparameters
     ModelHandl.train_test_model(TrainTestData)
-    yPredTest = ModelHandl.predict(TrainTestData[2])
+    yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['use_prob'])
 
     # save model handler in pickle
     ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtMin}_{PtMax}.pickle')
@@ -222,7 +222,7 @@ def main():
         # data preparation
         #_____________________________________________
         TrainTestData, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff = data_prep( \
-            inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
+            inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
 
         # training, testing
         #_____________________________________________

@@ -21,6 +21,8 @@ data_prep:
     test_fraction: 0.5 # fraction of data used for test set and efficiencies                  
     
 ml:
+    bkg_mult: [2., 2., 2., 1., 1.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    use_prob: True # use probability as output of the model
     training_columns: [cos_p_xy, d_len, norm_dl_xy, sig_vert, delta_mass_KK, cos_PiKPhi_3,
                        max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2] 
                        # list of training variables

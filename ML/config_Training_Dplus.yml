@@ -20,10 +20,9 @@ data_prep:
     seed_split: 42 # seed used for train_test_split(...)
     test_fraction: 0.5 # fraction of data used for test set and efficiencies     
 
-filtering:
-    bkg_mass: inv_mass < 1.82 or 1.92 < inv_mass < 2.00 # pandas query to select bkg candidates
-
 ml:
+    bkg_mult: [2., 1., 1., 1., 1.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    use_prob: False # use probability as output of the model
     training_columns: [d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, sig_vert, max_norm_d0d0exp, 
                        nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2] 
                        # list of training variables
