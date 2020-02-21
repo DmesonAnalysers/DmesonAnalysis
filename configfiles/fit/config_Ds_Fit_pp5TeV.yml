@@ -1,0 +1,34 @@
+pp5TeVPrompt:
+    Meson: 'Ds'
+    FixSigma: 0
+    SigmaFile: ''
+    SigmaMultFactor: 1.
+    FixMean: 0
+    MeanFile: ''
+    PtMin: [ 1, 2, 4, 6, 8, 12, 16, 24]
+    PtMax: [ 2, 4, 6, 8, 12, 16, 24, 36]  
+    MassMin: [ 1.80, 1.80, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78 ]    
+    MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10 ]
+    Rebin: [ 3, 4, 4, 4, 4, 5, 5, 5]
+    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1]
+    UseLikelihood: 1
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+
+pp5TeVFD:
+    Meson: 'Ds'
+    FixSigma: 0
+    SigmaFile: 'outputs/3_24bin_merge/PIDvar/rawyields/RawYieldsDs_3050_central_2018.root'
+    SigmaMultFactor: 1.
+    FixMean: 0
+    MeanFile: ''
+    PtMin: [ 1, 2, 4, 6, 8, 12, 16, 24]    
+    PtMax: [ 2, 4, 6, 8, 12, 16, 24, 36]    
+    MassMin: [ 1.80, 1.80, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78 ]    
+    MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10 ]
+    Rebin: [ 3, 4, 4, 4, 4, 5, 5, 5]
+    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1]
+    UseLikelihood: 1
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+

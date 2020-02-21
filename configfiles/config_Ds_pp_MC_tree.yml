@@ -1,0 +1,25 @@
+isMC: yes
+filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/LHC20a8/AnalysisResultsDsMC_LHC20a8_Tot.root
+dirname: PWGHF_D2H_InvMassDs_Ds_Loose_kMB
+listname: coutputDs_Ds_Loose_kMB
+sparsenameAll: fnSparseReco_fromC
+sparsenamePrompt: fnSparseReco_fromC
+sparsenameFD: fnSparseReco_fromB
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableSecPeak: no
+sparsenamePromptSecPeak: fnSparseRecoDplus_fromC
+sparsenameFDSecPeak: fnSparseRecoDplus_fromB
+sparsenameGenPromptSecPeak: fnSparseAccDplus_fromC
+sparsenameGenFDSecPeak: fnSparseAccDplus_fromB
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    meson: Ds #needed to define binning for invariant-mass histo
+    filenameAll: null #not needed for MC
+    filenamePrompt: []
+    filenameFD: []
+    dirname: PWGHF_D2H_InvMassDs
+    treename: treeMLDs
