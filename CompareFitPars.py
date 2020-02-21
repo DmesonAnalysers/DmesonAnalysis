@@ -1,7 +1,7 @@
 import argparse
 from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,no-name-in-module
-from ROOT import gStyle, kRed, kBlack, kBlue, kOrange, kGreen # pylint: disable=import-error,no-name-in-module
-from ROOT import kFullCircle, kOpenCircle, kFullSquare, kFullDiamond, kFullCross, kOpenCross # pylint: disable=import-error,no-name-in-module
+from ROOT import gStyle, kRed, kBlack, kBlue, kOrange, kGreen # pylint: disable=import-error,no-name-in-module,unused-import
+from ROOT import kFullCircle, kOpenCircle, kFullSquare, kFullDiamond, kFullCross, kOpenCross # pylint: disable=import-error,no-name-in-module,unused-import
 
 def set_style():
     gStyle.SetPadRightMargin(0.035)
@@ -99,7 +99,7 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
         legMeanRatio.SetFillStyle(0)
         legMeanRatio.SetBorderSize(0)
         legMeanRatio.SetTextSize(0.04)
-        for hist, color, marker, legend_name in zip(mean_ratio_list, colors[:-1], 
+        for hist, color, marker, legend_name in zip(mean_ratio_list, colors[:-1],
                                                     markers[:-1], legendnames[:-1]):
             hist.SetLineColor(color)
             hist.SetLineWidth(2)
@@ -120,7 +120,7 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
         legSigmaRatio.SetFillStyle(0)
         legSigmaRatio.SetBorderSize(0)
         legSigmaRatio.SetTextSize(0.04)
-        for hist, color, marker, legend_name in zip(sigma_ratio_list, colors[:-1], 
+        for hist, color, marker, legend_name in zip(sigma_ratio_list, colors[:-1],
                                                     markers[:-1], legendnames[:-1]):
             hist.SetLineColor(color)
             hist.SetLineWidth(2)
