@@ -131,7 +131,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
 
     # train and test the model with the updated hyperparameters
     ModelHandl.train_test_model(TrainTestData)
-    yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['use_prob'])
+    yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['raw_output'], True)
 
     # save model handler in pickle
     ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtMin}_{PtMax}.pickle')
@@ -141,7 +141,8 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     OutputLabels = inputCfg['output']['out_labels']
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 7)
-    MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, True, LegLabels)
+    MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'], 
+                                                    LegLabels, True, inputCfg['plots']['train_test_log'], density=True)
     for Fig, Lab in zip(MLOutputFig, OutputLabels):
         Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
     #_____________________________________________
@@ -166,27 +167,27 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
 def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff):
     OutputLabels = inputCfg['output']['out_labels']
     print('Applying ML model to prompt dataframe: ...', end='\r')
-    yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff)
+    yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff, inputCfg['ml']['raw_output'], True)
     PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
-    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to prompt dataframe: Done!')
 
     print('Applying ML model to FD dataframe: ...', end='\r')
-    yPredFDEff = ModelHandl.predict(FDDfPtSelForEff)
+    yPredFDEff = ModelHandl.predict(FDDfPtSelForEff, inputCfg['ml']['raw_output'], True)
     FDDfPtSelForEff = FDDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         FDDfPtSelForEff[f'ML_output_{Lab}'] = yPredFDEff[:, Pred]
-    FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to FD dataframe: Done!')
 
     print('Applying ML model to data dataframe: ...', end='\r')
-    yPredData = ModelHandl.predict(DataDfPtSel)
+    yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'], True)
     DataDfPtSel = DataDfPtSel.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
-    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to data dataframe: Done!')
 
 

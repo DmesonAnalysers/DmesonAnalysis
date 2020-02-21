@@ -22,7 +22,7 @@ data_prep:
 
 ml:
     bkg_mult: [2., 1., 1., 1., 1.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
-    use_prob: False # use probability as output of the model
+    raw_output: True # use raw_output (True) of probability (False) as output of the model
     training_columns: [d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, sig_vert, max_norm_d0d0exp, 
                        nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2] 
                        # list of training variables
@@ -31,4 +31,7 @@ ml:
                        nsigComb_K_2] # list of variables to plot
     hyper_par: {'max_depth':3, 'learning_rate':0.05, 'n_estimators':400, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist} 
     #dict of hyperparameters
-    saved_models: [] # list of saved ModelHandler (path+file), compatible with the pt bins 
+    saved_models: [] # list of saved ModelHandler (path+file), compatible with the pt bins
+
+plots:
+    train_test_log: False # use log scale for plots of train and test distributions
