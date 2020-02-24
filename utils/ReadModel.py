@@ -125,9 +125,12 @@ def ReadTAMU(fileNameTAMU):
     dfTAMU: pandas dataframe with original values
     '''
     dfTAMU = pd.read_csv(fileNameTAMU, sep=' ', comment='#')
-    dfTAMU['Cent'] = (dfTAMU['Min'] + dfTAMU['Max']) / 2 #central value taken as average of min and max
-    splineTAMU = InterpolateModel(dfTAMU['PtCent'], dfTAMU['Cent'],
-                                  dfTAMU['Min'], dfTAMU['Max'])
+    if 'R_AA_max' in dfTAMU and 'R_AA_min' in dfTAMU:
+        dfTAMU['R_AA'] = (dfTAMU['R_AA_min'] + dfTAMU['R_AA_max']) / 2 #central value taken as average of min and max
+        splineTAMU = InterpolateModel(dfTAMU['PtCent'], dfTAMU['R_AA'],
+                                      dfTAMU['R_AA_min'], dfTAMU['R_AA_max'])
+    else:
+        splineTAMU = InterpolateModel(dfTAMU['PtCent'], dfTAMU['R_AA'])
 
     return splineTAMU, dfTAMU
 
