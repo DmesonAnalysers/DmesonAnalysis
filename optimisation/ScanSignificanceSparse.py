@@ -13,6 +13,8 @@ import yaml
 from utils.ReadModel import ReadFONLL, ReadTAMU
 from ROOT import TFile, TF1, TNtuple, TSpline3, gROOT # pylint: disable=import-error,no-name-in-module
 
+#TODO: not working now, adapt to new ReadModel functions and functions to get expected quantities from utils
+
 # pylint: disable=redefined-outer-name,invalid-name
 def ApplyCuts(sparse, bins, axesnum, upperlowercuts, name):
     '''
