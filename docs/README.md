@@ -131,7 +131,7 @@ where ```cfgFileName.yml``` is a configuration file such as [config_Dplus_Prompt
 ```python
 python3 ScanSelectionsTree.py cfgFileName.yml outFileName.root
 ```
-where ```cfgFileName.yml``` is a yaml config file containing all the information about the input data to be used and the selections to be tested, such as [config_Dplus_pp5TeV_Optimisation.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/optimisation/Scconfig_Dplus_pp5TeV_Optimisation.yml). If the number of variables tested are less or equal 2 (i.e. ML outputs), the script produces plots with expected quantities as a function of the applied selections. In any case, a ntuple with all the expected quantities and the values of applied selections is produced and stored in the output file. 
+where ```cfgFileName.yml``` is a yaml config file containing all the information about the input data to be used and the selections to be tested, such as [config_Dplus_pp5TeV_Optimisation.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/optimisation/config_Dplus_pp5TeV_Optimisation.yml). If the number of variables tested are less or equal 2 (i.e. ML outputs), the script produces plots with expected quantities as a function of the applied selections. In any case, a ntuple with all the expected quantities and the values of applied selections is produced and stored in the output file. 
 
 ### Optimisation with THnSparses
 *To be updated*
