@@ -23,7 +23,7 @@ python3 MergeTrainOutputs.py files_to_merge.yml
 where ```files_to_merge.yml``` is the configuration file containing the information about the outputs that has to be merged such as [files_to_merge_LHC18q.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/merge/files_to_merge_LHC18q.yml)
 
 ## Machine Learning analsyis for D-meson candidate selections
-*This has to be added*
+*To be added*
 
 ## Main analysis with THnSparses
 
@@ -126,8 +126,15 @@ python3 ComputeCutVarPromptFrac.py cfgFileName.yml outFileName.root
 where ```cfgFileName.yml``` is a configuration file such as [config_Dplus_PromptFrac_pp5TeV.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/datadrivenfprompt/config_Dplus_PromptFrac_pp5TeV.yml)). The method requires several raw yields and efficiency files obtained with different topological selections applied to enrich/reduce the prompt or the feed-down contribution.
 
 ## Significance optimisation
+### Optimisation with TTrees
+* The script [ScanSelectionsTree.py](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/optimisation/ScanSelectionsTree.py) can be used to compute expected quantities (i.e. signal, background, significance, S/B, prompt fraction) for all combinations of different selection criteria:
+```python
+python3 ScanSelectionsTree.py cfgFileName.yml outFileName.root
+```
+where ```cfgFileName.yml``` is a yaml config file containing all the information about the input data to be used and the selections to be tested. If the number of variables tested are less or equal 2 (i.e. ML outputs), the script produces plots with expected quantities as a function of the applied selections. In any case, a ntuple with all the expected quantities and the values of applied selections is produced and stored in the output file. 
 
-### Optimisation with THnSparse
+### Optimisation with THnSparses
+*To be updated*
 
 * Compute expected significance for all combinations of different selection criteria:
 ```python
@@ -140,12 +147,6 @@ where ```configfile.yml``` is a configuration file such as [config_Ds_010_SignOp
 python3 ProjectSignifNtuple.py configfile.yml input.root PtMin PtMax minSignificance maxSignificance minEffPrompt maxEffPrompt
 ```
 where the input file ```input.root``` is the one produced in the previous step
-
-* Produce plots for expected significance as a function of p<sub>T</sub>:
-```python
-python3 GetExpectedSignificance.py configfile.yml cutset.yml outputname
-```
-where the configuration file ```cutset.yml``` contains the selection that you want to apply, such as [cutset_010_central_2018.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/cutsets/cutset_010_central_2018.yml) if you want to apply rectangular selections or [cutset_010_ML_test.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/cutsets/cutset_010_ML_test.yml) if you want to apply a selection on the ML output.
 
 ## Systematic uncertainties
 ### Selection efficiency
