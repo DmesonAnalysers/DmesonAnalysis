@@ -231,19 +231,19 @@ def DivideCanvas(canv, nPads):
     if nPads < 2:
         canv.cd()
     elif nPads in [2, 3]:
-        canv.Divide(nPads, 1)
+        canv.Divide(int(nPads), 1)
     elif nPads in [4, 6, 8]:
-        canv.Divide(nPads/2, 2)
+        canv.Divide(int(nPads/2), 2)
     elif nPads in [5, 7]:
-        canv.Divide((nPads+1)/2, 2)
+        canv.Divide(int((nPads+1)/2), 2)
     elif nPads in [12, 15]:
-        canv.Divide(nPads/3, 3)
+        canv.Divide(int(nPads/3), 3)
     elif nPads in [10, 11]:
         canv.Divide(4, 3)
     elif nPads in [13, 14]:
         canv.Divide(5, 3)
     elif 15 < nPads <= 20 and nPads % 4 == 0:
-        canv.Divide(nPads/4, 4)
+        canv.Divide(int(nPads/4), 4)
     elif 15 < nPads <= 20 and nPads % 4 != 0:
         canv.Divide(5, 4)
     elif nPads == 21:
@@ -251,6 +251,6 @@ def DivideCanvas(canv, nPads):
     elif 21 < nPads <= 25:
         canv.Divide(5, 5)
     elif nPads > 25 and nPads % 2 == 0:
-        canv.Divide(nPads/2, 2)
+        canv.Divide(int(nPads/2), 2)
     else:
-        canv.Divide((nPads+1)/2, 2)
+        canv.Divide(int((nPads+1)/2), 2)
