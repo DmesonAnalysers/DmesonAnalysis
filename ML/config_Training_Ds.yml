@@ -9,8 +9,8 @@ output:
     dir: '../../../Analyses/pp5TeV/Ds_wML_mult/ml_training' # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing
-    min: [1, 2, 4, 6, 12] # list
-    max: [2, 4, 6, 12, 50] # list
+    min: [2] # list
+    max: [4] # list
 
 data_prep:
     filt_bkg_mass: inv_mass < 1.832 or inv_mass > 2.012 # pandas query to select bkg candidates
@@ -21,6 +21,8 @@ data_prep:
     test_fraction: 0.5 # fraction of data used for test set and efficiencies                  
     
 ml:
+    bkg_mult: [2.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    raw_output: False # use raw_output (True) of probability (False) as output of the model
     training_columns: [cos_p_xy, d_len, norm_dl_xy, sig_vert, delta_mass_KK, cos_PiKPhi_3,
                        max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2] 
                        # list of training variables
@@ -34,4 +36,7 @@ ml:
                    ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/pt4_6/ModelHandler_pT_4_6.pickle,
                    ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/pt6_12/ModelHandler_pT_6_12.pickle,
                    ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/pt12_50/ModelHandler_pT_12_50.pickle] 
-                   # list of saved ModelHandler (path+file), compatible with the pt bins 
+                   # list of saved ModelHandler (path+file), compatible with the pt bins
+
+plots:
+    train_test_log: False # use log scale for plots of train and test distributions

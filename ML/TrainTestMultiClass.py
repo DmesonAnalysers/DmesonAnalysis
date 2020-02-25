@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
 
-def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pylint: disable=too-many-statements
+def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pylint: disable=too-many-statements
     '''
     function for data preparation
     '''
@@ -63,7 +63,7 @@ def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pyl
 
     elif dataset_opt == 'max_signal':
 
-        nCandBkg = 2 * (nPrompt + nFD)
+        nCandBkg = round(inputCfg['ml']['bkg_mult'][iBin] * (nPrompt + nFD))
         print((f'Keep all prompt and FD and use {nCandBkg} bkg candidates for training and '
                f'testing ({1 - test_f}-{test_f})'))
         if nCandBkg >= nBkg:
@@ -90,7 +90,7 @@ def data_prep(inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pyl
     LegLabels = inputCfg['output']['leg_labels']
     OutputLabels = inputCfg['output']['out_labels']
     #_____________________________________________
-    plot_utils.plot_distr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, (12, 7), 100, True, LegLabels)
+    plot_utils.plot_distr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, (12, 7), 100, True, LegLabels, 0.3)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(f'{OutPutDirPt}/DistributionsAll_pT_{PtMin}_{PtMax}.pdf')
     plt.close('all')
@@ -131,7 +131,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
 
     # train and test the model with the updated hyperparameters
     ModelHandl.train_test_model(TrainTestData)
-    yPredTest = ModelHandl.predict(TrainTestData[2])
+    yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['raw_output'], True)
 
     # save model handler in pickle
     ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtMin}_{PtMax}.pickle')
@@ -141,7 +141,8 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     OutputLabels = inputCfg['output']['out_labels']
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 7)
-    MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, True, LegLabels)
+    MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'],
+                                                    LegLabels, True, inputCfg['plots']['train_test_log'], density=True)
     for Fig, Lab in zip(MLOutputFig, OutputLabels):
         Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
     #_____________________________________________
@@ -166,27 +167,27 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
 def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff):
     OutputLabels = inputCfg['output']['out_labels']
     print('Applying ML model to prompt dataframe: ...', end='\r')
-    yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff)
+    yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff, inputCfg['ml']['raw_output'], True)
     PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
-    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to prompt dataframe: Done!')
 
     print('Applying ML model to FD dataframe: ...', end='\r')
-    yPredFDEff = ModelHandl.predict(FDDfPtSelForEff)
+    yPredFDEff = ModelHandl.predict(FDDfPtSelForEff, inputCfg['ml']['raw_output'], True)
     FDDfPtSelForEff = FDDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         FDDfPtSelForEff[f'ML_output_{Lab}'] = yPredFDEff[:, Pred]
-    FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to FD dataframe: Done!')
 
     print('Applying ML model to data dataframe: ...', end='\r')
-    yPredData = ModelHandl.predict(DataDfPtSel)
+    yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'], True)
     DataDfPtSel = DataDfPtSel.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
-    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_Dpluspp5TeV_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to data dataframe: Done!')
 
 
@@ -222,7 +223,7 @@ def main():
         # data preparation
         #_____________________________________________
         TrainTestData, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff = data_prep( \
-            inputCfg, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
+            inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
 
         # training, testing
         #_____________________________________________
