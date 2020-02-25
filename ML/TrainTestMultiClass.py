@@ -89,7 +89,7 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
         sys.exit()
 
     # plots
-    VarsToDraw = inputCfg['ml']['plotting_columns']
+    VarsToDraw = inputCfg['plots']['plotting_columns']
     LegLabels = inputCfg['output']['leg_labels']
     OutputLabels = inputCfg['output']['out_labels']
     #_____________________________________________
@@ -133,7 +133,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     #ModelHandl.optimize_params_bayes(TrainTestData, HypRanges, None)
 
     # train and test the model with the updated hyperparameters
-    ModelHandl.train_test_model(TrainTestData)
+    ModelHandl.train_test_model(TrainTestData, inputCfg['ml']['roc_auc_average'], inputCfg['ml']['roc_auc_approach'])
     yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['raw_output'], True)
 
     # save model handler in pickle
@@ -157,7 +157,8 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     PrecisionRecallFig.savefig(f'{OutPutDirPt}/PrecisionRecallAll_pT_{PtMin}_{PtMax}.pdf')
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (12, 7)
-    FeaturesImportanceFig = plot_utils.plot_feature_imp(TrainTestData[2][TrainCols], TrainTestData[3], ModelHandl)
+    FeaturesImportanceFig = plot_utils.plot_feature_imp(TrainTestData[2][TrainCols], TrainTestData[3], ModelHandl,
+                                                        LegLabels)
     for iFig, Fig in enumerate(FeaturesImportanceFig):
         if iFig < 3:
             Fig.savefig(f'{OutPutDirPt}/FeatureImportance{OutputLabels[iFig]}_pT_{PtMin}_{PtMax}.pdf')
