@@ -141,7 +141,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     OutputLabels = inputCfg['output']['out_labels']
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 7)
-    MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'], 
+    MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'],
                                                     LegLabels, True, inputCfg['plots']['train_test_log'], density=True)
     for Fig, Lab in zip(MLOutputFig, OutputLabels):
         Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
