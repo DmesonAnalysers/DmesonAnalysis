@@ -445,7 +445,7 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
     - deltaPt: pT interval
     - deltaY: Y interval
     - effTimesAcc: efficiency times acceptance for prompt or feed-down
-    - frac: eiter prompt or feed-down fraction
+    - frac: either prompt or feed-down fraction
     - BR: branching ratio of the decay channel
     - fracToD: fragmentation fraction
     - nEv: number of expected events
@@ -457,10 +457,41 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
     ----------
 
     - expected signal
-
     '''
 
     return crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
+
+
+def ComputeCrossSection(rawY, uncRawY, effTimesAcc, frac, deltaPt, deltaY, sigmaMB, nEv, BR):
+    '''
+    Method to compute cross section and its statistical uncertainty
+    Only the statistical uncertainty on the raw yield is considered (the others are systematics)
+
+    Parameters
+    ----------
+
+    - rawY: raw yield
+    - uncRawY: raw-yield statistical uncertainty
+    - effTimesAcc: efficiency times acceptance for prompt or feed-down
+    - frac: either prompt or feed-down fraction
+    - deltaPt: pT interval
+    - deltaY: Y interval
+    - sigmaMB: hadronic cross section for MB
+    - nEv: number of events
+    - BR: branching ratio of the decay channel
+
+
+    Returns
+    ----------
+
+    - crossSection: cross section
+    - crossSecUnc: cross-section statistical uncertainty
+    '''
+
+    crossSection = rawY * frac * sigmaMB / (2 * deltaPt * deltaY * effTimesAcc * nEv * BR)
+    crossSecUnc = uncRawY / rawY * crossSection
+
+    return crossSection, crossSecUnc
 
 
 def MergeHists(listOfHists):
