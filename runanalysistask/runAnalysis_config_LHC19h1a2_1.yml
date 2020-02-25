@@ -16,7 +16,7 @@ improver:
     upgrade:
         enable: 0
         currentresolfile: '$ALICE_PHYSICS/PWGHF/vertexingHF/upgrade/ITS2_res_4um_eta0.5.root'
-        upgraderesolfile: '$ALICE_PHYSICS/PWGHF/vertexingHF/upgrade/CylIB_pb17_B05Tnew.root'
+        upgraderesolfile: '$ALICE_PHYSICS/PWGHF/vertexingHF/upgrade/cylIB_pb17_B05Tnew.root'
     
 task:
     wagonname: FilterCuts_kAny
