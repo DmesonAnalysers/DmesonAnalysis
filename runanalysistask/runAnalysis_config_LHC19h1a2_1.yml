@@ -23,7 +23,7 @@ task:
     cuts:
         infile: ../cutobjects/ITS3/DstoKKpiCutsITS3_filttree_kAny_consPID_pt1_50.root
         objname: AnalysisCuts
-    storesparse: 0
+    storesparse: 1
     treeML:
         storetree: 1
         fillonlysignal: 0
