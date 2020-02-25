@@ -206,7 +206,11 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     }
     else if (meson == "Ds")
     {
-        AliAnalysisTaskSEDs *taskDs = reinterpret_cast<AliAnalysisTaskSEDs *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d,%d,%d,\"%s\",\"%s\",%d,%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskDs.C"), system, isRunOnMC, 1, storeSparse, cutFileName.data(), wagonName.data(), storeTreeML, applyML, confFileML.data(), cutObjName.data(), storeSparse)));
+        AliAnalysisTaskSEDs *taskDs = reinterpret_cast<AliAnalysisTaskSEDs *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d,%d,%d,\"%s\",\"%s\",%d,%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskDs.C"), system, isRunOnMC, 0, storeSparse, cutFileName.data(), wagonName.data(), storeTreeML, applyML, confFileML.data(), cutObjName.data(), storeSparse)));
+        if(storeSparse)
+        {
+            taskDs->SetFillNSparseMCAccWoQuark();
+        }
         if(applyML)
         {
             taskDs->SetDoMLApplication();
