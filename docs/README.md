@@ -118,12 +118,16 @@ sh RunFullAnalysis.sh
 can be used by setting some hard-coded parameters
 
 ## Analysis with data-driven evaluation of prompt / feed-down fraction
+### Prompt / feed-down fraction
 * The evaluation of the prompt / feed-down fractions can be performed with the *cut-variation* method with the script:
 
 ```python
 python3 ComputeCutVarPromptFrac.py cfgFileName.yml outFileName.root
 ```
 where ```cfgFileName.yml``` is a configuration file such as [config_Dplus_PromptFrac_pp5TeV.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/datadrivenfprompt/config_Dplus_PromptFrac_pp5TeV.yml)). The method requires several raw yields and efficiency files obtained with different topological selections applied to enrich/reduce the prompt or the feed-down contribution.
+
+* Cross section
+*To be added*
 
 ## Significance optimisation
 ### Optimisation with TTrees
