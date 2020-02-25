@@ -3,7 +3,7 @@ Script with miscellanea utils methods for the analysis
 '''
 
 import numpy as np
-from ROOT import TH1F, TF1, TMath # pylint: disable=import-error,no-name-in-module
+from ROOT import TH1F, TF1, TMath, TList # pylint: disable=import-error,no-name-in-module
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -461,3 +461,28 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
     '''
 
     return crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
+
+
+def MergeHists(listOfHists):
+    '''
+    Method to merge histos
+
+    Parameters
+    ----------
+
+    - listOfHists: python list of histos
+
+    Returns
+    ----------
+
+    - hMerged: merged histo
+
+    '''
+    listMerge = TList()
+    for iHist, hist in enumerate(listOfHists):
+        if iHist == 0:
+            hMerged = hist.Clone()
+        else:
+            listMerge.Add(hist)
+    hMerged.Merge(listMerge)
+    return hMerged
