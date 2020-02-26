@@ -17,23 +17,29 @@ data_prep:
     dataset_opt: equal  # change how the dataset is built, options available: 'equal', 'max_signal'
                         # 'equal' -> same number of prompt/FD/bkg (not using all the signal available)
                         # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = 2 * (n_prompt + n_FD)
+    bkg_mult: [2., 1., 1., 1., 1.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
     seed_split: 42 # seed used for train_test_split(...)
     test_fraction: 0.5 # fraction of data used for test set and efficiencies     
 
 ml:
-    bkg_mult: [2., 1., 1., 1., 1.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
     raw_output: True # use raw_output (True) of probability (False) as output of the model
     roc_auc_average: 'macro' # 'macro' or 'weighted'
     roc_auc_approach: 'ovo'  # 'ovo' or 'ovr'
     training_columns: [d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, sig_vert, max_norm_d0d0exp, 
                        nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2] 
                        # list of training variables
-    hyper_par: {'max_depth':3, 'learning_rate':0.05, 'n_estimators':400, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist} 
+    hyper_par: {'max_depth':3, 'learning_rate':0.05, 'n_estimators':400, 'min_child_weight':5, 'colsample':0.9,
+                'n_jobs':1, 'tree_method':hist}
                 #dict of hyperparameters
+    do_hyp_opt: True # wheter to do the parameter optimization
+    njobs: 2 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
+    bayes_opt_config: {'max_depth': !!python/tuple [2, 6], 
+                       'learning_rate': !!python/tuple [0.02, 0.1]}
+                       # configuration dictionary for optimize_params_bayes()
     saved_models: [] # list of saved ModelHandler (path+file), compatible with the pt bins
 
 plots:
     plotting_columns: [inv_mass, pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, sig_vert, 
-                       max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, 
-                       nsigComb_K_2] # list of variables to plot
+                       max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2] 
+                       # list of variables to plot
     train_test_log: False # use log scale for plots of train and test distributions

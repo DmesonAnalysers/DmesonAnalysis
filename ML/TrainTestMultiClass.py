@@ -66,7 +66,7 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
 
     elif dataset_opt == 'max_signal':
 
-        nCandBkg = round(inputCfg['ml']['bkg_mult'][iBin] * (nPrompt + nFD))
+        nCandBkg = round(inputCfg['data_prep']['bkg_mult'][iBin] * (nPrompt + nFD))
         print((f'Keep all prompt and FD and use {nCandBkg} bkg candidates for training and '
                f'testing ({1 - test_f}-{test_f})'))
         if nCandBkg >= nBkg:
@@ -123,14 +123,29 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
         sys.exit()
     ModelHandl = ModelHandler(modelClf, TrainCols, HyperPars)
 
-    # hyperparams optimization --> not working with multi-class classification at the moment
-    #HypRanges = {
-    #    # # defines the maximum depth of a single tree (regularization)
-    #    'max_depth': (1, 30),
-    #    'learning_rate': (0.01, 0.3),  # learning rate
-    #    'n_estimators': (50, 1000)  # number of boosting trees
-    #}
-    #ModelHandl.optimize_params_bayes(TrainTestData, HypRanges, None)
+    # hyperparams optimization
+    if inputCfg['ml']['do_hyp_opt']:
+        print('Perform bayesian optimization')
+
+        BayesOptConfig = inputCfg['ml']['bayes_opt_config']
+        if not isinstance(BayesOptConfig, dict):
+            print('ERROR: bayes_opt_config must be defined!')
+            sys.exit()
+
+        average_method = inputCfg['ml']['roc_auc_average']
+        roc_method = inputCfg['ml']['roc_auc_approach']
+        if not (average_method in ['macro', 'weighted'] and roc_method in ['ovo', 'ovr']):
+            print('ERROR: selected ROC configuration is not valid!')
+            sys.exit()
+
+        if average_method == 'weighted':
+            metric = f'roc_auc_{roc_method}_{average_method}'
+        else:
+            metric = f'roc_auc_{roc_method}'
+
+        ModelHandl.optimize_params_bayes(TrainTestData, BayesOptConfig, metric, nfold=5, init_points=5,
+                                         n_iter=5, njobs=inputCfg['ml']['njobs'])
+        print(f'Best hyper-parameters:\n{ModelHandl.get_model_params()}')
 
     # train and test the model with the updated hyperparameters
     ModelHandl.train_test_model(TrainTestData, inputCfg['ml']['roc_auc_average'], inputCfg['ml']['roc_auc_approach'])
