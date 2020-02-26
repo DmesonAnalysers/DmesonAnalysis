@@ -165,7 +165,8 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
         Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (8, 7)
-    ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], yPredTest, LegLabels)
+    ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], yPredTest, None, LegLabels, inputCfg['ml']['roc_auc_average'],
+                                      inputCfg['ml']['roc_auc_approach'])
     ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAll_pT_{PtMin}_{PtMax}.pdf')
     #_____________________________________________
     PrecisionRecallFig = plot_utils.plot_precision_recall(TrainTestData[3], yPredTest, LegLabels)
