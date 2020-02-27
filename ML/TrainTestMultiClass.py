@@ -148,6 +148,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
 
     # train and test the model with the updated hyperparameters
     ModelHandl.train_test_model(TrainTestData, inputCfg['ml']['roc_auc_average'], inputCfg['ml']['roc_auc_approach'])
+    yPredTrain = ModelHandl.predict(TrainTestData[0], inputCfg['ml']['raw_output'], True)
     yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['raw_output'], True)
 
     # save model handler in pickle
@@ -163,10 +164,16 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     for Fig, Lab in zip(MLOutputFig, OutputLabels):
         Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
     #_____________________________________________
-    plt.rcParams["figure.figsize"] = (8, 7)
+    plt.rcParams["figure.figsize"] = (10, 9)
     ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], yPredTest, None, LegLabels, inputCfg['ml']['roc_auc_average'],
                                       inputCfg['ml']['roc_auc_approach'])
     ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAll_pT_{PtMin}_{PtMax}.pdf')
+    #_____________________________________________
+    plt.rcParams["figure.figsize"] = (10, 9)
+    ROCCurveTTFig = plot_utils.plot_roc_train_test(TrainTestData[3], yPredTest, TrainTestData[1], yPredTrain, None,
+                                                   LegLabels, inputCfg['ml']['roc_auc_average'],
+                                                   inputCfg['ml']['roc_auc_approach'])
+    ROCCurveTTFig.savefig(f'{OutPutDirPt}/ROCCurveTrainTest_pT_{PtMin}_{PtMax}.pdf')
     #_____________________________________________
     PrecisionRecallFig = plot_utils.plot_precision_recall(TrainTestData[3], yPredTest, LegLabels)
     PrecisionRecallFig.savefig(f'{OutPutDirPt}/PrecisionRecallAll_pT_{PtMin}_{PtMax}.pdf')
