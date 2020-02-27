@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
 
+sys.path.append('..')
+from utils.DfUtils import LoadDfFromRootOrParquet #pylint: disable=wrong-import-position,import-error,no-name-in-module
+
 def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pylint: disable=too-many-statements
     '''
     function for data preparation
@@ -205,9 +208,9 @@ def main():
     print('Loading analysis configuration: Done!')
 
     print('Loading data files: ...', end='\r')
-    PromptDf = pd.read_parquet(inputCfg['input']['prompt'])
-    FDDf = pd.read_parquet(inputCfg['input']['FD'])
-    DataDf = pd.read_parquet(inputCfg['input']['data'])
+    PromptDf = LoadDfFromRootOrParquet(inputCfg['input']['prompt'])
+    FDDf = LoadDfFromRootOrParquet(inputCfg['input']['FD'])
+    DataDf = LoadDfFromRootOrParquet(inputCfg['input']['data'])
     print('Loading data files: Done!')
 
     for iBin, (PtMin, PtMax) in enumerate(zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'])):
