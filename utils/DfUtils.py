@@ -101,14 +101,10 @@ def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
         inFileNames = [inFileNames]
     if not isinstance(inDirNames, list):
         inDirName = inDirNames
-        inDirNames = []
-        for _, _ in enumerate(inFileNames):
-            inDirNames.append(inDirName)
+        inDirNames = [inDirName] * len(inFileNames)
     if not isinstance(inTreeNames, list):
         inTreeName = inTreeNames
-        inTreeNames = []
-        for _, _ in enumerate(inFileNames):
-            inTreeNames.append(inTreeName)
+        inTreeNames = [inTreeName] * len(inFileNames)
 
     for iFile, (inFile, inDir, inTree) in enumerate(zip(inFileNames, inDirNames, inTreeNames)):
         if '.root' in inFile:
