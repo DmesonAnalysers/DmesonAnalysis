@@ -8,6 +8,7 @@ import os
 import sys
 import argparse
 import yaml
+import numpy as np
 import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
@@ -39,7 +40,6 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
     test_f = inputCfg['data_prep']['test_fraction']
 
     if dataset_opt == 'equal':
-
         nCandToKeep = min([nPrompt, nFD, nBkg])
         print(('Keep same number of prompt, FD, and background (minimum) for training and '
                f'testing ({1 - test_f}-{test_f}): {nCandToKeep}'))
@@ -54,7 +54,7 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
 
         TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandToKeep], PromptDfPtSel.iloc[:nCandToKeep],
                                 FDDfPtSel.iloc[:nCandToKeep]], sort=True)
-        LabelsArray = [0] * nCandToKeep + [1] * nCandToKeep + [2] * nCandToKeep
+        LabelsArray = np.array([0]*nCandToKeep + [1]*nCandToKeep + [2]*nCandToKeep)
         TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=test_f,
                                                             random_state=seed_split)
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
@@ -65,7 +65,6 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
         del TotDfPtSel
 
     elif dataset_opt == 'max_signal':
-
         nCandBkg = round(inputCfg['data_prep']['bkg_mult'][iBin] * (nPrompt + nFD))
         print((f'Keep all prompt and FD and use {nCandBkg} bkg candidates for training and '
                f'testing ({1 - test_f}-{test_f})'))
@@ -75,7 +74,7 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
         print(f'Fraction of real data candidates used for ML: {nCandBkg/nBkg:.5f}')
 
         TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandBkg], PromptDfPtSel, FDDfPtSel], sort=True)
-        LabelsArray = [0] * nCandBkg + [1] * nPrompt + [2] * nFD
+        LabelsArray = np.array([0]*nCandBkg + [1]*nPrompt + [2]*nFD)
         TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=test_f,
                                                             random_state=seed_split)
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
