@@ -120,7 +120,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     if not isinstance(HyperPars, dict):
         print('ERROR: hyper-parameters must be defined or be an empty dict!')
         sys.exit()
-    ModelHandl = ModelHandler(modelClf, TrainCols, HyperPars)
+    ModelHandl = ModelHandler(modelClf, TrainCols, HyperPars, True)
 
     # hyperparams optimization
     if inputCfg['ml']['do_hyp_opt']:
@@ -148,8 +148,8 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
 
     # train and test the model with the updated hyperparameters
     ModelHandl.train_test_model(TrainTestData, inputCfg['ml']['roc_auc_average'], inputCfg['ml']['roc_auc_approach'])
-    yPredTrain = ModelHandl.predict(TrainTestData[0], inputCfg['ml']['raw_output'], True)
-    yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['raw_output'], True)
+    yPredTrain = ModelHandl.predict(TrainTestData[0], inputCfg['ml']['raw_output'])
+    yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['raw_output'])
 
     # save model handler in pickle
     ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtMin}_{PtMax}.pickle')
@@ -160,7 +160,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 7)
     MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'],
-                                                    LegLabels, True, inputCfg['plots']['train_test_log'], density=True)
+                                                    LegLabels, inputCfg['plots']['train_test_log'], density=True)
     for Fig, Lab in zip(MLOutputFig, OutputLabels):
         Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
     #_____________________________________________
