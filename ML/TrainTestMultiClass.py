@@ -120,7 +120,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     if not isinstance(HyperPars, dict):
         print('ERROR: hyper-parameters must be defined or be an empty dict!')
         sys.exit()
-    ModelHandl = ModelHandler(modelClf, TrainCols, HyperPars, True)
+    ModelHandl = ModelHandler(modelClf, TrainCols, HyperPars)
 
     # hyperparams optimization
     if inputCfg['ml']['do_hyp_opt']:
