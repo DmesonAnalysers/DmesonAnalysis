@@ -1,101 +1,196 @@
-import math
+'''
+Script with helper functions to load models from txt files
+'''
 
-def ReadFONLL(FileNameFONLL) :
-  Col = [[] for iCol in range(16)]
-  with open(FileNameFONLL) as FileFONLL:
-    for iLine in FileFONLL:
-      if "#" not in iLine:
-        iLine.strip().split(',')
-        iLineSep = iLine.split()
-        if len(iLineSep) > 15:
-          for iCol in range(16) :
-            Col[iCol].append(float(iLineSep[iCol]))
-  FONLLdic = {'PtMin' : Col[0],'Cent' : Col[1],'Min' : Col[2],'Max' : Col[3],'Min_sc' : Col[4],'Max_sc' : Col[5],'Min_Mass' : Col[6],'Max_Mass' : Col[7],'Min_PDF' : Col[8],'Max_PDF' : Col[9],'Fr_dot5dot5' : Col[10],'Fr_22' : Col[11],'Fr_21' : Col[12],'Fr_12' : Col[13],'Fr_1dot5' : Col[14],'Fr_dot51' : Col[15]}
-  return FONLLdic
+import numpy as np
+import pandas as pd
+from scipy.interpolate import InterpolatedUnivariateSpline
 
-def ReadGMVFNS(FileNameGMVFNS, isSACOT=False) :
-  Col = [[] for iCol in range(4)]
-  with open(FileNameGMVFNS) as FileGMVFNS:
-    for iLine in FileGMVFNS:
-      if "#" not in iLine:
-        iLine.strip().split(',')
-        iLineSep = iLine.split()
-        if len(iLineSep) > 3:
-          if isSACOT:
-            Col[0].append(float(iLineSep[0]))
-            Col[1].append(float(iLineSep[1]))
-            Col[2].append(float(iLineSep[1])-math.sqrt(float(iLineSep[2])**2+float(iLineSep[3])**2))
-            Col[3].append(float(iLineSep[1])+math.sqrt(float(iLineSep[2])**2+float(iLineSep[4])**2))
-          else:
-            for iCol in range(4) :
-              Col[iCol].append(float(iLineSep[iCol]))
-  if isSACOT:
-    GMVFNSdic = {'PtCent' : Col[0],'Cent' : Col[1],'Min' : Col[2],'Max' : Col[3]}
-  else:
-    GMVFNSdic = {'PtMin' : Col[0],'Cent' : Col[1],'Max' : Col[2],'Min' : Col[3]}
-  return GMVFNSdic
+def InterpolateModel(ptCent, yCent, yMin=None, yMax=None):
+    '''
+    Helper function to interpolate model
 
-def ReadKtFact(FileNameKtFact) :
-  Col = [[] for iCol in range(5)]
-  with open(FileNameKtFact) as FileKtFact:
-    for iLine in FileKtFact:
-      if "#" not in iLine:
-        iLine.strip().split(',')
-        iLineSep = iLine.split()
-        if len(iLineSep) > 4:
-          for iCol in range(5) :
-            Col[iCol].append(float(iLineSep[iCol]))
-  KtFactdic = {'PtMin' : Col[0], 'PtMax' : Col[1], 'Cent' : Col[2],'Min' : Col[3],'Max' : Col[4]}
-  return KtFactdic
+    Parameters
+    -----------
+    ptRange: list with min and max pt values for interpolation
+    ptStep: pt step for interpolation
+    ptCent: list of pT centres to interpolate
+    yCent: list of central values to interpolate
+    yMin: list of min values to interpolate
+    yMax: list of max values to interpolate
 
-def ReadTAMU(FileNameTAMU) :
-  Col = [[] for iCol in range(3)]
-  with open(FileNameTAMU) as FileTAMU:
-    for iLine in FileTAMU:
-      if "#" not in iLine:
-        iLine.strip().split(',')
-        iLineSep = iLine.split()
-        if len(iLineSep) > 2:
-          for iCol in range(3) :
-            Col[iCol].append(float(iLineSep[iCol]))
-  TAMUdic = {'PtCent' : Col[0],'Max' : Col[1],'Min' : Col[2]}
-  return TAMUdic
+    Returns:
+    -----------
+    splinesAll: dictionary with values of splines {yCent, yMin, yMax}
+    '''
 
-def ReadPHSD(FileNamePHSD) :
-  Col = [[] for iCol in range(2)]
-  with open(FileNamePHSD) as FilePHSD:
-    for iLine in FilePHSD:
-      if "#" not in iLine:
-        iLine.strip().split(',')
-        iLineSep = iLine.split()
-        if len(iLineSep) > 1:          
-          for iCol in range(2) :
-            Col[iCol].append(float(iLineSep[iCol]))
-  PHSDdic = {'PtCent' : Col[0],'Cent' : Col[1]}
-  return PHSDdic
+    splinesAll = {}
+    splinesAll['yCent'] = InterpolatedUnivariateSpline(ptCent, yCent)
 
-def ReadGossiaux(FileNameGossiaux) :
-  Col = [[] for iCol in range(4)]
-  with open(FileNameGossiaux) as FileGossiaux:
-    for iLine in FileGossiaux:
-      if "#" not in iLine:
-        iLine.strip().split(',')
-        iLineSep = iLine.split()
-        if len(iLineSep) > 3:
-          for iCol in range(4) :
-            Col[iCol].append(float(iLineSep[iCol]))
-  Gossiauxdic = {'PtCent' : Col[0],'Col' : Col[1],'ColRad' : Col[2],'ColRadGluDamp' : Col[3]}
-  return Gossiauxdic
+    if yMin is not None and yMin.any():
+        splinesAll['yMin'] = InterpolatedUnivariateSpline(ptCent, yMin)
+    if yMax is not None and yMax.any():
+        splinesAll['yMax'] = InterpolatedUnivariateSpline(ptCent, yMax)
 
-def ReadCatania(FileNameCatania) :
-  Col = [[] for iCol in range(2)]
-  with open(FileNameCatania) as FileCatania:
-    for iLine in FileCatania:
-      if "#" not in iLine:
-        iLine.strip().split(',')
-        iLineSep = iLine.split()
-        if len(iLineSep) > 1:
-          for iCol in range(2) :
-            Col[iCol].append(float(iLineSep[iCol]))
-  Cataniadic = {'PtCent' : Col[0],'Cent' : Col[1]}
-  return Cataniadic
+    return splinesAll
+
+
+def ReadFONLL(fileNameFONLL):
+    '''
+    Helper function to read FONLL txt files
+
+    Parameters
+    -----------
+    fileNameFONLL: FONLL file name
+
+    Returns:
+    -----------
+    splineFONLL: dictionary with values of splines {yCent, yMin, yMax}
+    dfFONLL: pandas dataframe with original values
+    '''
+    dfFONLL = pd.read_csv(fileNameFONLL, sep=' ', comment='#')
+    dfFONLL['ptcent'] = (dfFONLL['ptmin']+dfFONLL['ptmax']) / 2
+    dfFONLL['central_ptdiff'] = dfFONLL['central'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
+    dfFONLL['min_ptdiff'] = dfFONLL['min'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
+    dfFONLL['max_ptdiff'] = dfFONLL['max'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
+
+    splineFONLL = InterpolateModel(dfFONLL['ptcent'], dfFONLL['central_ptdiff'],
+                                   dfFONLL['min_ptdiff'], dfFONLL['max_ptdiff'])
+
+    return splineFONLL, dfFONLL
+
+
+def ReadGMVFNS(fileNameGMVFNS, isSACOT=False):
+    '''
+    Helper function to read GVMFS txt files
+
+    Parameters
+    -----------
+    fileNameGMVFNS: GVMFS file name
+    isSACOT: flag to tell the function if it is the SACOT-mT version of GVMFS
+
+    Returns:
+    -----------
+    splineGMVFNS: dictionary with values of splines {yCent, yMin, yMax}
+    dfGMVFNS: pandas dataframe with original values
+    '''
+    dfGMVFNS = pd.read_csv(fileNameGMVFNS, sep=' ', comment='#')
+    if not isSACOT:
+        splineGMVFNS = InterpolateModel(dfGMVFNS['pT'], dfGMVFNS['cen'],
+                                        dfGMVFNS['min'], dfGMVFNS['max'])
+    else:
+        dfGMVFNS['xsec_min[mb]'] = dfGMVFNS['xsec[mb]'] - \
+            np.sqrt(dfGMVFNS['PDFerr[mb]']**2 + dfGMVFNS['down.scale.err[mb]']**2)
+        dfGMVFNS['xsec_max[mb]'] = dfGMVFNS['xsec[mb]'] + \
+            np.sqrt(dfGMVFNS['PDFerr[mb]']**2 + dfGMVFNS['up.scale.err[mb]']**2)
+
+        splineGMVFNS = InterpolateModel(dfGMVFNS['pT'], dfGMVFNS['xsec[mb]'],
+                                        dfGMVFNS['xsec_min[mb]'], dfGMVFNS['xsec_max[mb]'])
+
+    return splineGMVFNS, dfGMVFNS
+
+
+def ReadKtFact(fileNameKtFact):
+    '''
+    Helper function to read kT-factorisation txt files
+
+    Parameters
+    -----------
+    fileNameKtFact: kT-factorisation file name
+
+    Returns:
+    -----------
+    splineKtFact: dictionary with values of splines {yCent, yMin, yMax}
+    dfKtFact: pandas dataframe with original values
+    '''
+    dfKtFact = pd.read_csv(fileNameKtFact, sep=' ', comment='#')
+    dfKtFact['ptcent'] = (dfKtFact['ptmin']+dfKtFact['ptmax']) / 2
+    splineKtFact = InterpolateModel(dfKtFact['ptcent'], dfKtFact['central'],
+                                    dfKtFact['lower'], dfKtFact['upper'])
+
+    return splineKtFact, dfKtFact
+
+
+def ReadTAMU(fileNameTAMU):
+    '''
+    Helper function to read TAMU txt files
+
+    Parameters
+    -----------
+    fileNameTAMU: TAMU file name
+
+    Returns:
+    -----------
+    splineTAMU: dictionary with values of splines {yCent, yMin, yMax}
+    dfTAMU: pandas dataframe with original values
+    '''
+    dfTAMU = pd.read_csv(fileNameTAMU, sep=' ', comment='#')
+    if 'R_AA_max' in dfTAMU and 'R_AA_min' in dfTAMU:
+        dfTAMU['R_AA'] = (dfTAMU['R_AA_min'] + dfTAMU['R_AA_max']) / 2 #central value taken as average of min and max
+        splineTAMU = InterpolateModel(dfTAMU['PtCent'], dfTAMU['R_AA'],
+                                      dfTAMU['R_AA_min'], dfTAMU['R_AA_max'])
+    else:
+        splineTAMU = InterpolateModel(dfTAMU['PtCent'], dfTAMU['R_AA'])
+
+    return splineTAMU, dfTAMU
+
+
+def ReadPHSD(fileNamePHSD):
+    '''
+    Helper function to read PHSD txt files
+
+    Parameters
+    -----------
+    fileNamePHSD: PHSD file name
+
+    Returns:
+    -----------
+    splinePHSD: dictionary with values of splines {yCent}
+    dfPHSD: pandas dataframe with original values
+    '''
+    dfPHSD = pd.read_csv(fileNamePHSD, sep=' ', comment='#')
+    splinePHSD = InterpolateModel(dfPHSD['pt'], dfPHSD['Raa'])
+
+    return splinePHSD, dfPHSD
+
+
+def ReadMCatsHQ(fileNameMCatsHQ):
+    '''
+    Helper function to read MCatsHQ txt files
+
+    Parameters
+    -----------
+    fileNameMCatsHQ: MCatsHQ file name
+
+    Returns:
+    -----------
+    splineMCatsHQ: dictionary with values of splines {yCent, yMin, yMax}
+    dfMCatsHQ: pandas dataframe with original values
+    '''
+    dfMCatsHQ = pd.read_csv(fileNameMCatsHQ, sep=' ', comment='#')
+    dfMCatsHQ['Raa_min'] = dfMCatsHQ[['RAAcolK1.5', 'RAAcolradLPMK0.8', 'RAAcolradLPMgludampK0.8']].min(axis=1)
+    dfMCatsHQ['Raa_max'] = dfMCatsHQ[['RAAcolK1.5', 'RAAcolradLPMK0.8', 'RAAcolradLPMgludampK0.8']].max(axis=1)
+    dfMCatsHQ['Raa_cent'] = (dfMCatsHQ['Raa_min'] + dfMCatsHQ['Raa_max']) / 2
+    splineMCatsHQ = InterpolateModel(dfMCatsHQ['pt'], dfMCatsHQ['Raa_cent'],
+                                     dfMCatsHQ['Raa_min'], dfMCatsHQ['Raa_max'])
+
+    return splineMCatsHQ, dfMCatsHQ
+
+
+def ReadCatania(fileNameCatania):
+    '''
+    Helper function to read Catania txt files
+
+    Parameters
+    -----------
+    fileNameCatania: Catania file name
+
+    Returns:
+    -----------
+    splineCatania: dictionary with values of splines {yCent}
+    dfCatania: pandas dataframe with original values
+    '''
+    dfCatania = pd.read_csv(fileNameCatania, sep=' ', comment='#')
+    splineCatania = InterpolateModel(dfCatania['pt'], dfCatania['Raa'])
+
+    return splineCatania, dfCatania
