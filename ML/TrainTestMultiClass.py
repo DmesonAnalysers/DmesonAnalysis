@@ -107,12 +107,13 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
     return TrainTestData, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff
 
 
-def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, HyperPars): #pylint: disable=too-many-statements
+def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylint: disable=too-many-statements
     '''
     function for model training and testing
     '''
     modelClf = xgb.XGBClassifier()
     TrainCols = inputCfg['ml']['training_columns']
+    HyperPars = inputCfg['ml']['hyper_par'][iBin]
     if not isinstance(TrainCols, list):
         print('ERROR: training columns must be defined!')
         sys.exit()
@@ -265,8 +266,7 @@ def main():
         # training, testing
         #_____________________________________________
         if not args.apply:
-            HyperPars = inputCfg['ml']['hyper_par'][iBin]
-            ModelHandl = train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, HyperPars)
+            ModelHandl = train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin)
         else:
             ModelList = inputCfg['ml']['saved_models']
             ModelPath = ModelList[iBin]
