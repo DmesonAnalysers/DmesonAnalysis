@@ -107,13 +107,12 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
     return TrainTestData, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff
 
 
-def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
+def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, HyperPars): #pylint: disable=too-many-statements
     '''
     function for model training and testing
     '''
     modelClf = xgb.XGBClassifier()
     TrainCols = inputCfg['ml']['training_columns']
-    HyperPars = inputCfg['ml']['hyper_par']
     if not isinstance(TrainCols, list):
         print('ERROR: training columns must be defined!')
         sys.exit()
@@ -123,10 +122,10 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
     ModelHandl = ModelHandler(modelClf, TrainCols, HyperPars)
 
     # hyperparams optimization
-    if inputCfg['ml']['do_hyp_opt']:
+    if inputCfg['ml']['hyper_par_opt']['do_hyp_opt']:
         print('Perform bayesian optimization')
 
-        BayesOptConfig = inputCfg['ml']['bayes_opt_config']
+        BayesOptConfig = inputCfg['ml']['hyper_par_opt']['bayes_opt_config']
         if not isinstance(BayesOptConfig, dict):
             print('ERROR: bayes_opt_config must be defined!')
             sys.exit()
@@ -142,11 +141,23 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData):
         else:
             metric = f'roc_auc_{roc_method}'
 
-        ModelHandl.optimize_params_bayes(TrainTestData, BayesOptConfig, metric, nfold=5, init_points=5,
-                                         n_iter=5, njobs=inputCfg['ml']['njobs'])
+        print('Performing hyper-parameters optimisation: ...', end='\r')
+        OutFileHypPars = open(f'{OutPutDirPt}/HyperParOpt_pT_{PtMin}_{PtMax}.txt', 'wt')
+        sys.stdout = OutFileHypPars
+        ModelHandl.optimize_params_bayes(TrainTestData, BayesOptConfig, metric,
+                                         nfold=inputCfg['ml']['hyper_par_opt']['nfolds'],
+                                         init_points=inputCfg['ml']['hyper_par_opt']['initpoints'],
+                                         n_iter=inputCfg['ml']['hyper_par_opt']['niter'],
+                                         njobs=inputCfg['ml']['njobs'])
+        OutFileHypPars.close()
+        sys.stdout = sys.__stdout__
+        print('Performing hyper-parameters optimisation: Done!')
+        print(f'Output saved in {OutPutDirPt}/HyperParOpt_pT_{PtMin}_{PtMax}.txt')
         print(f'Best hyper-parameters:\n{ModelHandl.get_model_params()}')
+    else:
+        ModelHandl.set_model_params(HyperPars)
 
-    # train and test the model with the updated hyperparameters
+    # train and test the model with the updated hyper-parameters
     ModelHandl.train_test_model(TrainTestData, inputCfg['ml']['roc_auc_average'], inputCfg['ml']['roc_auc_approach'])
     yPredTrain = ModelHandl.predict(TrainTestData[0], inputCfg['ml']['raw_output'])
     yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['raw_output'])
@@ -254,7 +265,8 @@ def main():
         # training, testing
         #_____________________________________________
         if not args.apply:
-            ModelHandl = train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData)
+            HyperPars = inputCfg['ml']['hyper_par'][iBin]
+            ModelHandl = train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, HyperPars)
         else:
             ModelList = inputCfg['ml']['saved_models']
             ModelPath = ModelList[iBin]
