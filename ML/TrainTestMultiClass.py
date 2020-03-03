@@ -149,7 +149,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
                                          nfold=inputCfg['ml']['hyper_par_opt']['nfolds'],
                                          init_points=inputCfg['ml']['hyper_par_opt']['initpoints'],
                                          n_iter=inputCfg['ml']['hyper_par_opt']['niter'],
-                                         njobs=inputCfg['ml']['njobs'])
+                                         njobs=inputCfg['ml']['hyper_par_opt']['njobs'])
         OutFileHypPars.close()
         sys.stdout = sys.__stdout__
         print('Performing hyper-parameters optimisation: Done!')
@@ -203,10 +203,15 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
 
 
 def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff):
+    df_column_to_save_bool = inputCfg['df_column_to_save_opt']['df_column_to_save_bool'] 
     OutputLabels = inputCfg['output']['out_labels']
     print('Applying ML model to prompt dataframe: ...', end='\r')
     yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff, inputCfg['ml']['raw_output'])
-    PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
+    if df_column_to_save_bool:
+        df_column_to_save_list = inputCfg['df_column_to_save_opt']['df_column_to_save_list']
+        PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, df_column_to_save_list]
+    else:
+        PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
     PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
@@ -214,7 +219,10 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
 
     print('Applying ML model to FD dataframe: ...', end='\r')
     yPredFDEff = ModelHandl.predict(FDDfPtSelForEff, inputCfg['ml']['raw_output'])
-    FDDfPtSelForEff = FDDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
+    if df_column_to_save_bool:
+        FDDfPtSelForEff = FDDfPtSelForEff.loc[:, df_column_to_save_list]
+    else:
+        FDDfPtSelForEff = FDDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         FDDfPtSelForEff[f'ML_output_{Lab}'] = yPredFDEff[:, Pred]
     FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
@@ -222,7 +230,10 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
 
     print('Applying ML model to data dataframe: ...', end='\r')
     yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'])
-    DataDfPtSel = DataDfPtSel.loc[:, ['inv_mass', 'pt_cand']]
+    if df_column_to_save_bool:
+        DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list]
+    else:
+        DataDfPtSel = DataDfPtSel.loc[:, ['inv_mass', 'pt_cand']]
     for Pred, Lab in enumerate(OutputLabels):
         DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
     DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
@@ -256,7 +267,7 @@ def main():
         if os.path.isdir(OutPutDirPt):
             print('Output directory already exists, overwrites possibly ongoing!')
         else:
-            os.mkdir(OutPutDirPt)
+            os.makedirs(OutPutDirPt)
 
         # data preparation
         #_____________________________________________
@@ -286,6 +297,5 @@ def main():
         for data in TrainTestData:
             del data
         del DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff
-
 
 main()
