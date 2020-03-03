@@ -1,20 +1,20 @@
 input: # files to use
-    prompt: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/old/Prompt_Dspp5TeVNoOutlier_pT_1_50.parquet.gzip
-    FD: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/old/FD_Dspp5TeVNoOutlier_pT_1_50.parquet.gzip
-    data: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/data/ml/Data_Dspp5TeVNoOutlier_pT_1_50.parquet.gzip
+    prompt: [/home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/Prompt_STE__pT_1_50.parquet.gzip]
+    FD: [/home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/FD_STE__pT_1_50.parquet.gzip]
+    data: [/home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/Bkg_STE__pT_1_50.parquet.gzip]
 
 output:
     leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels
     out_labels: ['Bkg', 'Prompt', 'FD'] # output labels
-    dir: '../../../Analyses/pp5TeV/Ds_wML_mult/ml_training' # output dir
+    dir: '/home/stefanop/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_w_optimization' # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing
-    min: [2] # list
-    max: [4] # list
+    min: [1, 2, 4, 8, 12, 16, 24, 36] # list
+    max: [2, 4, 8, 12, 16, 24, 36, 50] # list
 
 data_prep:
     filt_bkg_mass: inv_mass < 1.832 or inv_mass > 2.012 # pandas query to select bkg candidates
-    dataset_opt: max_signal # change how the dataset is built, options available: 'equal', 'max_signal'
+    dataset_opt: equal # change how the dataset is built, options available: 'equal', 'max_signal'
                             # 'equal' -> same number of prompt/FD/bkg (not using all the signal available)
                             # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = 2 * (n_prompt + n_FD)
     bkg_mult: [2.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
@@ -22,19 +22,19 @@ data_prep:
     test_fraction: 0.5 # fraction of data used for test set and efficiencies
     
 ml:
-    raw_output: False # use raw_output (True) of probability (False) as output of the model
+    raw_output: True # use raw_output (True) of probability (False) as output of the model
     roc_auc_average: 'macro' # 'macro' or 'weighted'
     roc_auc_approach: 'ovo'  # 'ovo' or 'ovr'
-    training_columns: [cos_p_xy, d_len, norm_dl_xy, sig_vert, delta_mass_KK, cos_PiKPhi_3,
+    training_columns: [cos_p_xy, d_len, norm_dl_xy, sig_vert, delta_mass_KK,
                        max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2] 
                        # list of training variables
 
-    hyper_par: [{'max_depth':3, 'learning_rate':0.05, 'n_estimators':400, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':1, 'tree_method':hist}]
+    hyper_par: [{'max_depth':3, 'learning_rate':0.0238, 'n_estimators':1028, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist}]
                # list of dicts of hyperparameters (one for each pT bin)
 
     hyper_par_opt:
       do_hyp_opt: True # whether to do the parameter optimization
-      njobs: 8 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
+      njobs: 7 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
       nfolds: 5 # number of folds used in cross validation
       initpoints: 5 # steps of random exploration you want to perform
       niter: 5 # steps for bayesian optimization
@@ -46,7 +46,12 @@ ml:
                    # list of saved ModelHandler (path+file), compatible with the pt bins
 
 plots:
-    plotting_columns: [inv_mass, pt_cand, cos_p_xy, d_len, norm_dl_xy, sig_vert, delta_mass_KK, cos_PiKPhi_3,
+    plotting_columns: [inv_mass, pt_cand, cos_p_xy, d_len, norm_dl_xy, sig_vert, delta_mass_KK,
                        max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2] 
                        # list of variables to plot
-    train_test_log: False # use log scale for plots of train and test distributions
+    train_test_log: True # use log scale for plots of train and test distributions
+
+df_column_to_save_opt: 
+    df_column_to_save_list: ['dca', 'imp_par_xy', 'inv_mass', 'pt_cand'] # list of variables saved in the ML output
+    df_column_to_save_bool: False # False case only saves pt_cand and inv_mass
+
