@@ -25,7 +25,10 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
     function for data preparation
     '''
     DataDfPtSel = DataDf.query(f'{PtMin} < pt_cand < {PtMax}')
-    BkgDfPtSel = DataDfPtSel.query(inputCfg['data_prep']['filt_bkg_mass'])
+    if inputCfg['data_prep']['filt_bkg_mass']:
+        BkgDfPtSel = DataDfPtSel.query(inputCfg['data_prep']['filt_bkg_mass'])
+    else:
+        BkgDfPtSel = DataDfPtSel
     PromptDfPtSel = PromptDf.query(f'{PtMin} < pt_cand < {PtMax}')
     FDDfPtSel = FDDf.query(f'{PtMin} < pt_cand < {PtMax}')
 
@@ -203,15 +206,18 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
 
 
 def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff):
-    df_column_to_save_bool = inputCfg['df_column_to_save_opt']['df_column_to_save_bool'] 
     OutputLabels = inputCfg['output']['out_labels']
     print('Applying ML model to prompt dataframe: ...', end='\r')
     yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff, inputCfg['ml']['raw_output'])
-    if df_column_to_save_bool:
-        df_column_to_save_list = inputCfg['df_column_to_save_opt']['df_column_to_save_list']
-        PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, df_column_to_save_list]
-    else:
-        PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
+    df_column_to_save_list = inputCfg['df_column_to_save_opt']['df_column_to_save_list']
+    if not isinstance(df_column_to_save_list, list):
+        print('ERROR: df_column_to_save_list must be defined!')
+        sys.exit()
+    if 'inv_mass' not in df_column_to_save_list:
+        print('Warning: inv_mass is not gonna be saved in the output model...')
+    if 'pt_cand' not in df_column_to_save_list:
+        print('Warning: pt_cand is not gonna be saved in the output model...')
+    PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, df_column_to_save_list]
     for Pred, Lab in enumerate(OutputLabels):
         PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
     PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
@@ -219,10 +225,7 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
 
     print('Applying ML model to FD dataframe: ...', end='\r')
     yPredFDEff = ModelHandl.predict(FDDfPtSelForEff, inputCfg['ml']['raw_output'])
-    if df_column_to_save_bool:
-        FDDfPtSelForEff = FDDfPtSelForEff.loc[:, df_column_to_save_list]
-    else:
-        FDDfPtSelForEff = FDDfPtSelForEff.loc[:, ['inv_mass', 'pt_cand']]
+    FDDfPtSelForEff = FDDfPtSelForEff.loc[:, df_column_to_save_list]
     for Pred, Lab in enumerate(OutputLabels):
         FDDfPtSelForEff[f'ML_output_{Lab}'] = yPredFDEff[:, Pred]
     FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
@@ -230,10 +233,7 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
 
     print('Applying ML model to data dataframe: ...', end='\r')
     yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'])
-    if df_column_to_save_bool:
-        DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list]
-    else:
-        DataDfPtSel = DataDfPtSel.loc[:, ['inv_mass', 'pt_cand']]
+    DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list]
     for Pred, Lab in enumerate(OutputLabels):
         DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
     DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
