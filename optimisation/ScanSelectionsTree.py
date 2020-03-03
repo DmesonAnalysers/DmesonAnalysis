@@ -88,10 +88,8 @@ hPtGenLimAcc = infileAcc.Get('hPtGenLimAcc')
 
 # load cross sections
 inFileCrossSec = TFile.Open(inputCfg['predictions']['crosssec']['filename'])
-hCrossSecPrompt = inFileCrossSec.Get(
-    f"{inputCfg['predictions']['crosssec']['histonames']['prompt']}_central")
-hCrossSecFD = inFileCrossSec.Get(
-    f"{inputCfg['predictions']['crosssec']['histonames']['feeddown']}_central_corr")
+hCrossSecPrompt = inFileCrossSec.Get(inputCfg['predictions']['crosssec']['histonames']['prompt'])
+hCrossSecFD = inFileCrossSec.Get(inputCfg['predictions']['crosssec']['histonames']['feeddown'])
 
 # load RAA
 # TODO: add possibility to pass prediction from file instead of fixed value
@@ -331,6 +329,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 if 'Eff' in est:
                     cEstimVsCut[iPt].cd(iPad+1).SetLogy()
                     hFrame.GetYaxis().SetMoreLogLabels()
+                hFrame.GetXaxis().SetNdivisions(505)
                 hFrame.GetXaxis().SetDecimals()
                 hFrame.GetYaxis().SetDecimals()
                 hEstimVsCut[iPt][est].DrawCopy('psame')
@@ -348,6 +347,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                                                f';{varNames[0]};{varNames[1]};{estNames[est]}')
                 if 'Eff' in est:
                     cEstimVsCut[iPt].cd(iPad+1).SetLogz()
+                    hFrame.GetZaxis().SetMoreLogLabels()
+                hFrame.GetXaxis().SetNdivisions(505)
+                hFrame.GetYaxis().SetNdivisions(505)
                 hFrame.GetXaxis().SetDecimals()
                 hFrame.GetYaxis().SetDecimals()
                 hEstimVsCut[iPt][est].DrawCopy('colz same')
