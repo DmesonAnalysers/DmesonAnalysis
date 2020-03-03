@@ -459,7 +459,7 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
     - expected signal
     '''
 
-    return crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
+    return 2 * crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
 
 
 def ComputeCrossSection(rawY, uncRawY, effTimesAcc, frac, deltaPt, deltaY, sigmaMB, nEv, BR):
