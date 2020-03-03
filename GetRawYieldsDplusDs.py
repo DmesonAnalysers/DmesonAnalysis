@@ -36,7 +36,7 @@ with open(args.fitConfigFileName, 'r') as ymlfitConfigFile:
     fitConfig = yaml.load(ymlfitConfigFile, yaml.FullLoader)
 
 gROOT.SetBatch(args.batch)
-SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.08, padtopmargin=0.12, opttitle=1)
+SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, padtopmargin=0.12, opttitle=1)
 
 ptMins = fitConfig[cent]['PtMin']
 ptMaxs = fitConfig[cent]['PtMax']
@@ -68,9 +68,9 @@ for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]
         exit()
 
 if mesonName == 'Dplus':
-    massAxisTit = ';#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
+    massAxisTit = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
 elif mesonName == 'Ds':
-    massAxisTit = ';#it{M}(KK#pi) (GeV/#it{c}^{2})'
+    massAxisTit = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
 
 # load inv-mass histos
 infile = TFile.Open(args.inFileName)
@@ -198,9 +198,10 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
     hMassForFit.append(TH1F())
     AliVertexingHFUtils.RebinHisto(hM, reb).Copy(hMassForFit[iPt]) #to cast TH1D to TH1F
     hMassForFit[iPt].SetDirectory(0)
-    hMassForFit[iPt].SetTitle("%0.f < #it{p}_{T} < %0.f GeV/#it{c};%s;Counts per %0.f MeV/#it{c}^{2}" % (
-        ptMin, ptMax, massAxisTit, hMassForFit[iPt].GetBinWidth(1)*1000))
-    hMassForFit[iPt].SetName("MassForFit{0}".format(iPt))
+    hMassForFit[iPt].SetTitle(
+        f"{ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}};{massAxisTit};"
+        f"Counts per {hMassForFit[iPt].GetBinWidth(1)*1000:.0f} MeV/#it{{c}}^{{2}}")
+    hMassForFit[iPt].SetName(f"MassForFit{iPt}")
     SetObjectStyle(hMassForFit[iPt], color=kBlack, markerstyle=kFullCircle)
 
     # MC
