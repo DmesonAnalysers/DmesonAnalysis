@@ -52,6 +52,4 @@ plots:
     train_test_log: True # use log scale for plots of train and test distributions
 
 df_column_to_save_opt: 
-    df_column_to_save_list: ['dca', 'imp_par_xy', 'inv_mass', 'pt_cand'] # list of variables saved in the ML output 
-    
-
+    df_column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models

@@ -67,3 +67,6 @@ plots:
                        max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2] 
                        # list of variables to plot
     train_test_log: False # use log scale for plots of train and test distributions
+
+df_column_to_save_opt: 
+    df_column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models

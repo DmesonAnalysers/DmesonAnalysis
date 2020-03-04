@@ -34,7 +34,7 @@ ml:
 
     hyper_par_opt:
       do_hyp_opt: True # whether to do the parameter optimization
-      njobs: 8 # number of parallel jobs used inMinor hyper-parameter optimization, -1. to use all
+      njobs: 8 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
       nfolds: 5 # number of folds used in cross validation
       initpoints: 5 # steps of random exploration you want to perform
       niter: 5 # steps for bayesian optimization
@@ -50,3 +50,6 @@ plots:
                        max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2] 
                        # list of variables to plot
     train_test_log: False # use log scale for plots of train and test distributions
+
+df_column_to_save_opt: 
+    df_column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
