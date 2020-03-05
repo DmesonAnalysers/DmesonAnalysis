@@ -73,7 +73,7 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
                f'testing ({1 - test_f}-{test_f})'))
         if nCandBkg >= nBkg:
             nCandBkg = nBkg
-            print('WARNING: using all bkg available, not good!')
+            print('\033[93mWARNING: using all bkg available, not good!\033[0m')
         print(f'Fraction of real data candidates used for ML: {nCandBkg/nBkg:.5f}')
 
         TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandBkg], PromptDfPtSel, FDDfPtSel], sort=True)
@@ -87,7 +87,7 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
         del TotDfPtSel
 
     else:
-        print(f'ERROR: {dataset_opt} is not a valid option!')
+        print(f'\033[91mERROR: {dataset_opt} is not a valid option!\033[0m')
         sys.exit()
 
     # plots
@@ -118,10 +118,10 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
     TrainCols = inputCfg['ml']['training_columns']
     HyperPars = inputCfg['ml']['hyper_par'][iBin]
     if not isinstance(TrainCols, list):
-        print('ERROR: training columns must be defined!')
+        print('\033[91mERROR: training columns must be defined!\033[0m')
         sys.exit()
     if not isinstance(HyperPars, dict):
-        print('ERROR: hyper-parameters must be defined or be an empty dict!')
+        print('\033[91mERROR: hyper-parameters must be defined or be an empty dict!\033[0m')
         sys.exit()
     ModelHandl = ModelHandler(modelClf, TrainCols, HyperPars)
 
@@ -131,13 +131,13 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
 
         BayesOptConfig = inputCfg['ml']['hyper_par_opt']['bayes_opt_config']
         if not isinstance(BayesOptConfig, dict):
-            print('ERROR: bayes_opt_config must be defined!')
+            print('\033[91mERROR: bayes_opt_config must be defined!\033[0m')
             sys.exit()
 
         average_method = inputCfg['ml']['roc_auc_average']
         roc_method = inputCfg['ml']['roc_auc_approach']
         if not (average_method in ['macro', 'weighted'] and roc_method in ['ovo', 'ovr']):
-            print('ERROR: selected ROC configuration is not valid!')
+            print('\033[91mERROR: selected ROC configuration is not valid!\033[0m')
             sys.exit()
 
         if average_method == 'weighted':
@@ -211,12 +211,12 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
     yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff, inputCfg['ml']['raw_output'])
     df_column_to_save_list = inputCfg['df_column_to_save_opt']['df_column_to_save_list']
     if not isinstance(df_column_to_save_list, list):
-        print('ERROR: df_column_to_save_list must be defined!')
+        print('\033[91mERROR: df_column_to_save_list must be defined!\033[0m')
         sys.exit()
     if 'inv_mass' not in df_column_to_save_list:
-        print('Warning: inv_mass is not gonna be saved in the output model...')
+        print('\033[93mWARNING: inv_mass is not going to be saved in the output dataframe!\033[0m')
     if 'pt_cand' not in df_column_to_save_list:
-        print('Warning: pt_cand is not gonna be saved in the output model...')
+        print('\033[93mWARNING: pt_cand is not going to be saved in the output dataframe!\033[0m')
     PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, df_column_to_save_list]
     for Pred, Lab in enumerate(OutputLabels):
         PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
@@ -265,7 +265,7 @@ def main():
 
         OutPutDirPt = os.path.join(inputCfg['output']['dir'], f'pt{PtMin}_{PtMax}')
         if os.path.isdir(OutPutDirPt):
-            print('Output directory already exists, overwrites possibly ongoing!')
+            print('\033[93mWARNING: Output directory already exists, overwrites possibly ongoing!\033[0m')
         else:
             os.makedirs(OutPutDirPt)
 
@@ -273,6 +273,8 @@ def main():
         #_____________________________________________
         TrainTestData, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff = data_prep( \
             inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
+        if args.apply and inputCfg['data_prep']['test_fraction'] < 1.:
+            print('\033[93mWARNING: Using only a fraction of the MC for the application! Are you sure?\033[0m')
 
         # training, testing
         #_____________________________________________
@@ -282,7 +284,7 @@ def main():
             ModelList = inputCfg['ml']['saved_models']
             ModelPath = ModelList[iBin]
             if not isinstance(ModelPath, str):
-                print(f'ERROR: path to model not correctly defined!')
+                print(f'\033[91mERROR: path to model not correctly defined!\033[0m')
                 sys.exit()
             print(f'Loaded saved model: {ModelPath}')
             ModelHandl = ModelHandler()
