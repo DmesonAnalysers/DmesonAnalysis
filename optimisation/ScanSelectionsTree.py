@@ -176,8 +176,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     # cross section from theory
     ptBinCrossSecMin = hCrossSecPrompt.GetXaxis().FindBin(ptMin*1.0001)
     ptBinCrossSecMax = hCrossSecPrompt.GetXaxis().FindBin(ptMax*0.9999)
-    crossSecPrompt = hCrossSecPrompt.Integral(ptBinCrossSecMin, ptBinCrossSecMax) / (ptMax - ptMin)
-    crossSecFD = hCrossSecFD.Integral(ptBinCrossSecMin, ptBinCrossSecMax) / (ptMax - ptMin)
+    crossSecPrompt = hCrossSecPrompt.Integral(ptBinCrossSecMin, ptBinCrossSecMax, 'width') / (ptMax - ptMin)
+    crossSecFD = hCrossSecFD.Integral(ptBinCrossSecMin, ptBinCrossSecMax, 'width') / (ptMax - ptMin)
 
     # output histos
     hSignifVsRest.append(dict())
@@ -245,7 +245,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
         # expected signal
         expSignal = GetExpectedSignal(crossSecPrompt, ptMax-ptMin, 1., effTimesAccPrompt,
-                                      fPrompt[0], BR, 1., nExpEv, sigmaMB, Taa, RaaPrompt)
+                                      fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
+        # BR already included in cross section
 
         # expected background
         if inputCfg['infiles']['background']['isMC']:

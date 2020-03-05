@@ -78,7 +78,6 @@ if compareToFc or compareToNb:
         f"{cutSetCfg['theorydriven']['predictions']['crosssec']['histonames']['feeddown']}_max_corr"))
 
     if compareToNb:
-        BR = cutSetCfg['theorydriven']['BR']
         sigmaMB = cutSetCfg['theorydriven']['sigmaMB']
 
 SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.08, titleoffsetx=1., titleoffsety=1.4, opttitle=1, palette=kRainBow)
@@ -204,9 +203,9 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     # cross sections from theory if comparison enabled
     if compareToFc or compareToNb:
         crossSecPrompt = [h.Integral(h.GetXaxis().FindBin(
-            ptMin*1.0001), h.GetXaxis().FindBin(ptMax*0.9999)) / (ptMax-ptMin) for h in hCrossSecPrompt]
+            ptMin*1.0001), h.GetXaxis().FindBin(ptMax*0.9999), 'width') / (ptMax-ptMin) for h in hCrossSecPrompt]
         crossSecFD = [h.Integral(h.GetXaxis().FindBin(
-            ptMin*1.0001), h.GetXaxis().FindBin(ptMax*0.9999)) / (ptMax-ptMin) for h in hCrossSecFD]
+            ptMin*1.0001), h.GetXaxis().FindBin(ptMax*0.9999), 'width') / (ptMax-ptMin) for h in hCrossSecFD]
 
         if compareToFc:
             gPromptFracFcVsCut.append(TGraphAsymmErrors(nSets))
@@ -292,7 +291,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
             gFDFracFcVsCut[iPt].SetPointError(iCutSet, 0.5, 0.5, fFDFc[0]-fFDFc[1], fFDFc[2]-fFDFc[0])
 
         if compareToNb:
-            fPromptNb = GetFractionNb(rawY, effP, effF, crossSecFD, ptMax-ptMin, 1., BR,
+            fPromptNb = GetFractionNb(rawY, effP, effF, crossSecFD, ptMax-ptMin, 1., 1.,
                                       hEv[iCutSet].GetBinContent(1), sigmaMB)
             fFDNb = [1-fPromptNb[0], 1-fPromptNb[2], 1-fPromptNb[1]] #inverse Nb method not reliable
 
