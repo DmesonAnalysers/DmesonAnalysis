@@ -19,7 +19,7 @@ data_prep:
                             # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = 2 * (n_prompt + n_FD)
     bkg_mult: [2.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
     seed_split: 42 # seed used for train_test_split(...)
-    test_fraction: 0.5 # fraction of data used for test set and efficiencies
+    test_fraction: 0.5 # fraction of data used for test set and efficiencies --> set to 1. if you want to apply the model to the full dataframes  
     
 ml:
     raw_output: True # use raw_output (True) of probability (False) as output of the model
