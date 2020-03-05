@@ -58,8 +58,15 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
         TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandToKeep], PromptDfPtSel.iloc[:nCandToKeep],
                                 FDDfPtSel.iloc[:nCandToKeep]], sort=True)
         LabelsArray = np.array([0]*nCandToKeep + [1]*nCandToKeep + [2]*nCandToKeep)
-        TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=test_f,
-                                                            random_state=seed_split)
+        if test_f < 1:
+            TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=test_f,
+                                                                random_state=seed_split)
+        else:
+            TrainSet = pd.DataFrame()
+            TestSet = TotDfPtSel.copy()
+            yTrain = pd.Series()
+            yTest = LabelsArray.copy()
+
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
         CandTypeFlags = pd.Series(yTest)
         PromptDfPtSelForEff = pd.concat([PromptDfPtSel.iloc[nCandToKeep:], TestSet[CandTypeFlags.values == 1]],
@@ -78,8 +85,15 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
 
         TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandBkg], PromptDfPtSel, FDDfPtSel], sort=True)
         LabelsArray = np.array([0]*nCandBkg + [1]*nPrompt + [2]*nFD)
-        TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=test_f,
-                                                            random_state=seed_split)
+        if test_f < 1:
+            TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=test_f,
+                                                                random_state=seed_split)
+        else:
+            TrainSet = pd.DataFrame()
+            TestSet = TotDfPtSel.copy()
+            yTrain = pd.Series()
+            yTest = LabelsArray.copy()
+
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
         CandTypeFlags = pd.Series(yTest)
         PromptDfPtSelForEff = TestSet[CandTypeFlags.values == 1]
