@@ -18,6 +18,8 @@ parser.add_argument('effAccFileName', metavar='text', default='effAccFile.root',
                     help='root file with efficiency and acceptance')
 parser.add_argument('fracFileName', metavar='text',
                     default='fracFile.root', help='root file with prompt (FD) fraction')
+parser.add_argument('outFileName', metavar='text',
+                    default='outFile.root', help='root output file name')
 parser.add_argument('--system', metavar='text', default='pp', help='collision system (pp, pPb, PbPb)')
 parser.add_argument('--energy', metavar=float, default=5.02, help='energy (5.02)')
 parser.add_argument("--prompt", action='store_true', help='flag to compute prompt cross section', default=False)
@@ -29,13 +31,13 @@ args = parser.parse_args()
 # TODO: add systematic uncertainties (create DB as AliHFSystErr? Read uncertainties from AliHFSystErr?)
 # Protections for arguments
 if args.system == 'pp':
-    if args.energy == 5.02:
+    if args.energy == '5.02':
         sigmaMB = 50.87e+9 # pb
     else:
         print(f'Energy {args.energy} not implemented! Exit')
         exit()
 elif args.system == 'PbPb':
-    if args.energy == 5.02:
+    if args.energy == '5.02':
         sigmaMB = 1. # yields in case of PbPb
     else:
         print(f'Energy {args.energy} not implemented! Exit')
@@ -56,8 +58,8 @@ hEvForNorm = rawYieldFile.Get('hEvForNorm')
 nEv = hEvForNorm.GetBinContent(1)
 
 effAccFile = TFile.Open(args.effAccFileName)
-hEffAccPrompt = effAccFile.Get('hEffAccPrompt')
-hEffAccFD = effAccFile.Get('hEffAcFD')
+hEffAccPrompt = effAccFile.Get('hAccEffPrompt')
+hEffAccFD = effAccFile.Get('hAccEffFD')
 
 fracFile = TFile.Open(args.fracFileName)
 hCorrYieldPrompt = fracFile.Get('hCorrYieldPrompt')
@@ -127,8 +129,8 @@ for iPt in range(hCrossSection.GetNbinsX()):
         frac = fFD
 
     crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, effAcc, 1., ptMax-ptMin, 1., sigmaMB, nEv, BR)
-    hCrossSection.SetBinContent(iPt+1, crossSec)
-    hCrossSection.SetBinError(iPt+1, crossSecUnc)
+    hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6) # convert from mb to mub
+    hCrossSection.SetBinError(iPt+1, crossSecUnc * 1.e-6) # convert from mb to mub
 
 SetGlobalStyle()
 cCrossSec = TCanvas('cCrossSec', '', 700, 800)
@@ -141,10 +143,11 @@ hFDFrac.Draw('same')
 
 cEff = TCanvas('cEff', '', 800, 800)
 cEff.DrawFrame(hPromptFrac.GetBinLowEdge(1), 1.e-4, ptMax, 1., ';#it{p}_{T} (GeV/#it{c}); (Acc#times#font[152]{e})')
+cEff.SetLogy()
 hEffAccPrompt.Draw('same')
 hEffAccFD.Draw('same')
 
-outFile = TFile(args.outFileName)
+outFile = TFile(args.outFileName, 'recreate')
 hCrossSection.Write()
 hRawYields.Write()
 hEffAccPrompt.Write()
