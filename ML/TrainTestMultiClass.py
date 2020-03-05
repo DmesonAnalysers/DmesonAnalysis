@@ -231,13 +231,13 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
     FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
     print('Applying ML model to FD dataframe: Done!')
 
-    # print('Applying ML model to data dataframe: ...', end='\r')
-    # yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'])
-    # DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list]
-    # for Pred, Lab in enumerate(OutputLabels):
-    #     DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
-    # DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
-    # print('Applying ML model to data dataframe: Done!')
+    print('Applying ML model to data dataframe: ...', end='\r')
+    yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'])
+    DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list]
+    for Pred, Lab in enumerate(OutputLabels):
+        DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
+    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    print('Applying ML model to data dataframe: Done!')
 
 
 def main():
