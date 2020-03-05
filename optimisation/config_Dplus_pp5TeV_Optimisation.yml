@@ -45,7 +45,6 @@ predictions:
 
 nExpectedEvents: 950000000
 BR: 0.0898
-fractoD: 0.42
 sigmaMB: 50.87e+9 #pb
 Taa: 1.
 

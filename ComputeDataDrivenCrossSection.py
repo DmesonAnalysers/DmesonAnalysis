@@ -125,10 +125,10 @@ for iPt in range(hCrossSection.GetNbinsX()):
         effAcc = effAccPrompt
         frac = fPrompt
     else:
-        effAcc = hEffAccFD.GetBinContent(iPt+1)
+        effAcc = effAccFD
         frac = fFD
 
-    crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, effAcc, 1., ptMax-ptMin, 1., sigmaMB, nEv, BR)
+    crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, effAcc, frac, ptMax-ptMin, 1., sigmaMB, nEv, BR)
     hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6) # convert from pb to mub
     hCrossSection.SetBinError(iPt+1, crossSecUnc * 1.e-6) # convert from pb to mub
 
