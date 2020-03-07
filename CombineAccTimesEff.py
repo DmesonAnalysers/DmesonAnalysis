@@ -77,7 +77,8 @@ hAccEffPrompt.Write()
 hAccEffFD.Write()
 outFile.Close()
 
+outFileNamePDF = args.outFileName.replace('.root', '.pdf')
+cAccEff.SaveAs(outFileNamePDF)
+
 if not args.batch:
-    outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-    cAccEff.SaveAs(outFileNamePDF)
     input('Press enter to exit')

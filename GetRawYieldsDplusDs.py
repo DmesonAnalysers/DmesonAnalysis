@@ -459,9 +459,10 @@ hRelDiffRawYieldsSecPeakFitTrue.Write()
 hEv.Write()
 outFile.Close()
 
+outFileNamePDF = args.outFileName.replace('.root', '.pdf')
+cMass.SaveAs(outFileNamePDF)
+outFileNamePDF = args.outFileName.replace(".root", "_Residuals.pdf")
+cResiduals.SaveAs(outFileNamePDF)
+
 if not args.batch:
-    outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-    cMass.SaveAs(outFileNamePDF)
-    outFileNamePDF = args.outFileName.replace(".root", "_Residuals.pdf")
-    cResiduals.SaveAs(outFileNamePDF)
     input('Press enter to exit')
