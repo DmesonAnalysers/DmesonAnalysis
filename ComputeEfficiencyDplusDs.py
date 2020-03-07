@@ -132,7 +132,8 @@ hYieldPromptReco.Write()
 hYieldFDReco.Write()
 outFile.Close()
 
+outFileNamePDF = args.outFileName.replace('.root', '.pdf')
+cEff.SaveAs(outFileNamePDF)
+
 if not args.batch:
-    outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-    cEff.SaveAs(outFileNamePDF)
     input('Press enter to exit')
