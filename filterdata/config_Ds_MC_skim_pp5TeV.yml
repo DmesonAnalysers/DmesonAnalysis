@@ -1,12 +1,12 @@
 infile:
     isMC: 1
-    filename: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/AnalysisResults_Dspp5TeV_pT_1_50.root]
-    dirname: PWGHF_D2H_InvMassDs_TreeCreator_MC
+    filename: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/LHC20a8/AnalysisResultsDsMC_LHC20a8_Tot.root]
+    dirname: PWGHF_D2H_InvMassDs_Ds_Loose_kMB
     treename: treeMLDs
 
 outfile:
     dirpath: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml
-    suffix: _Dspp5TeVNoOutlier
+    suffix: _Dspp5TeVNoOutlier_MLtraining
     treename: treeMLs
     
 skimming:
