@@ -1,6 +1,9 @@
 '''
 python script to compare measured cross sections with FONLL
-run: python CompareCrossSecToFONLL.py FONLL.root [--Dplus] [--Ds] [--prompt CrossSecPrompt.root] [--FD CrossSecFD.root] [--logx]
+run: python CompareCrossSecToFONLL.py FONLL.root
+[--Dplus] [--Ds] [--prompt CrossSecPrompt.root] [--FD CrossSecFD.root] [--logx]
+Either Dplus or Ds must be chosen
+Either prompt or FD (or both) must be set
 '''
 
 import sys
@@ -13,6 +16,8 @@ from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('FONLLFileName', metavar='text',
                     default='FONLL.root', help='root file FONLL predictions')
+parser.add_argument('outFileName', metavar='text',
+                    default='outFile.pdf', help='pdf output file')
 parser.add_argument('--Dplus', action='store_true', default=False,
                     help='enable comparison for D+')
 parser.add_argument('--Ds', action='store_true', default=False,
@@ -46,7 +51,7 @@ if args.prompt:
     hCrossSectionPrompt = infilePrompt.Get('hCrossSection')
     if not hCrossSectionPrompt:
         hCrossSectionPrompt = infilePrompt.Get('histoSigmaCorr')
-        hCrossSectionPrompt.Scale(BR/1.e6)
+        hCrossSectionPrompt.Scale(1.e-6 / BR)
         hCrossSectionPrompt.SetStats(0)
     hCrossSectionPrompt.SetName('hCrossSectionPrompt')
     hCrossSectionPrompt.SetDirectory(0)
@@ -72,9 +77,9 @@ if args.prompt:
         hCrossSectionPrompt.GetNbinsX(), 'hFONLLPromptCentral', ptLimitsPrompt)
     hFONLLPromptMin = hFONLLPromptMin.Rebin(hCrossSectionPrompt.GetNbinsX(), 'hFONLLPromptMin', ptLimitsPrompt)
     hFONLLPromptMax = hFONLLPromptMax.Rebin(hCrossSectionPrompt.GetNbinsX(), 'hFONLLPromptMax', ptLimitsPrompt)
-    hFONLLPromptCentral.Scale(BR/2.e7, 'width')
-    hFONLLPromptMin.Scale(BR/2.e7, 'width')
-    hFONLLPromptMax.Scale(BR/2.e7, 'width')
+    hFONLLPromptCentral.Scale(1.e-6 / BR / 20, 'width')
+    hFONLLPromptMin.Scale(1.e-6 / BR / 20, 'width')
+    hFONLLPromptMax.Scale(1.e-6 / BR / 20, 'width')
     hFONLLPromptCentral.SetDirectory(0)
     hFONLLPromptMin.SetDirectory(0)
     hFONLLPromptMax.SetDirectory(0)
@@ -98,7 +103,7 @@ if args.FD:
     if not hCrossSectionFD:
         hCrossSectionFD = infileFD.Get('histoSigmaCorr')
         hCrossSectionFD.SetStats(0)
-    hCrossSectionFD.Scale(BR/1.e6)
+        hCrossSectionFD.Scale(1.e-6 / BR)
     hCrossSectionFD.SetName('hCrossSectionFD')
     hCrossSectionFD.SetDirectory(0)
     SetObjectStyle(hCrossSectionFD, color=kBlack, markerstyle=kFullSquare)
@@ -132,9 +137,9 @@ if args.FD:
     hFONLLFDCentral = hFONLLFDCentral.Rebin(hCrossSectionFD.GetNbinsX(), 'hFONLLFDCentral', ptLimitsFD)
     hFONLLFDMin = hFONLLFDMin.Rebin(hCrossSectionFD.GetNbinsX(), 'hFONLLFDMin', ptLimitsFD)
     hFONLLFDMax = hFONLLFDMax.Rebin(hCrossSectionFD.GetNbinsX(), 'hFONLLFDMax', ptLimitsFD)
-    hFONLLFDCentral.Scale(BR/2.e7, 'width')
-    hFONLLFDMin.Scale(BR/2.e7, 'width')
-    hFONLLFDMax.Scale(BR/2.e7, 'width')
+    hFONLLFDCentral.Scale(1.e-6 / BR / 20, 'width')
+    hFONLLFDMin.Scale(1.e-6 / BR / 20, 'width')
+    hFONLLFDMax.Scale(1.e-6 / BR / 20, 'width')
     hFONLLFDCentral.SetDirectory(0)
     hFONLLFDMin.SetDirectory(0)
     hFONLLFDMax.SetDirectory(0)
@@ -151,6 +156,13 @@ if args.FD:
     SetObjectStyle(hFONLLFDCentral, color=kAzure+4, markerstyle=0)
     SetObjectStyle(gFONLLFD, color=kAzure+4, fillalpha=0.2, fillstyle=1000)
     infileFONLL.Close()
+
+# protection for log scale
+if sigmaMin <= 0:
+    sigmaMin = 1.e-3
+if args.logx and ptMin <= 0:
+    print('WARNING: disabling log scale for x axis because minimum pT <= 0!')
+    args.logx = False
 
 cCrossSec = TCanvas('cCrossSec', '', 700, 800)
 hFrame = cCrossSec.DrawFrame(ptMin, sigmaMin, ptMax, sigmaMax,
@@ -189,5 +201,7 @@ if args.FD:
     legFD.AddEntry(hCrossSectionFD, 'Data', 'p')
     legFD.AddEntry(gFONLLFD, 'FONLL', 'f')
     legFD.Draw()
+
+cCrossSec.SaveAs(args.outFileName)
 
 input('Press enter to exit')

@@ -462,18 +462,20 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
     return 2 * crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
 
 
-def ComputeCrossSection(rawY, uncRawY, effTimesAcc, frac, deltaPt, deltaY, sigmaMB, nEv, BR):
+def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, deltaY, sigmaMB, nEv, BR):
     '''
     Method to compute cross section and its statistical uncertainty
-    Only the statistical uncertainty on the raw yield is considered (the others are systematics)
+    Only the statistical uncertainty on the raw yield and prompt (feed-down)
+    fraction are considered (the others are systematics)
 
     Parameters
     ----------
 
     - rawY: raw yield
     - uncRawY: raw-yield statistical uncertainty
-    - effTimesAcc: efficiency times acceptance for prompt or feed-down
     - frac: either prompt or feed-down fraction
+    - uncFrac: uncertainty on prompt or feed-down fraction
+    - effTimesAcc: efficiency times acceptance for prompt or feed-down
     - deltaPt: pT interval
     - deltaY: Y interval
     - sigmaMB: hadronic cross section for MB
@@ -489,7 +491,7 @@ def ComputeCrossSection(rawY, uncRawY, effTimesAcc, frac, deltaPt, deltaY, sigma
     '''
 
     crossSection = rawY * frac * sigmaMB / (2 * deltaPt * deltaY * effTimesAcc * nEv * BR)
-    crossSecUnc = uncRawY / rawY * crossSection
+    crossSecUnc = np.sqrt((uncRawY / rawY)**2 + (uncFrac / frac)**2) * crossSection
 
     return crossSection, crossSecUnc
 
