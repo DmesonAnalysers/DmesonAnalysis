@@ -124,16 +124,20 @@ for iPt in range(hCrossSection.GetNbinsX()):
     if args.prompt:
         effAcc = effAccPrompt
         frac = fPrompt
+        uncFrac = fPromptUnc
     else:
         effAcc = effAccFD
         frac = fFD
+        uncFrac = fFDUnc
 
-    crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, effAcc, frac, ptMax-ptMin, 1., sigmaMB, nEv, BR)
-    hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6) # convert from pb to mub
+    crossSec, crossSecUnc = ComputeCrossSection(
+        rawYield, rawYieldUnc, frac, uncFrac, effAcc, ptMax-ptMin, 1., sigmaMB, nEv, BR)
+    hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6)  # convert from pb to mub
     hCrossSection.SetBinError(iPt+1, crossSecUnc * 1.e-6) # convert from pb to mub
 
-SetGlobalStyle()
+SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14)
 cCrossSec = TCanvas('cCrossSec', '', 700, 800)
+cCrossSec.SetLogy()
 hCrossSection.Draw()
 
 cFrac = TCanvas('cFrac', '', 800, 800)
