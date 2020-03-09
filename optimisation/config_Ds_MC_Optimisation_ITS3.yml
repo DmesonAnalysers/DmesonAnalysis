@@ -1,0 +1,96 @@
+infiles:
+    signal:
+        prompt:
+            filename: [/home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt1_2/Prompt_pT_1_2_ModelApplied.parquet.gzip,
+                     /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt2_4/Prompt_pT_2_4_ModelApplied.parquet.gzip,
+                     /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt4_8/Prompt_pT_4_8_ModelApplied.parquet.gzip,
+                     /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt8_12/Prompt_pT_8_12_ModelApplied.parquet.gzip,
+                     /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt12_16/Prompt_pT_12_16_ModelApplied.parquet.gzip,
+                     /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt16_24/Prompt_pT_16_24_ModelApplied.parquet.gzip,
+                     /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt24_36/Prompt_pT_24_36_ModelApplied.parquet.gzip,
+                     /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt36_50/Prompt_pT_36_50_ModelApplied.parquet.gzip]
+            dirname: null
+            treename: null
+        feeddown:
+            filename: [/home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt1_2/FD_pT_1_2_ModelApplied.parquet.gzip,
+                 /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt2_4/FD_pT_2_4_ModelApplied.parquet.gzip,
+                 /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt4_8/FD_pT_4_8_ModelApplied.parquet.gzip,
+                 /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt8_12/FD_pT_8_12_ModelApplied.parquet.gzip,
+                 /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt12_16/FD_pT_12_16_ModelApplied.parquet.gzip,
+                 /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt16_24/FD_pT_16_24_ModelApplied.parquet.gzip,
+                 /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt24_36/FD_pT_24_36_ModelApplied.parquet.gzip,
+                 /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt36_50/FD_pT_36_50_ModelApplied.parquet.gzip]
+            dirname: null
+            treename: null
+    secpeak: # only for Ds
+        prompt:
+            filename: null
+            dirname: null
+            treename: null
+        feeddown:
+            filename: null
+            dirname: null
+            treename: null
+    background:
+        filename: [/home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip,
+                   /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt2_4/Data_pT_2_4_ModelApplied.parquet.gzip,
+                   /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt4_8/Data_pT_4_8_ModelApplied.parquet.gzip,
+                   /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt8_12/Data_pT_8_12_ModelApplied.parquet.gzip,
+                   /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt12_16/Data_pT_12_16_ModelApplied.parquet.gzip,
+                   /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt16_24/Data_pT_16_24_ModelApplied.parquet.gzip,
+                   /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt24_36/Data_pT_24_36_ModelApplied.parquet.gzip,
+                   /home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_3/pt36_50/Data_pT_36_50_ModelApplied.parquet.gzip]
+        dirname: null
+        treename: null
+        nEvents: 217598 # number of events for bkg in dataframe
+        fractiontokeep: 1 
+        isMC: True # if false bkg from SB
+
+    preseleff: 
+        filename: /home/alidock/DmesonAnalysis/Hijing_Efficiency/ITS2/test_set_1/wQuark/outEff_ITS2_test1.root
+        prompthistoname: hEffPrompt
+        feeddownhistoname: hEffFD
+    acceptance: /home/alidock/DmesonAnalysis/accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
+
+ppRefFile: null
+
+predictions:
+    crosssec:
+        filename: /home/alidock/DmesonAnalysis/models/D0DplusDstarPredictions_502TeV_y05_all_021016_BDShapeCorrected.root
+        histonames: 
+            prompt: hDsPhipitoKkpipred_max
+            feeddown: hDsPhipitoKkpifromBpred_max_corr
+    Raa: 
+        prompt: 1. #/home/alidock/DmesonAnalysis/models/tamu/Ds_TAMU_RAA_5TeV_010.txt # can either be a fixed value or the path to a text file
+        feeddown: 1. # can either be a fixed value or a text file
+        model: tamu # avaliable models: 'phsd', 'KtFact', 'GMVFNS', 'Catania', 'fonll', 'tamu', 'MCatsHQ'
+        
+nExpectedEvents: 7700000000
+BR: 0.0227
+fractoD: 0.092
+sigmaMB: 1 #pb
+Taa: 0.00000002307 #pb-1
+
+ptmin: [1, 2, 4, 8, 12, 16, 24, 36] 
+ptmax: [2, 4, 8, 12, 16, 24, 36, 50]
+
+DCA:
+    enableDCA: False # enable the df query and relative output
+    DCAmin: [0., 0.001, 0.002, 0.003,  0.005, 0.01, 0.015, 0.02, 0.0275, 0.035, 0.0475, 0.065] # DCA bin from: https://arxiv.org/pdf/1810.11102.pdf
+    DCAmax: [0.001, 0.002, 0.003,  0.005, 0.01, 0.015, 0.02, 0.0275, 0.035, 0.0475, 0.065, 0.08]
+
+cutvars:
+    ML_output_Bkg:
+        axisnum: null
+        min: -4.
+        max: 2.
+        step: 0.2
+        upperlowercut: Upper
+    ML_output_FD:
+        axisnum: null
+        min: -1.
+        max: 2.
+        step: 0.1
+        upperlowercut: Lower
+
+
