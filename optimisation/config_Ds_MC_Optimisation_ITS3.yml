@@ -76,8 +76,9 @@ ptmax: [2, 4, 8, 12, 16, 24, 36, 50]
 
 DCA:
     enableDCA: True # enable the df query and relative output
-    DCAmin: [0., 0.001, 0.002, 0.003,  0.005, 0.01, 0.015, 0.02, 0.0275, 0.035,] # DCA bin from: https://arxiv.org/pdf/1810.11102.pdf
-    DCAmax: [0.001, 0.002, 0.003,  0.005, 0.01, 0.015, 0.02, 0.0275, 0.035, 0.0475]
+    DCAmin: [0., 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.0125, 0.015, 0.02, 0.0275, 0.035,] 
+    DCAmax: [0.001, 0.002, 0.003, 0.004,  0.005, 0.006,  0.007, 0.008, 0.009, 0.01, 0.0125, 0.015, 0.02, 0.0275, 0.035, 0.0475]
+    verbose: True # enable to print output for debug or more detail on the output
 
 cutvars:
     ML_output_Bkg:

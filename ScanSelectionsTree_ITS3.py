@@ -10,8 +10,8 @@ import itertools
 import numpy as np
 import yaml
 from root_numpy import fill_hist
-from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile, TAxis  # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile, TAxis, TLegend  # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, kRainBow, kBlack, kBlue, kRed, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 # pylint: disable=wrong-import-position,import-error,no-name-in-module
 from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands, \
@@ -255,36 +255,53 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
     # DCA
     if enableDCA:       
-        nBinDCA = len(inputCfg['DCA']['DCAmin'])+1
-        binedges_DCA = np.asarray(sorted(inputCfg['DCA']['DCAmin']))
-        
-        cDCA = TCanvas(f'cDCA_pT{ptMin}-{ptMax}', '', 1920, 1080)
-        hDCA_Prompt = TH1F(f'hDCA_Prompt_pT{ptMin}-{ptMax}','Counts, #it{DCA} (cm);', 12, binedges_DCA)
-        hDCA_FD = TH1F(f'hDCA_FD_pT{ptMin}-{ptMax}','#it{DCA} (cm); Counts', 12, binedges_DCA)
-        dfDCAPrompt, dfDCAFD = []
-
+        #        nBinDCA = len(inputCfg['DCA']['DCAmin'])+1
+        lDCAPrompt_bincontents, lDCAFD_bincontents = [], []
         for iDCA, (dcaMin, dcaMax) in enumerate(zip(dcaMins, dcaMaxs)):
-            print(f'\33[32m DCA histo filling: {dcaMin}-{dcaMax}\33[0m\r')
-            dfDCAPrompt.append(dfPrompt.query(f'{dcaMin} < dca < {dcaMax}'))
-            dfDCAFD.append(dfFD.query(f'{dcaMin} < dca < {dcaMax}'))
-        #for idfdca in range(dfDCAPrompt['dca']):
-            
+            if inputCfg['DCA']['verbose']:
+                print(f'\33[1;92m DCA bincontents extraction: {dcaMin}-{dcaMax}\33[0m\r')
+            dfDCAPrompt = dfPromptPt.query(f'{dcaMin} < dca < {dcaMax}')
+            dfDCAFD = dfFDPt.query(f'{dcaMin} < dca < {dcaMax}')
+            lDCAPrompt_bincontents.append(len(dfDCAPrompt['dca']))
+            lDCAFD_bincontents.append(len(dfDCAFD['dca']))
+            if inputCfg['DCA']['verbose']:
+                 print(f'\33[32mlDCAPrompt_bincontents: {lDCAPrompt_bincontents}\33[0m\r')
+                 print(f'\33[32mlDCAFD_bincontents: {lDCAFD_bincontents}\33[0m\r')
+            del dfDCAPrompt, dfDCAFD 
 
-
-            
-
-        print(dfDCAPrompt)
-        '''
-        for ibin in inputCfg['DCA']['DCAmin']:
-            hDCA_Prompt.SetBinContent(DCA_histo_contents[ibin])
-            ibin += 1
+        nbins = len(lDCAPrompt_bincontents)
+        binedgeslow_DCA = np.asarray(sorted(inputCfg['DCA']['DCAmin']))
+        binedgesmax_DCA = np.asarray(sorted(inputCfg['DCA']['DCAmax']))
+        cDCA = TCanvas(f'cDCA_pT{ptMin}-{ptMax}', '', 1920, 1080)
+        hDCA_Prompt = TH1F(f'hDCA_Prompt_pT{ptMin}-{ptMax}',f'DCA Prompt pT{ptMin}-{ptMax} (cm)', nbins-1, binedgeslow_DCA)
+        hDCA_FD = TH1F(f'hDCA_FD_pT{ptMin}-{ptMax}',f'DCA FD pT{ptMin}-{ptMax} (cm)', nbins-1, binedgeslow_DCA)
         
+        if inputCfg['DCA']['verbose']:
+            print(f'\33[1;92m DCA histo filling\33[0m\r')
+        for ibin in range(nbins):
+            if inputCfg['DCA']['verbose']:
+                print(f'\33[32mlDCAPrompt_bincontents[{ibin}]: {lDCAPrompt_bincontents[ibin]}\33[0m\r')
+                print(f'\33[32mlDCAFD_bincontents[{ibin}]: {lDCAFD_bincontents[ibin]}\33[0m\r')
+            hDCA_Prompt.SetBinContent(ibin+1, lDCAPrompt_bincontents[ibin])
+            hDCA_FD.SetBinContent(ibin, lDCAFD_bincontents[ibin])
+              
         outDirPlotsPt[iPt].cd()
         outDirPlotsPt[iPt].mkdir(f'DCA_pT{ptMin}-{ptMax}', f'DCA_pT{ptMin}-{ptMax}')
-        cDCA.cd()
-        hDCA_Prompt.Draw('colz same')
-        #hDCA_FD.Draw('colz same')
-        '''
+        outDirPlotsPt[iPt].cd(f'DCA_pT{ptMin}-{ptMax}')
+        hDCA_Prompt.SetLineColor(kRed)
+        hDCA_Prompt.Write()
+        hDCA_FD.SetLineColor(kBlue)
+        hDCA_FD.Write()
+        if inputCfg['DCA']['verbose']:
+            cDCA.cd()
+            hDCA_Prompt.Draw('same')
+            hDCA_FD.Draw('same')
+            legDCA = TLegend(0.6, 0.6, 0.75, 0.75)
+            legDCA.AddEntry(hDCA_Prompt,"Prompt")
+            legDCA.AddEntry(hDCA_FD,"FD")
+            legDCA.Draw('same')
+            
+    
     for iSet, cutSet in enumerate(itertools.product(*cutRanges)):
         selToApply = ''
         for iCut, (cut, upperLower, varName) in enumerate(zip(cutSet, upperLowerCuts, varNames)):
