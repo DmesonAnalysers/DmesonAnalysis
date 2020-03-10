@@ -10,7 +10,7 @@ import itertools
 import numpy as np
 import yaml
 from root_numpy import fill_hist
-from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile, TAxis  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 # pylint: disable=wrong-import-position,import-error,no-name-in-module
@@ -132,7 +132,7 @@ else:
     RaaPrompt = RaaPrompt_config
 
 RaaFD_config = inputCfg['predictions']['Raa']['feeddown']
-if not isinstance(RaaFD_config, float) hsand not isinstance(RaaFD_config, int):
+if not isinstance(RaaFD_config, float) and not isinstance(RaaFD_config, int):
     if not isinstance(RaaFD_config, str):
         print('ERROR: RAA must be at least a string or a number. Exit')
         exit()
@@ -254,27 +254,37 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     startTime = time.time()
 
     # DCA
-    if enableDCA:
+    if enableDCA:       
         nBinDCA = len(inputCfg['DCA']['DCAmin'])+1
         binedges_DCA = np.asarray(sorted(inputCfg['DCA']['DCAmin']))
         
         cDCA = TCanvas(f'cDCA_pT{ptMin}-{ptMax}', '', 1920, 1080)
-        hDCA_Prompt = TH1F(f'hDCA_Prompt_pT{ptMin}-{ptMax}','Counts, #it{DCA} (cm);', nBinDCA, binedges_DCA)
-        hDCA_FD = TH1F(f'hDCA_FD_pT{ptMin}-{ptMax}','#it{DCA} (cm); Counts', nBinDCA, binedges_DCA)
-        DCA_histo_contents = []
+        hDCA_Prompt = TH1F(f'hDCA_Prompt_pT{ptMin}-{ptMax}','Counts, #it{DCA} (cm);', 12, binedges_DCA)
+        hDCA_FD = TH1F(f'hDCA_FD_pT{ptMin}-{ptMax}','#it{DCA} (cm); Counts', 12, binedges_DCA)
+        dfDCAPrompt, dfDCAFD = []
 
         for iDCA, (dcaMin, dcaMax) in enumerate(zip(dcaMins, dcaMaxs)):
-            print(f'DCA histo filling: {dcaMin}-{dcaMax}\n')
-            dfPrompt_DCA = dfPrompt.query(f'{dcaMin} < dca < {dcaMax}')
-            DCA_histo_content = append(len(dfPrompt_DCA))
-            dfPrompt_DCA = dfPrompt
+            print(f'\33[32m DCA histo filling: {dcaMin}-{dcaMax}\33[0m\r')
+            dfDCAPrompt.append(dfPrompt.query(f'{dcaMin} < dca < {dcaMax}'))
+            dfDCAFD.append(dfFD.query(f'{dcaMin} < dca < {dcaMax}'))
+        #for idfdca in range(dfDCAPrompt['dca']):
+            
 
+
+            
+
+        print(dfDCAPrompt)
+        '''
+        for ibin in inputCfg['DCA']['DCAmin']:
+            hDCA_Prompt.SetBinContent(DCA_histo_contents[ibin])
+            ibin += 1
+        
         outDirPlotsPt[iPt].cd()
         outDirPlotsPt[iPt].mkdir(f'DCA_pT{ptMin}-{ptMax}', f'DCA_pT{ptMin}-{ptMax}')
         cDCA.cd()
         hDCA_Prompt.Draw('colz same')
         #hDCA_FD.Draw('colz same')
-
+        '''
     for iSet, cutSet in enumerate(itertools.product(*cutRanges)):
         selToApply = ''
         for iCut, (cut, upperLower, varName) in enumerate(zip(cutSet, upperLowerCuts, varNames)):
