@@ -7,7 +7,7 @@ prompt or FD and Dplus or Ds must be specified
 
 import argparse
 import numpy as np
-from ROOT import TFile, TCanvas  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TLegend  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import ComputeCrossSection
 from utils.StyleFormatter import SetGlobalStyle
 
@@ -140,16 +140,29 @@ cCrossSec = TCanvas('cCrossSec', '', 700, 800)
 cCrossSec.SetLogy()
 hCrossSection.Draw()
 
+legFrac = TLegend(0.6, 0.7, 0.9, 0.9)
+legFrac.SetBorderSize(0)
+legFrac.SetFillStyle(0)
+legFrac.SetTextSize(0.045)
+legFrac.AddEntry(hPromptFrac, 'Prompt', 'p')
+legFrac.AddEntry(hFDFrac, 'Non-prompt', 'p')
+
+legEff = legFrac.Clone('legEff')
+legEff.SetY1(0.2)
+legEff.SetY2(0.4)
+
 cFrac = TCanvas('cFrac', '', 800, 800)
 cFrac.DrawFrame(hPromptFrac.GetBinLowEdge(1), 0., ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); fraction')
 hPromptFrac.Draw('same')
 hFDFrac.Draw('same')
+legFrac.Draw()
 
 cEff = TCanvas('cEff', '', 800, 800)
 cEff.DrawFrame(hPromptFrac.GetBinLowEdge(1), 1.e-4, ptMax, 1., ';#it{p}_{T} (GeV/#it{c}); (Acc#times#font[152]{e})')
 cEff.SetLogy()
 hEffAccPrompt.Draw('same')
 hEffAccFD.Draw('same')
+legEff.Draw()
 
 outFile = TFile(args.outFileName, 'recreate')
 hCrossSection.Write()
