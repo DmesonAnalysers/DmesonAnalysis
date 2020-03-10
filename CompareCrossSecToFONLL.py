@@ -9,7 +9,7 @@ Either prompt or FD (or both) must be set
 import sys
 import argparse
 import numpy as np
-from ROOT import TFile, TCanvas, TGraphAsymmErrors, TLegend # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TGraphAsymmErrors, TLegend, TLine, TLatex # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
@@ -59,8 +59,10 @@ if args.prompt:
     infilePrompt.Close()
 
     ptLimitsPrompt = np.array(hCrossSectionPrompt.GetXaxis().GetXbins(), 'd')
-    ptMin = list(ptLimitsPrompt)[0]
-    ptMax = list(ptLimitsPrompt)[-1]
+    ptMinPrompt = list(ptLimitsPrompt)[0]
+    ptMaxPrompt = list(ptLimitsPrompt)[-1]
+    ptMin = ptMinPrompt
+    ptMax = ptMaxPrompt
     sigmaMin = hCrossSectionPrompt.GetMinimum()*0.2
     sigmaMax = hCrossSectionPrompt.GetMaximum()*5
 
@@ -86,16 +88,31 @@ if args.prompt:
     hFONLLPromptCentral.SetStats(0)
     hFONLLPromptMin.SetStats(0)
     hFONLLPromptMax.SetStats(0)
-    gFONLLPrompt = TGraphAsymmErrors(0)
+    gFONLLPrompt, gFONLLPromptUnc = (TGraphAsymmErrors(0) for _ in range(2))
     for iPt in range(hFONLLPromptCentral.GetNbinsX()):
         gFONLLPrompt.SetPoint(iPt, hFONLLPromptCentral.GetBinCenter(iPt+1), hFONLLPromptCentral.GetBinContent(iPt+1))
         gFONLLPrompt.SetPointError(iPt, hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
                                    hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
                                    hFONLLPromptCentral.GetBinContent(iPt+1)-hFONLLPromptMin.GetBinContent(iPt+1),
                                    hFONLLPromptMax.GetBinContent(iPt+1)-hFONLLPromptCentral.GetBinContent(iPt+1))
+        gFONLLPromptUnc.SetPoint(iPt, hFONLLPromptCentral.GetBinCenter(iPt+1), 1.)
+        gFONLLPromptUnc.SetPointError(iPt, hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
+                                      hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
+                                      1-hFONLLPromptMin.GetBinContent(iPt+1)/hFONLLPromptCentral.GetBinContent(iPt+1),
+                                      hFONLLPromptMax.GetBinContent(iPt+1)/hFONLLPromptCentral.GetBinContent(iPt+1)-1)
+
     SetObjectStyle(hFONLLPromptCentral, color=kRed+1, markerstyle=0)
     SetObjectStyle(gFONLLPrompt, color=kRed+1, fillalpha=0.2, fillstyle=1000)
+    SetObjectStyle(gFONLLPromptUnc, color=kRed+1, fillalpha=0.2, fillstyle=1000)
     infileFONLL.Close()
+
+    hRatioPromptOverFONLL = hCrossSectionPrompt.Clone('hRatioPromptOverFONLL')
+    hRatioPromptOverFONLL.Divide(hRatioPromptOverFONLL, hFONLLPromptCentral)
+    hRatioPromptOverFONLL.GetYaxis().SetTitle('Data / FONLL')
+
+    lineFONLLPrompt = TLine(ptMinPrompt, 1., ptMaxPrompt, 1.)
+    lineFONLLPrompt.SetLineColor(kRed+1)
+    lineFONLLPrompt.SetLineWidth(2)
 
 if args.FD:
     infileFD = TFile.Open(args.FD)
@@ -110,16 +127,18 @@ if args.FD:
     infileFD.Close()
 
     ptLimitsFD = np.array(hCrossSectionFD.GetXaxis().GetXbins(), 'd')
+    ptMinFD = list(ptLimitsFD)[0]
+    ptMaxFD = list(ptLimitsFD)[-1]
     if not args.prompt:
-        ptMin = list(ptLimitsFD)[0]
-        ptMax = list(ptLimitsFD)[-1]
+        ptMin = ptMinFD
+        ptMax = ptMaxFD
         sigmaMin = hCrossSectionFD.GetBinContent(hCrossSectionFD.GetNbinsX())*0.2
         sigmaMax = hCrossSectionFD.GetBinContent(1)*5
     else:
-        if list(ptLimitsFD)[0] < ptMin:
-            ptMin = list(ptLimitsFD)[0]
-        if list(ptLimitsFD)[-1] > ptMax:
-            ptMax = list(ptLimitsFD)[-1]
+        if ptMinFD < ptMin:
+            ptMin = ptMinFD
+        if ptMaxFD > ptMax:
+            ptMax = ptMaxFD
         if hCrossSectionFD.GetBinContent(hCrossSectionFD.GetNbinsX())*0.2 < sigmaMin:
             sigmaMin = hCrossSectionFD.GetBinContent(hCrossSectionFD.GetNbinsX())*0.2
         if hCrossSectionFD.GetBinContent(1)*5 > sigmaMax:
@@ -146,16 +165,31 @@ if args.FD:
     hFONLLFDCentral.SetStats(0)
     hFONLLFDMin.SetStats(0)
     hFONLLFDMax.SetStats(0)
-    gFONLLFD = TGraphAsymmErrors(0)
+    gFONLLFD, gFONLLFDUnc = (TGraphAsymmErrors(0) for _ in range(2))
     for iPt in range(hFONLLFDCentral.GetNbinsX()):
         gFONLLFD.SetPoint(iPt, hFONLLFDCentral.GetBinCenter(iPt+1), hFONLLFDCentral.GetBinContent(iPt+1))
         gFONLLFD.SetPointError(iPt, hFONLLFDCentral.GetBinWidth(iPt+1)/2,
                                hFONLLFDCentral.GetBinWidth(iPt+1)/2,
                                hFONLLFDCentral.GetBinContent(iPt+1)-hFONLLFDMin.GetBinContent(iPt+1),
                                hFONLLFDMax.GetBinContent(iPt+1)-hFONLLFDCentral.GetBinContent(iPt+1))
+        gFONLLFDUnc.SetPoint(iPt, hFONLLFDCentral.GetBinCenter(iPt+1), 1.)
+        gFONLLFDUnc.SetPointError(iPt, hFONLLFDCentral.GetBinWidth(iPt+1)/2,
+                                  hFONLLFDCentral.GetBinWidth(iPt+1)/2,
+                                  1-hFONLLFDMin.GetBinContent(iPt+1)/hFONLLFDCentral.GetBinContent(iPt+1),
+                                  hFONLLFDMax.GetBinContent(iPt+1)/hFONLLFDCentral.GetBinContent(iPt+1)-1)
+
     SetObjectStyle(hFONLLFDCentral, color=kAzure+4, markerstyle=0)
     SetObjectStyle(gFONLLFD, color=kAzure+4, fillalpha=0.2, fillstyle=1000)
+    SetObjectStyle(gFONLLFDUnc, color=kAzure+4, fillalpha=0.2, fillstyle=1000)
     infileFONLL.Close()
+
+    hRatioFDOverFONLL = hCrossSectionFD.Clone('hRatioFDOverFONLL')
+    hRatioFDOverFONLL.Divide(hRatioFDOverFONLL, hFONLLFDCentral)
+    hRatioFDOverFONLL.GetYaxis().SetTitle('Data / FONLL')
+
+    lineFONLLFD = TLine(ptMinFD, 1., ptMaxFD, 1.)
+    lineFONLLFD.SetLineColor(kAzure+4)
+    lineFONLLFD.SetLineWidth(2)
 
 # protection for log scale
 if sigmaMin <= 0:
@@ -202,6 +236,51 @@ if args.FD:
     legFD.AddEntry(gFONLLFD, 'FONLL', 'f')
     legFD.Draw()
 
+lat = TLatex()
+lat.SetNDC()
+lat.SetTextSize(0.06)
+lat.SetTextColor(kBlack)
+lat.SetTextFont(42)
+
 cCrossSec.SaveAs(args.outFileName)
+
+if args.FD and args.prompt:
+    cRatioToFONLL = TCanvas('cRatioToFONLL', '', 500, 1000)
+    cRatioToFONLL.Divide(1, 2)
+    hFramePrompt = cRatioToFONLL.cd(1).DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3.,
+                                                 ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
+    hFramePrompt.GetYaxis().SetDecimals()
+    gFONLLPromptUnc.Draw('2')
+    lineFONLLPrompt.Draw('same')
+    hRatioPromptOverFONLL.Draw('same')
+    lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
+    hFrameFD = cRatioToFONLL.cd(2).DrawFrame(ptMinFD, 0., ptMaxFD, 2.,
+                                             ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
+    hFrameFD.GetYaxis().SetDecimals()
+    gFONLLFDUnc.Draw('2')
+    lineFONLLFD.Draw('same')
+    hRatioFDOverFONLL.Draw('same')
+    lat.DrawLatex(0.65, 0.85, f'Non-prompt {mesonName}')
+else:
+    cRatioToFONLL = TCanvas('cRatioToFONLL', '', 500, 500)
+    if args.prompt:
+        hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3.,
+                                               ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
+        hFramePrompt.GetYaxis().SetDecimals()
+        gFONLLPromptUnc.Draw('2')
+        lineFONLLPrompt.Draw('same')
+        hRatioPromptOverFONLL.Draw('same')
+        lat.DrawLatex(0.65, 0.85, f'Prompt {mesonName}')
+    else:
+        hFrameFD = cRatioToFONLL.DrawFrame(ptMinFD, 0., ptMaxFD, 2.,
+                                           ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
+        hFrameFD.GetYaxis().SetDecimals()
+        gFONLLFDUnc.Draw('2')
+        lineFONLLFD.Draw('same')
+        hRatioFDOverFONLL.Draw('same')
+        lat.DrawLatex(0.65, 0.85, f'Non-prompt {mesonName}')
+
+outFileRatioName = args.outFileName.replace('.pdf', '_RatioToFONLL.pdf')
+cRatioToFONLL.SaveAs(outFileRatioName)
 
 input('Press enter to exit')
