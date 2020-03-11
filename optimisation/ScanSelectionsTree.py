@@ -191,8 +191,10 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     dfFDPt = dfFD.query(f'{ptMin} < pt_cand < {ptMax}')
     dfBkgPt = dfBkg.query(f'{ptMin} < pt_cand < {ptMax}')
     ptCent = (ptMax+ptMin)/2.
-    RaaPrompt = RaaPromptSpline['yCent'](ptCent)
-    RaaFD = RaaFDSpline['yCent'](ptCent)
+    if isinstance(RaaPrompt_config, str):
+        RaaPrompt = RaaPromptSpline['yCent'](ptCent)
+    if isinstance(RaaFD_config, str):
+        RaaFD = RaaFDSpline['yCent'](ptCent)
     # denominator for efficiency
     nTotPrompt = len(dfPromptPt)
     nTotFD = len(dfFDPt)
@@ -379,6 +381,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         cEstimVsCut[iPt].Modified()
         outDirPlotsPt[iPt].cd()
         cEstimVsCut[iPt].Write()
+
 
 outFile.cd()
 tSignif.Write()
