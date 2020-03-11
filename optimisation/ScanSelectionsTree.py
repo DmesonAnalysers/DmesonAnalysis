@@ -190,7 +190,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     dfPromptPt = dfPrompt.query(f'{ptMin} < pt_cand < {ptMax}')
     dfFDPt = dfFD.query(f'{ptMin} < pt_cand < {ptMax}')
     dfBkgPt = dfBkg.query(f'{ptMin} < pt_cand < {ptMax}')
-    ptCent = (ptMax-ptMin)/2.
+    ptCent = (ptMax+ptMin)/2.
     RaaPrompt = RaaPromptSpline['yCent'](ptCent)
     RaaFD = RaaFDSpline['yCent'](ptCent)
     # denominator for efficiency
