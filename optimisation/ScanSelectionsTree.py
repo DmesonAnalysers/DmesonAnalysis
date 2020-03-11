@@ -93,7 +93,6 @@ hCrossSecPrompt = inFileCrossSec.Get(inputCfg['predictions']['crosssec']['histon
 hCrossSecFD = inFileCrossSec.Get(inputCfg['predictions']['crosssec']['histonames']['feeddown'])
 
 # load RAA
-# TODO: add possibility to pass prediction from file instead of fixed value
 RaaPrompt_config = inputCfg['predictions']['Raa']['prompt']
 if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, int):
     if not isinstance(RaaPrompt_config, str):
