@@ -107,17 +107,17 @@ if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, 
             exit()
         else:
             if Raa_model_name == 'phsd':
-                RaaPrompt, _ = ReadPHSD(RaaPrompt_config)
+                RaaPromptSpline, _ = ReadPHSD(RaaPrompt_config)
             elif Raa_model_name == 'KtFact':
-                RaaPrompt, _ = ReadKtFact(RaaPrompt_config)
+                RaaPromptSpline, _ = ReadKtFact(RaaPrompt_config)
             elif Raa_model_name == 'GMVFNS':
-                RaaPrompt, _ = ReadGMVFNS(RaaPrompt_config)
+                RaaPromptSpline, _ = ReadGMVFNS(RaaPrompt_config)
             elif Raa_model_name == 'Catania':
-                RaaPrompt, _ = ReadCatania(RaaPrompt_config)
+                RaaPromptSpline, _ = ReadCatania(RaaPrompt_config)
             elif Raa_model_name == 'fonll':
-                RaaPrompt, _ = ReadFONLL(RaaPrompt_config)
+                RaaPromptSpline, _ = ReadFONLL(RaaPrompt_config)
             elif Raa_model_name == 'tamu':
-                RaaPrompt, _ = ReadTAMU(RaaPrompt_config)
+                RaaPromptSpline, _ = ReadTAMU(RaaPrompt_config)
 
 else:
     RaaPrompt = RaaPrompt_config
@@ -134,19 +134,19 @@ if not isinstance(RaaFD_config, float) and not isinstance(RaaFD_config, int):
             exit()
         else:
             if Raa_model_name == 'phsd':
-                RaaFD, _ = ReadPHSD(RaaFD_config)
+                RaaFDSpline, _ = ReadPHSD(RaaFD_config)
             elif Raa_model_name == 'KtFact':
-                RaaFD, _ = ReadKtFact(RaaFD_config)
+                RaaFDSpline, _ = ReadKtFact(RaaFD_config)
             elif Raa_model_name == 'GMVFNS':
-                RaaFD, _ = ReadGMVFNS(RaaFD_config)
+                RaaFDSpline, _ = ReadGMVFNS(RaaFD_config)
             elif Raa_model_name == 'Catania':
-                RaaFD, _ = ReadCatania(RaaFD_config)
+                RaaFDSpline, _ = ReadCatania(RaaFD_config)
             elif Raa_model_name == 'fonll':
-                RaaFD, _ = ReadFONLL(RaaFD_config)
+                RaaFDSpline, _ = ReadFONLL(RaaFD_config)
             elif Raa_model_name == 'MCatsHQ':
-                RaaFD, _ = ReadMCatsHQ(RaaFD_config)
+                RaaFDSpline, _ = ReadMCatsHQ(RaaFD_config)
             elif Raa_model_name == 'tamu':
-                RaaFD, _ = ReadTAMU(RaaFD_config)
+                RaaFDSpline, _ = ReadTAMU(RaaFD_config)
 
 else:
     RaaFD = RaaFD_config
@@ -200,6 +200,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     dfPromptPt = dfPrompt.query(f'{ptMin} < pt_cand < {ptMax}')
     dfFDPt = dfFD.query(f'{ptMin} < pt_cand < {ptMax}')
     dfBkgPt = dfBkg.query(f'{ptMin} < pt_cand < {ptMax}')
+    ptCent = (ptMax-ptMin)/2.
+    RaaPrompt = RaaPromptSpline['yCent'](ptCent)
+    RaaFD = RaaFDSpline['yCent'](ptCent)
     # denominator for efficiency
     nTotPrompt = len(dfPromptPt)
     nTotFD = len(dfFDPt)
@@ -231,7 +234,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             maxVar = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
             nBinsVar = int((maxVar - minVar) / cutVars[varNames[0]]['step'])
             hEstimVsCut[iPt][est] = TH1F(f'h{est}VsCut_pT{ptMin}-{ptMax}', f';{varNames[0]};{estNames[est]}',
-                                        nBinsVar, minVar, maxVar)
+                                         nBinsVar, minVar, maxVar)
             SetObjectStyle(hEstimVsCut[iPt][est], color=kBlack, marker=kFullCircle)
     elif len(varNames) == 2:
         for est in estNames:
@@ -242,8 +245,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             nBinsVar0 = int((maxVar0 - minVar0) / cutVars[varNames[0]]['step'])
             nBinsVar1 = int((maxVar1 - minVar1) / cutVars[varNames[1]]['step'])
             hEstimVsCut[iPt][est] = TH2F(f'h{est}VsCut_pT{ptMin}-{ptMax}',
-                                            f';{varNames[0]};{varNames[1]};{estNames[est]}',
-                                            nBinsVar0, minVar0, maxVar0, nBinsVar1, minVar1, maxVar1)
+                                         f';{varNames[0]};{varNames[1]};{estNames[est]}',
+                                         nBinsVar0, minVar0, maxVar0, nBinsVar1, minVar1, maxVar1)
     startTime = time.time()
 
     for iSet, cutSet in enumerate(itertools.product(*cutRanges)):
@@ -282,7 +285,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             hMassSeaPeak = None
         # expected signal
         expSignal = GetExpectedSignal(crossSecPrompt, ptMax-ptMin, 1., effTimesAccPrompt,
-                                      fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
+                                      fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, spline((ptMax-ptMin)/2))
         # BR already included in cross section
 
         # expected background
@@ -310,7 +313,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                    expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
         tSignif.Fill(np.array(tupleForNtuple, 'f'))
         estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'EffAccPrompt': effTimesAccPrompt,
-                        'EffAccFD': effTimesAccFD, 'fPrompt': fPrompt[0], 'fFD': fFD[0]}
+                     'EffAccFD': effTimesAccFD, 'fPrompt': fPrompt[0], 'fFD': fFD[0]}
         if len(varNames) == 1:
             binVar = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
             for est in estValues:
@@ -338,7 +341,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                             tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50,
                                             tSignif.GetMinimum('Signif')*0.8, tSignif.GetMaximum('Signif')*1.))
             tSignif.Draw(f'Signif:{est}>>hSignifVs{est}_pT{ptMin}-{ptMax}', f'PtMin == {ptMin} && PtMax == {ptMax}',
-                        'colz same')
+                         'colz same')
             cSignifVsRest[iPt].Update()
             cSignifVsRest[iPt].Modified()
             outDirPlotsPt[iPt].cd()
