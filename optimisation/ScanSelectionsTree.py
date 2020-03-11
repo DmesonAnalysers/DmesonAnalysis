@@ -367,9 +367,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             cEstimVsCut[iPt].Divide(3, 2)
             for iPad, est in enumerate(hEstimVsCut[iPt]):
                 minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
-                minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[0]]['step'] / 2
+                minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[1]]['step'] / 2
                 maxVar0 = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
-                maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[0]]['step'] / 2
+                maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[1]]['step'] / 2
                 hFrame = cEstimVsCut[iPt].cd(iPad+1).DrawFrame(minVar0, minVar1, maxVar0, maxVar1,
                                                                f';{varNames[0]};{varNames[1]};{estNames[est]}')
                 if 'Eff' in est:
