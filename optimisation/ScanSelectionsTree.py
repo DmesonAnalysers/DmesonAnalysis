@@ -186,8 +186,7 @@ outDirPlotsPt = []
 
 estNames = {'Signif':'expected significance', 'SoverB':'S/B', 'EffAccPrompt':'(Acc#times#font[152]{e})_{prompt}',
             'EffAccFD':'(Acc#times#font[152]{e})_{FD}', 'fPrompt':'#it{f}_{ prompt}^{ fc}', 'fFD':'#it{f}_{ FD}^{ fc}'}
-if False:
-    estNames.update({'dca': None })
+
 varsName4Tuple = ':'.join(cutVars) + ':PtMin:PtMax:S:B:' + ':'.join(estNames.keys())
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
@@ -216,12 +215,12 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     nTotFD = len(dfFDPt)
     # preselection efficiency (if input provided)
     if inputCfg['infiles']['preseleff']['filename']:
-            ptBinPreselEff = hPreselEffPrompt.GetXaxis().FindBin(ptMin*1.0001)
-            preselEffPrompt = hPreselEffPrompt.GetBinContent(ptBinPreselEff)
-            preselEffFD = hPreselEffFD.GetBinContent(ptBinPreselEff)
+        ptBinPreselEff = hPreselEffPrompt.GetXaxis().FindBin(ptMin*1.0001)
+        preselEffPrompt = hPreselEffPrompt.GetBinContent(ptBinPreselEff)
+        preselEffFD = hPreselEffFD.GetBinContent(ptBinPreselEff)
     else:
-            preselEffPrompt = 1.
-            preselEffFD = 1.
+        preselEffPrompt = 1.
+        preselEffFD = 1.
     # acceptance
     ptBinAccMin = hPtGenAcc.GetXaxis().FindBin(ptMin*1.0001)
     ptBinAccMax = hPtGenAcc.GetXaxis().FindBin(ptMax*0.9999)
@@ -331,6 +330,10 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                         400, min(dfBkgPtSel['inv_mass']), max(dfBkgPtSel['inv_mass']))
         hMassSignal = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400, min(
             dfPromptPtSel['inv_mass']), max(dfPromptPtSel['inv_mass']))
+
+        fill_hist(hMassBkg, dfBkgPtSel['inv_mass'].values)
+        fill_hist(hMassSignal, list(dfPromptPtSel['inv_mass'].values)+list(dfFDPtSel['inv_mass'].values))
+
         # SecPeak
         if dfSecPeakPrompt and dfSecPeakFD: 
             hMassSeaPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400, min(
@@ -345,23 +348,23 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         
         # expected background
         if inputCfg['infiles']['background']['isMC']:
-                expBkg = GetExpectedBkgFromMC(hMassBkg)
+            expBkg = GetExpectedBkgFromMC(hMassBkg)
         else:
             if hMassSeaPeak:
-                    expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, 'pol2', 4, hMassSignal, -1., -1., hMassSeaPeak)
+                expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, 'pol2', 4, hMassSignal, -1., -1., hMassSeaPeak)
             else:
-                    expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, 'pol2', 4, hMassSignal)
+                expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, 'pol2', 4, hMassSignal)
             outDirFitSBPt[iPt].cd()
             hMassSB.Write()
         expBkg *= nExpEv / inputCfg['infiles']['background']['nEvents'] / \
             inputCfg['infiles']['background']['fractiontokeep']
         # S/B and significance
         if expBkg > 0:
-                expSoverB = expSignal / expBkg
+            expSoverB = expSignal / expBkg
         else:
             expSoverB = -1.
         if expSignal + expBkg > 0:
-                expSignif = expSignal / (np.sqrt(expSignal + expBkg))
+            expSignif = expSignal / (np.sqrt(expSignal + expBkg))
         else:
             expSignif = -1.
         tupleForNtuple = cutSet + (ptMin, ptMax, expSignal, expBkg, expSignif,
