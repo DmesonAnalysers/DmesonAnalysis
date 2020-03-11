@@ -1,0 +1,64 @@
+infiles:
+    signal:
+        prompt:
+            filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_2_4_ModelApplied.parquet.gzip
+            dirname: null
+            treename: null
+        feeddown:
+            filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_2_4_ModelApplied.parquet.gzip
+            dirname: null
+            treename: null
+    secpeak: # only for Ds
+        prompt:
+            filename: null
+            dirname: null
+            treename: null
+        feeddown:
+            filename: null
+            dirname: null
+            treename: null
+        mean: 1.87 # fixed values of mean and sigma if > 0 overwrite the use of the histogram
+        sigma: 0.008
+    background:
+        filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/data/Data_pT_2_4_ModelApplied.parquet.gzip
+        dirname: null
+        treename: null
+        nEvents: 882500000 # number of events for bkg in dataframe
+        fractiontokeep: 0.1 
+        isMC: false # if false bkg from SB
+        fitFunc: expo # fit function for bkg from SB, e.g. pol1, pol2, expo
+        nSigma: 4 # number of sigma from signal region, used to select SB
+
+    preseleff: 
+        filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs/100320/eff/Efficiency_Ds_LHC20a7_PreSel.root
+        prompthistoname: hEffPrompt
+        feeddownhistoname: hEffFD
+    acceptance: ~/Desktop/Repos/DmesonAnalysis/accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
+
+predictions:
+    crosssec:
+        filename: ~/Desktop/Repos/DmesonAnalysis/models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
+        histonames: 
+            prompt: hDsPhipitoKkpipred_max
+            feeddown: hDsPhipitoKkpifromBpred_max_corr
+    Raa: 
+        prompt: 1. # can either be a fixed value or a text file
+        feeddown: 1. # can either be a fixed value or a text file
+
+nExpectedEvents: 882500000
+sigmaMB: 50.87e+9 #pb
+Taa: 1.
+ptmin: [2]
+ptmax: [4]
+
+cutvars:
+    ML_output_Bkg:
+        min: 0.001
+        max: 0.1
+        step: 0.001
+        upperlowercut: Upper
+    ML_output_FD:
+        min: 0.5
+        max: 0.99
+        step: 0.005
+        upperlowercut: Lower
