@@ -18,7 +18,7 @@ from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExp
     GetExpectedBkgFromMC, GetExpectedSignal
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.DfUtils import LoadDfFromRootOrParquet
-from utils.ReadModel import InterpolateModel, ReadFONLL, ReadGMVFNS, ReadKtFact, ReadTAMU, ReadPHSD, \
+from utils.ReadModel import InterpolateModel, ReadTAMU, ReadPHSD, \
     ReadMCatsHQ, ReadCatania
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
@@ -102,20 +102,16 @@ if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, 
         exit()
     else:
         Raa_model_name = inputCfg['predictions']['Raa']['model']
-        if Raa_model_name not in ['phsd', 'KtFact', 'GMVFNS', 'Catania', 'fonll', 'tamu']:
+        if Raa_model_name not in ['phsd', 'Catania', 'tamu', 'MCatsHQ']:
             print('ERROR: wrong model name, please check the list of avaliable models. Exit')
             exit()
         else:
             if Raa_model_name == 'phsd':
                 RaaPromptSpline, _ = ReadPHSD(RaaPrompt_config)
-            elif Raa_model_name == 'KtFact':
-                RaaPromptSpline, _ = ReadKtFact(RaaPrompt_config)
-            elif Raa_model_name == 'GMVFNS':
-                RaaPromptSpline, _ = ReadGMVFNS(RaaPrompt_config)
             elif Raa_model_name == 'Catania':
                 RaaPromptSpline, _ = ReadCatania(RaaPrompt_config)
-            elif Raa_model_name == 'fonll':
-                RaaPromptSpline, _ = ReadFONLL(RaaPrompt_config)
+            elif Raa_model_name == 'MCatsHQ':
+                RaaFDSpline, _ = ReadMCatsHQ(RaaFD_config)
             elif Raa_model_name == 'tamu':
                 RaaPromptSpline, _ = ReadTAMU(RaaPrompt_config)
 
@@ -129,20 +125,14 @@ if not isinstance(RaaFD_config, float) and not isinstance(RaaFD_config, int):
         exit()
     else:
         Raa_model_name = inputCfg['predictions']['Raa']['model']
-        if Raa_model_name not in ['phsd', 'KtFact', 'GMVFNS', 'Catania', 'fonll', 'tamu', 'MCatsHQ']:
+        if Raa_model_name not in ['phsd', 'Catania', 'tamu', 'MCatsHQ']:
             print('ERROR: wrong model name, please check the list of avaliable models. Exit')
             exit()
         else:
             if Raa_model_name == 'phsd':
                 RaaFDSpline, _ = ReadPHSD(RaaFD_config)
-            elif Raa_model_name == 'KtFact':
-                RaaFDSpline, _ = ReadKtFact(RaaFD_config)
-            elif Raa_model_name == 'GMVFNS':
-                RaaFDSpline, _ = ReadGMVFNS(RaaFD_config)
             elif Raa_model_name == 'Catania':
                 RaaFDSpline, _ = ReadCatania(RaaFD_config)
-            elif Raa_model_name == 'fonll':
-                RaaFDSpline, _ = ReadFONLL(RaaFD_config)
             elif Raa_model_name == 'MCatsHQ':
                 RaaFDSpline, _ = ReadMCatsHQ(RaaFD_config)
             elif Raa_model_name == 'tamu':
@@ -285,7 +275,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             hMassSeaPeak = None
         # expected signal
         expSignal = GetExpectedSignal(crossSecPrompt, ptMax-ptMin, 1., effTimesAccPrompt,
-                                      fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, spline((ptMax-ptMin)/2))
+                                      fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
         # BR already included in cross section
 
         # expected background
