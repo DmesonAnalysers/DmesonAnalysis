@@ -10,16 +10,15 @@ import itertools
 import numpy as np
 import yaml
 from root_numpy import fill_hist
-from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile, TAxis, TLegend  # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, kRainBow, kBlack, kBlue, kRed, kFullCircle  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 # pylint: disable=wrong-import-position,import-error,no-name-in-module
 from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands, \
     GetExpectedBkgFromMC, GetExpectedSignal
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.DfUtils import LoadDfFromRootOrParquet
-from utils.ReadModel import InterpolateModel, ReadTAMU, ReadPHSD, \
-    ReadMCatsHQ, ReadCatania
+from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -44,20 +43,20 @@ dfBkg = LoadDfFromRootOrParquet(inputCfg['infiles']['background']['filename'],
                                 inputCfg['infiles']['background']['treename'])
 
 if inputCfg['infiles']['secpeak']['prompt']['filename']:
-    dfSecPeakPrompt = LoadDfFromRootOrParquet(inputCfg['infiles']['signal']['prompt']['filename'],
-                                              inputCfg['infiles']['signal']['prompt']['dirname'],
-                                              inputCfg['infiles']['signal']['prompt']['treename'])
+    dfSecPeakPrompt = LoadDfFromRootOrParquet(inputCfg['infiles']['secpeak']['prompt']['filename'],
+                                              inputCfg['infiles']['secpeak']['prompt']['dirname'],
+                                              inputCfg['infiles']['secpeak']['prompt']['treename'])
 else:
     dfSecPeakPrompt = None
 if inputCfg['infiles']['secpeak']['feeddown']['filename']:
-    dfSecPeakFD = LoadDfFromRootOrParquet(inputCfg['infiles']['signal']['feeddown']['filename'],
-                                          inputCfg['infiles']['signal']['feeddown']['dirname'],
-                                          inputCfg['infiles']['signal']['feeddown']['treename'])
+    dfSecPeakFD = LoadDfFromRootOrParquet(inputCfg['infiles']['secpeak']['feeddown']['filename'],
+                                          inputCfg['infiles']['secpeak']['feeddown']['dirname'],
+                                          inputCfg['infiles']['secpeak']['feeddown']['treename'])
 else:
     dfSecPeakFD = None
 
-# reshuffle bkg and take only a fraction of it
-dfBkg = dfBkg.sample(frac=inputCfg['infiles']['background']['fractiontokeep']).reset_index(drop=True)
+# reshuffle bkg and take only a fraction of it, seed fixed for reproducibility
+dfBkg = dfBkg.sample(frac=inputCfg['infiles']['background']['fractiontokeep'], random_state=42).reset_index(drop=True)
 
 # load cut values to scan
 ptMins = inputCfg['ptmin']
@@ -68,7 +67,7 @@ if not isinstance(ptMaxs, list):
     ptMaxs = [ptMaxs]
 cutVars = inputCfg['cutvars']
 cutRanges, upperLowerCuts, varNames = [], [], []
-for _, var in enumerate(cutVars):
+for var in cutVars:
     cutRanges.append(np.arange(cutVars[var]['min'], cutVars[var]['max'] +
                                cutVars[var]['step'] / 10, cutVars[var]['step']).tolist())
     if cutVars[var]['upperlowercut'] == 'Upper':
@@ -99,19 +98,19 @@ RaaPrompt_config = inputCfg['predictions']['Raa']['prompt']
 if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, int):
     if not isinstance(RaaPrompt_config, str):
         print('ERROR: RAA must be at least a string or a number. Exit')
-        exit()
+        sys.exit()
     else:
         Raa_model_name = inputCfg['predictions']['Raa']['model']
         if Raa_model_name not in ['phsd', 'Catania', 'tamu', 'MCatsHQ']:
             print('ERROR: wrong model name, please check the list of avaliable models. Exit')
-            exit()
+            sys.exit()
         else:
             if Raa_model_name == 'phsd':
                 RaaPromptSpline, _ = ReadPHSD(RaaPrompt_config)
             elif Raa_model_name == 'Catania':
                 RaaPromptSpline, _ = ReadCatania(RaaPrompt_config)
             elif Raa_model_name == 'MCatsHQ':
-                RaaFDSpline, _ = ReadMCatsHQ(RaaFD_config)
+                RaaFDSpline, _ = ReadMCatsHQ(RaaPrompt_config)
             elif Raa_model_name == 'tamu':
                 RaaPromptSpline, _ = ReadTAMU(RaaPrompt_config)
 
@@ -122,12 +121,12 @@ RaaFD_config = inputCfg['predictions']['Raa']['feeddown']
 if not isinstance(RaaFD_config, float) and not isinstance(RaaFD_config, int):
     if not isinstance(RaaFD_config, str):
         print('ERROR: RAA must be at least a string or a number. Exit')
-        exit()
+        sys.exit()
     else:
         Raa_model_name = inputCfg['predictions']['Raa']['model']
         if Raa_model_name not in ['phsd', 'Catania', 'tamu', 'MCatsHQ']:
             print('ERROR: wrong model name, please check the list of avaliable models. Exit')
-            exit()
+            sys.exit()
         else:
             if Raa_model_name == 'phsd':
                 RaaFDSpline, _ = ReadPHSD(RaaFD_config)
@@ -144,7 +143,6 @@ else:
 # load constant terms
 nExpEv = inputCfg['nExpectedEvents']
 Taa = inputCfg['Taa']
-BR = inputCfg['BR']
 sigmaMB = inputCfg['sigmaMB']
 
 # set batch mode if enabled
@@ -229,9 +227,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     elif len(varNames) == 2:
         for est in estNames:
             minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
-            minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[0]]['step'] / 2
+            minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[1]]['step'] / 2
             maxVar0 = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
-            maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[0]]['step'] / 2
+            maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[1]]['step'] / 2
             nBinsVar0 = int((maxVar0 - minVar0) / cutVars[varNames[0]]['step'])
             nBinsVar1 = int((maxVar1 - minVar1) / cutVars[varNames[1]]['step'])
             hEstimVsCut[iPt][est] = TH2F(f'h{est}VsCut_pT{ptMin}-{ptMax}',
@@ -240,7 +238,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     startTime = time.time()
 
     for iSet, cutSet in enumerate(itertools.product(*cutRanges)):
-        selToApply = ''
         for iCut, (cut, upperLower, varName) in enumerate(zip(cutSet, upperLowerCuts, varNames)):
             if iCut == 0:
                 selToApply = f'{varName}{upperLower}{cut}'
@@ -264,41 +261,51 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             dfPromptPtSel['inv_mass']), max(dfPromptPtSel['inv_mass']))
 
         fill_hist(hMassBkg, dfBkgPtSel['inv_mass'].values)
-        fill_hist(hMassSignal, list(dfPromptPtSel['inv_mass'].values)+list(dfFDPtSel['inv_mass'].values))
+        fill_hist(hMassSignal, np.concatenate((dfPromptPtSel['inv_mass'].values, dfFDPtSel['inv_mass'].values)))
 
         # SecPeak
-        if dfSecPeakPrompt and dfSecPeakFD: 
+        if dfSecPeakPrompt and dfSecPeakFD:
             hMassSeaPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400, min(
                 dfSecPeakPrompt['inv_mass']), max(dfSecPeakPrompt['inv_mass']))
-            fill_hist(hMassSeaPeak, list(dfSecPeakPrompt['inv_mass'].values)+list(dfSecPeakFD['inv_mass'].values))
+            fill_hist(hMassSecPeak,
+                      np.concatenate((dfSecPeakPrompt['inv_mass'].values, dfSecPeakFD['inv_mass'].values)))
+
         else:
-            hMassSeaPeak = None
-        # expected signal
+            hMassSecPeak = None
+
+        # expected signal, BR already included in cross section
         expSignal = GetExpectedSignal(crossSecPrompt, ptMax-ptMin, 1., effTimesAccPrompt,
                                       fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
-        # BR already included in cross section
 
         # expected background
-        if inputCfg['infiles']['background']['isMC']:
-            expBkg = GetExpectedBkgFromMC(hMassBkg)
+        bkgConfig = inputCfg['infiles']['background']
+        if bkgConfig['isMC']:
+            expBkg = GetExpectedBkgFromMC(hMassBkg, hMassSignal)
         else:
-            if hMassSeaPeak:
-                expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, 'pol2', 4, hMassSignal, -1., -1., hMassSeaPeak)
+            meanSec = inputCfg['infiles']['secpeak']['mean']
+            sigmaSec = inputCfg['infiles']['secpeak']['sigma']
+            if hMassSecPeak:
+                expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
+                                                              hMassSignal, -1., -1., hMassSecPeak)
+            elif meanSec > 0 and sigmaSec > 0:
+                expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
+                                                              hMassSignal, -1., -1., None, meanSec, sigmaSec)
             else:
-                expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, 'pol2', 4, hMassSignal)
+                expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
+                                                              hMassSignal)
             outDirFitSBPt[iPt].cd()
             hMassSB.Write()
-        expBkg *= nExpEv / inputCfg['infiles']['background']['nEvents'] / \
-            inputCfg['infiles']['background']['fractiontokeep']
+
+        expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
+
         # S/B and significance
+        expSoverB = 0.
+        expSignif = 0.
         if expBkg > 0:
             expSoverB = expSignal / expBkg
-        else:
-            expSoverB = -1.
         if expSignal + expBkg > 0:
-            expSignif = expSignal / (np.sqrt(expSignal + expBkg))
-        else:
-            expSignif = -1.
+            expSignif = expSignal / np.sqrt(expSignal + expBkg)
+
         tupleForNtuple = cutSet + (ptMin, ptMax, expSignal, expBkg, expSignif,
                                    expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
         tSignif.Fill(np.array(tupleForNtuple, 'f'))
@@ -343,7 +350,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             cEstimVsCut.append(TCanvas(f'cEstimVsCut_pT{ptMin}-{ptMax}', '', 1920, 1080))
             cEstimVsCut[iPt].Divide(3, 2)
             for iPad, est in enumerate(hEstimVsCut[iPt]):
-                hFrame = cEstimVsCut[iPt].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8, 
+                hFrame = cEstimVsCut[iPt].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8,
                                                                maxVar, tSignif.GetMaximum(est)*1.2,
                                                                f';{varNames[0]};{estNames[est]}')
                 if 'Eff' in est:

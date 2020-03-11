@@ -155,7 +155,7 @@ for iPt in range(0, len(cutVars['Pt']['min']) - 1):
             hVarFD_merged.Write()
             if enableSecPeak:
                 hVarPrompt_secpeak_merged = MergeHists([prompt_dict_secpeak[iVar][iPt],
-                                                       prompt_dict_secpeak[iVar][iPt+1]])
+                                                        prompt_dict_secpeak[iVar][iPt+1]])
                 hVarPrompt_secpeak_merged.SetName('hPromptSecPeak%s_%0.f_%0.f' % (cutVars[iVar]['name'],
                                                                                   cutVars['Pt']['min'][iPt]*10,
                                                                                   cutVars['Pt']['max'][iPt+1]*10))
