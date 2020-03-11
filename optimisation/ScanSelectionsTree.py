@@ -55,7 +55,7 @@ if inputCfg['infiles']['secpeak']['feeddown']['filename']:
                                           inputCfg['infiles']['signal']['feeddown']['treename'])
 else:
     dfSecPeakFD = None
-enableDCA = inputCfg['DCA']['enableDCA']
+
 # reshuffle bkg and take only a fraction of it
 dfBkg = dfBkg.sample(frac=inputCfg['infiles']['background']['fractiontokeep']).reset_index(drop=True)
 
@@ -76,16 +76,6 @@ for _, var in enumerate(cutVars):
     else:
         upperLowerCuts.append('>')
     varNames.append(var)
-
-
-# load DCA value to scan
-dcaMins = inputCfg['DCA']['DCAmin']
-dcaMaxs = inputCfg['DCA']['DCAmax']
-if not isinstance(dcaMins, list):
-    dcaMins = [dcaMins]
-if not isinstance(dcaMaxs, list):
-    dcaMaxs = [dcaMaxs]
-    
 
 # load preselection efficiency
 if inputCfg['infiles']['preseleff']['filename']:
@@ -241,7 +231,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             maxVar = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
             nBinsVar = int((maxVar - minVar) / cutVars[varNames[0]]['step'])
             hEstimVsCut[iPt][est] = TH1F(f'h{est}VsCut_pT{ptMin}-{ptMax}', f';{varNames[0]};{estNames[est]}',
-                                            nBinsVar, minVar, maxVar)
+                                        nBinsVar, minVar, maxVar)
             SetObjectStyle(hEstimVsCut[iPt][est], color=kBlack, marker=kFullCircle)
     elif len(varNames) == 2:
         for est in estNames:
@@ -256,57 +246,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                             nBinsVar0, minVar0, maxVar0, nBinsVar1, minVar1, maxVar1)
     startTime = time.time()
 
-    # DCA
-    if enableDCA:       
-        lDCAPrompt_bincontents, lDCAFD_bincontents = [], []
-        nTotDCAPrompt, nTotDCAFD = 0, 0
-        for iDCA, (dcaMin, dcaMax) in enumerate(zip(dcaMins, dcaMaxs)):
-            if inputCfg['DCA']['verbose']:
-                print(f'\33[1;92m DCA bincontents extraction: {dcaMin}-{dcaMax}\33[0m\r')
-            nTotDCAPrompt = float(len(dfPromptPt['dca']))
-            nTotDCAFD = float(len(dfFDPt['dca']))
-            dfDCAPrompt = dfPromptPt.query(f'{dcaMin} < dca < {dcaMax}')
-            dfDCAFD = dfFDPt.query(f'{dcaMin} < dca < {dcaMax}')
-            lDCAPrompt_bincontents.append(len(dfDCAPrompt['dca']))
-            lDCAFD_bincontents.append(len(dfDCAFD['dca']))
-            if inputCfg['DCA']['verbose']:
-                 print(f'\33[32mlDCAPrompt_bincontents: {lDCAPrompt_bincontents}\33[0m\r')
-                 print(f'\33[32mlDCAFD_bincontents: {lDCAFD_bincontents}\33[0m\r')
-            del dfDCAPrompt, dfDCAFD 
-
-        nbins = len(lDCAPrompt_bincontents)
-        binedgeslow_DCA = np.asarray(sorted(inputCfg['DCA']['DCAmin']))
-        binedgesmax_DCA = np.asarray(sorted(inputCfg['DCA']['DCAmax']))
-        cDCA = TCanvas(f'cDCA_pT{ptMin}-{ptMax}', '', 1920, 1080)
-        hDCA_Prompt = TH1F(f'hDCA_Prompt_pT{ptMin}-{ptMax}',f'DCA Prompt pT{ptMin}-{ptMax} (cm)', nbins-1, binedgeslow_DCA)
-        hDCA_FD = TH1F(f'hDCA_FD_pT{ptMin}-{ptMax}',f'DCA FD pT{ptMin}-{ptMax} (cm)', nbins-1, binedgeslow_DCA)
-        
-        if inputCfg['DCA']['verbose']:
-            print(f'\33[1;92m DCA histo filling\33[0m\r')
-        for ibin in range(nbins):
-            if inputCfg['DCA']['verbose']:
-                print(f'\33[32mlDCAPrompt_bincontents[{ibin}]: {lDCAPrompt_bincontents[ibin]}\33[0m\r')
-                print(f'\33[32mlDCAFD_bincontents[{ibin}]: {lDCAFD_bincontents[ibin]}\33[0m\r')
-            hDCA_Prompt.SetBinContent(ibin+1, lDCAPrompt_bincontents[ibin] / (nTotDCAPrompt+nTotDCAFD))
-            hDCA_FD.SetBinContent(ibin, lDCAFD_bincontents[ibin] / (nTotDCAPrompt+ nTotDCAFD))
-              
-        outDirPlotsPt[iPt].cd()
-        outDirPlotsPt[iPt].mkdir(f'DCA_pT{ptMin}-{ptMax}', f'DCA_pT{ptMin}-{ptMax}')
-        outDirPlotsPt[iPt].cd(f'DCA_pT{ptMin}-{ptMax}')
-        hDCA_Prompt.SetLineColor(kRed)
-        hDCA_Prompt.Write()
-        hDCA_FD.SetLineColor(kBlue)
-        hDCA_FD.Write()
-        if inputCfg['DCA']['verbose']:
-            cDCA.cd()
-            hDCA_Prompt.Draw('same')
-            hDCA_FD.Draw('same')
-            legDCA = TLegend(0.6, 0.6, 0.75, 0.75)
-            legDCA.AddEntry(hDCA_Prompt,"Prompt")
-            legDCA.AddEntry(hDCA_FD,"FD")
-            legDCA.Draw('same')
- 
- 
     for iSet, cutSet in enumerate(itertools.product(*cutRanges)):
         selToApply = ''
         for iCut, (cut, upperLower, varName) in enumerate(zip(cutSet, upperLowerCuts, varNames)):
@@ -343,9 +282,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             hMassSeaPeak = None
         # expected signal
         expSignal = GetExpectedSignal(crossSecPrompt, ptMax-ptMin, 1., effTimesAccPrompt,
-                                        fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
+                                      fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
         # BR already included in cross section
-        
+
         # expected background
         if inputCfg['infiles']['background']['isMC']:
             expBkg = GetExpectedBkgFromMC(hMassBkg)
@@ -368,7 +307,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         else:
             expSignif = -1.
         tupleForNtuple = cutSet + (ptMin, ptMax, expSignal, expBkg, expSignif,
-                                        expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
+                                   expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
         tSignif.Fill(np.array(tupleForNtuple, 'f'))
         estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'EffAccPrompt': effTimesAccPrompt,
                         'EffAccFD': effTimesAccFD, 'fPrompt': fPrompt[0], 'fFD': fFD[0]}
@@ -388,10 +327,10 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     for iPad, est in enumerate(estNames):
         if est != 'Signif':
             hFrame = cSignifVsRest[iPt].cd(iPad).DrawFrame(tSignif.GetMinimum(est)*0.8,
-                                                            tSignif.GetMinimum('Signif')*0.8,
-                                                            tSignif.GetMaximum(est)*1.2,
-                                                            tSignif.GetMaximum('Signif')*1.2,
-                                                            f";{estNames[est]};{estNames['Signif']}")
+                                                           tSignif.GetMinimum('Signif')*0.8,
+                                                           tSignif.GetMaximum(est)*1.2,
+                                                           tSignif.GetMaximum('Signif')*1.2,
+                                                           f";{estNames[est]};{estNames['Signif']}")
             hFrame.GetXaxis().SetDecimals()
             hFrame.GetYaxis().SetDecimals()
             hSignifVsRest[iPt][est] = (TH2F(f'hSignifVs{est}_pT{ptMin}-{ptMax}',
@@ -399,7 +338,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                             tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50,
                                             tSignif.GetMinimum('Signif')*0.8, tSignif.GetMaximum('Signif')*1.))
             tSignif.Draw(f'Signif:{est}>>hSignifVs{est}_pT{ptMin}-{ptMax}', f'PtMin == {ptMin} && PtMax == {ptMax}',
-                            'colz same')
+                        'colz same')
             cSignifVsRest[iPt].Update()
             cSignifVsRest[iPt].Modified()
             outDirPlotsPt[iPt].cd()
@@ -412,8 +351,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             cEstimVsCut[iPt].Divide(3, 2)
             for iPad, est in enumerate(hEstimVsCut[iPt]):
                 hFrame = cEstimVsCut[iPt].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8, 
-                                                                maxVar, tSignif.GetMaximum(est)*1.2,
-                                                                f';{varNames[0]};{estNames[est]}')
+                                                               maxVar, tSignif.GetMaximum(est)*1.2,
+                                                               f';{varNames[0]};{estNames[est]}')
                 if 'Eff' in est:
                     cEstimVsCut[iPt].cd(iPad+1).SetLogy()
                     hFrame.GetYaxis().SetMoreLogLabels()
@@ -432,7 +371,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 maxVar0 = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
                 maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[0]]['step'] / 2
                 hFrame = cEstimVsCut[iPt].cd(iPad+1).DrawFrame(minVar0, minVar1, maxVar0, maxVar1,
-                                                                f';{varNames[0]};{varNames[1]};{estNames[est]}')
+                                                               f';{varNames[0]};{varNames[1]};{estNames[est]}')
                 if 'Eff' in est:
                     cEstimVsCut[iPt].cd(iPad+1).SetLogz()
                     hFrame.GetZaxis().SetMoreLogLabels()
@@ -447,7 +386,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         cEstimVsCut[iPt].Modified()
         outDirPlotsPt[iPt].cd()
         cEstimVsCut[iPt].Write()
-    
+
 outFile.cd()
 tSignif.Write()
 outFile.Close()

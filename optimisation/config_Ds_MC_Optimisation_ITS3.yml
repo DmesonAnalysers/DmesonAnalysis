@@ -61,10 +61,11 @@ predictions:
             prompt: hDsPhipitoKkpipred_max
             feeddown: hDsPhipitoKkpifromBpred_max_corr
     Raa: 
-        prompt: 1. #/home/alidock/DmesonAnalysis/models/tamu/Ds_TAMU_RAA_5TeV_010.txt # can either be a fixed value or the path to a text file
-        feeddown: 1. # can either be a fixed value or a text file
+        prompt: /home/alidock/DmesonAnalysis/models/tamu/Ds_TAMU_RAA_5TeV_010.txt # can either be a fixed value or the path to a text file
+        feeddown: /home/alidock/DmesonAnalysis/models/tamu/NonPromptDs_TAMU_RAA_5TeV_010.txt # can either be a fixed value or a text file
         model: tamu # avaliable models: 'phsd', 'KtFact', 'GMVFNS', 'Catania', 'fonll', 'tamu', 'MCatsHQ'
         
+
 nExpectedEvents: 7700000000
 BR: 0.0227
 fractoD: 0.092
@@ -74,11 +75,6 @@ Taa: 0.00000002307 #pb-1
 ptmin: [1, 2, 4, 8, 12, 16, 24, 36] 
 ptmax: [2, 4, 8, 12, 16, 24, 36, 50]
 
-DCA:
-    enableDCA: True # enable the df query and relative output
-    DCAmin: [0., 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.01, 0.0125, 0.015, 0.02, 0.0275, 0.035,] 
-    DCAmax: [0.001, 0.002, 0.003, 0.004,  0.005, 0.006,  0.007, 0.008, 0.009, 0.01, 0.0125, 0.015, 0.02, 0.0275, 0.035, 0.0475]
-    verbose: True # enable to print output for debug or more detail on the output
 
 cutvars:
     ML_output_Bkg:
