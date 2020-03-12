@@ -3,6 +3,7 @@ python script for the projection of of D+ and Ds+ mesons TTrees
 run: python ProjectDplusDsTree.py cfgFileName.yml cutSetFileName.yml outFileName.root
 '''
 
+import sys
 import argparse
 import yaml
 from root_numpy import fill_hist
@@ -41,16 +42,16 @@ elif meson == 'Dplus':
     mD = TDatabasePDG.Instance().GetParticle(411).Mass()
 else:
     print('Error: only Dplus and Ds mesons supported. Exit!')
-    exit()
+    sys.exit()
 
 #selections to be applied
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
 cutVars = cutSetCfg['cutvars']
 selToApply = []
-for iPt, _ in enumerate(cutVars['Pt']['min']):
+for iPt in range(len(cutVars['Pt']['min'])):
     selToApply.append('')
-    for iVar, varName in enumerate(cutVars):
+    for varName in cutVars:
         if varName == 'InvMass':
             continue
         if selToApply[iPt] != '':
@@ -85,38 +86,36 @@ for iFile, inFileName in enumerate(inFileNames):
 if isMC:
     dataFramePrompt = LoadDfFromRootOrParquet(inputCfg['tree']['filenamePrompt'], inputCfg['tree']['dirname'],
                                               inputCfg['tree']['treename'])
-
     if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only FD and not reflected
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
 
     dataFrameFD = LoadDfFromRootOrParquet(inputCfg['tree']['filenameFD'], inputCfg['tree']['dirname'],
                                           inputCfg['tree']['treename'])
-
     if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and not reflected
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
 
-    for iPt, (cuts, ptMin, ptMax) in enumerate(zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max'])):
-        print("Projecting distributions for %0.1f < pT < %0.1f GeV/c" % (ptMin, ptMax))
+    for (cuts, ptMin, ptMax) in zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max']):
+        print(f'Projecting distributions for {ptMin:.1f} < pT < {ptMax:.1f} GeV/c')
         #gen histos from sparses
         binGenMin = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMin*1.0001)
         binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax*0.9999)
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
         hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
-        hGenPtPrompt.SetName('hPromptGenPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10))
+        hGenPtPrompt.SetName(f'hPromptGenPt_{ptMin*10:.0f}_{ptMax*10:.0f}')
         promptGenList.append(hGenPtPrompt)
         hGenPtFD = sparseGen['GenFD'].Projection(0)
-        hGenPtFD.SetName('hFDGenPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10))
+        hGenPtFD.SetName(f'hFDGenPt_{ptMin*10:.0f}_{ptMax*10:.0f}')
         FDGenList.append(hGenPtFD)
         #reco histos from trees
         dataFramePromptSel = dataFramePrompt.astype(float).query(cuts)
         dataFrameFDSel = dataFrameFD.astype(float).query(cuts)
-        hPtPrompt = TH1F('hPromptPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 500, 0., 50.)
-        hInvMassPrompt = TH1F('hPromptMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 400, mD-0.2, mD+0.2)
-        hPtFD = TH1F('hFDPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 500, 0., 50.)
-        hInvMassFD = TH1F('hFDMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 400, mD-0.2, mD+0.2)
+        hPtPrompt = TH1F(f'hPromptPt_{ptMin*10:.0f}_{ptMax*10:.0f}', '', 500, 0., 50.)
+        hInvMassPrompt = TH1F(f'hPromptMass_{ptMin*10:.0f}_{ptMax*10:.0f}', '', 400, mD - 0.2, mD + 0.2)
+        hPtFD = TH1F(f'hFDPt_{ptMin*10:.0f}_{ptMax*10:.0f}', '', 500, 0., 50.)
+        hInvMassFD = TH1F(f'hFDMass_{ptMin*10:.0f}_{ptMax*10:.0f}', '', 400, mD - 0.2, mD + 0.2)
         fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'])
         fill_hist(hInvMassPrompt, dataFramePromptSel['inv_mass'])
         fill_hist(hPtFD, dataFrameFDSel['pt_cand'])
@@ -125,7 +124,6 @@ if isMC:
         promptDict['Pt'].append(hPtPrompt)
         FDDict['InvMass'].append(hInvMassFD)
         FDDict['Pt'].append(hPtFD)
-
         outFile.cd()
         hGenPtPrompt.Write()
         hGenPtFD.Write()
@@ -133,21 +131,20 @@ if isMC:
         hInvMassPrompt.Write()
         hPtFD.Write()
         hInvMassFD.Write()
-else:
 
+else:
     dataFrame = LoadDfFromRootOrParquet(inputCfg['tree']['filenameAll'], inputCfg['tree']['dirname'],
                                         inputCfg['tree']['treename'])
 
-    for iPt, (cuts, ptMin, ptMax) in enumerate(zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max'])):
-        print("Projecting distributions for %0.1f < pT < %0.1f GeV/c" % (ptMin, ptMax))
+    for (cuts, ptMin, ptMax) in zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max']):
+        print(f'Projecting distributions for {ptMin:.1f} < pT < {ptMax:.1f} GeV/c')
         dataFrameSel = dataFrame.astype(float).query(cuts)
-        hPt = TH1F('hPt_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 500, 0., 50.)
-        hInvMass = TH1F('hMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10), '', 400, mD-0.2, mD+0.2)
+        hPt = TH1F(f'hPt_{ptMin*10:.0f}_{ptMax*10:.0f}', '', 500, 0., 50.)
+        hInvMass = TH1F(f'hMass_{ptMin*10:.0f}_{ptMax*10:.0f}', '', 400, mD - 0.2, mD + 0.2)
         fill_hist(hPt, dataFrameSel['pt_cand'])
         fill_hist(hInvMass, dataFrameSel['inv_mass'])
         allDict['InvMass'].append(hInvMass)
         allDict['Pt'].append(hPt)
-
         outFile.cd()
         hPt.Write()
         hInvMass.Write()
@@ -162,7 +159,6 @@ for iBin in range(1, hEv.GetNbinsX()+1):
     if 'isEvSelected' in binLabel or 'accepted' in binLabel:
         hEvForNorm.SetBinContent(2, hEv.GetBinContent(iBin))
         break
-
 outFile.cd()
 hEvForNorm.Write()
 outFile.Close()

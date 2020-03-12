@@ -112,7 +112,6 @@ if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, 
                 RaaFDSpline, _ = ReadMCatsHQ(RaaPrompt_config)
             elif Raa_model_name == 'tamu':
                 RaaPromptSpline, _ = ReadTAMU(RaaPrompt_config)
-
 else:
     RaaPrompt = RaaPrompt_config
 
@@ -135,7 +134,6 @@ if not isinstance(RaaFD_config, float) and not isinstance(RaaFD_config, int):
                 RaaFDSpline, _ = ReadMCatsHQ(RaaFD_config)
             elif Raa_model_name == 'tamu':
                 RaaFDSpline, _ = ReadTAMU(RaaFD_config)
-
 else:
     RaaFD = RaaFD_config
 
