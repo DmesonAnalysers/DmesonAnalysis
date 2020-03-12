@@ -187,6 +187,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     dfPromptPt = dfPrompt.query(f'{ptMin} < pt_cand < {ptMax}')
     dfFDPt = dfFD.query(f'{ptMin} < pt_cand < {ptMax}')
     dfBkgPt = dfBkg.query(f'{ptMin} < pt_cand < {ptMax}')
+    ptCent = (ptMax + ptMin) / 2.
     if isinstance(RaaPrompt_config, str):
         RaaPrompt = RaaPromptSpline['yCent'](ptCent)
     if isinstance(RaaFD_config, str):
