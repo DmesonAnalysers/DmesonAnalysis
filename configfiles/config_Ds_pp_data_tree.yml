@@ -1,7 +1,7 @@
 isMC: no
-filename: ''
+filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/data/AnalysisResults_Dspp5TeV_pT_1_50.root
 dirname: PWGHF_D2H_InvMassDs_TreeCreator
-listname: ccoutputDs_TreeCreator
+listname: coutputDs_TreeCreator
 sparsenameAll: fnSparse
 enableSecPeak: no #always no for data
 normname: NormalizationCounter
@@ -10,6 +10,11 @@ histoevname: hNEvents
 #info for trees (files can be different if trees are filtered or with applied ML models)
 tree:
     meson: Ds #needed to define binning for invariant-mass histo
-    filenameAll: []
+    filenameAll: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/data/Data_pT_1_2_ModelApplied.parquet.gzip,
+                  ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/data/Data_pT_2_4_ModelApplied.parquet.gzip,
+                  ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/data/Data_pT_4_6_ModelApplied.parquet.gzip,
+                  ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/data/Data_pT_6_12_ModelApplied.parquet.gzip,
+                  ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/data/Data_pT_12_50_ModelApplied.parquet.gzip
+                  ]
     dirname: PWGHF_D2H_InvMassDs_TreeCreator
     treename: treeMLDs

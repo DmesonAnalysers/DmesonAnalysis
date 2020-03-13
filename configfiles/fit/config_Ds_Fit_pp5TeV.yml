@@ -5,15 +5,15 @@ pp5TeVPrompt:
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
-    PtMin: [ 1, 2, 4, 6, 8, 12, 16, 24]
-    PtMax: [ 2, 4, 6, 8, 12, 16, 24, 36]  
-    MassMin: [ 1.80, 1.80, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78 ]    
-    MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10 ]
-    Rebin: [ 3, 4, 4, 4, 4, 5, 5, 5]
-    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1]
+    PtMin: [1, 2, 3, 4, 5, 6, 8, 12, 16]
+    PtMax: [2, 3, 4, 5, 6, 8, 12, 16, 24]  
+    MassMin: [1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78]    
+    MassMax: [2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
+    Rebin: [6, 6, 6, 6, 6, 8, 8, 10, 14]
+    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1, 1]
     UseLikelihood: 1
-    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
-    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+    BkgFunc: ['kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
+    SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
 
 pp5TeVFD:
     Meson: 'Ds'
