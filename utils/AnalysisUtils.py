@@ -422,7 +422,7 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1.):
     - expBkg3s: expected background within 3 sigma from signal peak mean
     '''
     if hMassSignal:
-        funcSignal = TF1('funcSignal', SingleGaus, 3, 1.6, 2.2)
+        funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
         hMassSignal.Fit('funcSignal', 'Q0')
         mean = funcSignal.GetParameter(1)
         sigma = funcSignal.GetParameter(2)
