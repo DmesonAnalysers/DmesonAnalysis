@@ -19,7 +19,17 @@ histoevname: hNEvents
 tree:
     meson: Ds #needed to define binning for invariant-mass histo
     filenameAll: null #not needed for MC
-    filenamePrompt: []
-    filenameFD: []
+    filenamePrompt: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_1_2_ModelApplied.parquet.gzip,
+                     ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_2_4_ModelApplied.parquet.gzip,
+                     ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_4_6_ModelApplied.parquet.gzip,
+                     ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_6_12_ModelApplied.parquet.gzip,
+                     ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_12_50_ModelApplied.parquet.gzip
+                     ]
+    filenameFD: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_1_2_ModelApplied.parquet.gzip,
+                 ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_2_4_ModelApplied.parquet.gzip,
+                 ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_4_6_ModelApplied.parquet.gzip,
+                 ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_6_12_ModelApplied.parquet.gzip,
+                 ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_12_50_ModelApplied.parquet.gzip
+                 ]
     dirname: PWGHF_D2H_InvMassDs
     treename: treeMLDs
