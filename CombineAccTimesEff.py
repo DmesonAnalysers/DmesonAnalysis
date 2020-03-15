@@ -18,7 +18,7 @@ parser.add_argument("--batch", help="suppress video output", action="store_true"
 args = parser.parse_args()
 
 gROOT.SetBatch(args.batch)
-SetGlobalStyle()
+SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, titlesize=0.045, labelsize=0.04)
 
 effFile = TFile.Open(args.effFileName)
 hEffPrompt = effFile.Get('hEffPrompt')
