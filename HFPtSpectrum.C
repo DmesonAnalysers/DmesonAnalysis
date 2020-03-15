@@ -51,27 +51,27 @@ enum particularity{ kTopological, kLowPt, kPP7TeVPass4, kBDT };
 
 void HFPtSpectrum (Int_t decayChan=kDsKKpi,
 		    const char *mcfilename="models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root",
-		    const char *efffilename="../ML_DsAnalysis/QM_prel/outputs/3050/eff/Eff_times_Acc_3050_Ds_corr.root",
-		    const char *recofilename="../ML_DsAnalysis/QM_prel/outputs/3050/raw_yields/RawYieldsDs_3050_pt2_36.root",
+		    const char *efffilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/eff/EffAcc_Ds_norm_pt1_24.root",
+		    const char *recofilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt1_24.root",
 		    const char *recohistoname="hRawYields",
-        const char *effhistonameprompt="hEffAccPrompt",
-        const char *effhistonameFD="hEffAccFD",
+        const char *effhistonameprompt="hAccEffPrompt",
+        const char *effhistonameFD="hAccEffFD",
 		    const char *nevhistoname="hEvForNorm",
-		    const char *outfilename="../ML_DsAnalysis/QM_prel/outputs/3050/cross_sec/HFPtSpectrum_Ds_3050_pt2_36.root",
+		    const char *outfilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/cross_sec/HFPtSpectrum_Ds_norm_pt1_24.root",
 		    Int_t fdMethod=kNb,
-		    Double_t sigma=1.0, // sigma[pb]
+		    Double_t sigma=50.87e+9, // sigma[pb]
 		    Bool_t isParticlePlusAntiParticleYield=true,
-		    Int_t cc=k3050,
-		    Int_t year=k2018,
-		    Bool_t PbPbEloss=true,
+		    Int_t cc=kpp5,
+		    Int_t year=k2017,
+		    Bool_t PbPbEloss=false,
 		    Int_t Energy=k5dot023,
-		    Int_t ccestimator = kV0M,
+		    Int_t ccestimator=kV0M,
 		    Int_t isRaavsEP=kPhiIntegrated,
 		    const char *epResolfile="",
 		    Int_t rapiditySlice=kdefault,
-		    Int_t analysisSpeciality=kTopological,
+		    Int_t analysisSpeciality=kBDT,
 		    Bool_t setUsePtDependentEffUncertainty=true,
-            Double_t nevents = 1.0) {
+        Double_t nevents = 1.0) {
 
 
   //  gROOT->Macro("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/LoadLibraries.C");
@@ -86,7 +86,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
   else option=3;
 
   if (option>2) {
-    cout<< "Bad calculation option, should be <=2"<<endl;
+    std::cout<< "Bad calculation option, should be <=2"<<std::endl;
     return;
   }
 
@@ -424,14 +424,14 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
 
   // Feed the input histograms
   //  reconstructed spectra
-  cout << " Setting the reconstructed spectrum,";
+  std::cout << " Setting the reconstructed spectrum,";
   spectra->SetReconstructedSpectrum(hRECpt);
   // acceptance and efficiency corrections
-  cout << " the efficiency,";
+  std::cout << " the efficiency,";
   spectra->SetAccEffCorrection(hDirectEffpt,hFeedDownEffpt);
   //    spectra->SetfIsStatUncEff(false);
   // option specific histos (theory)
-  cout << " the theoretical spectra";
+  std::cout << " the theoretical spectra";
   if(option==1){
     spectra->SetMCptSpectra(hDirectMCpt,hFeedDownMCpt);
     if(asym) spectra->SetMCptDistributionsBounds(hDirectMCptMax,hDirectMCptMin,hFeedDownMCptMax,hFeedDownMCptMin);
@@ -441,7 +441,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
     if(asym) spectra->SetFeedDownMCptDistributionsBounds(hFeedDownMCptMax,hFeedDownMCptMin);
   }
 
-  cout << " and the normalization" <<endl;
+  std::cout << " and the normalization" <<std::endl;
   // Set normalization factors (uncertainties set to 0. as example)
   spectra->SetNormalization(nevents,sigma);
   Double_t lumi = nevents / sigma ;
@@ -532,7 +532,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
       else if(cc == kpPb60100) systematics->SetCentrality("60100CL1");
     } else {
       if(!(cc == kpPb0100)) {
-	cout <<" Error on the pPb options"<<endl;
+	std::cout <<" Error on the pPb options"<<std::endl;
 	return;
       }
     }
@@ -569,7 +569,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
       }
     }
     else {
-      cout << " Systematics not yet implemented " << endl;
+      std::cout << " Systematics not yet implemented " << std::endl;
       return;
     }
   } else { systematics->SetCollisionType(0); }
@@ -587,13 +587,13 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
   spectra->SetSystematicUncertainty(systematics);
 
   // Do the calculations
-  cout << " Doing the calculation... "<< endl;
+  std::cout << " Doing the calculation... "<< std::endl;
   Double_t deltaY = 1.0;
   Double_t branchingRatioC = 1.0;
   Double_t branchingRatioBintoFinalDecay = 1.0; // this is relative to the input theoretical prediction
   spectra->ComputeHFPtSpectrum(deltaY,branchingRatioC,branchingRatioBintoFinalDecay);
   spectra->ComputeSystUncertainties(combineFeedDown);
-  cout << "   ended the calculation, getting the histograms back " << endl;
+  std::cout << "   ended the calculation, getting the histograms back " << std::endl;
 
 
 
@@ -683,7 +683,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
 
   gROOT->SetStyle("Plain");
 
-  cout << " Drawing the results ! " << endl;
+  std::cout << " Drawing the results ! " << std::endl;
 
   // control plots
   if (option==1) {
@@ -757,14 +757,14 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
 // 	  gFcExtreme->GetPoint(item,center,value);
 // 	  Double_t highunc = gFcExtreme->GetErrorYhigh(item) / value ;
 // 	  Double_t lowunc = gFcExtreme->GetErrorYlow(item) / value ;
-// 	  cout << "Fc extreme: i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<endl;
+// 	  std::cout << "Fc extreme: i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<std::endl;
 // 	}
 // 	for(Int_t item=0; item<gSigmaCorr->GetN(); item++){
 // 	  Double_t center=0., value=0.;
 // 	  gFcConservative->GetPoint(item,center,value);
 // 	  Double_t highunc = gFcConservative->GetErrorYhigh(item) / value ;
 // 	  Double_t lowunc = gFcConservative->GetErrorYlow(item) / value ;
-// 	  cout << "Fc conservative: i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<endl;
+// 	  std::cout << "Fc conservative: i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<std::endl;
 // 	}
 	TCanvas *cfcExtreme = new TCanvas("cfcExtreme","Extreme Asymmetric fc (TGraphAsymmErr)");
 	gFcExtreme->SetFillStyle(3006);
@@ -873,13 +873,13 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
     csigmaAsym->SetLogy();
     csigmaAsym->Update();
 
-//     cout << endl <<" Sytematics (stat approach) " <<endl;
+//     std::cout << std::endl <<" Sytematics (stat approach) " <<std::endl;
 //     for(Int_t item=0; item<gSigmaCorr->GetN(); item++){
 //       Double_t center=0., value=0.;
 //       gSigmaCorr->GetPoint(item,center,value);
 //       Double_t highunc = gSigmaCorr->GetErrorYhigh(item) / value ;
 //       Double_t lowunc = gSigmaCorr->GetErrorYlow(item) / value ;
-//       cout << "Sigma syst (stat), i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<endl;
+//       std::cout << "Sigma syst (stat), i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<std::endl;
 //     }
 
     TCanvas * csigmaExtreme = new TCanvas("csigmaExtreme","Asymmetric extreme corrected sigma (TGraphAsymmErr)");
@@ -893,22 +893,22 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
     csigmaExtreme->SetLogy();
     csigmaExtreme->Update();
 
-//     cout << endl << " Sytematics (Extreme approach)" <<endl;
+//     std::cout << std::endl << " Sytematics (Extreme approach)" <<std::endl;
 //     for(Int_t item=0; item<gSigmaCorrExtreme->GetN(); item++){
 //       Double_t center=0., value=0.;
 //       gSigmaCorrExtreme->GetPoint(item,center,value);
 //       Double_t highunc = gSigmaCorrExtreme->GetErrorYhigh(item) / value ;
 //       Double_t lowunc = gSigmaCorrExtreme->GetErrorYlow(item) / value ;
-//       cout << "Sigma syst (extreme) i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<endl;
+//       std::cout << "Sigma syst (extreme) i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<std::endl;
 //     }
 
-//     cout << endl << " Sytematics (Conservative approach)" <<endl;
+//     std::cout << std::endl << " Sytematics (Conservative approach)" <<std::endl;
 //     for(Int_t item=0; item<gSigmaCorrConservative->GetN(); item++){
 //       Double_t center=0., value=0.;
 //       gSigmaCorrConservative->GetPoint(item,center,value);
 //       Double_t highunc = gSigmaCorrConservative->GetErrorYhigh(item) / value ;
 //       Double_t lowunc = gSigmaCorrConservative->GetErrorYlow(item) / value ;
-//       cout << "Sigma syst (conservative) i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<endl;
+//       std::cout << "Sigma syst (conservative) i=" << item << ", center=" << center <<", value=" << value << " high unc=" << highunc*100 << "%, low unc=" << lowunc*100 << "%"<<std::endl;
 //     }
 
  }
@@ -1044,7 +1044,7 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
   //
   // Write the histograms to the output file
   //
-  cout << " Saving the results ! " << endl<< endl;
+  std::cout << " Saving the results ! " << std::endl<< std::endl;
 
   out->cd();
   //

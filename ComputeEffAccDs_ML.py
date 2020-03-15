@@ -5,9 +5,7 @@ run: python ComputeEffAccDs_ML.py fitConfigFileName.yml inputFileName.root outFi
 
 import array
 import math
-import string
 import argparse
-import six
 import yaml
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRed, kBlue, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
@@ -154,11 +152,6 @@ hYieldFDReco.Write()
 outFile.Close()
 
 if not args.batch:
-    if six.PY2:
-        outFileNamePDF = string.replace(args.outFileName, '.root', '.pdf')
-        cEff.SaveAs(outFileNamePDF)
-        raw_input('Press enter to exit')
-    elif six.PY3:
-        outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-        cEff.SaveAs(outFileNamePDF)
-        input('Press enter to exit')
+    outFileNamePDF = args.outFileName.replace('.root', '.pdf')
+    cEff.SaveAs(outFileNamePDF)
+    input('Press enter to exit')
