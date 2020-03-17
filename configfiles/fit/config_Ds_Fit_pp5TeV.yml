@@ -17,18 +17,18 @@ pp5TeVPrompt:
 
 pp5TeVFD:
     Meson: 'Ds'
-    FixSigma: 0
-    SigmaFile: 'outputs/3_24bin_merge/PIDvar/rawyields/RawYieldsDs_3050_central_2018.root'
+    FixSigma: 1
+    SigmaFile: '../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt2_12.root'
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
-    PtMin: [ 1, 2, 4, 6, 8, 12, 16, 24]    
-    PtMax: [ 2, 4, 6, 8, 12, 16, 24, 36]    
-    MassMin: [ 1.80, 1.80, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78 ]    
-    MassMax: [ 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10 ]
-    Rebin: [ 3, 4, 4, 4, 4, 5, 5, 5]
-    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1]
+    PtMin: [2, 4, 6, 8]    
+    PtMax: [4, 6, 8, 12]    
+    MassMin: [1.78, 1.78, 1.80, 1.78]    
+    MassMax: [2.10, 2.10, 2.08, 2.10]
+    Rebin: [6, 6, 8, 8]
+    InclSecPeak: [1, 1, 1, 1]
     UseLikelihood: 1
-    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
-    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+    BkgFunc: ['kExpo', 'kExpo', 'kExpo', 'kExpo']
+    SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus']
 

@@ -33,8 +33,8 @@ def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
 
 
 # pylint: disable=too-many-locals
-def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList, \
-    effPromptUncList, effFDUncList, rawYieldUncList, corr=True, precision=1.e-8, nMaxIter=100):
+def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList, effPromptUncList, effFDUncList,
+                                          rawYieldUncList, corr=True, precision=1.e-8, nMaxIter=100):
     '''
     Method to retrieve prompt and FD corrected yields with an analytic system minimisation
 
@@ -47,6 +47,7 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     - effPromptUncList: list of uncertainties on efficiencies for prompt D
     - effFDUncList: list of uncertainties on efficiencies for FD D
     - rawYieldUncList: list of uncertainties on raw yields
+    - corr (bool, optional): whether to compute the correlation
     - precision (float, optional): target precision for minimisation procedure
     - nMaxIter (int, optional): max number of iterations for minimisation procedure
 
