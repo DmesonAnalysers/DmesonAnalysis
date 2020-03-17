@@ -1,7 +1,7 @@
 '''
 python script for the computation of the production cross section of prompt or feed-down D
 run: python ComputeDataDrivenCrossSection.py rawYieldFile.root effAccFile.root fracFile.root outFile.root
-[--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy]
+                                             [--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy]
 prompt or FD and Dplus or Ds must be specified
 '''
 
@@ -13,16 +13,14 @@ from utils.AnalysisUtils import ComputeCrossSection
 from utils.StyleFormatter import SetGlobalStyle
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
-parser.add_argument('rawYieldFileName', metavar='text',
-                    default='rawYieldFile.root', help='root file with raw yields')
+parser.add_argument('rawYieldFileName', metavar='text', default='rawYieldFile.root', help='root file with raw yields')
 parser.add_argument('effAccFileName', metavar='text', default='effAccFile.root',
                     help='root file with efficiency and acceptance')
-parser.add_argument('fracFileName', metavar='text',
-                    default='fracFile.root', help='root file with prompt (FD) fraction')
-parser.add_argument('outFileName', metavar='text',
-                    default='outFile.root', help='root output file name')
+parser.add_argument('fracFileName', metavar='text', default='fracFile.root',
+                    help='root file with prompt (FD) fraction')
+parser.add_argument('outFileName', metavar='text', default='outFile.root', help='root output file name')
 parser.add_argument('--system', metavar='text', default='pp', help='collision system (pp, pPb, PbPb)')
-parser.add_argument('--energy', metavar=float, default=5.02, help='energy (5.02)')
+parser.add_argument('--energy', metavar=float, default='5.02', help='energy (5.02)')
 parser.add_argument("--prompt", action='store_true', help='flag to compute prompt cross section', default=False)
 parser.add_argument("--FD", action='store_true', help='flag to compute FD cross section', default=False)
 parser.add_argument("--Dplus", action='store_true', help='flag to compute D+ cross section', default=False)
@@ -156,6 +154,7 @@ legFrac.Draw()
 cEff = TCanvas('cEff', '', 800, 800)
 cEff.DrawFrame(hPromptFrac.GetBinLowEdge(1), 1.e-4, ptMax, 1., ';#it{p}_{T} (GeV/#it{c}); (Acc#times#font[152]{e})')
 cEff.SetLogy()
+cEff.Update()
 hEffAccPrompt.Draw('same')
 hEffAccFD.Draw('same')
 legEff.Draw()

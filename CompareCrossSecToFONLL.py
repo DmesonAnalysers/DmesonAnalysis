@@ -1,7 +1,7 @@
 '''
 python script to compare measured cross sections with FONLL
-run: python CompareCrossSecToFONLL.py FONLL.root
-[--Dplus] [--Ds] [--prompt CrossSecPrompt.root] [--FD CrossSecFD.root] [--logx]
+run: python CompareCrossSecToFONLL.py FONLL.root outFileName.pdf [--Dplus] [--Ds] [--prompt CrossSecPrompt.root]
+                                                                 [--FD CrossSecFD.root] [--logx]
 Either Dplus or Ds must be chosen
 Either prompt or FD (or both) must be set
 '''
@@ -14,20 +14,15 @@ from ROOT import kBlack, kRed, kAzure, kFullCircle, kFullSquare # pylint: disabl
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
-parser.add_argument('FONLLFileName', metavar='text',
-                    default='FONLL.root', help='root file FONLL predictions')
-parser.add_argument('outFileName', metavar='text',
-                    default='outFile.pdf', help='pdf output file')
-parser.add_argument('--Dplus', action='store_true', default=False,
-                    help='enable comparison for D+')
-parser.add_argument('--Ds', action='store_true', default=False,
-                    help='enable comparison for Ds')
+parser.add_argument('FONLLFileName', metavar='text', default='FONLL.root', help='root file FONLL predictions')
+parser.add_argument('outFileName', metavar='text', default='outFile.pdf', help='pdf output file')
+parser.add_argument('--Dplus', action='store_true', default=False, help='enable comparison for D+')
+parser.add_argument('--Ds', action='store_true', default=False, help='enable comparison for Ds')
 parser.add_argument('--prompt', metavar='text', default=None,
                     help='enable comparison for prompt D and pass Cross section file name')
 parser.add_argument('--FD', metavar='text', default=None,
                     help='enable comparison for FD D and pass Cross section file name')
-parser.add_argument('--logx', action='store_true', default=False,
-                    help='enable log scale for x axis')
+parser.add_argument('--logx', action='store_true', default=False, help='enable log scale for x axis')
 args = parser.parse_args()
 
 if not args.Dplus and not args.Ds:
@@ -205,13 +200,12 @@ cCrossSec.SetLogy()
 if args.logx:
     cCrossSec.SetLogx()
 
-
 if args.logx:
     legPrompt = TLegend(0.65, 0.75, 0.85, 0.9)
     legFD = TLegend(0.25, 0.2, 0.45, 0.35)
 else:
-    legPrompt = TLegend(0.55, 0.75, 0.75, 0.9)
-    legFD = TLegend(0.55, 0.55, 0.75, 0.7)
+    legPrompt = TLegend(0.6, 0.8, 0.8, 0.95)
+    legFD = TLegend(0.6, 0.62, 0.8, 0.77)
 legPrompt.SetTextSize(0.045)
 legPrompt.SetBorderSize(0)
 legPrompt.SetFillStyle(0)
@@ -238,10 +232,11 @@ if args.FD:
 
 lat = TLatex()
 lat.SetNDC()
-lat.SetTextSize(0.06)
+lat.SetTextSize(0.05)
 lat.SetTextColor(kBlack)
 lat.SetTextFont(42)
 
+cCrossSec.Update()
 cCrossSec.SaveAs(args.outFileName)
 
 if args.FD and args.prompt:
@@ -254,33 +249,31 @@ if args.FD and args.prompt:
     lineFONLLPrompt.Draw('same')
     hRatioPromptOverFONLL.Draw('same')
     lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
-    hFrameFD = cRatioToFONLL.cd(2).DrawFrame(ptMinFD, 0., ptMaxFD, 2.,
-                                             ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
+    hFrameFD = cRatioToFONLL.cd(2).DrawFrame(ptMinFD, 0., ptMaxFD, 2., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
     hFrameFD.GetYaxis().SetDecimals()
     gFONLLFDUnc.Draw('2')
     lineFONLLFD.Draw('same')
     hRatioFDOverFONLL.Draw('same')
-    lat.DrawLatex(0.65, 0.85, f'Non-prompt {mesonName}')
+    lat.DrawLatex(0.6, 0.85, f'Non-prompt {mesonName}')
 else:
     cRatioToFONLL = TCanvas('cRatioToFONLL', '', 500, 500)
     if args.prompt:
-        hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3.,
-                                               ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
+        hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3., ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
         hFramePrompt.GetYaxis().SetDecimals()
         gFONLLPromptUnc.Draw('2')
         lineFONLLPrompt.Draw('same')
         hRatioPromptOverFONLL.Draw('same')
-        lat.DrawLatex(0.65, 0.85, f'Prompt {mesonName}')
+        lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
     else:
-        hFrameFD = cRatioToFONLL.DrawFrame(ptMinFD, 0., ptMaxFD, 2.,
-                                           ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
+        hFrameFD = cRatioToFONLL.DrawFrame(ptMinFD, 0., ptMaxFD, 2., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
         hFrameFD.GetYaxis().SetDecimals()
         gFONLLFDUnc.Draw('2')
         lineFONLLFD.Draw('same')
         hRatioFDOverFONLL.Draw('same')
-        lat.DrawLatex(0.65, 0.85, f'Non-prompt {mesonName}')
+        lat.DrawLatex(0.6, 0.85, f'Non-prompt {mesonName}')
 
 outFileRatioName = args.outFileName.replace('.pdf', '_RatioToFONLL.pdf')
+cRatioToFONLL.Update()
 cRatioToFONLL.SaveAs(outFileRatioName)
 
 input('Press enter to exit')
