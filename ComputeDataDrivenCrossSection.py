@@ -5,6 +5,7 @@ run: python ComputeDataDrivenCrossSection.py rawYieldFile.root effAccFile.root f
 prompt or FD and Dplus or Ds must be specified
 '''
 
+import sys
 import argparse
 import numpy as np
 from ROOT import TFile, TCanvas, TLegend  # pylint: disable=import-error,no-name-in-module
@@ -35,13 +36,13 @@ if args.system == 'pp':
         sigmaMB = 50.87e+9 # pb
     else:
         print(f'Energy {args.energy} not implemented! Exit')
-        exit()
+        sys.exit()
 elif args.system == 'PbPb':
     if args.energy == '5.02':
         sigmaMB = 1. # yields in case of PbPb
     else:
         print(f'Energy {args.energy} not implemented! Exit')
-        exit()
+        sys.exit()
 
 if args.Dplus:
     BR = 0.0898
@@ -49,7 +50,7 @@ elif args.Ds:
     BR = 0.0227
 else:
     print('ERROR: Dplus or Ds must be specified! Exit')
-    exit()
+    sys.exit()
 
 # load input file
 rawYieldFile = TFile.Open(args.rawYieldFileName)
@@ -67,7 +68,6 @@ hCorrYieldFD = fracFile.Get('hCorrYieldFD')
 hCovPromptPrompt = fracFile.Get('hCovPromptPrompt')
 hCovPromptFD = fracFile.Get('hCovPromptFD')
 hCovFDFD = fracFile.Get('hCovFDFD')
-hCovFDPrompt = fracFile.Get('hCovFDPrompt')
 
 # TODO: improve protection checking the limits of the bins besides the number
 if hRawYields.GetNbinsX() != hEffAccPrompt.GetNbinsX() or hRawYields.GetNbinsX() != hCorrYieldPrompt.GetNbinsX():
@@ -95,7 +95,6 @@ for iPt in range(hCrossSection.GetNbinsX()):
     covPromptPrompt = hCovPromptPrompt.GetBinContent(iPt+1)
     covPromptFD = hCovPromptFD.GetBinContent(iPt+1)
     covFDFD = hCovFDFD.GetBinContent(iPt+1)
-    covFDPrompt = hCovFDPrompt.GetBinContent(iPt+1)
 
     # prompt fraction
     fPrompt = effAccPrompt * corrYieldPrompt / (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)
@@ -103,8 +102,7 @@ for iPt in range(hCrossSection.GetNbinsX()):
                 * corrYieldPrompt) / (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)**2
     defPdeNF = - effAccFD * effAccPrompt * corrYieldPrompt / \
         (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)**2
-    fPromptUnc = np.sqrt(defPdeNP**2 * covPromptPrompt + defPdeNF**2 * covFDFD + \
-        2 * defPdeNP * defPdeNF * covPromptFD)
+    fPromptUnc = np.sqrt(defPdeNP**2 * covPromptPrompt + defPdeNF**2 * covFDFD + 2 * defPdeNP * defPdeNF * covPromptFD)
 
     # feed-down fraction
     fFD = effAccFD * corrYieldFD / (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)
@@ -112,9 +110,7 @@ for iPt in range(hCrossSection.GetNbinsX()):
                 * corrYieldFD) / (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)**2
     defFdeNP = - effAccFD * effAccPrompt * corrYieldFD / \
         (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)**2
-    fFDUnc = np.sqrt(defFdeNF**2 * covFDFD + defFdeNP**2 * covPromptPrompt + \
-        2 * defFdeNF * defFdeNP * covPromptFD)
-
+    fFDUnc = np.sqrt(defFdeNF**2 * covFDFD + defFdeNP**2 * covPromptPrompt + 2 * defFdeNF * defFdeNP * covPromptFD)
 
     hPromptFrac.SetBinContent(iPt+1, fPrompt)
     hPromptFrac.SetBinError(iPt+1, fPromptUnc)
@@ -130,8 +126,8 @@ for iPt in range(hCrossSection.GetNbinsX()):
         frac = fFD
         uncFrac = fFDUnc
 
-    crossSec, crossSecUnc = ComputeCrossSection(
-        rawYield, rawYieldUnc, frac, uncFrac, effAcc, ptMax-ptMin, 1., sigmaMB, nEv, BR)
+    crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
+                                                ptMax - ptMin, 1., sigmaMB, nEv, BR)
     hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6)  # convert from pb to mub
     hCrossSection.SetBinError(iPt+1, crossSecUnc * 1.e-6) # convert from pb to mub
 
