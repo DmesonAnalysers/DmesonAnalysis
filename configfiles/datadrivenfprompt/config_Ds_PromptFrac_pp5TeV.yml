@@ -1,0 +1,51 @@
+rawyields:
+    inputdir: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs/100320/data_driven_fprompt/raw_yield
+    inputfiles: [RawYieldsDs_pp5TeV_FDen_neg_001.root, RawYieldsDs_pp5TeV_FDen_neg_002.root, RawYieldsDs_pp5TeV_FDen_neg_003.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_004.root, RawYieldsDs_pp5TeV_FDen_neg_005.root, RawYieldsDs_pp5TeV_FDen_neg_006.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_007.root, RawYieldsDs_pp5TeV_FDen_neg_008.root, RawYieldsDs_pp5TeV_FDen_neg_009.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_010.root, RawYieldsDs_pp5TeV_FDen_neg_011.root, RawYieldsDs_pp5TeV_FDen_neg_012.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_013.root, RawYieldsDs_pp5TeV_FDen_neg_014.root, RawYieldsDs_pp5TeV_FDen_neg_015.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_016.root, RawYieldsDs_pp5TeV_FDen_neg_017.root, RawYieldsDs_pp5TeV_FDen_neg_018.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_019.root, RawYieldsDs_pp5TeV_FDen_neg_020.root, RawYieldsDs_pp5TeV_FDen_neg_021.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_022.root, RawYieldsDs_pp5TeV_FDen_neg_023.root, RawYieldsDs_pp5TeV_FDen_neg_024.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_025.root, RawYieldsDs_pp5TeV_FDen_neg_026.root, RawYieldsDs_pp5TeV_FDen_neg_027.root,
+                 RawYieldsDs_pp5TeV_FDen_neg_028.root, RawYieldsDs_pp5TeV_FDen_neg_029.root, RawYieldsDs_pp5TeV_FDen_neg_030.root,
+                 RawYieldsDs_pp5TeV_FDen.root, RawYieldsDs_pp5TeV_FDen_pos_031.root, RawYieldsDs_pp5TeV_FDen_pos_032.root,
+                 RawYieldsDs_pp5TeV_FDen_pos_033.root, RawYieldsDs_pp5TeV_FDen_pos_034.root, RawYieldsDs_pp5TeV_FDen_pos_035.root
+                ]
+    histoname: hRawYields
+
+efficiencies:
+    inputdir: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs/100320/data_driven_fprompt/eff
+    inputfiles: [Eff_times_Acc_Ds_pp5TeV_FDen_neg_001.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_002.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_003.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_004.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_005.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_006.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_007.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_008.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_009.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_010.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_011.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_012.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_013.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_014.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_015.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_016.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_017.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_018.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_019.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_020.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_021.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_022.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_023.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_024.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_025.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_026.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_027.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_neg_028.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_029.root, Eff_times_Acc_Ds_pp5TeV_FDen_neg_030.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen.root, Eff_times_Acc_Ds_pp5TeV_FDen_pos_031.root, Eff_times_Acc_Ds_pp5TeV_FDen_pos_032.root,
+                 Eff_times_Acc_Ds_pp5TeV_FDen_pos_033.root, Eff_times_Acc_Ds_pp5TeV_FDen_pos_034.root, Eff_times_Acc_Ds_pp5TeV_FDen_pos_035.root
+                ]
+    histonames:
+        prompt: hAccEffPrompt
+        feeddown: hAccEffFD
+
+minimisation:
+    correlated: true #true --> fully correlated, false --> fully uncorrelated        
+
+theorydriven:
+    enableFc: true
+    enableNb: true
+    predictions:
+        crosssec: 
+            inputfile: models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
+            histonames: 
+                prompt: hDsPhipitoKkpipred
+                feeddown: hDsPhipitoKkpifromBpred
+        Raa: null   
+    # below only needed for Nb
+    sigmaMB: 50.87e+9
