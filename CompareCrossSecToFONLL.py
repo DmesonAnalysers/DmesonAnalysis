@@ -249,7 +249,7 @@ if args.FD and args.prompt:
     lineFONLLPrompt.Draw('same')
     hRatioPromptOverFONLL.Draw('same')
     lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
-    hFrameFD = cRatioToFONLL.cd(2).DrawFrame(ptMinFD, 0., ptMaxFD, 2., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
+    hFrameFD = cRatioToFONLL.cd(2).DrawFrame(ptMinFD, 0., ptMaxFD, 3., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
     hFrameFD.GetYaxis().SetDecimals()
     gFONLLFDUnc.Draw('2')
     lineFONLLFD.Draw('same')
@@ -258,14 +258,15 @@ if args.FD and args.prompt:
 else:
     cRatioToFONLL = TCanvas('cRatioToFONLL', '', 500, 500)
     if args.prompt:
-        hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3., ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
+        hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3.,
+                                               ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
         hFramePrompt.GetYaxis().SetDecimals()
         gFONLLPromptUnc.Draw('2')
         lineFONLLPrompt.Draw('same')
         hRatioPromptOverFONLL.Draw('same')
         lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
     else:
-        hFrameFD = cRatioToFONLL.DrawFrame(ptMinFD, 0., ptMaxFD, 2., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
+        hFrameFD = cRatioToFONLL.DrawFrame(ptMinFD, 0., ptMaxFD, 3., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
         hFrameFD.GetYaxis().SetDecimals()
         gFONLLFDUnc.Draw('2')
         lineFONLLFD.Draw('same')

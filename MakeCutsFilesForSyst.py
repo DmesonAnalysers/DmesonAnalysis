@@ -46,7 +46,7 @@ def make_cuts():
     histo_lims = [3.5, 100., 100., 0., 0., 105., 105., 10.5, 0., 0.]
     variation_kind = ['loose_1', 'loose_2', 'tight_1', 'tight_2']
     # [-1, -2, +1, +2]*step_variation added to central value
-                                      
+
     in_dir = 'configfiles/'
     cut_file_central = 'cutset_3050_central_2018.yml'
     cut_file_loose = 'cutset_3050_loose_2018.yml'
@@ -88,8 +88,8 @@ def make_cuts_ml():
                       "8": 0.01,
                       "12": 0.01
                       }
-    num_step_pos = 5
-    num_step_neg = 30
+    num_step_pos = 8
+    num_step_neg = 90
 
     in_dir = 'configfiles/cutsets/Ds/pp/'
     cut_file_central = 'cutset_pp5TeV_FDen.yml'
