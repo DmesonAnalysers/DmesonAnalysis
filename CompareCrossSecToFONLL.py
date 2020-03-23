@@ -67,9 +67,9 @@ if args.prompt:
         hFONLLPromptMin = infileFONLL.Get('hDpluskpipipred_min')
         hFONLLPromptMax = infileFONLL.Get('hDpluskpipipred_max')
     elif args.Ds:
-        hFONLLPromptCentral = infileFONLL.Get('hDsKkpipred_central')
-        hFONLLPromptMin = infileFONLL.Get('hDsKkpipred_min')
-        hFONLLPromptMax = infileFONLL.Get('hDsKkpipred_max')
+        hFONLLPromptCentral = infileFONLL.Get('hDsPhipitoKkpipred_central')
+        hFONLLPromptMin = infileFONLL.Get('hDsPhipitoKkpipred_min')
+        hFONLLPromptMax = infileFONLL.Get('hDsPhipitoKkpipred_max')
     hFONLLPromptCentral = hFONLLPromptCentral.Rebin(
         hCrossSectionPrompt.GetNbinsX(), 'hFONLLPromptCentral', ptLimitsPrompt)
     hFONLLPromptMin = hFONLLPromptMin.Rebin(hCrossSectionPrompt.GetNbinsX(), 'hFONLLPromptMin', ptLimitsPrompt)
