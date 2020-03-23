@@ -60,13 +60,16 @@ fractoD: 0.092
 sigmaMB: 1 #pb
 Taa: 0.00000002307 #pb-1
 
+expectedSignalFrom: 'feeddown' # Choice between: 'prompt' or 'feeddown'
+
 ptmin: [1, 2, 4] #GeV
 ptmax: [2, 4, 8]  #GeV
 
-imp_par_xy: 
-    min: [0, 0.0055, 0.0065, 0.007, 0.0085, 0.009, 0.01, 0.0110, 0.0120, 0.015, 0.02] #cm
-    max: [0.0058, 0.0065, 0.007, 0.0085, 0.009, 0.01, 0.0110, 0.0120, 0.0150, 0.02, 0.06] #cm
-    enable: True  # enable imp_par_xy query over each df and relative scan histos: it could take a while to end 
+dfparametercuts:
+    name: 'imp_par_xy' 
+    min: [0, 0.001, 0.0015, 0.002, 0.0025, 0.0030, 0.0035, 0.0040] #cm
+    max: [0.001, 0.0015, 0.002, 0.0025, 0.0030, 0.0035, 0.0040, 0.005] #cm
+    enable: True  # enable cuts over df column query over each df and relative scan histos 
 
 cutvars:
     ML_output_Bkg:
