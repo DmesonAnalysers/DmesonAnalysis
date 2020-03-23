@@ -1,19 +1,24 @@
 isMC: no
 filename: ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC17pq/AnalysisResults_Dplus_Loose_MB_Tree.root
 dirname: PWG3_D2H_InvMassDplus
-listname: coutputDplusLoose_kMB0100
-sparsenameAll: fnSparse
+listname: coutputDplusLoose_kINT70100
+sparsenameAll: hMassPtCutVarsAll
 enableSecPeak: no #always no for data
-normname: coutputDplusNormLoose_kMB0100
+normname: coutputDplusNormLoose_kINT70100
 histoevname: fHistNEvents
 
 #info for trees (files can be different if trees are filtered or with applied ML models)
 tree:
     meson: Dplus #needed to define binning for invariant-mass histo
-    filenameAll: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Data_Dpluspp5TeV_pT_1_2_ModelApplied.parquet.gzip, 
-                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Data_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip,
-                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Data_Dpluspp5TeV_pT_4_6_ModelApplied.parquet.gzip,
-                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Data_Dpluspp5TeV_pT_6_12_ModelApplied.parquet.gzip,
-                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Data_Dpluspp5TeV_pT_12_50_ModelApplied.parquet.gzip]
+    filenameAll: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip,
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt2_3/Data_pT_2_3_ModelApplied.parquet.gzip, 
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt3_4/Data_pT_3_4_ModelApplied.parquet.gzip,
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt4_5/Data_pT_4_5_ModelApplied.parquet.gzip,
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt5_6/Data_pT_5_6_ModelApplied.parquet.gzip,
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt6_8/Data_pT_6_8_ModelApplied.parquet.gzip,
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt8_10/Data_pT_8_10_ModelApplied.parquet.gzip,
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt10_12/Data_pT_10_12_ModelApplied.parquet.gzip,
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt12_24/Data_pT_12_24_ModelApplied.parquet.gzip,
+                  ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt24_36/Data_pT_24_36_ModelApplied.parquet.gzip]
     dirname: PWG3_D2H_InvMassDplus
-    treename: treeMLDs
+    treename: treeMLDplus

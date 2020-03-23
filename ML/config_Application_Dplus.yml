@@ -1,6 +1,6 @@
 input: # files to use
-    prompt: ../../AnalysisNonPromptDpp2017/Dplus/MC/LHC20a8/Prompt_Dpluspp5TeV_LHC20a8_pT_1_50.parquet.gzip
-    FD: ../../AnalysisNonPromptDpp2017/Dplus/MC/LHC20a8/FD_Dpluspp5TeV_LHC20a8_pT_1_50.parquet.gzip
+    prompt: ../../AnalysisNonPromptDpp2017/Dplus/MC/LHC20a7/Prompt_Dpluspp5TeV_LHC20a7_pT_1_50.parquet.gzip
+    FD: ../../AnalysisNonPromptDpp2017/Dplus/MC/LHC20a7/FD_Dpluspp5TeV_LHC20a7_pT_1_50.parquet.gzip
     data: ../../AnalysisNonPromptDpp2017/Dplus/Data/LHC17pq/Data_Dpluspp5TeV_LHC17pq_pT_1_50.parquet.gzip
 
 output:
@@ -19,7 +19,7 @@ data_prep:
                         # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = 2 * (n_prompt + n_FD)
     bkg_mult: [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
     seed_split: 42 # seed used for train_test_split(...)
-    test_fraction: 0.5 # fraction of data used for test set and efficiencies     
+    test_fraction: 1. # fraction of data used for test set and efficiencies --> set to 1. if you want to apply the model to the full dataframes  
 
 ml:
     raw_output: False # use raw_output (True) of probability (False) as output of the model
@@ -51,7 +51,16 @@ ml:
                         'learning_rate': !!python/tuple [0.02, 0.1]}
                         # configuration dictionary for optimize_params_bayes()
     
-    saved_models: [] # list of saved ModelHandler (path+file), compatible with the pt bins
+    saved_models: [../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/ModelHandler_pT_1_2.pickle, 
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt2_3/ModelHandler_pT_2_3.pickle, 
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt3_4/ModelHandler_pT_3_4.pickle, 
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt4_5/ModelHandler_pT_4_5.pickle, 
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt5_6/ModelHandler_pT_5_6.pickle, 
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt6_8/ModelHandler_pT_6_8.pickle, 
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt8_10/ModelHandler_pT_8_10.pickle, 
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt10_12/ModelHandler_pT_10_12.pickle, 
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt12_24/ModelHandler_pT_12_24.pickle,
+                   ../../AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt24_36/ModelHandler_pT_24_36.pickle] # list of saved ModelHandler (path+file), compatible with the pt bins
 
 plots:
     plotting_columns: [inv_mass, pt_cand, d_len, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, sig_vert, 

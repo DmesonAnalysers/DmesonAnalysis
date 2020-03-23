@@ -1,5 +1,5 @@
 isMC: yes
-filename: ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC18a4a2/AnalysisResults_Dplus_Loose_MB_Tree.root
+filename: ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a7/AnalysisResults_Dplus_Ds_QA.root
 dirname: PWG3_D2H_InvMassDplus
 listname: coutputDplusLoose_kMB0100
 sparsenameAll: hMassPtCutVarsAll
@@ -19,15 +19,25 @@ histoevname: fHistNEvents
 tree:
     meson: Dplus #needed to define binning for invariant-mass histo
     filenameAll: null #not needed for MC
-    filenamePrompt: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_1_2_ModelApplied.parquet.gzip, 
-                    ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip,
-                    ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_4_6_ModelApplied.parquet.gzip,
-                    ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_6_12_ModelApplied.parquet.gzip,
-                    ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/Prompt_Dpluspp5TeV_pT_12_50_ModelApplied.parquet.gzip]
-    filenameFD: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_1_2_ModelApplied.parquet.gzip, 
-                ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_2_4_ModelApplied.parquet.gzip,
-                ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_4_6_ModelApplied.parquet.gzip,
-                ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_6_12_ModelApplied.parquet.gzip,
-                ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/MLoutput/FD_Dpluspp5TeV_pT_12_50_ModelApplied.parquet.gzip]
+    filenamePrompt: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/Prompt_pT_1_2_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt2_3/Prompt_pT_2_3_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt3_4/Prompt_pT_3_4_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt4_5/Prompt_pT_4_5_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt5_6/Prompt_pT_5_6_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt6_8/Prompt_pT_6_8_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt8_10/Prompt_pT_8_10_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt10_12/Prompt_pT_10_12_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt12_24/Prompt_pT_12_24_ModelApplied.parquet.gzip,
+                     ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt24_36/Prompt_pT_24_36_ModelApplied.parquet.gzip]
+    filenameFD: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/FD_pT_1_2_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt2_3/FD_pT_2_3_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt3_4/FD_pT_3_4_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt4_5/FD_pT_4_5_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt5_6/FD_pT_5_6_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt6_8/FD_pT_6_8_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt8_10/FD_pT_8_10_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt10_12/FD_pT_10_12_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt12_24/FD_pT_12_24_ModelApplied.parquet.gzip,
+                 ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt24_36/FD_pT_24_36_ModelApplied.parquet.gzip]
     dirname: PWG3_D2H_InvMassDplus
-    treename: treeMLDs
+    treename: treeMLDplus
