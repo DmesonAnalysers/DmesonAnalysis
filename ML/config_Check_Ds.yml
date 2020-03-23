@@ -1,16 +1,16 @@
 input: # files to use
-    files: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/LHC18a4a2/Prompt_LHC18a4a2_pT_1_50.parquet.gzip,
-            ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/LHC20a7/Prompt_LHC20a7_pT_1_50.parquet.gzip,
-            ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/LHC20a8/Prompt_LHC20a8_pT_1_50.parquet.gzip
+    files: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC18a4a2_pT_1_50.parquet.gzip,
+            ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC20a7_pT_1_50.parquet.gzip,
+            ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC20a8_pT_1_50.parquet.gzip
             ]
 
 output:
     leg_labels: ['LHC18a4a2', 'LHC20a7', 'LHC20a8'] # legend labels
-    dir: '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs/MC_comp/comp_distr_prompt' # output dir
+    dir: '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs/MC_comp_full/comp_distr_FD' # output dir
 
 pt_ranges: # ranges in pt to split the data for the comparison
     min: [1, 2, 4, 6, 8, 12, 16, 24] # list
     max: [2, 4, 6, 8, 12, 16, 24, 36] # list
 
-plotting_columns: [pt_cand, d_len, d_len_xy, norm_dl_xy] 
+plotting_columns: [pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy] 
                    # list of variables to plot
