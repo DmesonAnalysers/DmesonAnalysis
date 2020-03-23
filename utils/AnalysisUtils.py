@@ -165,14 +165,27 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
         raaFD = [raaFD]
 
     fracPrompt, fracFD = [], []
-    for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
-        for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
-            if iSigma == 0 and iRaa == 0:
-                fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
-                fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
-            else:
-                fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
-                fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
+    if accEffPrompt == 0:
+        fracFDCent = 1.
+        fracPromptCent = 0.
+        fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
+        fracFD = [fracFDCent, fracFDCent, fracFDCent]
+        return fracPrompt, fracFD 
+    elif accEffFD == 0:
+        fracFDCent = 0.
+        fracPromptCent = 1.
+        fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
+        fracFD = [fracFDCent, fracFDCent, fracFDCent]
+        return fracPrompt, fracFD 
+    else:
+        for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
+            for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
+                if iSigma == 0 and iRaa == 0:
+                    fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
+                    fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
+                else:
+                    fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
+                    fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
 
     if fracPrompt and fracFD:
         fracPrompt.sort()
