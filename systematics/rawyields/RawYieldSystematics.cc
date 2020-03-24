@@ -32,6 +32,8 @@
 
 #endif
 
+using namespace std;
+
 //________________________________________________________________________________________________________________
 // function prototypes
 int RawYieldSystematics(TString cfgFileName = "cfgFile.yml");
@@ -75,7 +77,7 @@ int RawYieldSystematics(TString cfgFileName) {
     else if(mesonName == "Dplus")
         mass = massDplus;
     else {
-        std::cerr << "ERROR: you must specify if it is D+ or Ds+! Exit." << std::endl;
+        cerr << "ERROR: you must specify if it is D+ or Ds+! Exit." << endl;
         return -1;
     }
 
@@ -85,7 +87,7 @@ int RawYieldSystematics(TString cfgFileName) {
     TH1F *hSigmaMC = nullptr;
     int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef, hSigmaMC);
     if (loadref > 0) {
-        std::cerr << "ERROR: missing information in reference files! Check them please." << std::endl;
+        cerr << "ERROR: missing information in reference files! Check them please." << endl;
         return loadref;
     }
 
@@ -234,8 +236,8 @@ int RawYieldSystematics(TString cfgFileName) {
         }
 
         // perform multi-trial
-        std::cout << "\n\n*****************************************************" << std::endl;
-        std::cout << Form("Perform multi-trial for %0.f < pT < %0.f GeV/c", PtLims[iPt], PtLims[iPt+1]) << std::endl;
+        cout << "\n\n*****************************************************" << endl;
+        cout << Form("Perform multi-trial for %0.f < pT < %0.f GeV/c", PtLims[iPt], PtLims[iPt+1]) << endl;
         multiTrial.DoMultiTrials(hMass[iPt]);
         ntupleFit[iPt] = (TNtuple *)(multiTrial.GetNtupleMultiTrials())->Clone(Form("ntupleFit_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]));
         ntupleBinC[iPt] = (TNtuple *)(multiTrial.GetNtupleBinCounting())->Clone(Form("ntupleBinC_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]));
@@ -529,9 +531,9 @@ int RawYieldSystematics(TString cfgFileName) {
         cMultiTrial[iPt]->Write();
     }
     outFile.Close();
-    std::cout << "\n" << outFileName.data() << " saved." << std::endl;
+    cout << "\n" << outFileName.data() << " saved." << endl;
 
-    outFileName = std::regex_replace(outFileName, std::regex(".root"), ".pdf");
+    outFileName = regex_replace(outFileName, regex(".root"), ".pdf");
     cMultiTrial[0]->SaveAs(Form("%s[", outFileName.data()));
     for (int iPt = 0; iPt < nPtBins; iPt++) 
         cMultiTrial[iPt]->SaveAs(outFileName.data());
