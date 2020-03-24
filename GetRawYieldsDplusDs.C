@@ -1,7 +1,6 @@
 //___________________________________________________________________________________//
 // Macro for fitting D+ and Ds+ invariant-mass spectra                               //
 // Main Function: GetRawYieldsDplusDs                                                //
-// Author: Fabrizio Grosa, fabrizio.grosa@to.infn.it ,INFN Torino                    //
 //___________________________________________________________________________________//
 
 #if !defined (__CINT__) || defined (__CLING__)
