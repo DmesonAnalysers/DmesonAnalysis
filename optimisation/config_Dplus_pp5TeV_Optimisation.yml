@@ -1,11 +1,11 @@
 infiles:
     signal:
         prompt:
-            filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt2_3/Prompt_pT_2_3_ModelApplied.parquet.gzip
+            filename: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/Prompt_pT_1_2_ModelApplied.parquet.gzip]
             dirname: null
             treename: null
         feeddown:
-            filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt2_3/FD_pT_2_3_ModelApplied.parquet.gzip
+            filename: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/FD_pT_1_2_ModelApplied.parquet.gzip]
             dirname: null
             treename: null
     secpeak: # only for Ds
@@ -17,23 +17,21 @@ infiles:
             filename: null
             dirname: null
             treename: null
-        mean: -1. # fixed values of mean and sigma if > 0 overwrite the use of the histogram
-        sigma: -1.
     background:
-        filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt2_3/Data_pT_2_3_ModelApplied.parquet.gzip
+        filename: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip]
         dirname: null
         treename: null
         nEvents: 950000000 # number of events for bkg in dataframe
-        fractiontokeep: 0.1 
+        fractiontokeep: 0.2
         isMC: false # if false bkg from SB
-        fitFunc: pol2 # fit function for bkg from SB, e.g. pol1, pol2, expo
-        nSigma: 4 # number of sigma from signal region, used to select SB
 
     preseleff: 
-        filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/EffDplus_Presel.root
+        filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/Eff_Dplus_pp5TeV_presel_finebins.root
         prompthistoname: hEffPrompt
         feeddownhistoname: hEffFD
     acceptance: ~/cernbox/ALICE_WORK/DmesonAnalysis/accfiles/Acceptance_Toy_DplusKpipi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root
+
+ppRefFile: null
 
 predictions:
     crosssec:
@@ -46,18 +44,22 @@ predictions:
         feeddown: 1. # can either be a fixed value or a text file
 
 nExpectedEvents: 950000000
+BR: 0.0898
 sigmaMB: 50.87e+9 #pb
 Taa: 1.
-ptmin: [2]
-ptmax: [3]
+
+ptmin: [1]
+ptmax: [2]
 
 cutvars:
     ML_output_Bkg:
-        min: 0.001
-        max: 0.05
-        step: 0.001
+        axisnum: null
+        min: 0.002
+        max: 0.100
+        step: 0.002
         upperlowercut: Upper
     ML_output_Prompt:
+        axisnum: null
         min: 0.1
         max: 0.5
         step: 0.005
