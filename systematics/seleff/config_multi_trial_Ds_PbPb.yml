@@ -1,0 +1,21 @@
+inputs:
+    directory: ../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_highpt
+    commonfilenames:
+        rawyield: RawYieldsDs
+        efficiency: Efficiency_Ds
+        crosssection: DsYield_method2_fd1_br1
+    cutsets: [] # the first one must be the default
+
+outfilename: ../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_lowpt/CutVarSyst_Ds_3050_hight.root
+
+quality:
+    maxchisquare: 2.
+    minsignif: 3.
+    minrelsignif: 0.5
+    minreleff: 0.3
+    maxreleff: 1.65
+    fillthrreleff: 0.005
+
+plots:
+    plotrelativevar: 0 # 0 -> false, 1 -> true
+    relassignedsyst: [ 0.06, 0.06, 0.06, 0.05 ] # list of values to be plotted
