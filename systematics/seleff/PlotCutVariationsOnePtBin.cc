@@ -62,7 +62,9 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
     double maxRelEff = config["quality"]["maxreleff"].as<double>();
     double fillThrRelEff = config["quality"]["fillthrreleff"].as<double>();
     bool fRelativeVariation = static_cast<bool>(config["plots"]["plotrelativevar"].as<int>());
-    vector<double> relAssignedSyst = config["plots"]["relassignedsyst"].as<vector<double>>();
+    vector<double> relAssignedSyst;
+    if(config["plots"]["relassignedsyst"].Type() != YAML::NodeType::Null)
+        relAssignedSyst = config["plots"]["relassignedsyst"].as<vector<double>>();
 
     // setting drawing style
     SetStyle();
@@ -74,6 +76,8 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
     TH1D* hchi2[nFiles];
     TH1D* hEffPrompt[nFiles];
     TH1D* hEffFD[nFiles];
+    TH1D* hPromptFrac[nFiles];
+    TH1D* hFDFrac[nFiles];
 
     TString crossSectionTitle = "d#it{N}/d#it{p}_{T}";
 
@@ -83,12 +87,29 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         if(!infile_crossec)
             return;
         hCrossSection[iFile] = (TH1D*)infile_crossec->Get("hAAC");
+        hPromptFrac[iFile] = (TH1D*)infile_crossec->Get("hfPromptCent");
+        hFDFrac[iFile] = (TH1D*)hPromptFrac[iFile]->Clone();
+        for(int iPt=0; iPt<hFDFrac[iFile]->GetNbinsX(); iPt++)
+            hFDFrac[iFile]->SetBinContent(iPt+1, 1-hFDFrac[iFile]->GetBinContent(iPt+1));
         if(!hCrossSection[iFile]) {
-            hCrossSection[iFile] = (TH1D*)infile_crossec->Get("histoSigmaCorr");
             crossSectionTitle = "d#sigma/d#it{p}_{T}";
+            hCrossSection[iFile] = (TH1D*)infile_crossec->Get("histoSigmaCorr");
+            hPromptFrac[iFile] = (TH1D*)hCrossSection[iFile]->Clone();
+            hFDFrac[iFile] = (TH1D*)hCrossSection[iFile]->Clone();
+            TGraphAsymmErrors* gFcConservative = (TGraphAsymmErrors*)infile_crossec->Get("gFcConservative");
+            for(int iPt=0; iPt<gFcConservative->GetN(); iPt++) {
+                double pT, promptFrac;
+                gFcConservative->GetPoint(iPt, pT, promptFrac);
+                hPromptFrac[iFile]->SetBinContent(iPt+1, promptFrac);
+                hPromptFrac[iFile]->SetBinError(iPt+1, 0.);
+                hFDFrac[iFile]->SetBinContent(iPt+1, 1-promptFrac);
+                hFDFrac[iFile]->SetBinError(iPt+1, 0.);
+            }
         }
         if(!hCrossSection[iFile]) {
             hCrossSection[iFile] = (TH1D*)infile_crossec->Get("hCrossSection");
+            hPromptFrac[iFile] = (TH1D*)infile_crossec->Get("hPromptFrac");
+            hFDFrac[iFile] = (TH1D*)infile_crossec->Get("hFDFrac");
         }
         if(!hCrossSection[iFile]) {
             cerr << "ERROR: cross section histogram not found! Please check it." << endl;
@@ -96,6 +117,8 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         }
 
         hCrossSection[iFile]->SetDirectory(0);
+        hPromptFrac[iFile]->SetDirectory(0);
+        hFDFrac[iFile]->SetDirectory(0);
         
         TFile* infile_rawyield = TFile::Open(Form("%s/%s%s.root",inDirName.data(),Form("rawyields/%s",inCommonFileNameRawY.data()),cutSetSuffix[iFile].data()));
         if(!infile_rawyield)
@@ -120,13 +143,21 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         infile_eff->Close();
     }
   
-    const  int nPtBins = hRawYield[0]->GetNbinsX();
+    const int nPtBins = hRawYield[0]->GetNbinsX();
+    const int nSystBins = static_cast<const int>(relAssignedSyst.size());
+    if(nSystBins < nPtBins) { // fill syst unc with zeros if not provided
+        for(int iBin = 0; iBin < nPtBins-nSystBins; iBin++)
+            relAssignedSyst.push_back(0);
+    }
+
     TGraphErrors* gCrossSectionVsCutSet[nPtBins];
     TGraphErrors* gRawYieldVsCutSet[nPtBins];
     TGraphErrors* gSignificanceVsCutSet[nPtBins];
     TGraphErrors* gSoverBVsCutSet[nPtBins];
     TGraphErrors* gEffPromptVsCutSet[nPtBins];
     TGraphErrors* gEffFDVsCutSet[nPtBins];
+    TGraphErrors* gPromptFracVsCutSet[nPtBins];
+    TGraphErrors* gFDFracVsCutSet[nPtBins];
     TGraphErrors* gCrossSectionCent[nPtBins];
     TH1D* hCrossSectionRatioDist[nPtBins];
     TLine* lCrossSectionCent[nPtBins];
@@ -157,17 +188,17 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
 
     for(int iPt=0; iPt<nPtBins; iPt++) {
         cOutPut[iPt] = new TCanvas(Form("cOutPut_ptbin%d",iPt),"",1920,1080);
-        cOutPut[iPt]->Divide(3,2);
+        cOutPut[iPt]->Divide(4, 2);
 
         gCrossSectionCent[iPt] = new TGraphErrors(0);
-        gCrossSectionCent[iPt]->SetTitle(Form(";Cut set; %s (GeV^{-1} #it{c})", crossSectionTitle.Data()));
+        gCrossSectionCent[iPt]->SetTitle(Form(";cut set; %s (GeV^{-1} #it{c})", crossSectionTitle.Data()));
         gCrossSectionCent[iPt]->SetName(Form("gCrossSectionCent_ptbin%d",iPt));
         gCrossSectionCent[iPt]->SetLineColor(kRed+1);
         gCrossSectionCent[iPt]->SetFillColorAlpha(kRed+1,0.2);
         gCrossSectionCent[iPt]->SetLineWidth(2);
         
         gCrossSectionVsCutSet[iPt] = new TGraphErrors(0);
-        gCrossSectionVsCutSet[iPt]->SetTitle(Form(";Cut set; %s (GeV^{-1} #it{c})", crossSectionTitle.Data()));
+        gCrossSectionVsCutSet[iPt]->SetTitle(Form(";cut set; %s (GeV^{-1} #it{c})", crossSectionTitle.Data()));
         gCrossSectionVsCutSet[iPt]->SetName(Form("gCrossSectionVsCutSet_ptbin%d",iPt));
         gCrossSectionVsCutSet[iPt]->SetMarkerSize(1.);
         gCrossSectionVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
@@ -176,7 +207,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gCrossSectionVsCutSet[iPt]->SetLineWidth(2);
 
         gRawYieldVsCutSet[iPt] = new TGraphErrors(0);
-        gRawYieldVsCutSet[iPt]->SetTitle(";Cut set; raw yield");
+        gRawYieldVsCutSet[iPt]->SetTitle(";cut set; raw yield");
         gRawYieldVsCutSet[iPt]->SetName(Form("gRawYieldVsCutSet_ptbin%d",iPt));
         gRawYieldVsCutSet[iPt]->SetMarkerSize(1.);
         gRawYieldVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
@@ -185,7 +216,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gRawYieldVsCutSet[iPt]->SetLineWidth(2);
 
         gSignificanceVsCutSet[iPt] = new TGraphErrors(0);
-        gSignificanceVsCutSet[iPt]->SetTitle(";Cut set; significance");
+        gSignificanceVsCutSet[iPt]->SetTitle(";cut set; significance");
         gSignificanceVsCutSet[iPt]->SetName(Form("gSignificanceVsCutSet_ptbin%d",iPt));
         gSignificanceVsCutSet[iPt]->SetMarkerSize(1.);
         gSignificanceVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
@@ -194,7 +225,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gSignificanceVsCutSet[iPt]->SetLineWidth(2);
 
         gSoverBVsCutSet[iPt] = new TGraphErrors(0);
-        gSoverBVsCutSet[iPt]->SetTitle(";Cut set; S/B (3#sigma)");
+        gSoverBVsCutSet[iPt]->SetTitle(";cut set; S/B (3#sigma)");
         gSoverBVsCutSet[iPt]->SetName(Form("gSoverBVsCutSet_ptbin%d",iPt));
         gSoverBVsCutSet[iPt]->SetMarkerSize(1.);
         gSoverBVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
@@ -203,24 +234,42 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gSoverBVsCutSet[iPt]->SetLineWidth(2);
 
         gEffPromptVsCutSet[iPt] = new TGraphErrors(0);
-        gEffPromptVsCutSet[iPt]->SetTitle(";Cut set; Efficiency");
+        gEffPromptVsCutSet[iPt]->SetTitle(";cut set; efficiency");
         gEffPromptVsCutSet[iPt]->SetName(Form("gEffPromptVsCutSet_ptbin%d",iPt));
         gEffPromptVsCutSet[iPt]->SetMarkerSize(1.);
         gEffPromptVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
-        gEffPromptVsCutSet[iPt]->SetMarkerColor(kRed);
-        gEffPromptVsCutSet[iPt]->SetLineColor(kRed);
+        gEffPromptVsCutSet[iPt]->SetMarkerColor(kRed+1);
+        gEffPromptVsCutSet[iPt]->SetLineColor(kRed+1);
         gEffPromptVsCutSet[iPt]->SetLineWidth(2);
 
         gEffFDVsCutSet[iPt] = new TGraphErrors(0);
-        gEffFDVsCutSet[iPt]->SetTitle(";Cut set; Efficiency");
+        gEffFDVsCutSet[iPt]->SetTitle(";cut set; efficiency");
         gEffFDVsCutSet[iPt]->SetName(Form("gEffFDVsCutSet_ptbin%d",iPt));
         gEffFDVsCutSet[iPt]->SetMarkerSize(1.);
         gEffFDVsCutSet[iPt]->SetMarkerStyle(kFullSquare);
-        gEffFDVsCutSet[iPt]->SetMarkerColor(kBlue);
-        gEffFDVsCutSet[iPt]->SetLineColor(kBlue);
+        gEffFDVsCutSet[iPt]->SetMarkerColor(kAzure+4);
+        gEffFDVsCutSet[iPt]->SetLineColor(kAzure+4);
         gEffFDVsCutSet[iPt]->SetLineWidth(2);
 
-        hCrossSectionRatioDist[iPt] = new TH1D(Form("hCrossSectionRatioDist_ptbin%d",iPt), Form(";(%s) / (%s)_{central};Entries", crossSectionTitle.Data(), crossSectionTitle.Data()),60,0.45,1.55);
+        gPromptFracVsCutSet[iPt] = new TGraphErrors(0);
+        gPromptFracVsCutSet[iPt]->SetTitle(";cut set; fraction");
+        gPromptFracVsCutSet[iPt]->SetName(Form("gPromptFracVsCutSet_ptbin%d",iPt));
+        gPromptFracVsCutSet[iPt]->SetMarkerSize(1.);
+        gPromptFracVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
+        gPromptFracVsCutSet[iPt]->SetMarkerColor(kRed+1);
+        gPromptFracVsCutSet[iPt]->SetLineColor(kRed+1);
+        gPromptFracVsCutSet[iPt]->SetLineWidth(2);
+
+        gFDFracVsCutSet[iPt] = new TGraphErrors(0);
+        gFDFracVsCutSet[iPt]->SetTitle(";cut set; fraction");
+        gFDFracVsCutSet[iPt]->SetName(Form("gFDFracVsCutSet_ptbin%d",iPt));
+        gFDFracVsCutSet[iPt]->SetMarkerSize(1.);
+        gFDFracVsCutSet[iPt]->SetMarkerStyle(kFullSquare);
+        gFDFracVsCutSet[iPt]->SetMarkerColor(kAzure+4);
+        gFDFracVsCutSet[iPt]->SetLineColor(kAzure+4);
+        gFDFracVsCutSet[iPt]->SetLineWidth(2);
+
+        hCrossSectionRatioDist[iPt] = new TH1D(Form("hCrossSectionRatioDist_ptbin%d",iPt), Form(";(%s) / (%s)_{central};entries", crossSectionTitle.Data(), crossSectionTitle.Data()),60,0.45,1.55);
         hCrossSectionRatioDist[iPt]->SetLineColor(kBlack);
         hCrossSectionRatioDist[iPt]->SetLineWidth(2);
 
@@ -266,6 +315,12 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
 
                 gEffFDVsCutSet[iPt]->SetPoint(iFile,iFile,hEffFD[iFile]->GetBinContent(effptbin));
                 gEffFDVsCutSet[iPt]->SetPointError(iFile,0.5,hEffFD[iFile]->GetBinError(effptbin));
+
+                gPromptFracVsCutSet[iPt]->SetPoint(iFile,iFile,hPromptFrac[iFile]->GetBinContent(iPt+1));
+                gPromptFracVsCutSet[iPt]->SetPointError(iFile,0.5,hPromptFrac[iFile]->GetBinError(iPt+1));
+                
+                gFDFracVsCutSet[iPt]->SetPoint(iFile,iFile,hFDFrac[iFile]->GetBinContent(iPt+1));
+                gFDFracVsCutSet[iPt]->SetPointError(iFile,0.5,hFDFrac[iFile]->GetBinError(iPt+1));
             }
             else {
                 gRawYieldVsCutSet[iPt]->SetPoint(iFile,iFile,hRawYield[iFile]->GetBinContent(iPt+1)/hRawYield[0]->GetBinContent(iPt+1));
@@ -276,6 +331,12 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
 
                 gEffFDVsCutSet[iPt]->SetPoint(iFile,iFile,hEffFD[iFile]->GetBinContent(effptbin)/hEffFD[0]->GetBinContent(effptbin));
                 gEffFDVsCutSet[iPt]->SetPointError(iFile,0.5,0);
+
+                gPromptFracVsCutSet[iPt]->SetPoint(iFile,iFile,hPromptFrac[iFile]->GetBinContent(iPt+1)/hPromptFrac[0]->GetBinContent(iPt+1));
+                gPromptFracVsCutSet[iPt]->SetPointError(iFile,0.5,0);
+                
+                gFDFracVsCutSet[iPt]->SetPoint(iFile,iFile,hFDFrac[iFile]->GetBinContent(iPt+1)/hFDFrac[0]->GetBinContent(iPt+1));
+                gFDFracVsCutSet[iPt]->SetPointError(iFile,0.5,0);
             }
 
             gSignificanceVsCutSet[iPt]->SetPoint(iFile,iFile,hSignificance[iFile]->GetBinContent(iPt+1));
@@ -307,8 +368,8 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         bCrossSectionSyst[iPt]->SetFillColorAlpha(kRed+1,0.2);
 
         bCrossSectionRMS[iPt] = new TBox(1-TMath::Sqrt(hCrossSectionRatioDist[iPt]->GetRMS()*hCrossSectionRatioDist[iPt]->GetRMS()+(1-hCrossSectionRatioDist[iPt]->GetMean())*(1-hCrossSectionRatioDist[iPt]->GetMean())),0.,1+TMath::Sqrt(hCrossSectionRatioDist[iPt]->GetRMS()*hCrossSectionRatioDist[iPt]->GetRMS()+(1-hCrossSectionRatioDist[iPt]->GetMean())*(1-hCrossSectionRatioDist[iPt]->GetMean())),hCrossSectionRatioDist[iPt]->GetMaximum());
-        bCrossSectionRMS[iPt]->SetLineColor(kBlue+1);
-        bCrossSectionRMS[iPt]->SetFillColorAlpha(kBlue+1,0.2);
+        bCrossSectionRMS[iPt]->SetLineColor(kAzure+4);
+        bCrossSectionRMS[iPt]->SetFillColorAlpha(kAzure+4, 0.2);
 
         if(iPt==0) {
             legEff->AddEntry(gEffPromptVsCutSet[iPt],"Prompt","lpe");
@@ -319,27 +380,34 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         }
 
         if(!fRelativeVariation) 
-            cOutPut[iPt]->cd(1)->DrawFrame(-1.,0.,nFiles,maxrawyield[iPt]*1.5,";Cut set; Raw yield");
+            cOutPut[iPt]->cd(1)->DrawFrame(-1.,0.,nFiles,maxrawyield[iPt]*1.5,";cut set; raw yield");
         else 
-            cOutPut[iPt]->cd(1)->DrawFrame(-1.,0.,nFiles,2.5,";Cut set; Raw yield / Raw yield (central)");
+            cOutPut[iPt]->cd(1)->DrawFrame(-1.,0.,nFiles,2.5,";cut set; raw yield / raw yield (central)");
         gRawYieldVsCutSet[iPt]->Draw("PZ");
         if(!fRelativeVariation) 
-            cOutPut[iPt]->cd(2)->DrawFrame(-1.,0.,nFiles,maxefficiency[iPt]*1.5,";Cut set; Efficiency");
+            cOutPut[iPt]->cd(2)->DrawFrame(-1.,0.,nFiles,maxefficiency[iPt]*1.5,";cut set; efficiency");
         else 
-            cOutPut[iPt]->cd(2)->DrawFrame(-1.,0.,nFiles,2.5,";Cut set; Efficiency / Efficiency (central)");
+            cOutPut[iPt]->cd(2)->DrawFrame(-1.,0.,nFiles,2.5,";cut set; efficiency / efficiency (central)");
         gEffFDVsCutSet[iPt]->Draw("PZ");
         gEffPromptVsCutSet[iPt]->Draw("PZ");
         legEff->Draw("same");
-        cOutPut[iPt]->cd(3)->DrawFrame(-1.,0.,nFiles,maxsignif[iPt]*1.5,";Cut set; Significance");
+        if(!fRelativeVariation) 
+            cOutPut[iPt]->cd(3)->DrawFrame(-1.,0.,nFiles,1.5,";cut set; fraction");
+        else 
+            cOutPut[iPt]->cd(3)->DrawFrame(-1.,0.,nFiles,3.5,";cut set; fraction / fraction (central)");
+        gFDFracVsCutSet[iPt]->Draw("PZ");
+        gPromptFracVsCutSet[iPt]->Draw("PZ");
+        legEff->Draw("same");
+        cOutPut[iPt]->cd(4)->DrawFrame(-1.,0.,nFiles,maxsignif[iPt]*1.5,";cut set; significance");
         gSignificanceVsCutSet[iPt]->Draw("PZ");
-        cOutPut[iPt]->cd(4)->DrawFrame(-1.,0.,nFiles,maxSoverB[iPt]*1.5,";Cut set; S/B (3#sigma)");
+        cOutPut[iPt]->cd(5)->DrawFrame(-1.,0.,nFiles,maxSoverB[iPt]*1.5,";cut set; S/B (3#sigma)");
         gSoverBVsCutSet[iPt]->Draw("PZ");
-        cOutPut[iPt]->cd(5)->DrawFrame(-1.,maxCross[iPt]/4,nFiles,maxCross[iPt]*1.5, Form(";Cut set; %s (GeV^{-1} #it{c})", crossSectionTitle.Data()));
+        cOutPut[iPt]->cd(6)->DrawFrame(-1.,maxCross[iPt]/4,nFiles,maxCross[iPt]*1.5, Form(";cut set; %s (GeV^{-1} #it{c})", crossSectionTitle.Data()));
         lCrossSectionCent[iPt]->Draw("same");
         gCrossSectionCent[iPt]->Draw("2");
         gCrossSectionVsCutSet[iPt]->Draw("PZ");
         legCross->Draw("same");
-        cOutPut[iPt]->cd(6)->DrawFrame(0.55,0.,1.45,hCrossSectionRatioDist[iPt]->GetMaximum()*1.5, Form(";(%s) / (%s)_{central};Entries", crossSectionTitle.Data(), crossSectionTitle.Data()));
+        cOutPut[iPt]->cd(7)->DrawFrame(0.55,0.,1.45,hCrossSectionRatioDist[iPt]->GetMaximum()*1.5, Form(";(%s) / (%s)_{central};entries", crossSectionTitle.Data(), crossSectionTitle.Data()));
         hCrossSectionRatioDist[iPt]->Draw("same");
         bCrossSectionSyst[iPt]->Draw("same");
         bCrossSectionRMS[iPt]->Draw("same");
