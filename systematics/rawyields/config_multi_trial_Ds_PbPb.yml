@@ -1,0 +1,26 @@
+meson: Ds
+
+reffilenames:
+    data: ../ML_DsAnalysis/QM_prel/outputs/010/raw_yields/RawYieldsDs_010_pt2_50.root
+    MC: ../ML_DsAnalysis/QM_prel/outputs/010/raw_yields/RawYieldsDs_010_MC_pt2_50.root
+
+outfilename: outputs/rawyieldsyst/RawYieldsSystDs_010_central_2018.root
+
+multitrial:
+    mins: [ 1.76, 1.77, 1.78, 1.79, 1.80 ] # lower fit limit
+    maxs: [ 2.06, 2.08, 2.10, 2.12, 2.14 ] # upper fit limit
+    rebins: [ 3, 4, 5, 6, 7 ] # mass rebin values
+    sgnfuncs: [ kGaus ] # signal functions of AliHFInvMassFitter
+    bkgfuncs: [ kExpo, kLin, kPol2 ] # bkg functions of AliHFInvMassFitter
+    sigma: [ kFree, kFixed ]     
+    # other possibilities: 
+    # kFixedMinus10Perc, kFixedPlus10Perc, kFixedMinus15Perc, kFixedPlus15Perc, kFixedMinus20Perc, kFixedPlus20Perc, kFixedPlusUnc, kFixedMinusUnc
+    # those with variations (Plus/Minus) are exclusive (i.e. it is not possible to run with 10% and 15% variation at the same time)
+    mean: [ kFree ] # other possibilities: kFixedPlus15Perc, kFixedMinus15Perc, 
+    bincounting:
+        nsigma: [ 3, 5 ] # multi-trial will be repeated for each nsigma value
+
+quality:
+    chisquare:
+        min: 0.
+        max: 2.
