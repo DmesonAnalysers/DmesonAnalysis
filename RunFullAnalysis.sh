@@ -11,14 +11,12 @@ DoHFPtSpecRaa=false
 DoDmesonYield=false
 DoDataDrivenCrossSection=false
 
-#whether it is Dplus or Ds analysis
-Meson="Ds"
-
 #wheter you are projecting a tree or a sparse
 ProjectTree=true
 
 #PARAMETERS TO BE SET (use "" for parameters not needed)
 ################################################################################################
+Meson="Ds" # whether it is Dplus or Ds analysis
 Cent="kpp5TeVFD" # used also to asses prompt or non-prompt and system
 
 cfgFileData="configfiles/config_Ds_pp_data_tree.yml"
@@ -49,6 +47,16 @@ OutDirEfficiency="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/data_driven_f
 OutDirCrossSec=""
 OutDirRaa=""
 ################################################################################################
+
+if [ ${Meson} != "Dplus" ] && [ ${Meson} != "Ds" ]; then
+  echo $(tput setaf 1) ERROR: only Ds and Dplus mesons are supported! $(tput sgr0)
+  exit 2
+fi
+
+if [ ${Cent} != "k010" ] && [ ${Cent} != "k3050" ] && [ ${Cent} != "k6080" ] && [ ${Cent} != "kpp5TeVFD" ] && [ ${Cent} != "kpp5TeVPrompt" ]; then
+  echo $(tput setaf 1) ERROR: system ${Cent} is not supported! $(tput sgr0)
+  exit 2
+fi
 
 if [ ! -f "${cfgFileData}" ]; then
   echo $(tput setaf 1) ERROR: data config file "${cfgFileData}" does not exist! $(tput sgr0)
@@ -151,7 +159,7 @@ fi
 if $DoMCRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo $(tput setaf 4) Extract raw yields from ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root $(tput sgr0)
+    echo $(tput setaf 4) Extract raw yields from ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
     echo '.x GetRawYieldsDplusDs.C+('${Cent}',true, "'${OutDirEfficiency}'/Distr_'${Meson}'_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Meson}'_MC'${CutSets[$iCutSet]}'.root")' | root -l -b
     echo '.q'
   done
@@ -195,9 +203,9 @@ if $DoDataDrivenCrossSection; then
   do
     echo $(tput setaf 4) Compute cross section $(tput sgr0)
     if $isPrompt; then
-      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYieldsDplus${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --prompt --${Meson} --system ${System} --energy 5.02 --batch
+      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYields${Meson}${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --prompt --${Meson} --system ${System} --energy 5.02 --batch
     else
-      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYieldsDplus${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --FD --${Meson} --system ${System} --energy 5.02 --batch
+      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYields${Meson}${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --FD --${Meson} --system ${System} --energy 5.02 --batch
     fi
   done
 fi
@@ -206,9 +214,9 @@ fi
 if $DoHFPtSpec; then
   Channel=""
   if $Meson == "Ds"; then
-    Channel="kDstoKKpi"
-  elif $Meson == "Dplus"; then
-    Channel="kDplustoKpipi"
+    Channel="kDsKKpi"
+  else
+    Channel="kDplusKpipi"
   fi
   
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
