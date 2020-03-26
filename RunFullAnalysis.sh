@@ -108,19 +108,19 @@ fi
 #get prompt or non-prompt, system
 isPrompt=true
 System=pp
-if $Cent == "kpp5TeVFD"; then
+if [ ${Cent} == "kpp5TeVFD" ]; then
   isPrompt=false
   System=pp
-elif $Cent == "kpp5TeVPrompt"; then
+elif [ ${Cent} == "kpp5TeVPrompt" ]; then
   isPrompt=true
   System=pp
-elif $Cent == "k010"; then
+elif [ ${Cent} == "k010" ]; then
   isPrompt=true
   System=PbPb
-elif $Cent == "k3050"; then
+elif [ ${Cent} == "k3050" ]; then
   isPrompt=true
   System=PbPb
-elif $Cent == "k6080"; then
+elif [ ${Cent} == "k6080" ]; then
   isPrompt=true
   System=PbPb
 fi
@@ -194,10 +194,10 @@ if $DoDataDrivenCrossSection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute cross section
-    if isPrompt; then
-      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYieldsDplus${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName}${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --prompt --${Meson} --${System}
+    if $isPrompt; then
+      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYieldsDplus${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --prompt --${Meson} --system ${System} --energy 5.02 --batch
     else
-      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYieldsDplus${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} {OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --FD --${Meson} --${System}
+      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYieldsDplus${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --FD --${Meson} --system ${System} --energy 5.02 --batch
     fi
   done
 fi
@@ -209,7 +209,8 @@ if $DoHFPtSpec; then
     Channel="kDstoKKpi"
   elif $Meson == "Dplus"; then
     Channel="kDplustoKpipi"
-
+  fi
+  
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute HFPtspectrum
