@@ -5,6 +5,7 @@ python script to create yaml files with set of cuts for cut-variation studies
 import os
 import argparse
 import copy
+from itertools import product
 import yaml
 
 def get_variation_mult(edge, kind): # pylint: disable=too-many-return-statements
@@ -81,56 +82,57 @@ def make_cuts():
                 yaml.dump(cutset_mod, outfile_mod, default_flow_style=False)
 
 def make_cuts_ml():
-    var_key = 'ML_output_FD'
-    step_variation = {"2": 0.01,
-                      "4": 0.01,
-                      "6": 0.01,
-                      "8": 0.01,
-                      "12": 0.01
-                      }
-    num_step_pos = 8
-    num_step_neg = 90
-    edge_to_vary = 'min'
+    var_key = ['ML_output_FD', 'ML_output_Bkg']
+    var_tag = ['outFD', 'outBkg'] # used in file names to reduce length
+    step_variation = [{"2": 0.01, "4": 0.01, "6": 0.01, "8": 0.01, "12": 0.01},
+                      {"2": 0.002, "4": 0.002, "6": 0.002, "8": 0.002, "12": 0.002}]
+    num_step_pos = 3
+    num_step_neg = 3
+    edge_to_vary = ['min', 'max']
 
     in_dir = 'configfiles/cutsets/Ds/pp/'
-    cut_file_central = 'cutset_pp5TeV_FDen.yml'
-    out_dir = 'configfiles/cutsets/Ds/pp/data_driven_prompt_fraction_FDen_cuts/'
+    cut_file_central = 'cutset_pp5TeV_FDen_conservative.yml'
+    out_dir = 'configfiles/cutsets/Ds/pp/syst_cuts_TEST_GRID/'
+    out_file_tag = 'cutset_pp5TeV_FDen'
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     with open(in_dir + cut_file_central, 'r') as cut_file_yml:
         cutset = yaml.load(cut_file_yml, yaml.FullLoader)
 
-    cutset_central = copy.deepcopy(cutset)
-    with open(out_dir + cut_file_central, 'w') as outfile:
-        yaml.dump(cutset_central, outfile, default_flow_style=False)
-
+    #same number of steps for all variables
     neg_steps = [-i for i in range(1, num_step_neg + 1)]
     neg_steps = neg_steps[::-1]
-    pos_steps = list(range(1, num_step_pos + 1))
+    pos_steps = list(range(0, num_step_pos + 1))
     steps = neg_steps + pos_steps
 
-    for i, step in enumerate(steps):
+    n_combinations = len(var_key)
+
+    for prod_steps in product(steps, repeat=n_combinations):
         cutset_mod = copy.deepcopy(cutset)
-        modified_list = []
-        for min_val, max_val, pt_min in zip(cutset_mod['cutvars'][var_key]['min'],
-                                            cutset_mod['cutvars'][var_key]['max'],
-                                            cutset_mod['cutvars']['Pt']['min']):
-            if edge_to_vary == 'min':
-                new_value = min_val + step * step_variation[f'{pt_min:.0f}']            
-                if(new_value < 0. or new_value > max_val):
-                    new_value = min_val
-            else:
-                new_value = max_val + step * step_variation[f'{pt_min:.0f}']            
-                if(new_value < 0. or new_value < min_val):
-                    new_value = max_val
-            modified_list.append(new_value)
-        cutset_mod['cutvars'][var_key][edge_to_vary] = modified_list
-        step_name = 'pos'
-        if step < 0.:
-            step_name = 'neg'
-        i_name = str(i+1).zfill(3)
-        cut_file_mod = cut_file_central.replace('.yml', f'_{step_name}_{i_name}.yml')
+        file_tag = str()
+        for i, step in enumerate(prod_steps):
+            modified_list = []
+            cuts = cutset_mod['cutvars'][var_key[i]]
+            for min_val, max_val, pt_min in zip(cuts['min'], cuts['max'], cutset_mod['cutvars']['Pt']['min']):
+                if edge_to_vary[i] == 'min':
+                    new_value = min_val + step * step_variation[i][f'{pt_min:.0f}']
+                    if(new_value < 0. or new_value > max_val):
+                        new_value = min_val
+                else:
+                    new_value = max_val + step * step_variation[i][f'{pt_min:.0f}']
+                    if(new_value > 1. or new_value < min_val):
+                        new_value = max_val
+                modified_list.append(new_value)
+            cuts[edge_to_vary[i]] = modified_list
+            step_name = 'pos'
+            if step < 0.:
+                step_name = 'neg'
+                step += num_step_neg + 1
+            # more than 100 files unlikely
+            name = f'_{var_tag[i]}_{step_name}{str(int(step)).zfill(2)}'
+            file_tag += name
+        cut_file_mod = f'{out_file_tag}_{file_tag}.yml'
         with open(out_dir + cut_file_mod, 'w') as outfile_mod:
             yaml.dump(cutset_mod, outfile_mod, default_flow_style=False)
 
