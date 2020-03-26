@@ -90,6 +90,7 @@ def make_cuts_ml():
                       }
     num_step_pos = 8
     num_step_neg = 90
+    edge_to_vary = 'min'
 
     in_dir = 'configfiles/cutsets/Ds/pp/'
     cut_file_central = 'cutset_pp5TeV_FDen.yml'
@@ -112,17 +113,22 @@ def make_cuts_ml():
     for i, step in enumerate(steps):
         cutset_mod = copy.deepcopy(cutset)
         modified_list = []
-        for value, max_val, pt_min in zip(cutset_mod['cutvars'][var_key]['min'],
-                                          cutset_mod['cutvars'][var_key]['max'],
-                                          cutset_mod['cutvars']['Pt']['min']):
-            new_value = value + step * step_variation[f'{pt_min:.0f}']
-            if(new_value < 0. or new_value > max_val):
-                new_value = value
+        for min_val, max_val, pt_min in zip(cutset_mod['cutvars'][var_key]['min'],
+                                            cutset_mod['cutvars'][var_key]['max'],
+                                            cutset_mod['cutvars']['Pt']['min']):
+            if edge_to_vary == 'min':
+                new_value = min_val + step * step_variation[f'{pt_min:.0f}']            
+                if(new_value < 0. or new_value > max_val):
+                    new_value = min_val
+            else:
+                new_value = max_val + step * step_variation[f'{pt_min:.0f}']            
+                if(new_value < 0. or new_value < min_val):
+                    new_value = max_val
             modified_list.append(new_value)
-        cutset_mod['cutvars'][var_key]['min'] = modified_list
-        step_name = 'pos'
+        cutset_mod['cutvars'][var_key][edge_to_vary] = modified_list
+        step_name = 'bkg_pos'
         if step < 0.:
-            step_name = 'neg'
+            step_name = 'bkg_neg'
         i_name = str(i+1).zfill(3)
         cut_file_mod = cut_file_central.replace('.yml', f'_{step_name}_{i_name}.yml')
         with open(out_dir + cut_file_mod, 'w') as outfile_mod:
