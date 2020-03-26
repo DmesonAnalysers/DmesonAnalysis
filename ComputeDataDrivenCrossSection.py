@@ -1,7 +1,7 @@
 '''
 python script for the computation of the production cross section of prompt or feed-down D
 run: python ComputeDataDrivenCrossSection.py rawYieldFile.root effAccFile.root fracFile.root outFile.root
-                                             [--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy]
+                                             [--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy] [--batch]
 prompt or FD and Dplus or Ds must be specified
 '''
 
@@ -174,4 +174,5 @@ cFrac.Write()
 cEff.Write()
 outFile.Close()
 
-input('Press enter to exit')
+if not args.batch:
+    input('Press enter to exit')
