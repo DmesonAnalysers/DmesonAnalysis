@@ -24,8 +24,8 @@ pp5TeVFD:
     MeanFile: ''
     PtMin: [2, 4, 6, 8]    
     PtMax: [4, 6, 8, 12]    
-    MassMin: [1.78, 1.78, 1.80, 1.78]    
-    MassMax: [2.10, 2.10, 2.08, 2.10]
+    MassMin: [1.78, 1.78, 1.78, 1.78]    
+    MassMax: [2.10, 2.10, 2.10, 2.10]
     Rebin: [6, 6, 8, 8]
     InclSecPeak: [1, 1, 1, 1]
     UseLikelihood: 1
