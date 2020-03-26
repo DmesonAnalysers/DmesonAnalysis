@@ -1,15 +1,15 @@
 meson: Dplus
 
 reffilenames:
-    data: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYields_Dplus_pp5TeV_FD_central.root
-    MC: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYields_Dplus_pp5TeV_prompt_central.root
+    data: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_FD_central.root
+    MC: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_prompt_central.root
 
 outfilename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/rawyields/RawYieldSyst_Dplus_pp5TeV_FD_central.root
 
 multitrial:
-    mins: [ 1.66, 1.68, 1.70, 1.72, 1.74 ] # lower fit limit
-    maxs: [ 1.96, 1.98, 2.00, 2.02, 2.04 ] # upper fit limit
-    rebins: [ 2, 3, 4, 5, 6 ] # mass rebin values
+    mins: [ 1.66, 1.68, 1.70, 1.72, 1.74, 1.76 ] # lower fit limit
+    maxs: [ 1.95, 1.96, 1.97, 1.98, 1.99, 2.00 ] # upper fit limit
+    rebins: [ 4, 5, 6, 7, 8, 9, 10 ] # mass rebin values
     sgnfuncs: [ kGaus ] # signal functions of AliHFInvMassFitter
     bkgfuncs: [ kExpo, kLin, kPol2 ] # bkg functions of AliHFInvMassFitter
     sigma: [ kFixed, kFixedMinusUnc, kFixedPlusUnc ] 

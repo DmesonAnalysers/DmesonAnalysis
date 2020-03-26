@@ -1,12 +1,52 @@
 inputs:
-    directory: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/crosssection
+    directory: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/systematics/cutvariation
     commonfilenames:
-        rawyield: RawYields_Dplus_pp5TeV
-        efficiency: Eff_Dplus_pp5TeV
-        crosssection: CrossSection_FD_datadriven_pp5TeV
-    cutsets: [] # the first one must be the default
+        rawyield: RawYieldsDplus
+        efficiency: Efficiency_Dplus
+        crosssection: CrossSectionDplus
+    cutsets: ["_pp5TeV_FD_central",
+              "_pp5TeV_FD_central_bkg_neg_001",
+              "_pp5TeV_FD_central_bkg_neg_002",
+              "_pp5TeV_FD_central_bkg_neg_003",
+              "_pp5TeV_FD_central_bkg_neg_004",
+              "_pp5TeV_FD_central_bkg_neg_005",
+              "_pp5TeV_FD_central_bkg_neg_006",
+              "_pp5TeV_FD_central_bkg_neg_007",
+              "_pp5TeV_FD_central_bkg_neg_008",
+              "_pp5TeV_FD_central_bkg_neg_009",
+              "_pp5TeV_FD_central_bkg_neg_010",
+              "_pp5TeV_FD_central_bkg_pos_011",
+              "_pp5TeV_FD_central_bkg_pos_012",
+              "_pp5TeV_FD_central_bkg_pos_013",
+              "_pp5TeV_FD_central_bkg_pos_014",
+              "_pp5TeV_FD_central_bkg_pos_015",
+              "_pp5TeV_FD_central_bkg_pos_016",
+              "_pp5TeV_FD_central_bkg_pos_017",
+              "_pp5TeV_FD_central_bkg_pos_018",
+              "_pp5TeV_FD_central_bkg_pos_019",
+              "_pp5TeV_FD_central_bkg_pos_020",
+              "_pp5TeV_FD_central_neg_001",
+              "_pp5TeV_FD_central_neg_002",
+              "_pp5TeV_FD_central_neg_003",
+              "_pp5TeV_FD_central_neg_004",
+              "_pp5TeV_FD_central_neg_005",
+              "_pp5TeV_FD_central_neg_006",
+              "_pp5TeV_FD_central_neg_007",
+              "_pp5TeV_FD_central_neg_008",
+              "_pp5TeV_FD_central_neg_009",
+              "_pp5TeV_FD_central_neg_010",
+              "_pp5TeV_FD_central_pos_011",
+              "_pp5TeV_FD_central_pos_012",
+              "_pp5TeV_FD_central_pos_013",
+              "_pp5TeV_FD_central_pos_014",
+              "_pp5TeV_FD_central_pos_015",
+              "_pp5TeV_FD_central_pos_016",
+              "_pp5TeV_FD_central_pos_017",
+              "_pp5TeV_FD_central_pos_018",
+              "_pp5TeV_FD_central_pos_019",
+              "_pp5TeV_FD_central_pos_020"] # the first one must be the default
 
-outfilename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs
+outfilename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/systematics/cutvariation/CutVariationSystematics_Dplus_pp5TeV_FD.pdf
 
 quality:
     maxchisquare: 2.
@@ -17,6 +57,6 @@ quality:
     fillthrreleff: 0.005
 
 plots:
-    plotrelativevar: 0 # 0 -> false, 1 -> true
-    relassignedsyst: [2, 3] # list of values to be plotted, null if you don't want to plot it
+    plotrelativevar: 1 # 0 -> false, 1 -> true
+    relassignedsyst: [] # list of values to be plotted, null if you don't want to plot it
   
