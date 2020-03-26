@@ -1,14 +1,14 @@
 '''
 python script for the computation of the production cross section of prompt or feed-down D
 run: python ComputeDataDrivenCrossSection.py rawYieldFile.root effAccFile.root fracFile.root outFile.root
-                                             [--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy]
+                                             [--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy] [--batch]
 prompt or FD and Dplus or Ds must be specified
 '''
 
 import sys
 import argparse
 import numpy as np
-from ROOT import TFile, TCanvas, TLegend  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TLegend, gROOT  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import ComputeCrossSection
 from utils.StyleFormatter import SetGlobalStyle
 
@@ -25,6 +25,7 @@ parser.add_argument("--prompt", action='store_true', help='flag to compute promp
 parser.add_argument("--FD", action='store_true', help='flag to compute FD cross section', default=False)
 parser.add_argument("--Dplus", action='store_true', help='flag to compute D+ cross section', default=False)
 parser.add_argument("--Ds", action='store_true', help='flag to compute Ds cross section', default=False)
+parser.add_argument("--batch", action='store_true', help='suppress video output', default=False)
 args = parser.parse_args()
 
 # TODO: add systematic uncertainties (create DB as AliHFSystErr? Read uncertainties from AliHFSystErr?)
@@ -129,7 +130,9 @@ for iPt in range(hCrossSection.GetNbinsX()):
     hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6)  # convert from pb to mub
     hCrossSection.SetBinError(iPt+1, crossSecUnc * 1.e-6) # convert from pb to mub
 
+gROOT.SetBatch(args.batch)
 SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14)
+
 cCrossSec = TCanvas('cCrossSec', '', 700, 800)
 cCrossSec.SetLogy()
 hCrossSection.Draw()
@@ -174,4 +177,5 @@ cFrac.Write()
 cEff.Write()
 outFile.Close()
 
-input('Press enter to exit')
+if not args.batch:
+    input('Press enter to exit')
