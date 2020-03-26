@@ -9,15 +9,13 @@ DoAccEff=true
 DoHFPtSpec=false
 DoHFPtSpecRaa=false
 DoDmesonYield=false
+DoDataDrivenCrossSection=false
 
 #whether it is Dplus or Ds analysis
 Meson="Ds"
 
 #wheter you are projecting a tree or a sparse
 ProjectTree=true
-
-#whether to perform analysis with data-driven or theory-driven fraction estimation
-DataDrivenAnalysis=true
 
 #PARAMETERS TO BE SET (use "" for parameters not needed)
 ################################################################################################
@@ -82,7 +80,7 @@ if [ ! -f "${pprefFileName}" ] && [ "${pprefFileName}" != "" ]; then
   exit 2
 fi
 
-if [ ! -f "${DataDrivenFractionFileName}" ] && [ ${DataDrivenAnalysis} ]; then
+if [ ! -f "${DataDrivenFractionFileName}" ] && [ ${DoDataDrivenCrossSection} ]; then
   echo ERROR: data-driven fraction file "${DataDrivenFractionFileName}" does not exist!
   exit 2
 fi
@@ -192,7 +190,7 @@ if $DoAccEff; then
 fi
 
 #compute cross section
-if $DataDrivenAnalysis; then
+if $DoDataDrivenCrossSection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo Compute cross section
@@ -204,40 +202,38 @@ if $DataDrivenAnalysis; then
   done
 fi
 
-else
-  #compute HFPtSpectrum
-  if $DoHFPtSpec; then
-    Channel=""
-    if $Meson == "Ds"; then
-      Channel="kDstoKKpi"
-    elif $Meson == "Dplus"; then
-      Channel="kDplustoKpipi"
+#compute HFPtSpectrum
+if $DoHFPtSpec; then
+  Channel=""
+  if $Meson == "Ds"; then
+    Channel="kDstoKKpi"
+  elif $Meson == "Dplus"; then
+    Channel="kDplustoKpipi"
 
-    for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
-    do
-      echo Compute HFPtspectrum
-      echo '.x HFPtSpectrum.C+('${Channel}',"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYields'${Meson}${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root",kNb,1.,true,'${Cent}',k2018)' | root -l -b
-      echo '.q'
-    done
-  fi
+  for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
+  do
+    echo Compute HFPtspectrum
+    echo '.x HFPtSpectrum.C+('${Channel}',"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYields'${Meson}${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root",kNb,1.,true,'${Cent}',k2018)' | root -l -b
+    echo '.q'
+  done
+fi
 
-  #compute HFPtSpectrumRaa
-  if $DoHFPtSpecRaa; then
-    for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
-    do
-      echo Compute HFPtspectrumRaa
-      echo '.x HFPtSpectrumRaa.C+("'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRaa}'/HFPtSpectrumRaa'${Meson}${CutSets[$iCutSet]}'.root",4,1,kNb,'${Cent}',k2018,k5dot023,1./3,3,6,false,1)' | root -l -b
-      echo '.q'
-    done
-  fi
+#compute HFPtSpectrumRaa
+if $DoHFPtSpecRaa; then
+  for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
+  do
+    echo Compute HFPtspectrumRaa
+    echo '.x HFPtSpectrumRaa.C+("'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRaa}'/HFPtSpectrumRaa'${Meson}${CutSets[$iCutSet]}'.root",4,1,kNb,'${Cent}',k2018,k5dot023,1./3,3,6,false,1)' | root -l -b
+    echo '.q'
+  done
+fi
 
-  #compute corrected yield
-  if $DoDmesonYield; then
-    for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
-    do
-      echo Compute corrected yield
-      echo '.x ComputeDmesonYield.C+(k'${Meson}','${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaa'${Meson}${CutSets[$iCutSet]'.root","","'${OutDirCrossSec}'","'${CutSets[$iCutSet]}'",1,1./3,3,false,1)' | root -l -b
-      echo '.q'
-    done
-  fi
+#compute corrected yield
+if $DoDmesonYield; then
+  for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
+  do
+    echo Compute corrected yield
+    echo '.x ComputeDmesonYield.C+(k'${Meson}','${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaa'${Meson}${CutSets[$iCutSet]}'.root","","'${OutDirCrossSec}'","'${CutSets[$iCutSet]}'",1,1./3,3,false,1)' | root -l -b
+    echo '.q'
+  done
 fi
