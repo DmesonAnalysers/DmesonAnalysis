@@ -83,27 +83,31 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
 
     for(unsigned int iFile=0; iFile<nFiles; iFile++) {
         
-        TFile* infile_crossec = TFile::Open(Form("%s/%s%s.root",inDirName.data(),Form("crosssec/%s",inCommonFileNameCrossSec.data()),cutSetSuffix[iFile].data()));
+        TFile* infile_crossec = TFile::Open(Form("%s/%s%s.root",inDirName.data(),Form("%s",inCommonFileNameCrossSec.data()),cutSetSuffix[iFile].data()));
         if(!infile_crossec)
             return;
         hCrossSection[iFile] = (TH1D*)infile_crossec->Get("hAAC");
-        hPromptFrac[iFile] = (TH1D*)infile_crossec->Get("hfPromptCent");
-        hFDFrac[iFile] = (TH1D*)hPromptFrac[iFile]->Clone();
-        for(int iPt=0; iPt<hFDFrac[iFile]->GetNbinsX(); iPt++)
-            hFDFrac[iFile]->SetBinContent(iPt+1, 1-hFDFrac[iFile]->GetBinContent(iPt+1));
-        if(!hCrossSection[iFile]) {
+        if(hCrossSection[iFile]){
+            hPromptFrac[iFile] = (TH1D*)infile_crossec->Get("hfPromptCent");
+            hFDFrac[iFile] = (TH1D*)hPromptFrac[iFile]->Clone();
+            for(int iPt=0; iPt<hFDFrac[iFile]->GetNbinsX(); iPt++)
+                hFDFrac[iFile]->SetBinContent(iPt+1, 1-hFDFrac[iFile]->GetBinContent(iPt+1));
+        }
+        else {
             crossSectionTitle = "d#sigma/d#it{p}_{T}";
             hCrossSection[iFile] = (TH1D*)infile_crossec->Get("histoSigmaCorr");
-            hPromptFrac[iFile] = (TH1D*)hCrossSection[iFile]->Clone();
-            hFDFrac[iFile] = (TH1D*)hCrossSection[iFile]->Clone();
-            TGraphAsymmErrors* gFcConservative = (TGraphAsymmErrors*)infile_crossec->Get("gFcConservative");
-            for(int iPt=0; iPt<gFcConservative->GetN(); iPt++) {
-                double pT, promptFrac;
-                gFcConservative->GetPoint(iPt, pT, promptFrac);
-                hPromptFrac[iFile]->SetBinContent(iPt+1, promptFrac);
-                hPromptFrac[iFile]->SetBinError(iPt+1, 0.);
-                hFDFrac[iFile]->SetBinContent(iPt+1, 1-promptFrac);
-                hFDFrac[iFile]->SetBinError(iPt+1, 0.);
+            if(hCrossSection[iFile]){
+                hPromptFrac[iFile] = (TH1D*)hCrossSection[iFile]->Clone();
+                hFDFrac[iFile] = (TH1D*)hCrossSection[iFile]->Clone();
+                TGraphAsymmErrors* gFcConservative = (TGraphAsymmErrors*)infile_crossec->Get("gFcConservative");
+                for(int iPt=0; iPt<gFcConservative->GetN(); iPt++) {
+                    double pT, promptFrac;
+                    gFcConservative->GetPoint(iPt, pT, promptFrac);
+                    hPromptFrac[iFile]->SetBinContent(iPt+1, promptFrac);
+                    hPromptFrac[iFile]->SetBinError(iPt+1, 0.);
+                    hFDFrac[iFile]->SetBinContent(iPt+1, 1-promptFrac);
+                    hFDFrac[iFile]->SetBinError(iPt+1, 0.);
+                }
             }
         }
         if(!hCrossSection[iFile]) {
@@ -115,12 +119,12 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
             cerr << "ERROR: cross section histogram not found! Please check it." << endl;
             return;
         }
-
+        
         hCrossSection[iFile]->SetDirectory(0);
         hPromptFrac[iFile]->SetDirectory(0);
         hFDFrac[iFile]->SetDirectory(0);
         
-        TFile* infile_rawyield = TFile::Open(Form("%s/%s%s.root",inDirName.data(),Form("rawyields/%s",inCommonFileNameRawY.data()),cutSetSuffix[iFile].data()));
+        TFile* infile_rawyield = TFile::Open(Form("%s/%s%s.root",inDirName.data(),Form("%s",inCommonFileNameRawY.data()),cutSetSuffix[iFile].data()));
         if(!infile_rawyield)
             return;
         hRawYield[iFile] = (TH1D*)infile_rawyield->Get("hRawYields");
@@ -133,7 +137,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         hchi2[iFile]->SetDirectory(0);
         infile_rawyield->Close();
 
-        TFile* infile_eff = TFile::Open(Form("%s/%s%s.root",inDirName.data(),Form("efficiency/%s",inCommonFileNameEff.data()),cutSetSuffix[iFile].data()));
+        TFile* infile_eff = TFile::Open(Form("%s/%s%s.root",inDirName.data(),Form("%s",inCommonFileNameEff.data()),cutSetSuffix[iFile].data()));
         if(!infile_eff)
             return;
         hEffPrompt[iFile] = (TH1D*)infile_eff->Get("hEffPrompt");
@@ -167,6 +171,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
 
     double maxrawyield[nPtBins];
     double maxefficiency[nPtBins];
+    double minefficiency[nPtBins];
     double maxsignif[nPtBins];
     double maxSoverB[nPtBins];
     double maxCross[nPtBins];
@@ -275,6 +280,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
 
         maxrawyield[iPt]=-1;
         maxefficiency[iPt]=-1;
+        minefficiency[iPt]=-1;
         maxsignif[iPt]=-1;
         maxSoverB[iPt]=-1;
         maxCross[iPt]=-1;
@@ -284,6 +290,8 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
                 maxrawyield[iPt] = hRawYield[iFile]->GetBinContent(iPt+1);
             if(maxefficiency[iPt]<hEffFD[iFile]->GetBinContent(iPt+1))
                 maxefficiency[iPt] = hEffFD[iFile]->GetBinContent(iPt+1);
+            if(minefficiency[iPt]>hEffFD[iFile]->GetBinContent(iPt+1))
+                minefficiency[iPt] = hEffFD[iFile]->GetBinContent(iPt+1);
             if(maxsignif[iPt]<hSignificance[iFile]->GetBinContent(iPt+1))
                 maxsignif[iPt] = hSignificance[iFile]->GetBinContent(iPt+1);
             if(maxSoverB[iPt]<hSoverB[iFile]->GetBinContent(iPt+1))
@@ -384,8 +392,10 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         else 
             cOutPut[iPt]->cd(1)->DrawFrame(-1.,0.,nFiles,2.5,";cut set; raw yield / raw yield (central)");
         gRawYieldVsCutSet[iPt]->Draw("PZ");
-        if(!fRelativeVariation) 
-            cOutPut[iPt]->cd(2)->DrawFrame(-1.,0.,nFiles,maxefficiency[iPt]*1.5,";cut set; efficiency");
+        if(!fRelativeVariation) {
+            cOutPut[iPt]->cd(2)->DrawFrame(-1.,minefficiency[iPt]*0.5,nFiles,maxefficiency[iPt]*1.5,";cut set; efficiency");
+            cOutPut[iPt]->cd(2)->SetLogy();
+        }
         else 
             cOutPut[iPt]->cd(2)->DrawFrame(-1.,0.,nFiles,2.5,";cut set; efficiency / efficiency (central)");
         gEffFDVsCutSet[iPt]->Draw("PZ");
