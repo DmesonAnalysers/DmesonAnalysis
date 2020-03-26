@@ -1,0 +1,22 @@
+inputs:
+    directory: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/crosssection
+    commonfilenames:
+        rawyield: RawYields_Dplus_pp5TeV
+        efficiency: Eff_Dplus_pp5TeV
+        crosssection: CrossSection_FD_datadriven_pp5TeV
+    cutsets: [] # the first one must be the default
+
+outfilename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs
+
+quality:
+    maxchisquare: 2.
+    minsignif: 3.
+    minrelsignif: 0.5
+    minreleff: 0.3
+    maxreleff: 1.65
+    fillthrreleff: 0.005
+
+plots:
+    plotrelativevar: 0 # 0 -> false, 1 -> true
+    relassignedsyst: Null #[2, 3] # list of values to be plotted, null if you don't want to plot it
+  
