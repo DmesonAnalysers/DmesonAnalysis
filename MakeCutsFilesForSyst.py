@@ -126,9 +126,9 @@ def make_cuts_ml():
                     new_value = max_val
             modified_list.append(new_value)
         cutset_mod['cutvars'][var_key][edge_to_vary] = modified_list
-        step_name = 'bkg_pos'
+        step_name = 'pos'
         if step < 0.:
-            step_name = 'bkg_neg'
+            step_name = 'neg'
         i_name = str(i+1).zfill(3)
         cut_file_mod = cut_file_central.replace('.yml', f'_{step_name}_{i_name}.yml')
         with open(out_dir + cut_file_mod, 'w') as outfile_mod:
