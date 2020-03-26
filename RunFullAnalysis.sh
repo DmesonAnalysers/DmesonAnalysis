@@ -51,42 +51,42 @@ OutDirRaa=""
 ################################################################################################
 
 if [ ! -f "${cfgFileData}" ]; then
-  echo ERROR: data config file "${cfgFileData}" does not exist!
+  echo $(tput setaf 1) ERROR: data config file "${cfgFileData}" does not exist! $(tput sgr0)
   exit 2
 fi
 
 if [ ! -f "${cfgFileMC}" ]; then
-  echo ERROR: MC config file "${cfgFileMC}" does not exist!
+  echo $(tput setaf 1) ERROR: MC config file "${cfgFileMC}" does not exist! $(tput sgr0)
   exit 2
 fi
 
 if [ ! -f "${cfgFileFit}" ]; then
-  echo ERROR: fit config file "${cfgFileFit}"does not exist!
+  echo $(tput setaf 1) ERROR: fit config file "${cfgFileFit}"does not exist! $(tput sgr0)
   exit 2
 fi
 
 if [ ! -f "${accFileName}" ]; then
-  echo ERROR: acceptance file "${accFileName}" does not exist!
+  echo $(tput setaf 1) ERROR: acceptance file "${accFileName}" does not exist! $(tput sgr0)
   exit 2
 fi
 
 if [ ! -f "${predFileName}" ]; then
-  echo ERROR: FONLL file "${predFileName}" does not exist!
+  echo $(tput setaf 1) ERROR: FONLL file "${predFileName}" does not exist! $(tput sgr0)
   exit 2
 fi
 
 if [ ! -f "${pprefFileName}" ] && [ "${pprefFileName}" != "" ]; then
-  echo ERROR: pp reference file "${pprefFileName}" does not exist!
+  echo $(tput setaf 1) ERROR: pp reference file "${pprefFileName}" does not exist! $(tput sgr0)
   exit 2
 fi
 
 if [ ! -f "${DataDrivenFractionFileName}" ] && [ ${DoDataDrivenCrossSection} ]; then
-  echo ERROR: data-driven fraction file "${DataDrivenFractionFileName}" does not exist!
+  echo $(tput setaf 1) ERROR: data-driven fraction file "${DataDrivenFractionFileName}" does not exist! $(tput sgr0)
   exit 2
 fi
 
 if [ ! -f "${PtWeightsFileName}" ] && [ "${PtWeightsFileName}" != "" ]; then
-  echo WARNING: pT-weights file "${PtWeightsFileName}" does not exist!
+  echo $(tput setaf 3) WARNING: pT-weights file "${PtWeightsFileName}" does not exist! $(tput sgr0)
 fi
 
 if [ ! -d "${OutDirRawyields}" ]; then
@@ -134,7 +134,7 @@ fi
 if $DoDataProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Projecting data distributions
+    echo $(tput setaf 4) Projecting data distributions $(tput sgr0)
     python3 ${ProjectScript} ${cfgFileData} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml ${OutDirRawyields}/Distr_${Meson}_data${CutSets[$iCutSet]}.root
   done
 fi
@@ -142,7 +142,7 @@ fi
 if $DoMCProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Projecting MC distributions
+    echo $(tput setaf 4) Projecting MC distributions $(tput sgr0)
     python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root
   done
 fi
@@ -151,7 +151,7 @@ fi
 if $DoMCRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Extract raw yields from ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root
+    echo $(tput setaf 4) Extract raw yields from ${OutDirEfficiency}/Distr_Ds_MC${CutSets[$iCutSet]}.root $(tput sgr0)
     echo '.x GetRawYieldsDplusDs.C+('${Cent}',true, "'${OutDirEfficiency}'/Distr_'${Meson}'_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Meson}'_MC'${CutSets[$iCutSet]}'.root")' | root -l -b
     echo '.q'
   done
@@ -160,7 +160,7 @@ fi
 if $DoDataRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Extract raw yields from ${OutDirRawyields}/Distr_${Meson}_data${CutSets[$iCutSet]}.root
+    echo $(tput setaf 4) Extract raw yields from ${OutDirRawyields}/Distr_${Meson}_data${CutSets[$iCutSet]}.root $(tput sgr0)
     echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Meson}'_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Meson}${CutSets[$iCutSet]}'.root")' | root -l -b
     echo '.q'
   done
@@ -170,11 +170,11 @@ fi
 if $DoEfficiency; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Compute efficiency from ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root
+    echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
     if [ "${PtWeightsFileName}" == "" ] || [ "${PtWeightsHistoName}" == "" ]; then
       python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Meson}${CutSets[$iCutSet]}.root --batch
     else
-      echo Using ${PtWeightsHistoName} pt weights from ${PtWeightsFileName}
+      echo $(tput setaf 6) Using ${PtWeightsHistoName} pt weights from ${PtWeightsFileName}
       python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Meson}${CutSets[$iCutSet]}.root --ptweights ${PtWeightsFileName} ${PtWeightsHistoName} --batch
     fi
   done
@@ -184,7 +184,7 @@ fi
 if $DoAccEff; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Compute efficiency times acceptance
+    echo $(tput setaf 4) Compute efficiency times acceptance $(tput sgr0)
     python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Meson}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root --batch
   done
 fi
@@ -193,7 +193,7 @@ fi
 if $DoDataDrivenCrossSection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Compute cross section
+    echo $(tput setaf 4) Compute cross section $(tput sgr0)
     if $isPrompt; then
       python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYieldsDplus${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --prompt --${Meson} --system ${System} --energy 5.02 --batch
     else
@@ -213,7 +213,7 @@ if $DoHFPtSpec; then
   
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Compute HFPtspectrum
+    echo $(tput setaf 4) Compute HFPtspectrum $(tput sgr0)
     echo '.x HFPtSpectrum.C+('${Channel}',"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYields'${Meson}${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root",kNb,1.,true,'${Cent}',k2018)' | root -l -b
     echo '.q'
   done
@@ -223,7 +223,7 @@ fi
 if $DoHFPtSpecRaa; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Compute HFPtspectrumRaa
+    echo $(tput setaf 4) Compute HFPtspectrumRaa $(tput sgr0)
     echo '.x HFPtSpectrumRaa.C+("'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRaa}'/HFPtSpectrumRaa'${Meson}${CutSets[$iCutSet]}'.root",4,1,kNb,'${Cent}',k2018,k5dot023,1./3,3,6,false,1)' | root -l -b
     echo '.q'
   done
@@ -233,7 +233,7 @@ fi
 if $DoDmesonYield; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo Compute corrected yield
+    echo $(tput setaf 4) Compute corrected yield $(tput sgr0)
     echo '.x ComputeDmesonYield.C+(k'${Meson}','${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaa'${Meson}${CutSets[$iCutSet]}'.root","","'${OutDirCrossSec}'","'${CutSets[$iCutSet]}'",1,1./3,3,false,1)' | root -l -b
     echo '.q'
   done
