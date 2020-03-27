@@ -4,12 +4,12 @@ reffilenames:
     data: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_FDen_pt2_12_SigmaFix_conservative.root
     MC: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt2_12.root
 
-outfilename: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/systematics/raw_yield/RawYieldSyst_Ds_pp5TeV_FD.root
+outfilename: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/systematics/raw_yield/RawYieldSyst_Ds_pp5TeV_FD_moreRebins.root
 
 multitrial:
     mins: [1.76, 1.77, 1.78, 1.79, 1.80] # lower fit limit
     maxs: [2.06, 2.08, 2.10, 2.12, 2.14] # upper fit limit
-    rebins: [4, 5, 6, 7, 8] # mass rebin values
+    rebins: [4, 5, 6, 7, 8, 9, 10] # mass rebin values
     sgnfuncs: [kGaus] # signal functions of AliHFInvMassFitter
     bkgfuncs: [kExpo, kLin, kPol2] # bkg functions of AliHFInvMassFitter
     sigma: [kFixed, kFixedMinusUnc, kFixedPlusUnc] 
