@@ -1,5 +1,5 @@
 #!/bin/bash
-CutSetsDir="configfiles/syst_cuts_Ds010_MLlowpt"
+CutSetsDir="configfiles/cutsets/Ds/pp/syst_cuts_FDen_1D"
 declare -a CutSets=()
 for filename in ${CutSetsDir}/*.yml; do
     tmp_name="$(basename -- ${filename} .yml)"
@@ -10,6 +10,6 @@ arraylength=${#CutSets[@]}
 
 for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo -n "\"${CutSets[$iCutSet]}\","
+    echo "\"${CutSets[$iCutSet]}\","
   done
 echo " "

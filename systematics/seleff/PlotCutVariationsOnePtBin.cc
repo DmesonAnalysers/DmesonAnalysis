@@ -359,9 +359,11 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
                 if(TMath::Abs(1-hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < fillThrRelEff && 
                    TMath::Abs(1-hEffFD[iFile]->GetBinContent(iPt+1)/hEffFD[0]->GetBinContent(iPt+1)) < fillThrRelEff)
                     continue;
-                if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < minRelEff)
+                if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < minRelEff || 
+                   (hEffFD[iFile]->GetBinContent(effptbin)/hEffFD[0]->GetBinContent(effptbin)) < minRelEff)
                     continue;
-                if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) > maxRelEff)
+                if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) > maxRelEff ||
+                   (hEffFD[iFile]->GetBinContent(effptbin)/hEffFD[0]->GetBinContent(effptbin)) > maxRelEff)
                     continue;
                 if(hSignificance[iFile]->GetBinContent(iPt+1) < minSignif)
                     continue;
