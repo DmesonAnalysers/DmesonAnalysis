@@ -25,7 +25,8 @@ parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
                     help='config file name with root input files')
 parser.add_argument('outFileName', metavar='text', default='outFile.root',
                     help='output root file name')
-parser.add_argument("--batch", help="suppress video output", action="store_true")
+parser.add_argument("--batch", help="suppress video output",
+                    action="store_true")
 args = parser.parse_args()
 
 with open(args.cfgFileName, 'r') as ymlCfgFile:
@@ -77,8 +78,8 @@ if EnableParCuts:
 else:
     ParCutsName = 'Integral'
     ParCutMins, ParCutMaxs = [], []
-    ParCutMins.append(-10^10)
-    ParCutMaxs.append(10^10) 
+    ParCutMins.append(-10.e10)
+    ParCutMaxs.append(10.e10)
 
 cutVars = inputCfg['cutvars']
 cutRanges, upperLowerCuts, varNames = [], [], []
@@ -174,8 +175,9 @@ outDirPlots = TDirectoryFile('plots', 'plots')
 outDirPlots.Write()
 outDirPlotsPt = []
 
-estNames = {'Signif':'expected significance', 'SoverB':'S/B', 'EffAccPrompt':'(Acc#times#font[152]{e})_{prompt}',
-            'EffAccFD':'(Acc#times#font[152]{e})_{FD}', 'fPrompt':'#it{f}_{ prompt}^{ fc}', 'fFD':'#it{f}_{ FD}^{ fc}'}
+estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'EffAccPrompt': '(Acc#times#font[152]{e})_{prompt}',
+            'EffAccFD': '(Acc#times#font[152]{e})_{FD}', 'fPrompt': '#it{f}_{ prompt}^{ fc}',
+            'fFD': '#it{f}_{ FD}^{ fc}'}
 
 varsName4Tuple = ':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:' + ':'.join(estNames.keys())
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
@@ -238,8 +240,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 minVar = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
                 maxVar = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
                 nBinsVar = int((maxVar - minVar) / cutVars[varNames[0]]['step'])
-                hEstimVsCut[iPt][est] = TH1F(f'h{est}VsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', f';{varNames[0]};{estNames[est]}',
-                                             nBinsVar, minVar, maxVar)
+                hEstimVsCut[iPt][est] = TH1F(f'h{est}VsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                                             f';{varNames[0]};{estNames[est]}', nBinsVar, minVar, maxVar)
                 SetObjectStyle(hEstimVsCut[iPt][est], color=kBlack, marker=kFullCircle)
         elif len(varNames) == 2:
             for est in estNames:
@@ -262,14 +264,14 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             if (iSet+1) % 100 == 0:
                 print(f'Time elapsed to test up to cut set number {iSet+1}: {time.time()-startTime:.2f}s', end='\r')
 
-            if ParCutsName and EnableParCuts: 
+            if ParCutsName and EnableParCuts:
                 dfPromptPtParCut = dfPromptPt.query(f'{ParCutMin} < {ParCutsName} < {ParCutMax}')
                 dfFDPtParCut = dfFDPt.query(f'{ParCutMin} < {ParCutsName} < {ParCutMax}')
                 dfBkgPtParCut = dfBkgPt.query(f'{ParCutMin} < {ParCutsName} < {ParCutMax}')
                 dfPromptPtSel = dfPromptPtParCut.query(selToApply)
                 dfFDPtSel = dfPromptPtParCut.query(selToApply)
                 dfBkgPtSel = dfPromptPtParCut.query(selToApply)
-            else: 
+            else:
                 dfPromptPtSel = dfPromptPt.query(selToApply)
                 dfFDPtSel = dfFDPt.query(selToApply)
                 dfBkgPtSel = dfBkgPt.query(selToApply)
@@ -278,20 +280,20 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             effFD, effFDUnc = ComputeEfficiency(len(dfFDPtSel), nTotFD, np.sqrt(len(dfFDPtSel)), np.sqrt(nTotFD))
             effTimesAccPrompt = effPrompt * preselEffPrompt * acc
             effTimesAccFD = effFD * preselEffFD * acc
-            fPrompt, fFD = GetPromptFDFractionFc(
-                effTimesAccPrompt, effTimesAccFD, crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
-            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts',
-                            400, min(dfBkgPtSel['inv_mass']), max(dfBkgPtSel['inv_mass']))
-            hMassSignal = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400, min(
-                               dfPromptPtSel['inv_mass']), max(dfPromptPtSel['inv_mass']))
+            fPrompt, fFD = GetPromptFDFractionFc(effTimesAccPrompt, effTimesAccFD,
+                                                 crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
+            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400,
+                            min(dfBkgPtSel['inv_mass']), max(dfBkgPtSel['inv_mass']))
+            hMassSignal = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400,
+                               min(dfPromptPtSel['inv_mass']), max(dfPromptPtSel['inv_mass']))
 
             fill_hist(hMassBkg, dfBkgPtSel['inv_mass'].values)
             fill_hist(hMassSignal, np.concatenate((dfPromptPtSel['inv_mass'].values, dfFDPtSel['inv_mass'].values)))
 
             # SecPeak
             if dfSecPeakPrompt and dfSecPeakFD:
-                hMassSeaPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400, min(
-                    dfSecPeakPrompt['inv_mass']), max(dfSecPeakPrompt['inv_mass']))
+                hMassSeaPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts',
+                                    400, min(dfSecPeakPrompt['inv_mass']), max(dfSecPeakPrompt['inv_mass']))
                 fill_hist(hMassSecPeak,
                           np.concatenate((dfSecPeakPrompt['inv_mass'].values, dfSecPeakFD['inv_mass'].values)))
 
@@ -304,7 +306,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                               fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
             elif inputCfg['expectedSignalFrom'] == 'feeddown':
                 expSignal = GetExpectedSignal(crossSecFD, ptMax-ptMin, 1., effTimesAccFD,
-                                              fFD[0], 1., 1., nExpEv, sigmaMB, Taa, RaaFD)   
+                                              fFD[0], 1., 1., nExpEv, sigmaMB, Taa, RaaFD)
 
             # expected background
             bkgConfig = inputCfg['infiles']['background']
@@ -349,69 +351,84 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 binVar1 = hEstimVsCut[iPt]['Signif'].GetYaxis().FindBin(cutSet[1])
                 for est in estValues:
                     hEstimVsCut[iPt][est].SetBinContent(binVar0, binVar1, estValues[est])
-        print(f'Time elapsed to test cut sets for pT bin {ptMin}-{ptMax} and {ParCutsName} bin {ParCutMin}-{ParCutMax}: {time.time()-startTime:.2f}')
-        #plots
+
+        print(f'Time elapsed to test cut sets for pT bin {ptMin}-{ptMax} '
+              f'and {ParCutsName} bin {ParCutMin}-{ParCutMax}: {time.time()-startTime:.2f}')
+        # plots
         outDirPlotsPt[iPt].mkdir(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
-        cSignifVsRest.append(TCanvas(f'cSignifVsRest_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', '', 1920, 1080))
+        cSignifVsRest.append(TCanvas(f'cSignifVsRest_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                                     '', 1920, 1080))
         cSignifVsRest[counter].Divide(3, 2)
         for iPad, est in enumerate(estNames):
-           if est != 'Signif':
-               hFrame = cSignifVsRest[counter].cd(iPad).DrawFrame(tSignif.GetMinimum(est)*0.8,
-                                                              tSignif.GetMinimum('Signif')*0.8,
-                                                              tSignif.GetMaximum(est)*1.2,
-                                                              tSignif.GetMaximum('Signif')*1.2,
-                                                              f";{estNames[est]};{estNames['Signif']}")
-               hFrame.GetXaxis().SetDecimals()
-               hFrame.GetYaxis().SetDecimals()
-               hSignifVsRest[iPt][est] = (TH2F(f'hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
-                                               f";{estNames[est]};{estNames['Signif']}", 50,
-                                               tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50,
-                                               tSignif.GetMinimum('Signif')*0.8, tSignif.GetMaximum('Signif')*1.))
-               tSignif.Draw(f'Signif:{est}>>hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', f'PtMin == {ptMin} && PtMax == {ptMax}',
-                            'colz same')
-               cSignifVsRest[counter].Update()
-               cSignifVsRest[counter].Modified()
-               outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
-               hSignifVsRest[iPt][est].Write()
+            if est != 'Signif':
+                hFrame = cSignifVsRest[counter].cd(iPad).DrawFrame(tSignif.GetMinimum(est)*0.8,
+                                                                   tSignif.GetMinimum('Signif')*0.8,
+                                                                   tSignif.GetMinimum('Signif')*0.8,
+                                                                   tSignif.GetMinimum('Signif')*0.8,
+                                                                   tSignif.GetMaximum(est)*1.2,
+                                                                   tSignif.GetMaximum(est)*1.2,
+                                                                   tSignif.GetMaximum(est)*1.2,
+                                                                   tSignif.GetMaximum('Signif')*1.2,
+                                                                   tSignif.GetMaximum('Signif')*1.2,
+                                                                   tSignif.GetMaximum('Signif')*1.2,
+                                                                   f";{estNames[est]};{estNames['Signif']}")
+                hFrame.GetXaxis().SetDecimals()
+                hFrame.GetYaxis().SetDecimals()
+                hSignifVsRest[iPt][est] = (TH2F(f'hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                                                f";{estNames[est]};{estNames['Signif']}", 50,
+                                                tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50, 
+                                                tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50,
+                                                tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50, 
+                                                tSignif.GetMinimum('Signif')*0.8, tSignif.GetMaximum('Signif')*1.))
+                tSignif.Draw(f'Signif:{est}>>hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', 
+                             f'PtMin == {ptMin} && PtMax == {ptMax}', 'colz same')
+                cSignifVsRest[counter].Update()
+                cSignifVsRest[counter].Modified()
+                outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
+                hSignifVsRest[iPt][est].Write()
         outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
         cSignifVsRest[counter].Write()
         if 1 <= len(varNames) <= 2:
             if len(varNames) == 1:
-               cEstimVsCut.append(TCanvas(f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', '', 1920, 1080))
-               cEstimVsCut[counter].Divide(3, 2)
-               for iPad, est in enumerate(hEstimVsCut[iPt]):
-                   hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8,
-                                                                  maxVar, tSignif.GetMaximum(est)*1.2,
-                                                                  f';{varNames[0]};{estNames[est]}')
-                   if 'Eff' in est:
-                       cEstimVsCut[counter].cd(iPad+1).SetLogy()
-                       hFrame.GetYaxis().SetMoreLogLabels()
-                   hFrame.GetXaxis().SetNdivisions(505)
-                   hFrame.GetXaxis().SetDecimals()
-                   hFrame.GetYaxis().SetDecimals()
-                   hEstimVsCut[iPt][est].DrawCopy('ALPsame')
-                   outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
-                   hEstimVsCut[iPt][est].Write()
+                cEstimVsCut.append(TCanvas(
+                    f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', '', 1920, 1080))
+                cEstimVsCut[counter].Divide(3, 2)
+                for iPad, est in enumerate(hEstimVsCut[iPt]):
+                    hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8,
+                                                                       maxVar, tSignif.GetMaximum(est)*1.2, 
+                                                                       maxVar, tSignif.GetMaximum(est)*1.2,
+                                                                       maxVar, tSignif.GetMaximum(est)*1.2, 
+                                                                       f';{varNames[0]};{estNames[est]}')
+                    if 'Eff' in est:
+                        cEstimVsCut[counter].cd(iPad+1).SetLogy()
+                        hFrame.GetYaxis().SetMoreLogLabels()
+                    hFrame.GetXaxis().SetNdivisions(505)
+                    hFrame.GetXaxis().SetDecimals()
+                    hFrame.GetYaxis().SetDecimals()
+                    hEstimVsCut[iPt][est].DrawCopy('psame')
+                    outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
+                    hEstimVsCut[iPt][est].Write()
             elif len(varNames) == 2:
-               cEstimVsCut.append(TCanvas(f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', '', 1920, 1080))
-               cEstimVsCut[counter].Divide(3, 2)
-               for iPad, est in enumerate(hEstimVsCut[iPt]):
-                   minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
-                   minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[1]]['step'] / 2
-                   maxVar0 = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
-                   maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[1]]['step'] / 2
-                   hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar0, minVar1, maxVar0, maxVar1,
-                                                                  f';{varNames[0]};{varNames[1]};{estNames[est]}')
-                   if 'Eff' in est:
-                       cEstimVsCut[counter].cd(iPad+1).SetLogz()
-                       hFrame.GetZaxis().SetMoreLogLabels()
-                   hFrame.GetXaxis().SetNdivisions(505)
-                   hFrame.GetYaxis().SetNdivisions(505)
-                   hFrame.GetXaxis().SetDecimals()
-                   hFrame.GetYaxis().SetDecimals()
-                   hEstimVsCut[iPt][est].DrawCopy('ALPcolzsame')
-                   outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
-                   hEstimVsCut[iPt][est].Write()
+                cEstimVsCut.append(TCanvas(f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                                           '', 1920, 1080))
+                cEstimVsCut[counter].Divide(3, 2)
+                for iPad, est in enumerate(hEstimVsCut[iPt]):
+                    minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
+                    minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[1]]['step'] / 2
+                    maxVar0 = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
+                    maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[1]]['step'] / 2
+                    hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar0, minVar1, maxVar0, maxVar1,
+                                                                       f';{varNames[0]};{varNames[1]};{estNames[est]}')
+                    if 'Eff' in est:
+                        cEstimVsCut[counter].cd(iPad+1).SetLogz()
+                        hFrame.GetZaxis().SetMoreLogLabels()
+                    hFrame.GetXaxis().SetNdivisions(505)
+                    hFrame.GetYaxis().SetNdivisions(505)
+                    hFrame.GetXaxis().SetDecimals()
+                    hFrame.GetYaxis().SetDecimals()
+                    hEstimVsCut[iPt][est].DrawCopy('colzsame')
+                    outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
+                    hEstimVsCut[iPt][est].Write()
             cEstimVsCut[counter].Update()
             cEstimVsCut[counter].Modified()
             outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
