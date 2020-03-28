@@ -78,8 +78,8 @@ if EnableParCuts:
 else:
     ParCutsName = 'Integral'
     ParCutMins, ParCutMaxs = [], []
-    ParCutMins.append(-10.e10)
-    ParCutMaxs.append(10.e10)
+    ParCutMins.append(-1.e10)
+    ParCutMaxs.append(1.e10)
 
 cutVars = inputCfg['cutvars']
 cutRanges, upperLowerCuts, varNames = [], [], []
@@ -165,10 +165,9 @@ if args.batch:
 
 # output file with TNtuple
 outFile = TFile(args.outFileName, 'recreate')
-if not inputCfg['infiles']['background']['isMC']:
-    outDirFitSB = TDirectoryFile('SBfits', 'SBfits')
-    outDirFitSB.Write()
-    outDirFitSBPt = []
+outDirFitSB = TDirectoryFile('SBfits', 'SBfits')
+outDirFitSB.Write()
+outDirFitSBPt = []
 
 outFile.cd()
 outDirPlots = TDirectoryFile('plots', 'plots')
@@ -193,10 +192,9 @@ SetGlobalStyle(padleftmargin=0.2, padrightmargin=0.2, padbottommargin=0.15,
 cSignifVsRest, hSignifVsRest, cEstimVsCut, hEstimVsCut = [], [], [], []
 counter = 0
 for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
-    if not inputCfg['infiles']['background']['isMC']:
-        outDirFitSB.cd()
-        outDirFitSBPt.append(TDirectoryFile(f'pT{ptMin}-{ptMax}', f'pT{ptMin}-{ptMax}'))
-        outDirFitSBPt[iPt].Write()
+    outDirFitSB.cd()
+    outDirFitSBPt.append(TDirectoryFile(f'pT{ptMin}-{ptMax}', f'pT{ptMin}-{ptMax}'))
+    outDirFitSBPt[iPt].Write()
     outDirPlots.cd()
     outDirPlotsPt.append(TDirectoryFile(f'pT{ptMin}-{ptMax}', f'pT{ptMin}-{ptMax}'))
     outDirPlotsPt[iPt].Write()
@@ -261,20 +259,15 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                     selToApply = f'{varName}{upperLower}{cut}'
                 else:
                     selToApply += f' & {varName}{upperLower}{cut}'
+            if ParCutsName and EnableParCuts:
+                selToApply += f' & {ParCutMin} < {ParCutsName} < {ParCutMax}'
+
             if (iSet+1) % 100 == 0:
                 print(f'Time elapsed to test up to cut set number {iSet+1}: {time.time()-startTime:.2f}s', end='\r')
 
-            if ParCutsName and EnableParCuts:
-                dfPromptPtParCut = dfPromptPt.query(f'{ParCutMin} < {ParCutsName} < {ParCutMax}')
-                dfFDPtParCut = dfFDPt.query(f'{ParCutMin} < {ParCutsName} < {ParCutMax}')
-                dfBkgPtParCut = dfBkgPt.query(f'{ParCutMin} < {ParCutsName} < {ParCutMax}')
-                dfPromptPtSel = dfPromptPtParCut.query(selToApply)
-                dfFDPtSel = dfPromptPtParCut.query(selToApply)
-                dfBkgPtSel = dfPromptPtParCut.query(selToApply)
-            else:
-                dfPromptPtSel = dfPromptPt.query(selToApply)
-                dfFDPtSel = dfFDPt.query(selToApply)
-                dfBkgPtSel = dfBkgPt.query(selToApply)
+            dfPromptPtSel = dfPromptPt.query(selToApply)
+            dfFDPtSel = dfFDPt.query(selToApply)
+            dfBkgPtSel = dfBkgPt.query(selToApply)
             effPrompt, effPromptUnc = ComputeEfficiency(len(dfPromptPtSel), nTotPrompt,
                                                         np.sqrt(len(dfPromptPtSel)), np.sqrt(nTotPrompt))
             effFD, effFDUnc = ComputeEfficiency(len(dfFDPtSel), nTotFD, np.sqrt(len(dfFDPtSel)), np.sqrt(nTotFD))
@@ -310,8 +303,10 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
             # expected background
             bkgConfig = inputCfg['infiles']['background']
+            outDirFitSBPt[iPt].cd()
             if bkgConfig['isMC']:
                 expBkg = GetExpectedBkgFromMC(hMassBkg, hMassSignal)
+                hMassBkg.Write()
             else:
                 meanSec = inputCfg['infiles']['secpeak']['mean']
                 sigmaSec = inputCfg['infiles']['secpeak']['sigma']
@@ -324,7 +319,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 else:
                     expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
                                                                   hMassSignal)
-                outDirFitSBPt[iPt].cd()
                 hMassSB.Write()
 
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
