@@ -395,9 +395,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 cEstimVsCut[counter].Divide(3, 2)
                 for iPad, est in enumerate(hEstimVsCut[iPt]):
                     hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8,
-                                                                       maxVar, tSignif.GetMaximum(est)*1.2, 
                                                                        maxVar, tSignif.GetMaximum(est)*1.2,
-                                                                       maxVar, tSignif.GetMaximum(est)*1.2, 
+                                                                       maxVar, tSignif.GetMaximum(est)*1.2,
+                                                                       maxVar, tSignif.GetMaximum(est)*1.2,
                                                                        f';{varNames[0]};{estNames[est]}')
                     if 'Eff' in est:
                         cEstimVsCut[counter].cd(iPad+1).SetLogy()
