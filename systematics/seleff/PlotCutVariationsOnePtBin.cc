@@ -280,7 +280,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
 
         maxrawyield[iPt]=-1;
         maxefficiency[iPt]=-1;
-        minefficiency[iPt]=-1;
+        minefficiency[iPt]=1;
         maxsignif[iPt]=-1;
         maxSoverB[iPt]=-1;
         maxCross[iPt]=-1;
@@ -290,8 +290,12 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
                 maxrawyield[iPt] = hRawYield[iFile]->GetBinContent(iPt+1);
             if(maxefficiency[iPt]<hEffFD[iFile]->GetBinContent(iPt+1))
                 maxefficiency[iPt] = hEffFD[iFile]->GetBinContent(iPt+1);
+            if(maxefficiency[iPt]<hEffPrompt[iFile]->GetBinContent(iPt+1))
+                maxefficiency[iPt] = hEffPrompt[iFile]->GetBinContent(iPt+1);
             if(minefficiency[iPt]>hEffFD[iFile]->GetBinContent(iPt+1))
                 minefficiency[iPt] = hEffFD[iFile]->GetBinContent(iPt+1);
+            if(minefficiency[iPt]>hEffPrompt[iFile]->GetBinContent(iPt+1))
+                minefficiency[iPt] = hEffPrompt[iFile]->GetBinContent(iPt+1);
             if(maxsignif[iPt]<hSignificance[iFile]->GetBinContent(iPt+1))
                 maxsignif[iPt] = hSignificance[iFile]->GetBinContent(iPt+1);
             if(maxSoverB[iPt]<hSoverB[iFile]->GetBinContent(iPt+1))
