@@ -195,7 +195,7 @@ if args.logx and ptMin <= 0:
 
 cCrossSec = TCanvas('cCrossSec', '', 700, 800)
 hFrame = cCrossSec.DrawFrame(ptMin, sigmaMin, ptMax, sigmaMax,
-                             ';#it{p}_{T} (GeV/#it{c});#frac{d#sigma}{d#it{p}_{T}} (#mub GeV #it{c}^{-1})')
+                             ';#it{p}_{T} (GeV/#it{c});#frac{d#sigma}{d#it{p}_{T}} (#mub GeV^{-1} #it{c})')
 cCrossSec.SetLogy()
 if args.logx:
     cCrossSec.SetLogx()
