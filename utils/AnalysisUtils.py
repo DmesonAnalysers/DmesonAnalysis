@@ -381,6 +381,7 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
     ----------
 
     - expBkg3s: expected background within 3 sigma from signal peak mean
+    - hMassData: SB histogram with fit function
     '''
     if hMassSignal:
         funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
@@ -415,7 +416,7 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
     return expBkg3s, hMassData
 
 
-def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1.):
+def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=True, bkgFunc='pol2'):
     '''
     Helper method to get the expected bkg from MC
 
@@ -429,6 +430,8 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1.):
                    not needed in case of passed hMassSignal
     - sigma: width of invariant-mass peak of the signal
                    not needed in case of passed hMassSignal
+    - doFit: flag to enable fit of bkg distribution (useful with low stat)
+    - bkgFunc: expression for bkg fit function (if fit enabled)
 
     Returns
     ----------
@@ -442,9 +445,14 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1.):
         mean = funcSignal.GetParameter(1)
         sigma = funcSignal.GetParameter(2)
 
-    massBinMin = hMassBkg.GetXaxis().FindBin(mean - 3 * sigma)
-    massBinMax = hMassBkg.GetXaxis().FindBin(mean + 3 * sigma)
-    expBkg3s = hMassBkg.Integral(massBinMin, massBinMax)
+    if doFit:
+        funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
+        hMassBkg.Fit(funcBkg, 'Q')
+        expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
+    else:
+        massBinMin = hMassBkg.GetXaxis().FindBin(mean - 3 * sigma)
+        massBinMax = hMassBkg.GetXaxis().FindBin(mean + 3 * sigma)
+        expBkg3s = hMassBkg.Integral(massBinMin, massBinMax)
 
     return expBkg3s
 
