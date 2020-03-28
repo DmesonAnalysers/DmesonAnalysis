@@ -44,12 +44,19 @@ predictions:
         feeddown: 1. # can either be a fixed value or a text file
 
 nExpectedEvents: 950000000
-BR: 0.0898
 sigmaMB: 50.87e+9 #pb
 Taa: 1.
 
+expectedSignalFrom: 'prompt' # Choice between: 'prompt' or 'feeddown'
+
 ptmin: [1]
 ptmax: [2]
+
+dfparametercuts:
+    name: null 
+    min: null
+    max: null
+    enable: False  # enable cuts over df column query over each df and relative scan histos 
 
 cutvars:
     ML_output_Bkg:
