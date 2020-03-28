@@ -399,7 +399,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
             cOutPut[iPt]->cd(2)->SetLogy();
         }
         else 
-            cOutPut[iPt]->cd(2)->DrawFrame(-1.,0.,nFiles,2.5,";cut set; efficiency / efficiency (central)");
+            cOutPut[iPt]->cd(2)->DrawFrame(-1.,0.,nFiles,3.,";cut set; efficiency / efficiency (central)");
         gEffFDVsCutSet[iPt]->Draw("PZ");
         gEffPromptVsCutSet[iPt]->Draw("PZ");
         legEff->Draw("same");
