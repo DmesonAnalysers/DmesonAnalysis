@@ -87,22 +87,22 @@ fractoD: 0.092
 sigmaMB: 1 #pb
 Taa: 0.00000002307 #pb-1
 
-expectedSignalFrom: 'prompt' # Choice between: 'prompt' or 'feeddown'
+expectedSignalFrom: 'feeddown' # Choice between: 'prompt' or 'feeddown'
 
-ptmin: [4, 6] #GeV
-ptmax: [6, 8] #GeV
+ptmin: [1, 2, 4, 6, 8] #GeV
+ptmax: [2, 4, 6, 8, 12] #GeV
 
 dfparametercuts:
     name: 'dca' 
     min: [0, 0.005, 0.01 ] # , 0.015 , 0.020 , 0.025 , 0.030 , 0.040 , 0.050 , 0.075 ] #cm
     max: [0.005 , 0.01 , 0.015 ] #, 0.020 , 0.025 , 0.030 , 0.040 , 0.050 , 0.075 , 0.10] #cm
-    enable: True  # enable cuts over df column query over each df and relative scan histos 
+    enable: False  # enable cuts over df column query over each df and relative scan histos 
 
 cutvars:
     ML_output_Bkg:
         axisnum: null
-        min: 3.
-        max: 5.
+        min: 0.
+        max: 2.
         step: 0.2
         upperlowercut: Upper
     ML_output_FD:
