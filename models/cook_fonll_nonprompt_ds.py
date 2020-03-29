@@ -47,23 +47,35 @@ def main():
         hFONLLMin.SetBinError(iBin + 1, 1.e-3)
         hFONLLMax.SetBinError(iBin + 1, 1.e-3)
 
-    outFile = TFile('NonPromptDsPredictions_502TeV_y05_cooked.root', 'recreate')
-    hFONLLCentral.Write()
-    hFONLLMin.Write()
-    hFONLLMax.Write()
-    outFile.Close()
-
     stdFONLLfile = TFile.Open("D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root")
     hStdFONLLCentral = stdFONLLfile.Get('hDsPhipitoKkpifromBpred_central_corr')
     hStdFONLLMin = stdFONLLfile.Get('hDsPhipitoKkpifromBpred_min_corr')
     hStdFONLLMax = stdFONLLfile.Get('hDsPhipitoKkpifromBpred_max_corr')
+    hFONLLPromptCentral = stdFONLLfile.Get('hDsPhipitoKkpipred_central')
+    hFONLLPromptMin = stdFONLLfile.Get('hDsPhipitoKkpipred_min')
+    hFONLLPromptMax = stdFONLLfile.Get('hDsPhipitoKkpipred_max')
     hStdFONLLCentral.SetDirectory(0)
     hStdFONLLMin.SetDirectory(0)
     hStdFONLLMax.SetDirectory(0)
+    hFONLLPromptCentral.SetDirectory(0)
+    hFONLLPromptMin.SetDirectory(0)
+    hFONLLPromptMax.SetDirectory(0)
     hStdFONLLCentral.SetStats(0)
     hStdFONLLMin.SetStats(0)
     hStdFONLLMax.SetStats(0)
+    hFONLLPromptCentral.SetStats(0)
+    hFONLLPromptMin.SetStats(0)
+    hFONLLPromptMax.SetStats(0)
     stdFONLLfile.Close()
+
+    outFile = TFile('NonPromptDsPredictions_502TeV_y05_cooked.root', 'recreate')
+    hFONLLCentral.Write()
+    hFONLLMin.Write()
+    hFONLLMax.Write()
+    hFONLLPromptCentral.Write()
+    hFONLLPromptMin.Write()
+    hFONLLPromptMax.Write()
+    outFile.Close()
 
     hFONLL = [hFONLLCentral, hFONLLMin, hFONLLMax]
     hStdFONLL = [hStdFONLLCentral, hStdFONLLMin, hStdFONLLMax]
@@ -87,8 +99,10 @@ def main():
         histo_ratio.Divide(histo, histo_std)
         histo_ratio.GetYaxis().SetTitle('Cooked FONLL / "Std" FONLL')
 
-        canv.Divide(2, 1)
+        print(f'\n"STD" FONLL {label} integral (ub): {histo_std.Integral("width"):.4e}')
+        print(f'Cooked FONLL {label} integral (ub): {histo.Integral("width"):.4e}\n')
 
+        canv.Divide(2, 1)
         canv.cd(1).DrawFrame(pt_min, 1e-7, pt_max, 2.,
                              ';#it{p}_{T} (GeV/#it{c});#frac{d#sigma}{d#it{p}_{T}} (#mub GeV^{-1} #it{c})')
         leg = TLegend(0.4, 0.7, 0.8, 0.9)
