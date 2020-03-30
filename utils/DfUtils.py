@@ -108,7 +108,10 @@ def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
 
     for iFile, (inFile, inDir, inTree) in enumerate(zip(inFileNames, inDirNames, inTreeNames)):
         if '.root' in inFile:
-            inTree = uproot.open(inFile)[f'{inDir}/{inTree}']
+            if inDir:
+                inTree = uproot.open(inFile)[f'{inDir}/{inTree}']
+            else:
+                inTree = uproot.open(inFile)[inTree]
             if iFile == 0:
                 dfOut = inTree.pandas.df()
             else:
