@@ -1,7 +1,10 @@
 inKineFileName: BhadronsToDs_FONLLptShape_pp5TeV.root
-outFileName: NonPromptDs_BhadronsFONLLptShape_FFppbar_Pythia8Decayer_pp5TeV.root
-pdgCodeB: [ 511, 521, 531, 5122 ]
-pdgCodeD: [ 431 ]
+outFileName: NonPromptDs_BhadronsFONLLptShape_FFee_Pythia8Decayer_BRfromPDG_pp5TeV.root
+pdgCodeB: [511, 521, 531, 5122]
+pdgCodeD: [431]
 partPlusAntiPart: true
-FFbtoB: [0.34, 0.34, 0.101, 0.218] # B+, B0, Bs, Lb
-BRD: [ 0.0227 ]
+FFbtoB: [0.412, 0.412, 0.088, 0.089] # B+, B0, Bs, Lb
+BRB: 
+    fromPythia: false # by default taken from pythia 
+    customValues: [ [0.090], [0.117], [0.930], [0.011]] # B+, B0, Bs, Lb
+BRD: [0.0227]

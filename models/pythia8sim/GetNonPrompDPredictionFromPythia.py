@@ -44,17 +44,31 @@ leg.SetFillStyle(0)
 norm = (kineDf['norm'].values)[0]
 
 # get BRs of B -> D from sim
-BR = {}
-for B in Bhadrons:
-    BR[B] = {}
-    kineDfSelB = kineDf.query(f'pdgB == {B}')
-    for D in Dhadrons:
-        if partPlusAntiPart:
-            kineDfSelBSelD = kineDfSelB.query(f'abs(pdgD) == {D}')
-        else:
-            kineDfSelBSelD = kineDfSelB.query(f'pdgD == {D}')
-        BR[B][D] = float(len(kineDfSelBSelD)/len(kineDfSelB))
-        print(f'BR of {B} -> {D} + X: {BR[B][D]:.3f}')
+BRBhadronsToD = {}
+if inputCfg['BRB']['fromPythia']:
+    for B in Bhadrons:
+        BRBhadronsToD[B] = {}
+        kineDfSelB = kineDf.query(f'pdgB == {B}')
+        for D in Dhadrons:
+            if partPlusAntiPart:
+                kineDfSelBSelD = kineDfSelB.query(f'abs(pdgD) == {D}')
+            else:
+                kineDfSelBSelD = kineDfSelB.query(f'pdgD == {D}')
+            BRBhadronsToD[B][D] = float(len(kineDfSelBSelD)/len(kineDfSelB))
+            if partPlusAntiPart:
+                print(f'BR of {B} -> +/-{abs(D)} + X: {BRBhadronsToD[B][D]:.3f}')
+            else:
+                print(f'BR of {B} -> {D} + X: {BRBhadronsToD[B][D]:.3f}')
+else:
+    BRcustom = inputCfg['BRB']['customValues']
+    for iB, B in enumerate(Bhadrons):
+        BRBhadronsToD[B] = {}
+        for iD, D in enumerate(Dhadrons):
+            BRBhadronsToD[B][D] = BRcustom[iB][iD]
+            if partPlusAntiPart:
+                print(f'BR of {B} -> +/-{abs(D)} + X: {BRBhadronsToD[B][D]:.3f}')
+            else:
+                print(f'BR of {B} -> {D} + X: {BRBhadronsToD[B][D]:.3f}')
 
 hPtDFromB = {}
 cPtDFromB = {}
@@ -65,15 +79,15 @@ for D, BRD in zip(Dhadrons, BRDhadrons):
         kineDfSelD = kineDf.query(f'pdgD == {D}')
     hPtDFromB[D] = {}
     cPtDFromB[D] = TCanvas(f'cPtDFromB', '', 800, 800)
-    cPtDFromB[D].DrawFrame(0.0025, 1.e-7, 50.0025, 2.,
+    cPtDFromB[D].DrawFrame(0., 1.e-7, 50.05, 2.,
                            ';d#it{p}_{T} (GeV/#it{c});d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c});')
     cPtDFromB[D].SetLogy()
     for iB, (B, FFb) in enumerate(zip(Bhadrons, FFbtoB)):
         kineDfSelDSelB = kineDfSelD.query(f'pdgB == {B}')
-        hPtDFromB[D][B] = TH1F(f'hPt{D}From{B}', '', 1001, 0.0025, 50.0025)
+        hPtDFromB[D][B] = TH1F(f'hPt{D}From{B}', '', 1001, 0., 50.05)
         fill_hist(hPtDFromB[D][B], kineDfSelDSelB['ptD'].values)
         hPtDFromB[D][B].Sumw2()
-        hPtDFromB[D][B].Scale(1.e-6*BR[B][D]*FFb*norm*BRD/hPtDFromB[D][B].Integral())
+        hPtDFromB[D][B].Scale(1.e-6*BRBhadronsToD[B][D]*FFb*norm*BRD/hPtDFromB[D][B].Integral())
         SetObjectStyle(hPtDFromB[D][B], linecolor=Bcolors[iB], markercolor=Bcolors[iB], linewidth=1, markerstyle=0)
         hPtDFromB[D][B].Draw('same')
         leg.AddEntry(hPtDFromB[D][B], f'{Bnames[B]} #rightarrow {Dnames[D]}', 'le')
@@ -86,7 +100,7 @@ for D, BRD in zip(Dhadrons, BRDhadrons):
     hPtDFromB[D]['sum'].Draw('same')
     leg.AddEntry(hPtDFromB[D]['sum'], f'H_{{b}} #rightarrow {Dnames[D]}', 'le')
     leg.Draw()
-    outFileNamePDF = outFileName.replace('.root',f'_{D}.pdf')
+    outFileNamePDF = outFileName.replace('.root', f'_{D}.pdf')
     cPtDFromB[D].SaveAs(outFileNamePDF)
 
 outFile = TFile(outFileName, 'recreate')
