@@ -89,6 +89,9 @@ void SimulateDecays(TString cfgFileName)
     vector<float> pD;
     vector<float> yD;
     vector<int> pdgD;
+    float norm = 1.;
+    if(static_cast<bool>(config["BhadronPtShape"]["activate"].as<int>()))
+        norm = hPtBShape->Integral();
 
     fTreeDecays->Branch("pdgB", &pdgB);
     fTreeDecays->Branch("ptB", &ptB);
@@ -98,6 +101,7 @@ void SimulateDecays(TString cfgFileName)
     fTreeDecays->Branch("pD", &pD);
     fTreeDecays->Branch("yD", &yD);
     fTreeDecays->Branch("pdgD", &pdgD);
+    fTreeDecays->Branch("norm", &norm);
 
     //decay simulation
     TRandom3 *gener = new TRandom3(0);
@@ -153,7 +157,7 @@ void SimulateDecays(TString cfgFileName)
             else
             {
                 if (iDecay % 100000 == 0)
-                    cout << "Desired generation number " << iDecay << " for hadron" << pdgB << endl;
+                    cout << "Desired generation number " << iDecay << " for hadron " << pdgB << endl;
                 iDecay++;
             }
 
