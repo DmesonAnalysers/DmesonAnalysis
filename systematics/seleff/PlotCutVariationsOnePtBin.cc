@@ -176,7 +176,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
     double maxSoverB[nPtBins];
     double maxCross[nPtBins];
 
-    TLegend* legEff = new TLegend(0.2,0.7,0.5,0.85);
+    TLegend* legEff = new TLegend(0.5,0.7,0.8,0.85);
     legEff->SetTextSize(0.05);
     legEff->SetFillStyle(0);
     legEff->SetBorderSize(0);
@@ -200,7 +200,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gCrossSectionCent[iPt]->SetName(Form("gCrossSectionCent_ptbin%d",iPt));
         gCrossSectionCent[iPt]->SetLineColor(kRed+1);
         gCrossSectionCent[iPt]->SetFillColorAlpha(kRed+1,0.2);
-        gCrossSectionCent[iPt]->SetLineWidth(2);
+        gCrossSectionCent[iPt]->SetLineWidth(1);
         
         gCrossSectionVsCutSet[iPt] = new TGraphErrors(0);
         gCrossSectionVsCutSet[iPt]->SetTitle(Form(";cut set; %s (GeV^{-1} #it{c})", crossSectionTitle.Data()));
@@ -209,7 +209,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gCrossSectionVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
         gCrossSectionVsCutSet[iPt]->SetMarkerColor(kBlack);
         gCrossSectionVsCutSet[iPt]->SetLineColor(kBlack);
-        gCrossSectionVsCutSet[iPt]->SetLineWidth(2);
+        gCrossSectionVsCutSet[iPt]->SetLineWidth(1);
 
         gRawYieldVsCutSet[iPt] = new TGraphErrors(0);
         gRawYieldVsCutSet[iPt]->SetTitle(";cut set; raw yield");
@@ -218,7 +218,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gRawYieldVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
         gRawYieldVsCutSet[iPt]->SetMarkerColor(kBlack);
         gRawYieldVsCutSet[iPt]->SetLineColor(kBlack);
-        gRawYieldVsCutSet[iPt]->SetLineWidth(2);
+        gRawYieldVsCutSet[iPt]->SetLineWidth(1);
 
         gSignificanceVsCutSet[iPt] = new TGraphErrors(0);
         gSignificanceVsCutSet[iPt]->SetTitle(";cut set; significance");
@@ -227,7 +227,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gSignificanceVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
         gSignificanceVsCutSet[iPt]->SetMarkerColor(kBlack);
         gSignificanceVsCutSet[iPt]->SetLineColor(kBlack);
-        gSignificanceVsCutSet[iPt]->SetLineWidth(2);
+        gSignificanceVsCutSet[iPt]->SetLineWidth(1);
 
         gSoverBVsCutSet[iPt] = new TGraphErrors(0);
         gSoverBVsCutSet[iPt]->SetTitle(";cut set; S/B (3#sigma)");
@@ -236,7 +236,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gSoverBVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
         gSoverBVsCutSet[iPt]->SetMarkerColor(kBlack);
         gSoverBVsCutSet[iPt]->SetLineColor(kBlack);
-        gSoverBVsCutSet[iPt]->SetLineWidth(2);
+        gSoverBVsCutSet[iPt]->SetLineWidth(1);
 
         gEffPromptVsCutSet[iPt] = new TGraphErrors(0);
         gEffPromptVsCutSet[iPt]->SetTitle(";cut set; efficiency");
@@ -245,7 +245,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gEffPromptVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
         gEffPromptVsCutSet[iPt]->SetMarkerColor(kRed+1);
         gEffPromptVsCutSet[iPt]->SetLineColor(kRed+1);
-        gEffPromptVsCutSet[iPt]->SetLineWidth(2);
+        gEffPromptVsCutSet[iPt]->SetLineWidth(1);
 
         gEffFDVsCutSet[iPt] = new TGraphErrors(0);
         gEffFDVsCutSet[iPt]->SetTitle(";cut set; efficiency");
@@ -254,7 +254,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gEffFDVsCutSet[iPt]->SetMarkerStyle(kFullSquare);
         gEffFDVsCutSet[iPt]->SetMarkerColor(kAzure+4);
         gEffFDVsCutSet[iPt]->SetLineColor(kAzure+4);
-        gEffFDVsCutSet[iPt]->SetLineWidth(2);
+        gEffFDVsCutSet[iPt]->SetLineWidth(1);
 
         gPromptFracVsCutSet[iPt] = new TGraphErrors(0);
         gPromptFracVsCutSet[iPt]->SetTitle(";cut set; fraction");
@@ -263,7 +263,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gPromptFracVsCutSet[iPt]->SetMarkerStyle(kFullCircle);
         gPromptFracVsCutSet[iPt]->SetMarkerColor(kRed+1);
         gPromptFracVsCutSet[iPt]->SetLineColor(kRed+1);
-        gPromptFracVsCutSet[iPt]->SetLineWidth(2);
+        gPromptFracVsCutSet[iPt]->SetLineWidth(1);
 
         gFDFracVsCutSet[iPt] = new TGraphErrors(0);
         gFDFracVsCutSet[iPt]->SetTitle(";cut set; fraction");
@@ -272,7 +272,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gFDFracVsCutSet[iPt]->SetMarkerStyle(kFullSquare);
         gFDFracVsCutSet[iPt]->SetMarkerColor(kAzure+4);
         gFDFracVsCutSet[iPt]->SetLineColor(kAzure+4);
-        gFDFracVsCutSet[iPt]->SetLineWidth(2);
+        gFDFracVsCutSet[iPt]->SetLineWidth(1);
 
         hCrossSectionRatioDist[iPt] = new TH1D(Form("hCrossSectionRatioDist_ptbin%d",iPt), Form(";(%s) / (%s)_{central};entries", crossSectionTitle.Data(), crossSectionTitle.Data()),60,0.45,1.55);
         hCrossSectionRatioDist[iPt]->SetLineColor(kBlack);
@@ -456,9 +456,9 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
 void SetStyle() {
     gStyle->SetOptFit(1);
     gStyle->SetOptStat(0);
-    gStyle->SetPadLeftMargin(0.12);
+    gStyle->SetPadLeftMargin(0.1);
     gStyle->SetPadBottomMargin(0.12);
-    gStyle->SetPadRightMargin(0.05);
+    gStyle->SetPadRightMargin(0.035);
     gStyle->SetPadTopMargin(0.08);
     gStyle->SetTitleOffset(1.4,"y");
     gStyle->SetTitleOffset(1.2,"x");

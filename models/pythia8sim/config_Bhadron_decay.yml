@@ -1,0 +1,11 @@
+nDecaysPerSpecies: 1000000
+pdgCodeB: [ 511, 521, 531, 5122 ] # also charge conjugates are kept
+pdgCodeD: [ 431 ] # also charge conjugates are kept
+BhadronPtShape:
+    activate: 1 # 0 -> false, 1 -> true
+    inFile: ../fonll/FONLL_B_pp5_y05.txt
+    ptMin: 0.025 # GeV/c
+    ptBinWidth: 0.05 # GeV/c
+    nPtBins: 1001
+    predOpt: kCentral # kMin and kMax also available
+outFileName: BhadronsToDs_FONLLptShape_pp5TeV.root
