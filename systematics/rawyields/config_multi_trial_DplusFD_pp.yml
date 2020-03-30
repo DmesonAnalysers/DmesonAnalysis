@@ -4,7 +4,7 @@ reffilenames:
     data: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_FD_central.root
     MC: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_prompt_central.root
 
-outfilename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/rawyields/RawYieldSyst_Dplus_pp5TeV_FD_central.root
+outfilename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/rawyields/RawYieldSyst_Dplus_pp5TeV_FD_central2.root
 
 multitrial:
     mins: [ 1.66, 1.68, 1.70, 1.72, 1.74, 1.76 ] # lower fit limit
