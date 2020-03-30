@@ -107,11 +107,9 @@ void SimulateDecays(TString cfgFileName)
 
     for (auto pdgCode: pdgCodeB)
     {
-        for (auto iGen = 0; iGen < nDecaysPerSpecies; iGen++)
+        int iDecay = 0;
+        while (iDecay < nDecaysPerSpecies)
         {
-            if (iGen % 100000 == 0)
-                cout << "Generation number " << iGen << endl;
-
             float massB = db->GetParticle(pdgCode)->Mass();
             if(!static_cast<bool>(config["BhadronPtShape"]["activate"].as<int>())) //decay at rest
                 vec->SetPxPyPzE(0, 0, 0, massB); 
@@ -151,6 +149,12 @@ void SimulateDecays(TString cfgFileName)
                 pD.push_back(-1);
                 yD.push_back(-1);
                 pdgD.push_back(-1);
+            }
+            else
+            {
+                if (iDecay % 100000 == 0)
+                    cout << "Desired generation number " << iDecay << " for hadron" << pdgB << endl;
+                iDecay++;
             }
 
             fTreeDecays->Fill();
