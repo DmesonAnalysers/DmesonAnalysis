@@ -81,14 +81,14 @@ for D, BRD in zip(Dhadrons, BRDhadrons):
         kineDfSelD = kineDf.query(f'pdgD == {D}')
     # remove double-counted B mesons (i.e. those decaying to Ds+ and Ds- simultaneously)
     kineDfSelD = kineDfSelD.drop_duplicates(subset=['ptB', 'pB', 'yB'], keep='first')
-    
+
     if inputCfg['accFactor']['apply']: # acceptance cut
         kineDfSelDAcc = kineDfSelD.query(inputCfg['accFactor']['selection'])
         acc = float(len(kineDfSelDAcc)/len(kineDfSelD))
     else:
-        kineDfSelDAcc = kineDfSel
+        kineDfSelDAcc = kineDfSelD
         acc = 1.
-    
+
     hPtDFromB[D] = {}
     cPtDFromB[D] = TCanvas(f'cPtDFromB', '', 800, 800)
     cPtDFromB[D].DrawFrame(0., 1.e-7, 50.05, 2.,
