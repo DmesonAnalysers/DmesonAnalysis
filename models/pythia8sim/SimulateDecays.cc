@@ -25,6 +25,7 @@
 #include <TFile.h>
 #include <TSystem.h>
 #include <TStyle.h>
+#include <AliTPythia8.h>
 #include <AliDecayerPythia8.h>
 #include <TPaveStats.h>
 
