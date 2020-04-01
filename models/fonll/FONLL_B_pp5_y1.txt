@@ -11,7 +11,7 @@
 # ymax  = 1
 # Uncertainties from scales, masses, PDFs combined quadratically
 # cross section is ds/dpt (pb/GeV)
-# pt      central      min       max       min_sc     max_sc     min_mass   max_mass     min_pdf    max_pdf   fr=.5 .5     fr=2 2     fr=2 1     fr=1 2    fr=1 .5    fr=.5 1
+pt central min max min_sc max_sc min_mass max_mass min_pdf max_pdf fr=.5.5 fr=22 fr=21 fr=12 fr=1.5 fr=.51
 0.0250 1.7060e+05 8.1424e+04 2.7179e+05 9.1378e+04 2.5904e+05 1.3735e+05 2.1358e+05 1.4672e+05 1.9449e+05 1.5280e+05 1.6973e+05 2.2481e+05 1.2215e+05 2.5904e+05 9.1378e+04
 0.0750 5.0790e+05 2.4343e+05 8.0717e+05 2.7316e+05 7.6892e+05 4.0887e+05 6.3592e+05 4.3692e+05 5.7888e+05 4.5625e+05 5.0505e+05 6.6701e+05 3.6430e+05 7.6892e+05 2.7316e+05
 0.1250 8.3851e+05 4.0344e+05 1.3295e+06 4.5264e+05 1.2660e+06 6.7509e+05 1.0497e+06 7.2153e+05 9.5550e+05 7.5521e+05 8.3343e+05 1.0978e+06 6.0240e+05 1.2660e+06 4.5264e+05
