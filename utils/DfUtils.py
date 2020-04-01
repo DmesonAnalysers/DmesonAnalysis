@@ -82,7 +82,7 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
     return dfFilt
 
 
-def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
+def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None, flat=True):
     '''
     Helper method to load a pandas dataframe from either root or parquet files
 
@@ -113,9 +113,9 @@ def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
             else:
                 inTree = uproot.open(inFile)[inTree]
             if iFile == 0:
-                dfOut = inTree.pandas.df()
+                dfOut = inTree.pandas.df(flatten=flat)
             else:
-                dfOut = dfOut.append(inTree.pandas.df())
+                dfOut = dfOut.append(inTree.pandas.df(flatten=flat))
         elif '.parquet' in inFile:
             if iFile == 0:
                 dfOut = pd.read_parquet(inFile)
