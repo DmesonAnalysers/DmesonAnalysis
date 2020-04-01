@@ -25,7 +25,7 @@
 #include <TFile.h>
 #include <TSystem.h>
 #include <TStyle.h>
-#include <TPythia8Decayer.h>
+#include <AliDecayerPythia8.h>
 #include <TPaveStats.h>
 
 #endif
@@ -75,7 +75,7 @@ void SimulateDecays(TString cfgFileName)
     }
 
     //define decayer
-    TPythia8Decayer *pdec = new TPythia8Decayer();
+    AliDecayerPythia8 *pdec = new AliDecayerPythia8();
     pdec->Init();
 
     //define tree
