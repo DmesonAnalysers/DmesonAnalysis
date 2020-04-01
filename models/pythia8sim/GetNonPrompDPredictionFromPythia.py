@@ -49,6 +49,8 @@ if inputCfg['BRB']['fromPythia']:
     for B in Bhadrons:
         BRBhadronsToD[B] = {}
         kineDfSelB = kineDf.query(f'pdgB == {B}')
+        # remove double-counted B mesons (i.e. those decaying to Ds+ and Ds- simultaneously)
+        kineDfSelB = kineDfSelB.drop_duplicates(subset=['ptB', 'pB', 'yB'], keep='first')
         for D in Dhadrons:
             if partPlusAntiPart:
                 kineDfSelBSelD = kineDfSelB.query(f'abs(pdgD) == {D}')
@@ -77,17 +79,21 @@ for D, BRD in zip(Dhadrons, BRDhadrons):
         kineDfSelD = kineDf.query(f'abs(pdgD) == {D}')
     else:
         kineDfSelD = kineDf.query(f'pdgD == {D}')
+    # remove double-counted B mesons (i.e. those decaying to Ds+ and Ds- simultaneously)
+    kineDfSelD = kineDfSelD.drop_duplicates(subset=['ptB', 'pB', 'yB'], keep='first')
+    kineDfSelDAcc = kineDfSelD.query('-0.5<yD<0.5') # acceptance cut
+    acc = float(len(kineDfSelDAcc)/len(kineDfSelD))
     hPtDFromB[D] = {}
     cPtDFromB[D] = TCanvas(f'cPtDFromB', '', 800, 800)
     cPtDFromB[D].DrawFrame(0., 1.e-7, 50.05, 2.,
                            ';d#it{p}_{T} (GeV/#it{c});d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c});')
     cPtDFromB[D].SetLogy()
     for iB, (B, FFb) in enumerate(zip(Bhadrons, FFbtoB)):
-        kineDfSelDSelB = kineDfSelD.query(f'pdgB == {B}')
+        kineDfSelDSelB = kineDfSelDAcc.query(f'pdgB == {B}')
         hPtDFromB[D][B] = TH1F(f'hPt{D}From{B}', '', 1001, 0., 50.05)
         fill_hist(hPtDFromB[D][B], kineDfSelDSelB['ptD'].values)
         hPtDFromB[D][B].Sumw2()
-        hPtDFromB[D][B].Scale(1.e-6*BRBhadronsToD[B][D]*FFb*norm*BRD/hPtDFromB[D][B].Integral())
+        hPtDFromB[D][B].Scale(1.e-6 * BRBhadronsToD[B][D] * FFb * norm * acc * BRD / hPtDFromB[D][B].Integral())
         SetObjectStyle(hPtDFromB[D][B], linecolor=Bcolors[iB], markercolor=Bcolors[iB], linewidth=1, markerstyle=0)
         hPtDFromB[D][B].Draw('same')
         leg.AddEntry(hPtDFromB[D][B], f'{Bnames[B]} #rightarrow {Dnames[D]}', 'le')
