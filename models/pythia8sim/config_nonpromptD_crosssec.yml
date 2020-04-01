@@ -8,3 +8,6 @@ BRB:
     fromPythia: false # by default taken from pythia 
     customValues: [ [0.090], [0.117], [0.930], [0.011]] # B+, B0, Bs, Lb
 BRD: [0.0227]
+accFactor:
+    apply: true
+    selection: 'yD < 0.5 and yD > -0.5'
