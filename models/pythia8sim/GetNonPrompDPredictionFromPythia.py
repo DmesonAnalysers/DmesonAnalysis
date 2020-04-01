@@ -50,13 +50,13 @@ if inputCfg['BRB']['fromPythia']:
         BRBhadronsToD[B] = {}
         kineDfSelB = kineDf.query(f'pdgB == {B}')
         # remove double-counted B mesons (i.e. those decaying to Ds+ and Ds- simultaneously)
-        kineDfSelB = kineDfSelB.drop_duplicates(subset=['ptB', 'pB', 'yB'], keep='first')
+        kineDfSelBForDen = kineDfSelB.drop_duplicates(subset=['ptB', 'pB', 'yB'], keep='first')
         for D in Dhadrons:
             if partPlusAntiPart:
                 kineDfSelBSelD = kineDfSelB.query(f'abs(pdgD) == {D}')
             else:
                 kineDfSelBSelD = kineDfSelB.query(f'pdgD == {D}')
-            BRBhadronsToD[B][D] = float(len(kineDfSelBSelD)/len(kineDfSelB))
+            BRBhadronsToD[B][D] = float(len(kineDfSelBSelD)/len(kineDfSelBForDen))
             if partPlusAntiPart:
                 print(f'BR of {B} -> +/-{abs(D)} + X: {BRBhadronsToD[B][D]:.3f}')
             else:
@@ -79,8 +79,6 @@ for D, BRD in zip(Dhadrons, BRDhadrons):
         kineDfSelD = kineDf.query(f'abs(pdgD) == {D}')
     else:
         kineDfSelD = kineDf.query(f'pdgD == {D}')
-    # remove double-counted B mesons (i.e. those decaying to Ds+ and Ds- simultaneously)
-    kineDfSelD = kineDfSelD.drop_duplicates(subset=['ptB', 'pB', 'yB'], keep='first')
 
     if inputCfg['accFactor']['apply']: # acceptance cut
         kineDfSelDAcc = kineDfSelD.query(inputCfg['accFactor']['selection'])
