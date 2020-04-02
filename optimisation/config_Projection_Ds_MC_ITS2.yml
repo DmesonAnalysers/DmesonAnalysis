@@ -1,0 +1,5 @@
+infilename: '/home/alidock/DmesonAnalysis/optimisation/output/Debug/ScanSel_ITS2_All_FD-2_3_BkgFit.root'
+
+VarDrawList: ['Signif', 'SoverB', 'fFD', 'fPrompt', 'EffAccFD', 'EffAccPrompt'] # list of variables from tSignif to be plotted
+
+saveaspdf: False #enable saving histos pojected in .pdf format  
