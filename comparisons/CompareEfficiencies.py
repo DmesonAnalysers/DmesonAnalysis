@@ -1,5 +1,8 @@
+import sys
 from ROOT import TCanvas, TFile, TLegend # pylint: disable=import-error,no-name-in-module
-from ROOT import gStyle, kRed, kBlack, kBlue, kGreen, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module,unused-import
+from ROOT import kRed, kBlack, kBlue, kGreen, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module,unused-import
+sys.path.append('..')
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error,no-name-in-module
 
 inputdir = 'outputs/efficiency'
 inputfilenames = ['Efficiency_Ds_010_central_18q.root', 'Efficiency_Ds_010_central_18r.root']
@@ -9,17 +12,9 @@ markers = [kFullSquare, kFullCircle]
 legendnames = ['LHC18q', 'LHC18r']
 outputsuffix = 'LHC18q_LHC18r'
 
-hEffPrompt, hEffFD, hEffPromptRatio, hEffFDRatio = ([] for iList in range(4))
+SetGlobalStyle(padleftmargin=0.18, padtopmargin=0.05, titlesize=0.045, labelsize=0.04)
 
-gStyle.SetPadRightMargin(0.035)
-gStyle.SetPadLeftMargin(0.18)
-gStyle.SetPadTopMargin(0.05)
-gStyle.SetTitleSize(0.045, 'xy')
-gStyle.SetLabelSize(0.040, 'xy')
-gStyle.SetPadTickX(1)
-gStyle.SetPadTickY(1)
-gStyle.SetLegendBorderSize(0)
-gStyle.SetOptStat(0)
+hEffPrompt, hEffFD, hEffPromptRatio, hEffFDRatio = ([] for _ in range(4))
 
 leg = TLegend(0.4, 0.38, 0.9, 0.53)
 leg.SetFillStyle(0)
@@ -31,20 +26,11 @@ for iFile, _ in enumerate(inputfilenames):
     hEffPrompt.append(inputfile.Get('%sPrompt' % histonames[iFile]))
     hEffFD.append(inputfile.Get('%sFD' % histonames[iFile]))
     hEffPrompt[iFile].SetDirectory(0)
-    hEffPrompt[iFile].SetLineColor(colors[iFile])
-    hEffPrompt[iFile].SetLineWidth(2)
-    hEffPrompt[iFile].SetLineStyle(1)
-    hEffPrompt[iFile].SetMarkerColor(colors[iFile])
-    hEffPrompt[iFile].SetMarkerStyle(markers[iFile])
-    hEffPrompt[iFile].SetMarkerSize(1)
-    hEffPrompt[iFile].GetYaxis().SetRangeUser(1e-3, 1.)
     hEffFD[iFile].SetDirectory(0)
-    hEffFD[iFile].SetLineColor(colors[iFile])
-    hEffFD[iFile].SetLineWidth(2)
-    hEffFD[iFile].SetLineStyle(1)
-    hEffFD[iFile].SetMarkerColor(colors[iFile])
-    hEffFD[iFile].SetMarkerStyle(markers[iFile])
-    hEffFD[iFile].SetMarkerSize(1)
+    SetObjectStyle(hEffPrompt[iFile], linecolor=colors[iFile], markercolor=colors[iFile], markerstyle=markers[iFile])
+    SetObjectStyle(hEffFD[iFile], linecolor=colors[iFile], markercolor=colors[iFile],
+                   markerstyle=markers[iFile], linestyle=1)
+    hEffPrompt[iFile].GetYaxis().SetRangeUser(1e-3, 1.)
     hEffFD[iFile].GetYaxis().SetRangeUser(1e-3, 1.)
     hEffPromptRatio.append(hEffPrompt[iFile].Clone('hEffPromptRatio%d' % iFile))
     hEffPromptRatio[iFile].SetDirectory(0)

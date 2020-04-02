@@ -3,7 +3,10 @@ Script with helper methods for style settings
 '''
 
 from ROOT import gStyle, TGaxis # pylint: disable=import-error,no-name-in-module
-
+from ROOT import kBlack, kWhite, kGray, kRed, kBlue, kGreen # pylint: disable=import-error,no-name-in-module
+from ROOT import kMagenta, kAzure, kCyan, kOrange, kYellow, kSpring, kTeal, kViolet, kPink # pylint: disable=import-error,no-name-in-module
+from ROOT import kFullCircle, kFullSquare, kFullDiamond, kFullCross, kFullTriangleUp, kFullTriangleDown # pylint: disable=import-error,no-name-in-module
+from ROOT import kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCross, kOpenTriangleUp, kOpenTriangleDown # pylint: disable=import-error,no-name-in-module
 
 # pylint: disable=too-many-branches, too-many-statements
 def SetGlobalStyle(**kwargs):
@@ -228,6 +231,16 @@ def SetObjectStyle(obj, **kwargs):
 
 
 def DivideCanvas(canv, nPads):
+    '''
+    Method to divide ROOT canvases
+
+    Parameters
+    ----------
+
+    - canv: TCanvas to be divided
+    - nPads: number (int) of pads in which divide the canvas
+
+    '''
     if nPads < 2:
         canv.cd()
     elif nPads in [2, 3]:
@@ -254,3 +267,69 @@ def DivideCanvas(canv, nPads):
         canv.Divide(int(nPads/2), 2)
     else:
         canv.Divide(int((nPads+1)/2), 2)
+
+
+def GetROOTColor(color='kBlack'):
+    '''
+    Method to retrieve a ROOT color
+
+    Parameters
+    ----------
+
+    - color: color according to ROOT TColor convention
+
+    Returns
+    ----------
+
+    - ROOT color corresponding to input color
+
+    '''
+    cMapROOT = {'kBlack': kBlack, 'kWhite': kWhite, 'kGrey': kGray,
+                'kRed': kRed, 'kBlue': kBlue, 'kGreen': kGreen,
+                'kTeal': kTeal, 'kAzure': kAzure, 'kCyan': kCyan,
+                'kOrange': kOrange, 'kYellow': kYellow, 'kSpring': kSpring,
+                'kMagenta': kMagenta, 'kViolet': kViolet, 'kPink': kPink}
+
+    ROOTcolor = None
+    for colorKey in cMapROOT:
+        if color in colorKey:
+            ROOTcolor = cMapROOT.get(colorKey)
+            break
+    if ROOTcolor:
+        for shade in range(0, 11):
+            if f' + {shade}' in color or f'+{shade}' in color:
+                ROOTcolor += shade
+                break
+            elif f' - {shade}' in color or f'-{shade}' in color:
+                ROOTcolor -= shade
+                break
+
+    return ROOTcolor
+
+
+def GetROOTMarker(marker='kFullCircle'):
+    '''
+    Method to retrieve the ROOT marker map
+
+    Parameters
+    ----------
+
+    - color: color according to ROOT TColor convention
+
+    Returns
+    ----------
+
+    - ROOT color corresponding to input color
+
+    '''
+    mMapROOT = {'kFullCircle': kFullCircle, 'kFullSquare': kFullSquare, 'kFullDiamond': kFullDiamond,
+                'kFullCross': kFullCross, 'kFullTriangleUp': kFullTriangleUp, 'kFullTriangleDown': kFullTriangleDown,
+                'kOpenCircle': kOpenCircle, 'kOpenSquare': kOpenSquare, 'kOpenDiamond': kOpenDiamond,
+                'kOpenCross': kOpenCross, 'kOpenTriangleUp': kOpenTriangleUp, 'kOpenTriangleDown': kOpenTriangleDown}
+
+    if marker in mMapROOT:
+        ROOTmarker = mMapROOT.get(marker)
+    else:
+        ROOTmarker = None
+
+    return ROOTmarker

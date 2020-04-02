@@ -1,18 +1,10 @@
+import sys
 import argparse
 from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,no-name-in-module
 from ROOT import gStyle, kRed, kBlack, kBlue, kOrange, kGreen # pylint: disable=import-error,no-name-in-module,unused-import
 from ROOT import kFullCircle, kOpenCircle, kFullSquare, kFullDiamond, kFullCross, kOpenCross # pylint: disable=import-error,no-name-in-module,unused-import
-
-def set_style():
-    gStyle.SetPadRightMargin(0.035)
-    gStyle.SetPadLeftMargin(0.18)
-    gStyle.SetPadTopMargin(0.05)
-    gStyle.SetTitleSize(0.045, 'xy')
-    gStyle.SetLabelSize(0.040, 'xy')
-    gStyle.SetPadTickX(1)
-    gStyle.SetPadTickY(1)
-    gStyle.SetLegendBorderSize(0)
-    gStyle.SetOptStat(0)
+sys.path.append('..')
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error,no-name-in-module
 
 def create_ratio_hist(num_hist_list, den_hist):
     ratio_list = []
@@ -45,7 +37,7 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
     min_pt = 2.
     max_pt = 36.
 
-    set_style()
+    SetGlobalStyle(padleftmargin=0.18, padtopmargin=0.05, titlesize=0.045, labelsize=0.04)
     hMean, hSigma = [], []
     input_files = input_files + input_files_MC
 
@@ -70,15 +62,9 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
         histo_mean = input_file.Get('hRawYieldsMean')
         histo_sigma = input_file.Get('hRawYieldsSigma')
         histo_mean.SetDirectory(0)
-        histo_mean.SetLineColor(color)
-        histo_mean.SetLineWidth(2)
-        histo_mean.SetMarkerColor(color)
-        histo_mean.SetMarkerStyle(marker)
         histo_sigma.SetDirectory(0)
-        histo_sigma.SetLineColor(color)
-        histo_sigma.SetLineWidth(2)
-        histo_sigma.SetMarkerColor(color)
-        histo_sigma.SetMarkerStyle(marker)
+        SetObjectStyle(histo_mean, linecolor=color, markercolor=color, markerstyle=marker)
+        SetObjectStyle(histo_sigma, linecolor=color, markercolor=color, markerstyle=marker)
         legMean.AddEntry(histo_mean, legend_name, 'p')
         legSigma.AddEntry(histo_sigma, legend_name, 'p')
         hMean.append(histo_mean)
@@ -101,10 +87,7 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
         legMeanRatio.SetTextSize(0.04)
         for hist, color, marker, legend_name in zip(mean_ratio_list, colors[:-1],
                                                     markers[:-1], legendnames[:-1]):
-            hist.SetLineColor(color)
-            hist.SetLineWidth(2)
-            hist.SetMarkerColor(color)
-            hist.SetMarkerStyle(marker)
+            SetObjectStyle(histo_mean, linecolor=color, markercolor=color, markerstyle=marker)
             hist.Draw('same')
             legMeanRatio.AddEntry(hist, legend_name, 'p')
         lineRatio.Draw()
@@ -122,10 +105,7 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
         legSigmaRatio.SetTextSize(0.04)
         for hist, color, marker, legend_name in zip(sigma_ratio_list, colors[:-1],
                                                     markers[:-1], legendnames[:-1]):
-            hist.SetLineColor(color)
-            hist.SetLineWidth(2)
-            hist.SetMarkerColor(color)
-            hist.SetMarkerStyle(marker)
+            SetObjectStyle(histo_mean, linecolor=color, markercolor=color, markerstyle=marker)
             hist.Draw('same')
             legSigmaRatio.AddEntry(hist, legend_name, 'p')
         lineRatio.Draw()

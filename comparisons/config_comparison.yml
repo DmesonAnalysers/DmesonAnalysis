@@ -1,0 +1,34 @@
+inputs:
+    dirname: null # leave null if not common for all input files
+    filenames: [.root, .root]
+    objectnames: [histo, histo] # can be either histograms of graphs or a mix of them; they will be drawn in the current order
+
+output: 
+    filename: ./outputFile # with path and w/o extension
+    extensions: [pdf, root] # possibilities: pdf, eps, png, root
+
+options:
+    ROOTobject: [TH1, TH1] # TH1 or TGraph: no need to specify TH1F, TH1D or TGraphErrors, TGraphAsymmErrors
+    scale: [1., 1.]
+    colors: [kRed+1, kAzure+4]
+    markers: [kFullCircle, kFullSquare]
+    drawopt: [e, e]
+    
+    ratio: 
+        enable: true
+        uncertainties:
+            enable: false
+            corr: false
+    legend:
+        xlimits: [0.2, 0.6]
+        ylimits: [0.7, 0.9]
+        titles: [graph1, graph2]
+        options: [lpe, lpe]
+
+    canvas:
+        width: 1920
+        heigth: 1080
+        xaxistitle: '#it{p}_{T} (GeV/#it{c})'
+        yaxistitle: '#it{f}_{non-prompt}'
+        xlimits: [2., 16.]
+        ylimits: [0., 2.]
