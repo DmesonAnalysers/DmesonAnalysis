@@ -292,7 +292,7 @@ def GetROOTColor(color='kBlack'):
 
     ROOTcolor = None
     for colorKey in cMapROOT:
-        if color in colorKey:
+        if colorKey in color:
             ROOTcolor = cMapROOT.get(colorKey)
             break
     if ROOTcolor:
