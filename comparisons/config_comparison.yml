@@ -27,6 +27,8 @@ options:
         uncertainties:
             enable: false
             corr: false
+        displayRMS: true
+
     legend:
         xlimits: [0.2, 0.6]
         ylimits: [0.6, 0.9]
