@@ -1,4 +1,7 @@
-infilename: '/home/alidock/DmesonAnalysis/optimisation/output/Debug/ScanSel_ITS2_All_FD-2_3_BkgFit.root'
+infiles:
+  name: '/home/alidock/DmesonAnalysis/optimisation/output/Debug/ScanSel_ITS2_All_FD-2_3_Bkg0_2_Final.root'
+  dirname: null
+  treename: 'tSignif'
 
 VarDrawList: ['Signif', 'SoverB', 'fFD', 'fPrompt', 'EffAccFD', 'EffAccPrompt'] # list of variables from tSignif to be plotted
 
