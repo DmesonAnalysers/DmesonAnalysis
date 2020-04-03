@@ -305,8 +305,19 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
             massFitter[iPt].SetInitialGaussianMean(massForFit)
 
         if fitConfig[cent]['FixSigma']:
-            massFitter[iPt].SetFixGaussianSigma(
-                hSigmaToFix.GetBinContent(iPt+1)*fitConfig[cent]['SigmaMultFactor'])
+            if isinstance(fitConfig[cent]['SigmaMultFactor'], float) or \
+                isinstance(fitConfig[cent]['SigmaMultFactor'], int):
+                massFitter[iPt].SetFixGaussianSigma(
+                    hSigmaToFix.GetBinContent(iPt+1)*fitConfig[cent]['SigmaMultFactor'])
+            else:
+                if fitConfig[cent]['SigmaMultFactor'] == 'MinusUnc':
+                    massFitter[iPt].SetFixGaussianSigma(
+                        hSigmaToFix.GetBinContent(iPt+1)-hSigmaToFix.GetBinError(iPt+1))
+                elif fitConfig[cent]['SigmaMultFactor'] == 'PlusUnc':
+                    massFitter[iPt].SetFixGaussianSigma(
+                        hSigmaToFix.GetBinContent(iPt+1)+hSigmaToFix.GetBinError(iPt+1))
+                else:
+                    print('WARNING: impossible to fix sigma! Wrong mult factor set in config file!')
 
         if secPeak and mesonName == 'Ds':
             # TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)

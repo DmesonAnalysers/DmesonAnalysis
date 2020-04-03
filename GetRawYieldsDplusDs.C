@@ -58,7 +58,18 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     int meson = (mesonName=="Dplus") ? kDplus : kDs;
     bool fixSigma = static_cast<bool>(config[centname.Data()]["FixSigma"].as<int>());
     string infilenameSigma = config[centname.Data()]["SigmaFile"].as<string>();
-    double sigmaMult = config[centname.Data()]["SigmaMultFactor"].as<double>();
+    bool isSigmaMultFromUnc = false;
+    double sigmaMult = 1.;
+    string sigmaMultFromUnc = "";
+    try
+    {
+        sigmaMult = config[centname.Data()]["SigmaMultFactor"].as<double>();
+    }
+    catch (const YAML::BadConversion& e) 
+    {
+        sigmaMultFromUnc = config[centname.Data()]["SigmaMultFactor"].as<string>();
+        isSigmaMultFromUnc = true;
+    }
     bool fixMean = static_cast<bool>(config[centname.Data()]["FixMean"].as<int>());
     string infilenameMean = config[centname.Data()]["MeanFile"].as<string>();
     bool UseLikelihood = config[centname.Data()]["UseLikelihood"].as<int>();
@@ -297,7 +308,19 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             else
                 massFitter->SetInitialGaussianMean(massForFit);
             if(fixSigma)
-                massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
+            {
+                if(!isSigmaMultFromUnc)
+                    massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
+                else
+                {
+                    if(sigmaMultFromUnc=="MinusUnc")
+                        massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)-hSigmaToFix->GetBinError(iPt+1));
+                    else if(sigmaMultFromUnc=="PlusUnc")
+                        massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)+hSigmaToFix->GetBinError(iPt+1));
+                    else
+                        cout << "WARNING: impossible to fix sigma! Wrong mult factor set in config file!" << endl;
+                }
+            }
 
             if(InclSecPeak[iPt] && meson==kDs) massFitter->IncludeSecondGausPeak(massDplus,false,0.008,true); //TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
             massFitter->MassFitter(false);
