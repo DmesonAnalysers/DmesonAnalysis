@@ -1,18 +1,26 @@
 inputs:
     dirname: null # leave null if not common for all input files
-    filenames: [.root, .root]
-    objectnames: [histo, histo] # can be either histograms of graphs or a mix of them; they will be drawn in the current order
+    filenames: [../../AnalysisNonPromptDpp2017/Dplus/outputs/crosssection/CrossSectionDplus_pp5TeV_FD_central.root, 
+                ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/narrower_left/CrossSection_FD_Fraction_narrower_left.root,
+                ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/narrower_right/CrossSection_FD_Fraction_narrower_right.root,
+                ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/narrower/CrossSection_FD_Fraction_narrower.root,
+                ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/wider_left/CrossSection_FD_Fraction_wider_left.root,
+                ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/wider_right/CrossSection_FD_Fraction_wider_right.root,
+                ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/wider/CrossSection_FD_Fraction_wider.root,
+                ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/step1/CrossSection_FD_Fraction_step1.root,
+                ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/step2/CrossSection_FD_Fraction_step2.root]
+    objectnames: [hFDFrac, hFDFrac, hFDFrac, hFDFrac, hFDFrac, hFDFrac, hFDFrac, hFDFrac, hFDFrac] # can be either histograms of graphs or a mix of them; they will be drawn in the current order
 
 output: 
-    filename: ./outputFile # with path and w/o extension
+    filename: ../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/FDFrac_SystemVariation # with path and w/o extension
     extensions: [pdf, root] # possibilities: pdf, eps, png, root
 
 options:
-    ROOTobject: [TH1, TH1] # TH1 or TGraph: no need to specify TH1F, TH1D or TGraphErrors, TGraphAsymmErrors
-    scale: [1., 1.]
-    colors: [kRed+1, kAzure+4]
-    markers: [kFullCircle, kFullSquare]
-    drawopt: [e, e]
+    ROOTobject: [TH1, TH1, TH1, TH1, TH1, TH1, TH1, TH1, TH1] # TH1 or TGraph: no need to specify TH1F, TH1D or TGraphErrors, TGraphAsymmErrors
+    scale: [1., 1., 1., 1., 1., 1., 1., 1., 1.]
+    colors: [kBlack, kRed+1, kAzure+4, kGreen+2, kOrange+7, kMagenta+1, kBlue, kCyan+3, kSpring-5]
+    markers: [kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle]
+    drawopt: [e, e, e, e, e, e, e, e, e]
     
     ratio: 
         enable: true
@@ -21,9 +29,9 @@ options:
             corr: false
     legend:
         xlimits: [0.2, 0.6]
-        ylimits: [0.7, 0.9]
-        titles: [graph1, graph2]
-        options: [lpe, lpe]
+        ylimits: [0.6, 0.9]
+        titles: [central, narrow left, narrow right, narrow left and right, wide left, wide right, wide left and right, alt step 1, alt step 2]
+        options: [lp, lp, lp, lp, lp, lp, lp, lp, lp]
 
     canvas:
         width: 1920
@@ -32,3 +40,4 @@ options:
         yaxistitle: '#it{f}_{non-prompt}'
         xlimits: [2., 16.]
         ylimits: [0., 2.]
+        ylimitsratio: [0., 2.]

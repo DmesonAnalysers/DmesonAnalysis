@@ -40,8 +40,9 @@ wCanv = inputCfg['options']['canvas']['width']
 hCanv = inputCfg['options']['canvas']['heigth']
 xLimits = inputCfg['options']['canvas']['xlimits']
 yLimits = inputCfg['options']['canvas']['ylimits']
-xTitle = inputCfg['options']['canvas']['xtitle']
-yTitle = inputCfg['options']['canvas']['ytitle']
+yLimitsRatio = inputCfg['options']['canvas']['ylimitsratio']
+xTitle = inputCfg['options']['canvas']['xaxistitle']
+yTitle = inputCfg['options']['canvas']['yaxistitle']
 
 xLegLimits = inputCfg['options']['legend']['xlimits']
 yLegLimits = inputCfg['options']['legend']['ylimits']
@@ -50,8 +51,6 @@ legOpt = inputCfg['options']['legend']['options']
 
 # set global style
 SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14)
-GetROOTColor()
-GetROOTMarker()
 
 leg = TLegend(xLegLimits[0], yLegLimits[0], xLegLimits[1], yLegLimits[1])
 leg.SetFillStyle(0)
@@ -68,7 +67,7 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
         hToCompare[iFile].SetName(f'h{iFile}')
     else:
         hToCompare[iFile].SetName(f'g{iFile}')
-    SetObjectStyle(hToCompare[iFile], color=color, markerstyle=marker, fillstyle=0)
+    SetObjectStyle(hToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker), fillstyle=0)
     if 'TH' in objType:
         hToCompare[iFile].SetDirectory(0)
         hToCompare[iFile].Scale(scale)
@@ -83,6 +82,10 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
                 hRatioToCompare[iFile].Divide(hToCompare[iFile], hToCompare[0], 1., 1., 'B')
             else:
                 hRatioToCompare[iFile].Divide(hToCompare[iFile], hToCompare[0])
+        else:
+            hRatioToCompare[iFile].Divide(hToCompare[iFile], hToCompare[0])
+            for iBin in range(1, hRatioToCompare[iFile].GetNbinsX()+1):
+                hRatioToCompare[iFile].SetBinError(iBin, 1.e-20)
 
     leg.AddEntry(hToCompare[iFile], legNames[iFile], legOpt[iFile])
 
@@ -96,16 +99,17 @@ else:
 
 for histo, objType, drawOpt in zip(hToCompare, objTypes, drawOptions):
     if 'TH' in objType:
-        histo.DrawCopy(drawOpt)
+        histo.DrawCopy(f'{drawOpt}same')
     else:
         histo.Draw(drawOpt)
+leg.Draw()
 
 if doRatio:
-    cOut.cd(2).DrawFrame(xLimits[0], yLimits[0], xLimits[1], yLimits[1], f';{xTitle};Ratio')
-    for iHisto, (histo, objType, drawOpt) in zip(hRatioToCompare, objTypes, drawOptions):
+    cOut.cd(2).DrawFrame(xLimits[0], yLimitsRatio[0], xLimits[1], yLimitsRatio[1], f';{xTitle};Ratio')
+    for iHisto, (histo, objType, drawOpt) in enumerate(zip(hRatioToCompare, objTypes, drawOptions)):
         if iHisto > 0:
             if 'TH' in objType:
-                histo.DrawCopy(drawOpt)
+                histo.DrawCopy(f'{drawOpt}same')
             else:
                 histo.Draw(drawOpt)
 
@@ -121,3 +125,5 @@ for ext in outExtensions:
         outFile.Close()
     else:
         cOut.SaveAs(f'{outFileName}.{ext}')
+
+input()
