@@ -6,13 +6,13 @@ run: python ScanSelectionTree.py cfgFileName.yml cutSetFileName.yml outFileName.
 import sys
 import argparse
 import itertools
-import six
-import numpy as np
 import yaml
+import numpy as np
 from root_numpy import fill_hist
 from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.DfUtils import LoadDfFromRootOrParquet
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -23,12 +23,13 @@ parser.add_argument('outFileName', metavar='text', default='outFileName.root',
                     help='output root file name')
 args = parser.parse_args()
 
-#config input file and tuple extraction
+#config input file and df definition
 with open(args.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
-inFileNames = inputCfg['infilename']
-infile = TFile(inFileNames)
-tSignif = infile.Get('tSignif')
+inFileNames = inputCfg['infiles']['name']
+dfSignif = LoadDfFromRootOrParquet(inputCfg['infiles']['name'], inputCfg['infiles']['dirname'],
+                                   inputCfg['infiles']['treename'])
+dfSignif['Pt'] = dfSignif.apply(lambda row: (row.PtMin + row.PtMax) / 2, axis=1)
 VarDrawList = inputCfg['VarDrawList']
 if not isinstance(VarDrawList, list):
     VarDrawList = [VarDrawList]
@@ -41,58 +42,54 @@ if not 'ML_output_Bkg' or not 'ML_output_FD' in cutVars:
     print('\t\t---Warning: no ML Bkg or FD output cut was provided. Are you sure you want to continue?---\n')
 selToApply = []
 counter = 0
-for iPt, _ in enumerate(cutVars['PtMin']['min']):
-    for iBkg, (Bkg_score_min, Bkg_score_max)   in enumerate(zip(cutVars['ML_output_Bkg']['min'], cutVars['ML_output_Bkg']['max'])):
-        for iFD, (FD_score_min, FD_score_max) in enumerate(zip(cutVars['ML_output_FD']['min'], cutVars['ML_output_FD']['max'])):
+for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['max'])):
+    for iBkg, _  in enumerate(zip(cutVars['ML_output_Bkg']['min'], cutVars['ML_output_Bkg']['max'])):
+        for iFD, _ in enumerate(zip(cutVars['ML_output_FD']['min'], cutVars['ML_output_FD']['max'])):
             selToApply.append('')
             for iVar, varName in enumerate(cutVars):
                 if selToApply[counter] != '':
                     selToApply[counter] += ' & '
-                if varName == 'PtMin':
-                    selToApply[counter] += f"{cutVars[varName]['name']}>={cutVars[varName]['min'][iPt]}"
-                elif varName == 'PtMax':
-                    selToApply[counter] += f"{cutVars[varName]['name']}<={cutVars[varName]['max'][iPt]}"
-                elif varName == 'ML_output_Bkg':
-                    selToApply[counter] += f" {cutVars[varName]['name']}>={Bkg_score_min} & {cutVars[varName]['name']}<={Bkg_score_max}"
+                if varName == 'ML_output_Bkg':
+                    selToApply[counter] += f"{cutVars[varName]['min'][iBkg]} < {cutVars[varName]['name']} <= {cutVars[varName]['max'][iBkg]}"
                 elif varName == 'ML_output_FD':
-                    selToApply[counter] += f"{cutVars[varName]['name']}>={FD_score_min} & {cutVars[varName]['name']}<={FD_score_max}"
-            counter += 1
+                    selToApply[counter] += f"{cutVars[varName]['min'][iFD]} < {cutVars[varName]['name']} <= {cutVars[varName]['max'][iFD]}"
+                else:
+                    selToApply[counter] += f"{cutVars[varName]['min'][counter]} < {cutVars[varName]['name']} < {cutVars[varName]['max'][counter]}"
+            counter += 1          
 
-#output file
+#output file preparation
 outFile = TFile(args.outFileName, 'RECREATE')
 outFile.cd()
 outDirPros = TDirectoryFile('DsNTupleProjection', 'DsNTupleProjection')
 outDirPros.Write()
-outDirProjection = []
-cDist = []
+outDirPros.cd()
+TProject = TCanvas('DsNtupleProjOverPt', '', 1920, 1080)
+TProject.Divide(2, round(len(VarDrawList)/2))
+hProject = []
 
-#loop over cut and TNtuple projection
-counter = 0 
-for iPt, (PtMin, PtMax) in enumerate(zip(cutVars['PtMin']['min'], cutVars['PtMax']['max'])):
-    print(f'Projecting tSignif for pT{PtMin}-{PtMax}')
-    outDirPros.cd()
-    outDirProjection.append(TDirectoryFile(f'pT{PtMin}-{PtMax}', f'pT{PtMin}-{PtMax}'))
-    outDirProjection[iPt].Write()
-    outDirProjection[iPt].cd()
-    for iBkg, (Bkg_out_min, Bkg_out_max) in enumerate(zip(cutVars['ML_output_Bkg']['min'], cutVars['ML_output_Bkg']['max'])):
-        for iFD, (FD_out_min, FD_out_max) in enumerate(zip(cutVars['ML_output_FD']['min'],cutVars['ML_output_FD']['max'])):
-            outDirProjection[iPt].mkdir(f'ML_output_Bkg{Bkg_out_min}-{Bkg_out_max}-ML_output_FD{FD_out_min}-{FD_out_max}')
-            outDirProjection[iPt].cd(f'ML_output_Bkg{Bkg_out_min}-{Bkg_out_max}-ML_output_FD{FD_out_min}-{FD_out_max}')
-            cDist.append(TCanvas(f'pT{PtMin}-{PtMax}_ML_output_Bkg{Bkg_out_min}-{Bkg_out_max}-ML_output_FD{FD_out_min}-{FD_out_max}', '', 1920, 1080))
-            cDist[counter].Divide(2, round(len(VarDrawList)/2))
-            for iVar, VartoDraw in enumerate(VarDrawList):
-                cDist[counter].cd(iVar+1)
-                tSignif.Draw(f'{VartoDraw}>>h{VartoDraw}_pT{PtMin}-{PtMax}_ML_output_Bkg{Bkg_out_min}-{Bkg_out_max}-ML_output_FD{FD_out_min}-{FD_out_max}',
-                             f'{selToApply[counter]}', 'histo')
-                #TODO: need to check if there's a problem with cuts or is just too poor dataset
-            cDist[counter].Write()
-            if inputCfg['saveaspdf']:
-                outDirPros.cd()
-                cDist[counter].SaveAs(f'DsNtupleProj_pT{PtMin}-{PtMax}_ML_output_Bkg{Bkg_out_min}-{Bkg_out_max}-ML_output_FD{FD_out_min}-{FD_out_max}.pdf')
-            counter += 1
+#output histos
+nbins = len(cutVars['Pt']['max'])
+#TODO: find a more elgant way to do this stuff
+PtMax_maxvalue = []
+PtMax_maxvalue.append(cutVars['Pt']['max'][-1])
+xbins = cutVars['Pt']['min'] + PtMax_maxvalue
+                                   
+for iVar, VartoDraw in enumerate(VarDrawList):
+    hProject.append(TH1F(f'hProject{VartoDraw}', f'{VartoDraw} over p''_{T}'f'; p''_{T}'' [GeV/c] ;'f'{VartoDraw}',
+                    nbins, np.asarray(xbins, float)))
+    for iPt, _ in enumerate(cutVars['Pt']['min']):
+        dfSignifSel = dfSignif.query(selToApply[iPt])
+        #TODO: pass from SetBinContent to fill_hist()
+        hProject[iVar].SetBinContent(iPt+1, dfSignifSel[f'{VartoDraw}'])
+    TProject.cd(iVar+1)
+    hProject[iVar].DrawCopy()
+    TProject.Update()
+    TProject.Modified()
+TProject.Write()
+if inputCfg['saveaspdf']:
+    TProject.SaveAs(f'DsNtupleProjOverPt.pdf')
+
+#saving output and closing
 outFile.Write()
 outFile.Close()
-if six.PY2:
-    raw_input('Press enter to exit')
-elif six.PY3:
-    input('Press enter to exit')
+input('Press enter to exit')

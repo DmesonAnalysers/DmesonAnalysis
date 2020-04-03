@@ -440,7 +440,7 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=
     '''
     if hMassSignal:
         funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
-        funcSignal.SetParameters(1, hMassSignal.GetBinCenter(hMassSignal.GetMaximumBin()))
+        funcSignal.SetParameters(hMassSignal.Integral() * hMassSignal.GetBinWidth(1), hMassSignal.GetMean(), hMassSignal.GetRMS())
         hMassSignal.Fit('funcSignal','Q0')
         mean = funcSignal.GetParameter(1)
         sigma = funcSignal.GetParameter(2)
