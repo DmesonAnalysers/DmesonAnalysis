@@ -6,6 +6,7 @@ run: python CompareGraphs.py fitConfigFileName.yml centClass inputFileName.root 
 import sys
 from os.path import join
 import argparse
+import numpy as np
 import yaml
 from ROOT import TCanvas, TFile, TLegend # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
@@ -35,6 +36,7 @@ drawOptions = inputCfg['options']['drawopt']
 doRatio = inputCfg['options']['ratio']['enable']
 drawRatioUnc = inputCfg['options']['ratio']['uncertainties']['enable']
 ratioUncCorr = inputCfg['options']['ratio']['uncertainties']['corr']
+displayRMS = inputCfg['options']['ratio']['displayRMS']
 
 wCanv = inputCfg['options']['canvas']['width']
 hCanv = inputCfg['options']['canvas']['heigth']
@@ -88,6 +90,20 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
                 hRatioToCompare[iFile].SetBinError(iBin, 1.e-20)
 
     leg.AddEntry(hToCompare[iFile], legNames[iFile], legOpt[iFile])
+
+ratios, RMS, shift = [], [], []
+if doRatio and displayRMS:
+    for iBin in range(hRatioToCompare[1].GetNbinsX()):
+        ratios.append([])
+        for iFile, _ in enumerate(inFileNames):
+            if iFile == 0:
+                continue
+            ratios[iBin].append(hRatioToCompare[iFile].GetBinContent(iBin+1))
+        aRatios = np.array(ratios[iBin])
+        RMS.append(np.std(aRatios))
+        shift.append(np.mean(aRatios))
+print('\033[92mRMS values:', np.around(RMS, decimals=3), '\033[0m')
+print('\033[92mshift values:', np.around(shift, decimals=3), '\033[0m')
 
 cOut = TCanvas('cOutput', '', wCanv, hCanv)
 
