@@ -1,5 +1,6 @@
 #if !defined(__CINT__) || defined(__CLING__)
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -7,6 +8,9 @@
 
 #include <TChain.h>
 #include <TGrid.h>
+#include <TNtuple.h>
+#include <TInterpreter.h>
+#include <TSystem.h>
 
 #include "AliAnalysisAlien.h"
 #include "AliAnalysisManager.h"
