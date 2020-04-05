@@ -69,17 +69,12 @@ hProject = []
 
 #output histos
 nbins = len(cutVars['Pt']['max'])
-#TODO: find a more elgant way to do this stuff
-PtMax_maxvalue = []
-PtMax_maxvalue.append(cutVars['Pt']['max'][-1])
-xbins = cutVars['Pt']['min'] + PtMax_maxvalue
-                                   
+xbins = cutVars['Pt']['min'] + list(set(cutVars['Pt']['max']) - set(cutVars['Pt']['min']))
 for iVar, VartoDraw in enumerate(VarDrawList):
     hProject.append(TH1F(f'hProject{VartoDraw}', f'{VartoDraw} over p''_{T}'f'; p''_{T}'' [GeV/c] ;'f'{VartoDraw}',
                     nbins, np.asarray(xbins, float)))
     for iPt, _ in enumerate(cutVars['Pt']['min']):
         dfSignifSel = dfSignif.query(selToApply[iPt])
-        #TODO: pass from SetBinContent to fill_hist()
         hProject[iVar].SetBinContent(iPt+1, dfSignifSel[f'{VartoDraw}'])
     TProject.cd(iVar+1)
     hProject[iVar].DrawCopy()
