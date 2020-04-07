@@ -6,8 +6,10 @@ __pycache__
 *.so
 .DS_Store
 runanalysistask/AODfiles
+runanalysistask/ESDfiles
 runanalysistask/*.pdf
 runanalysistask/*.root
+runanalysistask/*/*.root
 runanalysistask/*.xml
 cutobjects/*.root
 cutobjects/*/*.root

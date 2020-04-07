@@ -57,11 +57,11 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
 
     bool local = false;
     bool gridTest = false;
-    string pathToLocalAODfiles = "";
+    string pathToLocalESDfiles = "";
     if (config["runtype"].as<string>() == "local")
     {
         local = true;
-        pathToLocalAODfiles = config["pathtolocalAOD"].as<string>();
+        pathToLocalESDfiles = config["pathtolocalESD"].as<string>();
     }
     else
     {
@@ -87,6 +87,7 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
     AliAnalysisTaskCheckHFMCProd* taskHFMCProd = reinterpret_cast<AliAnalysisTaskCheckHFMCProd *>(gInterpreter->ProcessLine(Form(".x %s(%d, %d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddHFMCCheck.C"), system, isRunOnMC)));
     cout << ptMin << "  " << ptMax << "  " << nPtBins << endl;
     taskHFMCProd->SetPtBins(ptMin, ptMax, nPtBins);
+    taskHFMCProd->SetYBins(-2., 2., 40);
 
     if (!mgr->InitAnalysis())
         return;
@@ -97,13 +98,16 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
     if (local)
     {
         // if you want to run locally, we need to define some input
-        TChain *chainAOD = new TChain("aodTree");
+        TChain *chainESD = new TChain("esdTree");
+        TChain *chainESDfriend = new TChain("esdFriendTree");
 
         // add a few files to the chain (change this so that your local files are added)
-        chainAOD->Add(Form("%s/AliESD.root", pathToLocalAODfiles.data()));
+        chainESD->Add(Form("%s/AliESDs.root", pathToLocalESDfiles.data()));
+        chainESDfriend->Add(Form("%s/AliAOD.VertexingHF.root", pathToLocalESDfiles.data()));
+        chainESD->AddFriend(chainESDfriend);
 
         // start the analysis locally, reading the events from the tchain
-        mgr->StartAnalysis("local", chainAOD);
+        mgr->StartAnalysis("local", chainESD);
     }
     else
     {
