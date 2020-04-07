@@ -15,16 +15,21 @@
 #include "TH1D.h"
 #include "TH2D.h"
 
+enum { // options for branching ratios
+  kBROriginal, // keep the values used in the input files
+  kBRPDG, // use hard coded values from PDG (2018)
+  kBRPDGmix // use hard coded values from PDG (2018) and the B0/+- admixture
+};
+
 enum { // options for fragmentation fractions
   kFFOriginal, // keep the values used in the input files
   kFFppbar,
   kFFee
 };
 
-enum { // options for branching ratios
-  kBROriginal, // keep the values used in the input files
-  kBRPDG, // use hard coded values from PDG (2018)
-  kBRPDGmix // use hard coded values from PDG (2018) and the B0/+- admixture
+enum { // options for re-weight
+  kSimple, // estimate a global factor to scale the prediction (keep the input pT dependence)
+  kAccurate // correct each b-hadron contribution indipendently (modify also the pT dependence)
 };
 
 void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FFppbar_yDcut.root",
@@ -33,38 +38,39 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
                           std::string brFileName = "DfromB_FONLLcentPythia8_FFppbar_forBR.root",
                           std::string outFileName = "DmesonLcPredictions_502TeV_y05 _pythia8.root",
                           int brOpt = kBRPDG,
-                          int ffOpt = kFFOriginal) {
+                          int ffOpt = kFFOriginal,
+                          int wOpt = kSimple) {
 
   std::array<std::string, 3> inFileNames = {inFileNameMin, inFileNameCent, inFileNameMax};
   std::array<std::string, 3> edgeNames = {"min", "central", "max"};
 
   const int numMothers = 4;
   const int numDaughters = 6;
-  std::array<std::string, numMothers> mothToDauHistos = {"hB0dau", "hBplusdau", "hBsdau", "hLbdau"};
+  std::array<std::string, numMothers> mothToDauHistos = {"hBplusdau", "hB0dau", "hBsdau", "hLbdau"};
   std::array<std::string, numDaughters> predFDHistos = {"hnonpromptD0pt", "hnonpromptDpluspt", "hnonpromptDspt",
                                                         "hnonpromptLcpt", "hnonpromptDstarpt", "hnonpromptLcpt"};
   std::array<std::string, numDaughters> predPromptHistos = {"hfonllPromptD0", "hfonllPromptDplus", "hfonllPromptDs",
                                                             "hfonllPromptLc", "hfonllPromptDstar", "hfonllPromptLc"};
   std::array<std::string, numDaughters> predTag = {"D0Kpi", "Dpluskpipi", "DsPhipitoKkpi", "Lcpkpi", "DstarD0pi", "LcK0sp"};
   std::array<std::string, numDaughters - 1> partTag = {"D0", "Dplus", "Ds", "Lc", "Dstar"};
-  std::array<double, numMothers> origBFF = {0.34, 0.34, 0.101, 0.218}; // (B0, B+, Bs, Lb) FF used in the input predictions
-  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromB = {{{0.555, 0.876, 0.008, 0.},   // D0 and (BRfromB0, BRfromB+, BRfromBs, BRfromLb) from PDG (2018)
-                                                                          {0.392, 0.124, 0., 0.},      // D+
-                                                                          {0.117, 0.09, 0.93, 0.011},  // Ds
-                                                                          {0.066, 0.049, 0., 0.333},   // Lc
-                                                                          {0.23, 0.061, 0.003, 0.},    // D*+
-                                                                          {0.066, 0.049, 0., 0.333}    // Lc
+  std::array<double, numMothers> origBFF = {0.34, 0.34, 0.101, 0.218}; // (B+, B0, Bs, Lb) FF used in the input predictions
+  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromB = {{{0.876, 0.555, 0.008, 0.},   // D0 and (BRfromB+, BRfromB0, BRfromBs, BRfromLb) from PDG (2018)
+                                                                          {0.124, 0.392, 0., 0.},      // D+
+                                                                          {0.09, 0.117, 0.93, 0.011},  // Ds
+                                                                          {0.049, 0.066, 0., 0.333},   // Lc
+                                                                          {0.061, 0.23, 0.003, 0.},    // D*+
+                                                                          {0.049, 0.066, 0., 0.333}    // Lc
                                                                           }};
   // B0 and B+ BR from B0/B+- admixture
-  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromBmix = {{{0.624, 0.624, 0.008, 0.},   // D0 and (BRfromB0, BRfromB+, BRfromBs, BRfromLb) from PDG (2018)
+  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromBmix = {{{0.624, 0.624, 0.008, 0.},   // D0 and (BRfromB+, BRfromB0, BRfromBs, BRfromLb) from PDG (2018)
                                                                              {0.241, 0.241, 0., 0.},      // D+
                                                                              {0.083, 0.083, 0.93, 0.011}, // Ds
                                                                              {0.036, 0.036, 0., 0.333},   // Lc
                                                                              {0.225, 0.225, 0.003, 0.},   // D*+
                                                                              {0.036, 0.036, 0., 0.333}    // Lc
                                                                              }};
-  std::array<double, numMothers> ppbarBFF = {0.34, 0.34, 0.101, 0.218}; // (B0, B+, Bs, Lb) from PDG (2018)
-  std::array<double, numMothers> eeBFF = {0.412, 0.412, 0.088, 0.089}; // (B0, B+, Bs, Lb) from PDG (2018)
+  std::array<double, numMothers> ppbarBFF = {0.34, 0.34, 0.101, 0.218}; // ( B+, B0,Bs, Lb) from PDG (2018)
+  std::array<double, numMothers> eeBFF = {0.412, 0.412, 0.088, 0.089}; // (B+, B0, Bs, Lb) from PDG (2018)
   std::array<double, numDaughters> decayBR = {0.0389, 0.0898, 0.0227, 0.0623, 0.0263, 0.0158}; // (D0, D+, Ds, Lc->pKpi, D*+, LC->K0sp) from PDG (2018)
   std::array<std::array<double, numMothers>, numDaughters> origBR = {};
 
@@ -148,35 +154,79 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
 
     // get and correct the predictions
     for(int iDau = 0; iDau < numDaughters; iDau++) {
-      // calculate the final correction factor for non-prompt
-      double newFrac = 0.;
-      double oldFrac = 0.;
-      for(int iMother = 0; iMother < numMothers; iMother++) {
-        double motherFF = 1.;
-        double BRfromB = 1.;
 
-        if(ffOpt == kFFOriginal)
-          motherFF = origBFF[iMother];
-        else if(ffOpt == kFFppbar)
-          motherFF = ppbarBFF[iMother];
-        else if(ffOpt == kFFee)
-          motherFF = eeBFF[iMother];
+      TH1F *hDauFDPred = nullptr;
 
-        if(brOpt == kBROriginal)
-          BRfromB = origBR[iDau][iMother];
-        else if(brOpt == kBRPDG)
-          BRfromB = pdgBRfromB[iDau][iMother];
-        else if(brOpt == kBRPDGmix)
-          BRfromB = pdgBRfromBmix[iDau][iMother];
+      // crude method, estimate a global correction factor
+      if(wOpt == kSimple) {
+        // calculate the final correction factor for non-prompt
+        double newFrac = 0.;
+        double oldFrac = 0.;
+        for(int iMother = 0; iMother < numMothers; iMother++) {
+          double motherFF = 1.;
+          double BRfromB = 1.;
 
-        newFrac += motherFF * BRfromB;
-        oldFrac += origBFF[iMother] * origBR[iDau][iMother];
+          if(ffOpt == kFFOriginal)
+            motherFF = origBFF[iMother];
+          else if(ffOpt == kFFppbar)
+            motherFF = ppbarBFF[iMother];
+          else if(ffOpt == kFFee)
+            motherFF = eeBFF[iMother];
+
+          if(brOpt == kBROriginal)
+            BRfromB = origBR[iDau][iMother];
+          else if(brOpt == kBRPDG)
+            BRfromB = pdgBRfromB[iDau][iMother];
+          else if(brOpt == kBRPDGmix)
+            BRfromB = pdgBRfromBmix[iDau][iMother];
+
+          newFrac += motherFF * BRfromB;
+          oldFrac += origBFF[iMother] * origBR[iDau][iMother];
+        }
+
+        double corr = newFrac / oldFrac;
+        hDauFDPred = (TH1F *)inFile->Get(predFDHistos[iDau].data());
+        hDauFDPred->SetDirectory(0);
+        hDauFDPred->Scale(corr);
+
+        if(edgeNames[iFile] == "central" && iDau < (numDaughters - 1))
+          std::cout<<"Prediction correction factor for " + partTag[iDau] << ", "<<edgeNames[iFile]<<" pred: "<<corr<<std::endl;
       }
 
-      double corr = newFrac / oldFrac;
+      // more accurate method, re-weight each contribution individually
+      if(wOpt == kAccurate) {
+        TH1F *hTemp = (TH1F *)inFile->Get(predFDHistos[iDau].data());
+        hTemp->SetDirectory(0);
+        hDauFDPred = (TH1F *)hTemp->Clone();
+        hDauFDPred->Reset();
 
-      if(edgeNames[iFile] == "central" && iDau < (numDaughters - 1))
-        std::cout<<"Prediction correction factor for " + partTag[iDau] << ", "<<edgeNames[iFile]<<" pred: "<<corr<<std::endl;
+        std::string hName = predFDHistos[iDau] + "ByOrigin";
+        TH2D *hDauPredByOrigin = (TH2D *)inFile->Get(hName.data());
+        hDauPredByOrigin->SetDirectory(0);
+
+        for(int iMother = 0; iMother < numMothers; iMother++) {
+          TH1D *hTemp = hDauPredByOrigin->ProjectionY(Form("hBpred%d", iMother), iMother + 1, iMother + 1);
+
+          double motherFF = 1.;
+          double BRfromB = 1.;
+
+          if(ffOpt == kFFOriginal)
+            motherFF = origBFF[iMother];
+          else if(ffOpt == kFFppbar)
+            motherFF = ppbarBFF[iMother];
+          else if(ffOpt == kFFee)
+            motherFF = eeBFF[iMother];
+
+          if(brOpt == kBROriginal)
+            BRfromB = origBR[iDau][iMother];
+          else if(brOpt == kBRPDG)
+            BRfromB = pdgBRfromB[iDau][iMother];
+          else if(brOpt == kBRPDGmix)
+            BRfromB = pdgBRfromBmix[iDau][iMother];
+
+          hDauFDPred->Add(hTemp, motherFF * BRfromB / origBFF[iMother] / origBR[iDau][iMother]);
+        }
+      }
 
       // prompt predictions
       TH1F *hDauPromptPred = (TH1F *)inFile->Get(predPromptHistos[iDau].data());
@@ -192,9 +242,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
       hDauPromptPred->Write();
 
       // non-prompt predictions
-      TH1F *hDauFDPred = (TH1F *)inFile->Get(predFDHistos[iDau].data());
-      hDauFDPred->SetDirectory(0);
-      hDauFDPred->Scale(corr * decayBR[iDau]);
+      hDauFDPred->Scale(decayBR[iDau]);
       std::string nameFD = "h" + predTag[iDau] + "fromBpred_" + edgeNames[iFile] + "_corr";
       std::string titleFD = predTag[iDau] + " from B " + edgeNames[iFile] + " value prediction (with BR and B->D correction)";
       hDauFDPred->SetName(nameFD.data());
