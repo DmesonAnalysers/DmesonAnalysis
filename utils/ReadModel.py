@@ -35,7 +35,7 @@ def InterpolateModel(ptCent, yCent, yMin=None, yMax=None):
     return splinesAll
 
 
-def ReadFONLL(fileNameFONLL):
+def ReadFONLL(fileNameFONLL, isPtDiff=False):
     '''
     Helper function to read FONLL txt files
 
@@ -48,11 +48,19 @@ def ReadFONLL(fileNameFONLL):
     splineFONLL: dictionary with values of splines {yCent, yMin, yMax}
     dfFONLL: pandas dataframe with original values
     '''
-    dfFONLL = pd.read_csv(fileNameFONLL, sep=' ', comment='#')
-    dfFONLL['ptcent'] = (dfFONLL['ptmin']+dfFONLL['ptmax']) / 2
-    dfFONLL['central_ptdiff'] = dfFONLL['central'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
-    dfFONLL['min_ptdiff'] = dfFONLL['min'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
-    dfFONLL['max_ptdiff'] = dfFONLL['max'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
+    dfFONLL = pd.read_csv(fileNameFONLL, sep=" ", header=13).astype('float64')
+    if not isPtDiff:
+        dfFONLL['ptcent'] = (dfFONLL['ptmin']+dfFONLL['ptmax']) / 2
+        dfFONLL['central_ptdiff'] = dfFONLL['central'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
+        dfFONLL['min_ptdiff'] = dfFONLL['min'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
+        dfFONLL['max_ptdiff'] = dfFONLL['max'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
+    else:
+        print(dfFONLL)
+        dfFONLL.rename(columns={'pt': 'ptcent'}, inplace=True)
+        dfFONLL.rename(columns={'central': 'central_ptdiff'}, inplace=True)
+        dfFONLL.rename(columns={'min': 'min_ptdiff'}, inplace=True)
+        dfFONLL.rename(columns={'max': 'max_ptdiff'}, inplace=True)
+        print(dfFONLL)
 
     splineFONLL = InterpolateModel(dfFONLL['ptcent'], dfFONLL['central_ptdiff'],
                                    dfFONLL['min_ptdiff'], dfFONLL['max_ptdiff'])

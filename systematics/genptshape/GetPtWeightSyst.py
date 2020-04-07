@@ -2,9 +2,9 @@
 python script for the computation of pT weights to match generated pT-shape in MC and data (PbPb)
 '''
 
-import six
 from ROOT import TCanvas, TFile, TLine, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kBlue, kBlack, kGreen, kAzure, kOrange, kFullCircle, kFullSquare, kFullTriangleUp, kFullTriangleDown, kFullCross  # pylint: disable=import-error,no-name-in-module,line-too-long
+#pylint: disable=wrong-import-position,import-error,no-name-in-module
 from utils.StyleFormatter import SetGlobalStyle
 
 # TO BE SET
@@ -117,8 +117,5 @@ if inFileEffNames and len(inFileEffNames) == len(PtShapes):
         heffRatio.SetMarkerSize(1)
         heffRatio.Draw('same')
     cEff.SaveAs(outFileEffName)
-
-if six.PY2:
-    raw_input('Press enter to exit')
-elif six.PY3:
-    input('Press enter to exit')
+    
+input('Press enter to exit')

@@ -1,6 +1,6 @@
-"""
+'''
 Script to get the non-prompt D cross-section from Pythia8 (to run after SimulateDecays.cc)
-"""
+'''
 
 import sys
 import argparse
