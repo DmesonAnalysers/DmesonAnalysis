@@ -67,13 +67,12 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
   std::array<double, numMothers> eeBFF = {0.412, 0.412, 0.088, 0.089}; // (B0, B+, Bs, Lb) from PDG (2018)
   std::array<double, numDaughters> decayBR = {0.0389, 0.0898, 0.0227, 0.0623, 0.0263, 0.0158}; // (D0, D+, Ds, Lc->pKpi, D*+, LC->K0sp) from PDG (2018)
   std::array<std::array<double, numMothers>, numDaughters> origBR = {};
-  std::array<std::array<double, numMothers>, numDaughters> corrFactorBR = {};
 
-  // print correction factor from b to b-hadrons FF times PDG BR 
+  // print fraction of b to b-hadrons FF times PDG BR 
   if(brOpt == kBRPDG || brOpt == kBRPDGmix) {
     std::cout<<"\nb to X factors with PDG BR and FF\n";
     for(int iDau = 0; iDau < numDaughters - 1; iDau++) {
-        double corr = 0.;
+        double frac = 0.;
         for(int iMother = 0; iMother < numMothers; iMother++) {
           double motherFF = 1.;
           double BRfromB = 1.;
@@ -90,9 +89,9 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
           else if(brOpt == kBRPDGmix)
             BRfromB = pdgBRfromBmix[iDau][iMother];
 
-          corr += motherFF * BRfromB;
+          frac += motherFF * BRfromB;
         }
-        std::cout<<"Factor b to " + partTag[iDau] << ": "<<corr<<std::endl;
+        std::cout<<"Factor b to " + partTag[iDau] << ": "<<frac<<std::endl;
     }
     std::cout<<std::endl;
   }
@@ -106,18 +105,10 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
     for(int iDau = 0; iDau < numDaughters - 1; iDau++) {
       double totDau = hMothToDau->GetBinContent(iDau + 2);
       origBR[iDau][iMother] = 1. * totDau / totMothers; 
-      
-      if(brOpt == kBRPDG)          
-        corrFactorBR[iDau][iMother] = pdgBRfromB[iDau][iMother] / origBR[iDau][iMother];
-      else if(brOpt == kBRPDGmix)
-        corrFactorBR[iDau][iMother] = pdgBRfromBmix[iDau][iMother] / origBR[iDau][iMother];
-      else
-        corrFactorBR[iDau][iMother] = 1.;
     }
 
-    // manually set corrFactorBR and origBR for the LcK0sp case, they are equal to the LcpKpi case
+    // manually set origBR for the LcK0sp case, they are equal to the LcpKpi case
     origBR[5][iMother] = origBR[3][iMother];
-    corrFactorBR[5][iMother] = corrFactorBR[3][iMother];
   }
   inBRFile->Close();
 
@@ -130,11 +121,11 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
     }
   }
 
-  // print correction factor from b to b-hadrons FF times BR extracted from file
+  // print fraction of b to b-hadrons FF times BR extracted from file
   if(brOpt == kBROriginal) {
     std::cout<<"b to X factors with BR extracted from "<<brFileName<<" file\n";
     for(int iDau = 0; iDau < numDaughters - 1; iDau++) {
-        double corr = 0.;
+        double frac = 0.;
         for(int iMother = 0; iMother < numMothers; iMother++) {
           double motherFF = 1.;
           if(ffOpt == kFFOriginal)
@@ -143,9 +134,9 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
             motherFF = ppbarBFF[iMother];
           else if(ffOpt == kFFee)
             motherFF = eeBFF[iMother];
-          corr += motherFF * origBR[iDau][iMother];
+          frac += motherFF * origBR[iDau][iMother];
         }
-        std::cout<<"Factor b to " + partTag[iDau] << ": "<<corr<<std::endl;
+        std::cout<<"Factor b to " + partTag[iDau] << ": "<<frac<<std::endl;
     }
     std::cout<<std::endl;
   }
@@ -158,15 +149,34 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
     // get and correct the predictions
     for(int iDau = 0; iDau < numDaughters; iDau++) {
       // calculate the final correction factor for non-prompt
-      double corr = 0.;
+      double newFrac = 0.;
+      double oldFrac = 0.;
       for(int iMother = 0; iMother < numMothers; iMother++) {
-        if(ffOpt == kFFOriginal) // keep original FF
-          corr += origBFF[iMother] * corrFactorBR[iDau][iMother];
+        double motherFF = 1.;
+        double BRfromB = 1.;
+
+        if(ffOpt == kFFOriginal)
+          motherFF = origBFF[iMother];
         else if(ffOpt == kFFppbar)
-          corr += ppbarBFF[iMother] * corrFactorBR[iDau][iMother] * (ppbarBFF[iMother] / origBFF[iMother]);
+          motherFF = ppbarBFF[iMother];
         else if(ffOpt == kFFee)
-          corr += eeBFF[iMother] * corrFactorBR[iDau][iMother] * (eeBFF[iMother] / origBFF[iMother]);
+          motherFF = eeBFF[iMother];
+
+        if(brOpt == kBROriginal)
+          BRfromB = origBR[iDau][iMother];
+        else if(brOpt == kBRPDG)
+          BRfromB = pdgBRfromB[iDau][iMother];
+        else if(brOpt == kBRPDGmix)
+          BRfromB = pdgBRfromBmix[iDau][iMother];
+
+        newFrac += motherFF * BRfromB;
+        oldFrac += origBFF[iMother] * origBR[iDau][iMother];
       }
+
+      double corr = newFrac / oldFrac;
+
+      if(edgeNames[iFile] == "central" && iDau < (numDaughters - 1))
+        std::cout<<"Prediction correction factor for " + partTag[iDau] << ", "<<edgeNames[iFile]<<" pred: "<<corr<<std::endl;
 
       // prompt predictions
       TH1F *hDauPromptPred = (TH1F *)inFile->Get(predPromptHistos[iDau].data());
