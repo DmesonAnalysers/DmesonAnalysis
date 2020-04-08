@@ -27,8 +27,10 @@ accFileName="accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5pt
 predFileName="models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root"
 pprefFileName="" #"ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_6_8_12_16_24_36_50.root"
 
-PtWeightsFileName="" #"ptweights/PtWeigths_LHC19c3b.root"
-PtWeightsHistoName="" #"hPtWeightsFONLLtimesTAMUcent"
+PtWeightsDFileName="" #"ptweights/PtWeigths_LHC19c3b.root"
+PtWeightsDHistoName="" #"hPtWeightsFONLLtimesTAMUcent"
+PtWeightsBFileName=""
+PtWeightsBHistoName=""
 
 DataDrivenFractionFileName=""
 
@@ -93,8 +95,12 @@ if [ ! -f "${DataDrivenFractionFileName}" ] && [ ${DoDataDrivenCrossSection} ]; 
   exit 2
 fi
 
-if [ ! -f "${PtWeightsFileName}" ] && [ "${PtWeightsFileName}" != "" ]; then
-  echo $(tput setaf 3) WARNING: pT-weights file "${PtWeightsFileName}" does not exist! $(tput sgr0)
+if [ ! -f "${PtWeightsDFileName}" ] && [ "${PtWeightsDFileName}" != "" ]; then
+  echo $(tput setaf 3) WARNING: pT-weights file "${PtWeightsDFileName}" does not exist! $(tput sgr0)
+fi
+
+if [ ! -f "${PtWeightsBFileName}" ] && [ "${PtWeightsBFileName}" != "" ]; then
+  echo $(tput setaf 3) WARNING: pTB-weights file "${PtWeightsBFileName}" does not exist! $(tput sgr0)
 fi
 
 if [ ! -d "${OutDirRawyields}" ]; then
@@ -151,7 +157,15 @@ if $DoMCProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Projecting MC distributions $(tput sgr0)
-    python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root
+    if [ "${PtWeightsDFileName}" == "" -o "${PtWeightsDHistoName}" == "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ]; then
+      python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root
+    elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ]; then
+        echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName}
+        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName}
+    elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" != "" ] && [ "${PtWeightsBHistoName}" != "" ]; then
+        echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} and ${PtWeightsBHistoName} ptB weights from ${PtWeightsBFileName}
+        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName} --ptweightsB ${PtWeightsBFileName} ${PtWeightsBHistoName}
+    fi
   done
 fi
 
@@ -179,12 +193,7 @@ if $DoEfficiency; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-    if [ "${PtWeightsFileName}" == "" ] || [ "${PtWeightsHistoName}" == "" ]; then
-      python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Meson}${CutSets[$iCutSet]}.root --batch
-    else
-      echo $(tput setaf 6) Using ${PtWeightsHistoName} pt weights from ${PtWeightsFileName}
-      python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Meson}${CutSets[$iCutSet]}.root --ptweights ${PtWeightsFileName} ${PtWeightsHistoName} --batch
-    fi
+    python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Meson}${CutSets[$iCutSet]}.root --batch
   done
 fi
 

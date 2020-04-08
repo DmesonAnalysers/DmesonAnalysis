@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 import yaml
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, kRed, kAzure, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, kRed, kAzure, kFullCircle, kOpenSquare, Double # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import ComputeEfficiency
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
@@ -17,8 +17,6 @@ parser.add_argument('fitConfigFileName', metavar='text', default='config_Ds_Fit.
 parser.add_argument('centClass', metavar='text', default='')
 parser.add_argument('inFileName', metavar='text', default='')
 parser.add_argument('outFileName', metavar='text', default='')
-parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=False,
-                    help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument("--batch", help="suppress video output", action="store_true")
 args = parser.parse_args()
 
@@ -59,10 +57,6 @@ SetObjectStyle(hYieldFDGen, color=kAzure+4, markerstyle=kOpenSquare, markersize=
 SetObjectStyle(hYieldPromptReco, color=kRed+1, markerstyle=kFullCircle)
 SetObjectStyle(hYieldFDReco, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
 
-if args.ptweights:
-    infileWeigts = TFile.Open(args.ptweights[0])
-    hPtWeights = infileWeigts.Get(args.ptweights[1])
-
 hRecoPrompt, hRecoFD, hGenPrompt, hGenFD = ([] for iHisto in range(4))
 
 infile = TFile(args.inFileName)
@@ -73,41 +67,27 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
 
     # get unweighted yields (for uncertainty)
-    nRecoPrompt = hRecoPrompt[iPt].Integral()
-    nGenPrompt = hGenPrompt[iPt].Integral()
-    nRecoFD = hRecoFD[iPt].Integral()
-    nGenFD = hGenFD[iPt].Integral()
+    nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (Double() for _ in range(4))
+    nRecoPrompt = hRecoPrompt[iPt].IntegralAndError(0, hRecoPrompt[iPt].GetNbinsX()+1, nRecoPromptUnc)
+    nGenPrompt = hGenPrompt[iPt].IntegralAndError(0, hGenPrompt[iPt].GetNbinsX()+1, nGenPromptUnc)
+    nRecoFD = hRecoFD[iPt].IntegralAndError(0, hRecoFD[iPt].GetNbinsX()+1, nRecoFDUnc)
+    nGenFD = hGenFD[iPt].IntegralAndError(0, hGenFD[iPt].GetNbinsX()+1, nGenFDUnc)
 
-    # get weighted yields
-    nRecoPromptWeighted, nGenPromptWeighted, nRecoFDWeighted, nGenFDWeighted = (0 for iVal in range(4))
-    for iBin in range(hRecoPrompt[iPt].GetNbinsX()):
-        if args.ptweights:
-            binweigths = hPtWeights.GetXaxis().FindBin(hRecoPrompt[iPt].GetBinCenter(iBin+1))
-            weight = hPtWeights.GetBinContent(binweigths)
-        else:
-            weight = 1
-        nRecoPromptWeighted += weight*hRecoPrompt[iPt].GetBinContent(iBin+1)
-        nGenPromptWeighted += weight*hGenPrompt[iPt].GetBinContent(iBin+1)
-        nRecoFDWeighted += weight*hRecoFD[iPt].GetBinContent(iBin+1)
-        nGenFDWeighted += weight*hGenFD[iPt].GetBinContent(iBin+1)
-
-    effPrompt, effPromptUnc = ComputeEfficiency(nRecoPromptWeighted, nGenPromptWeighted, \
-        nRecoPromptWeighted/np.sqrt(nRecoPrompt), nGenPromptWeighted/np.sqrt(nGenPrompt))
-    effFD, effFDUnc = ComputeEfficiency(\
-        nRecoFDWeighted, nGenFDWeighted, nRecoFDWeighted/np.sqrt(nRecoFD), nGenFDWeighted/np.sqrt(nGenFD))
+    effPrompt, effPromptUnc = ComputeEfficiency(nRecoPrompt, nGenPrompt, nRecoPromptUnc, nGenPromptUnc)
+    effFD, effFDUnc = ComputeEfficiency(nRecoFD, nGenFD, nRecoFDUnc, nGenFDUnc)
     hEffPrompt.SetBinContent(iPt+1, effPrompt)
     hEffPrompt.SetBinError(iPt+1, effPromptUnc)
     hEffFD.SetBinContent(iPt+1, effFD)
     hEffFD.SetBinError(iPt+1, effFDUnc)
 
-    hYieldPromptGen.SetBinContent(iPt+1, nGenPromptWeighted)
-    hYieldPromptGen.SetBinError(iPt+1, nGenPromptWeighted/np.sqrt(nGenPrompt))
-    hYieldFDGen.SetBinContent(iPt+1, nGenFDWeighted)
-    hYieldFDGen.SetBinError(iPt+1, nGenFDWeighted/np.sqrt(nGenFD))
-    hYieldPromptReco.SetBinContent(iPt+1, nRecoPromptWeighted)
-    hYieldPromptReco.SetBinError(iPt+1, nRecoPromptWeighted/np.sqrt(nRecoPrompt))
-    hYieldFDReco.SetBinContent(iPt+1, nRecoFDWeighted)
-    hYieldFDReco.SetBinError(iPt+1, nRecoFDWeighted/np.sqrt(nRecoFD))
+    hYieldPromptGen.SetBinContent(iPt+1, nGenPrompt)
+    hYieldPromptGen.SetBinError(iPt+1, nGenPromptUnc)
+    hYieldFDGen.SetBinContent(iPt+1, nGenFD)
+    hYieldFDGen.SetBinError(iPt+1, nGenFDUnc)
+    hYieldPromptReco.SetBinContent(iPt+1, nRecoPrompt)
+    hYieldPromptReco.SetBinError(iPt+1, nRecoPromptUnc)
+    hYieldFDReco.SetBinContent(iPt+1, nRecoFD)
+    hYieldFDReco.SetBinError(iPt+1, nRecoFDUnc)
 
 leg = TLegend(0.6, 0.2, 0.8, 0.4)
 leg.SetTextSize(0.045)

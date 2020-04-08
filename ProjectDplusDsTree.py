@@ -1,11 +1,20 @@
 '''
 python script for the projection of of D+ and Ds+ mesons TTrees
 run: python ProjectDplusDsTree.py cfgFileName.yml cutSetFileName.yml outFileName.root
+                                  [--ptweights PtWeightsFileName.root histoName]
+                                  [--ptweightsB PtWeightsFileName.root histoName]
+
+if the --ptweights argument is provided, pT weights will be applied to prompt and FD pT distributions
+if the --ptweightsB argument is provided, pT weights will be applied to FD pT distributions instead of
+those for the prompt
 '''
 
 import sys
 import argparse
 import yaml
+import numpy as np
+from scipy.interpolate import InterpolatedUnivariateSpline
+import uproot
 from root_numpy import fill_hist
 from ROOT import TFile, TH1F, TDatabasePDG # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadNormObjFromTask, LoadSparseFromTask
@@ -19,6 +28,10 @@ parser.add_argument('cutSetFileName', metavar='text', default='cutSetFileName.ym
                     help='input file with cut set')
 parser.add_argument('outFileName', metavar='text', default='outFileName.root',
                     help='output root file name')
+parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=False,
+                    help='First path of the pT weights file, second name of the pT weights histogram')
+parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
+                    help='First path of the pT weights file, second name of the pT weights histogram')
 args = parser.parse_args()
 
 #config with input file details
@@ -28,13 +41,20 @@ inFileNames = inputCfg['filename']
 if not isinstance(inFileNames, list):
     inFileNames = [inFileNames]
 isMC = inputCfg['isMC']
+if not isMC:
+    if args.ptweights:
+        print('WARNING: pt weights will not be applied since it is not MC')
+        args.ptweights = None
+    if args.ptweightsB:
+        print('WARNING: ptB weights will not be applied since it is not MC')
+        args.ptweightsB = None
 
 #define filter bits
 bitSignal = 0
 bitPrompt = 2
 bitFD = 3
 bitRefl = 4
-#define mass binning
+# define mass binning
 meson = inputCfg['tree']['meson']
 if meson == 'Ds':
     mD = TDatabasePDG.Instance().GetParticle(431).Mass()
@@ -46,12 +66,13 @@ else:
 massBins = 400
 massLimLow = mD - 0.2
 massLimHigh = mD + 0.2
-#define pT binning
-ptBins = 500
+# define pT binning
+nPtBins = 500
 ptLimLow = 0.
 ptLimHigh = 50.
+ptBinWidth = (ptLimHigh-ptLimLow) / nPtBins
 
-#selections to be applied
+# selections to be applied
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
 cutVars = cutSetCfg['cutvars']
@@ -74,7 +95,7 @@ FDGenList = []
 
 outFile = TFile(args.outFileName, 'recreate')
 
-#load objects from task outputs
+# load objects from task outputs
 for iFile, inFileName in enumerate(inFileNames):
     if iFile == 0:
         hEv, normCounter = LoadNormObjFromTask(inFileName, inputCfg)
@@ -89,7 +110,7 @@ for iFile, inFileName in enumerate(inFileNames):
             for sparseType in sparseGenPart:
                 sparseGen[sparseType].Add(sparseGenPart[sparseType])
 
-#load trees
+# load trees
 if isMC:
     dataFramePrompt = LoadDfFromRootOrParquet(inputCfg['tree']['filenamePrompt'], inputCfg['tree']['dirname'],
                                               inputCfg['tree']['treename'])
@@ -103,32 +124,86 @@ if isMC:
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
 
+    # compute pt weights
+    if args.ptweights:
+        ptWeights = uproot.open(args.ptweights[0])[args.ptweights[1]]
+        ptCentW = [(ptWeights.edges[iBin]+ptWeights.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
+        sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values)
+        dataFramePrompt['pt_weights'] = dataFramePrompt.apply(lambda cand: sPtWeights(cand['pt_cand']), axis=1)
+        if not args.ptweightsB:
+            dataFrameFD['pt_weights'] = dataFrameFD.apply(lambda cand: sPtWeights(cand['pt_cand']), axis=1)
+            sPtWeightsDfromB = sPtWeights
+
+    if args.ptweightsB:
+        ptWeightsB = uproot.open(args.ptweights[0])[args.ptweights[1]]
+        ptCentWB = [(ptWeightsB.edges[iBin]+ptWeightsB.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
+        sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values)
+        dataFrameFD['pt_weights'] = dataFrameFD.apply(lambda cand: sPtWeightsB(cand['pt_B']), axis=1)
+        # average correction for gen part since tree not available (--> good approximation)
+        hPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2)
+        averagePtBvsPtGen = np.array(hPtBvsPtGenD.ProfileX())
+        aPtGenWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtGen]
+        sPtWeightsDfromB = InterpolatedUnivariateSpline(ptCentW, aPtGenWeightsB)
+
     for (cuts, ptMin, ptMax) in zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max']):
         print(f'Projecting distributions for {ptMin:.1f} < pT < {ptMax:.1f} GeV/c')
         ptLowLabel = ptMin * 10
         ptHighLabel = ptMax * 10
-        #gen histos from sparses
+
+        # gen histos from sparses
         binGenMin = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMin * 1.0001)
         binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax * 0.9999)
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
+
         hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
+        if args.ptweights:
+            for iPt in range(hGenPtPrompt.GetNbinsX()):
+                relStatUnc = hGenPtPrompt.GetBinError(iPt) / hGenPtPrompt.GetBinContent(iPt)
+                ptCent = hGenPtPrompt.GetBinWidth(iPt)
+                hGenPtPrompt.SetBinContent(iPt, hGenPtPrompt.GetBinContent(iPt) * sPtWeights(ptCent))
+                hGenPtPrompt.SetBinError(iPt, hGenPtPrompt.GetBinContent(iPt) * relStatUnc)
         hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         promptGenList.append(hGenPtPrompt)
+
         hGenPtFD = sparseGen['GenFD'].Projection(0)
+        if args.ptweights or args.ptweights:
+            for iPt in range(hGenPtFD.GetNbinsX()):
+                relStatUnc = hGenPtFD.GetBinError(iPt) / hGenPtFD.GetBinContent(iPt)
+                ptCent = hGenPtFD.GetBinWidth(iPt)
+                hGenPtFD.SetBinContent(iPt, hGenPtFD.GetBinContent(iPt) * sPtWeightsDfromB(ptCent))
+                hGenPtFD.SetBinError(iPt, hGenPtFD.GetBinContent(iPt) * relStatUnc)
         hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         FDGenList.append(hGenPtFD)
-        #reco histos from trees
+
+        # reco histos from trees
         dataFramePromptSel = dataFramePrompt.astype(float).query(cuts)
         dataFrameFDSel = dataFrameFD.astype(float).query(cuts)
-        hPtPrompt = TH1F(f'hPromptPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', ptBins, ptLimLow, ptLimHigh)
+        hPtPrompt = TH1F(f'hPromptPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', nPtBins, ptLimLow, ptLimHigh)
         hInvMassPrompt = TH1F(f'hPromptMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', massBins, massLimLow, massLimHigh)
-        hPtFD = TH1F(f'hFDPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', ptBins, ptLimLow, ptLimHigh)
+        hPtFD = TH1F(f'hFDPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', nPtBins, ptLimLow, ptLimHigh)
         hInvMassFD = TH1F(f'hFDMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', massBins, massLimLow, massLimHigh)
-        fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'])
-        fill_hist(hInvMassPrompt, dataFramePromptSel['inv_mass'])
-        fill_hist(hPtFD, dataFrameFDSel['pt_cand'])
-        fill_hist(hInvMassFD, dataFrameFDSel['inv_mass'])
+
+        if args.ptweights:
+            hTmp = hPtPrompt.Clone('hTmp')
+            fill_hist(hTmp, dataFramePromptSel['pt_cand'].values) # for stat unc
+            fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'].values, dataFramePromptSel['pt_weights'].values)
+            for iPt in range(1, hTmp.GetNbinsX()+1):
+                hPtPrompt.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtPrompt.GetBinContent(iPt))
+        else:
+            fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'].values)
+        fill_hist(hInvMassPrompt, dataFramePromptSel['inv_mass'].values)
+
+        if args.ptweightsB or args.ptweights:
+            hTmp = hPtFD.Clone('hTmp')
+            fill_hist(hTmp, dataFrameFDSel['pt_cand'].values) # for stat unc
+            fill_hist(hPtFD, dataFrameFDSel['pt_cand'].values, dataFrameFDSel['pt_weights'].values)
+            for iPt in range(1, hTmp.GetNbinsX()+1):
+                hPtFD.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtFD.GetBinContent(iPt))
+        else:
+            fill_hist(hPtFD, dataFrameFDSel['pt_cand'].values)
+        fill_hist(hInvMassFD, dataFrameFDSel['inv_mass'].values)
+
         promptDict['InvMass'].append(hInvMassPrompt)
         promptDict['Pt'].append(hPtPrompt)
         FDDict['InvMass'].append(hInvMassFD)
@@ -141,7 +216,7 @@ if isMC:
         hPtFD.Write()
         hInvMassFD.Write()
 
-    #merge adiacent pt bin histograms
+    # merge adiacent pt bin histograms
     for iPt in range(0, len(cutVars['Pt']['min']) - 1):
         ptLowLabel = cutVars['Pt']['min'][iPt] * 10
         ptHighLabel = cutVars['Pt']['max'][iPt+1] * 10
@@ -173,7 +248,7 @@ else:
         ptLowLabel = ptMin * 10
         ptHighLabel = ptMax * 10
         dataFrameSel = dataFrame.astype(float).query(cuts)
-        hPt = TH1F(f'hPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', ptBins, ptLimLow, ptLimHigh)
+        hPt = TH1F(f'hPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', nPtBins, ptLimLow, ptLimHigh)
         hInvMass = TH1F(f'hMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', massBins, massLimLow, massLimHigh)
         fill_hist(hPt, dataFrameSel['pt_cand'])
         fill_hist(hInvMass, dataFrameSel['inv_mass'])
@@ -183,7 +258,7 @@ else:
         hPt.Write()
         hInvMass.Write()
 
-    #merge adiacent pt bin histograms
+    # merge adiacent pt bin histograms
     for iPt in range(0, len(cutVars['Pt']['min']) - 1):
         ptLowLabel = cutVars['Pt']['min'][iPt] * 10
         ptHighLabel = cutVars['Pt']['max'][iPt+1] * 10
@@ -194,7 +269,7 @@ else:
         hInvMassMerged.SetName(f'hMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         hInvMassMerged.Write()
 
-#normalisation
+# normalisation
 hEvForNorm = TH1F("hEvForNorm", ";;Number of events", 2, 0., 2.)
 hEvForNorm.GetXaxis().SetBinLabel(1, "norm counter")
 hEvForNorm.GetXaxis().SetBinLabel(2, "accepted events")
