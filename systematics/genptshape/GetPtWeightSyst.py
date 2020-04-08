@@ -1,121 +1,143 @@
 '''
-python script for the computation of pT weights to match generated pT-shape in MC and data (PbPb)
+Script for the estimation of the MC pT shape systematic uncertainty
+run: GetPtWeigthSyst.py cfgFileName.yml
 '''
 
+import sys
+import argparse
+import yaml
 from ROOT import TCanvas, TFile, TLine, TLegend  # pylint: disable=import-error,no-name-in-module
-from ROOT import kRed, kBlue, kBlack, kGreen, kAzure, kOrange, kFullCircle, kFullSquare, kFullTriangleUp, kFullTriangleDown, kFullCross  # pylint: disable=import-error,no-name-in-module,line-too-long
+from ROOT import kBlack, kBlue, kOrange, kGreen, kRed, kAzure  # pylint: disable=import-error,no-name-in-module
+from ROOT import kFullTriangleUp, kFullTriangleDown, kFullCross, kFullCircle, kFullSquare, kFullDiamond  # pylint: disable=import-error,no-name-in-module
+sys.path.insert(0, '../..')
 #pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
-# TO BE SET
-############################################################
-inFilePtWeightsName = 'ptweights/PtWeigths_LHC19c3a.root'
-inFileEffNames = ['outputs/genptshape/Eff_Ds_010_Pythia.root', 'outputs/genptshape/Eff_Ds_010_FONLL.root', \
-    'outputs/genptshape/Eff_Ds_010_FONLL_times_TAMU.root', 'outputs/genptshape/Eff_Ds_010_FONLL_times_PHSD.root', \
-        'outputs/genptshape/Eff_Ds_010_FONLL_times_Catania.root', \
-            'outputs/genptshape/Eff_Ds_010_FONLL_times_Gossiaux.root']
-
-outFilePtWeightsName = 'outputs/genptshape/PtWeights_010_LHC19c3a.pdf'
-outFileEffName = 'outputs/genptshape/SystPtWeights_010_LHC19c3a.pdf'
-
-PtShapes = ['Pythia', 'FONLLcent', 'FONLLtimesTAMUcent',
-            'FONLLtimesPHSDcent', 'FONLLtimesCataniacent', 'FONLLtimesGossiauxcent']
-colors = [kBlack, kBlue+1, kOrange+7, kGreen+2, kRed+2, kAzure+4]
-markers = [kFullCircle, kFullSquare, kFullSquare,
-           kFullTriangleUp, kFullTriangleDown, kFullCross]
-############################################################
+parser = argparse.ArgumentParser(description='Arguments')
+parser.add_argument('cfgFileName', metavar='text', default='config_ptshape_syst.yml')
+args = parser.parse_args()
 
 SetGlobalStyle(padleftmargin=0.14, titlesize=0.045, labelsize=0.04)
-hPtShapes, hPtWeights, hEffPrompt, hEffPromptRatio = ([] for iList in range(4))
 
-inFilePtWeights = TFile.Open(inFilePtWeightsName)
-for iShape in PtShapes:
-    hPtShapes.append(inFilePtWeights.Get('hPt%s' % iShape))
-    if iShape is not 'Pythia':
-        hPtWeights.append(inFilePtWeights.Get('hPtWeights%s' % iShape))
-
-if inFileEffNames and len(inFileEffNames) == len(PtShapes):
-    for iFile, filename in enumerate(inFileEffNames):
-        inFileEff = TFile.Open(filename)
-        hEffPrompt.append(inFileEff.Get('hEffPrompt'))
-        hEffPrompt[iFile].SetName('hEffPrompt%s' % PtShapes[iFile])
-        hEffPrompt[iFile].SetDirectory(0)
-
-    for iFile, filename in enumerate(inFileEffNames):
-        hEffPromptRatio.append(hEffPrompt[iFile].Clone(
-            'hEffPromptRatio%s' % PtShapes[iFile]))
-        hEffPromptRatio[iFile].SetDirectory(0)
-        hEffPromptRatio[iFile].Divide(hEffPrompt[iFile], hEffPrompt[0])
-        for iBin in range(hEffPromptRatio[iFile].GetNbinsX()):
-            hEffPromptRatio[iFile].SetBinError(iBin+1, 1.e-20)
+modelNames = ['pythia', 'fonll', 'tamu', 'phsd', 'mc@shq', 'catania']
+colors = {'pythia': kBlack, 'fonll': kBlue+1, 'tamu': kOrange+7, 'phsd': kGreen+2, 'catania': kRed+2, 'mc@shq':kAzure+4}
+markers = {'pythia': kFullCircle, 'fonll': kFullSquare, 'tamu': kFullCross, 'phsd': kFullDiamond,
+           'catania': kFullTriangleUp, 'mc@shq': kFullTriangleDown}
+legNames = {'pythia': 'Pythia', 'fonll': 'FONLL', 'tamu': 'FONLL #times TAMU', 'phsd': 'FONLL #times PHSD',
+            'catania': 'FONLL #times Catania', 'mc@shq': 'FONLL #times MC@sHQ'}
 
 leg = TLegend(0.3, 0.7, 0.7, 0.9)
 leg.SetFillStyle(0)
 leg.SetTextSize(0.04)
-leg.AddEntry(hPtShapes[0], 'Pythia', 'l')
-leg.AddEntry(hPtShapes[1], 'FONLL', 'l')
-leg.AddEntry(hPtShapes[2], 'FONLL #times TAMU', 'l')
-leg.AddEntry(hPtShapes[3], 'FONLL #times PHSD', 'l')
-leg.AddEntry(hPtShapes[4], 'FONLL #times Catania', 'l')
-leg.AddEntry(hPtShapes[5], 'FONLL #times MC@sHQ-EPOS2', 'l')
 
-if inFileEffNames and len(inFileEffNames) == len(PtShapes):
-    legEff = TLegend(0.3, 0.2, 0.7, 0.4)
-    legEff.SetFillStyle(0)
-    legEff.SetTextSize(0.04)
-    legEff.AddEntry(hEffPrompt[0], 'Pythia', 'p')
-    legEff.AddEntry(hEffPrompt[1], 'FONLL', 'p')
-    legEff.AddEntry(hEffPrompt[2], 'FONLL #times TAMU', 'p')
-    legEff.AddEntry(hEffPrompt[3], 'FONLL #times PHSD', 'p')
-    legEff.AddEntry(hEffPrompt[4], 'FONLL #times Catania', 'p')
-    legEff.AddEntry(hEffPrompt[5], 'FONLL #times MC@sHQ-EPOS2', 'p')
+legEff = TLegend(0.3, 0.2, 0.7, 0.4)
+legEff.SetFillStyle(0)
+legEff.SetTextSize(0.04)
 
-lineatone = TLine(0., 1., 36., 1.)
+with open(args.fitConfigFileName, 'r') as ymlfitConfigFile:
+    inputCfg = yaml.load(ymlfitConfigFile, yaml.FullLoader)
+
+outDir = inputCfg['output']['directory']
+outSuffix = inputCfg['output']['suffix']
+
+inFilePtWeightsName = inputCfg['inputs']['ptweightsfile']
+inFilePtWeights = TFile.Open(inFilePtWeightsName)
+enableBweights = inputCfg['inputs']['enableBweights']
+
+hPtDistrD, hPtWeightsD, hPtDistrB, hPtWeightsB, hEffPrompt, \
+    hEffFD, hEffPromptRatio, hEffFDRatio = ({} for _ in range(8))
+
+for model in modelNames:
+    if model == 'pythia' or inputCfg['inputs'][model]['enable']:
+        hPtDistrD[model] = inFilePtWeights.Get(f'')
+        SetObjectStyle(hPtDistrD[model], linewidth=2, linecolor=colors[model],
+                       markerstyle=markers[model], markercolor=colors[model])
+        if model != 'pythia':
+            hPtWeightsD[model] = inFilePtWeights.Get(f'')
+            SetObjectStyle(hPtWeightsD[model], linewidth=2, linecolor=colors[model],
+                           markerstyle=markers[model], markercolor=colors[model])
+        if enableBweights:
+            hPtDistrB[model] = inFilePtWeights.Get(f'')
+            SetObjectStyle(hPtDistrB[model], linewidth=2, linecolor=colors[model],
+                           markerstyle=markers[model], markercolor=colors[model])
+            if model != 'pythia':
+                hPtWeightsB[model] = inFilePtWeights.Get(f'')
+                SetObjectStyle(hPtWeightsB[model], linewidth=2, linecolor=colors[model],
+                               markerstyle=markers[model], markercolor=colors[model])
+        inFileEff = TFile.Open(inputCfg['inputs'][model]['efffile'])
+        hEffPrompt[model] = inFileEff.Get('hEffPrompt')
+        hEffFD[model] = inFileEff.Get('hEffFD')
+        SetObjectStyle(hEffPrompt[model], linewidth=2, linecolor=colors[model],
+                       markerstyle=markers[model], markercolor=colors[model])
+        SetObjectStyle(hEffFD[model], linewidth=2, linecolor=colors[model],
+                       markerstyle=markers[model], markercolor=colors[model])
+
+        leg.AddEntry(hPtDistrD[model], legNames[model], 'l')
+        legEff.AddEntry(hPtDistrD[model], legNames[model], 'lp')
+
+ptMin = hPtDistrD['pythia'].GetBinLowEdge(1)
+ptMax = hPtDistrD['pythia'].GetBinLowEdge(hPtDistrD['pythia'].GetNbinsX()) \
+    + hPtDistrD['pythia'].GetBinWidth(hPtDistrD['pythia'].GetNbinsX())
+
+lineatone = TLine(ptMin, 1., ptMax, 1.)
 lineatone.SetLineWidth(2)
 lineatone.SetLineStyle(9)
 lineatone.SetLineColor(kBlack)
 
-cShapes = TCanvas('cShapes', '', 1000, 500)
-cShapes.Divide(2, 1)
-cShapes.cd(1).DrawFrame(0, 1.e-8, 36, 1., ';#it{p}_{T} GeV/#it{c}; d#it{N}/d#it{p}_{T} (a. u.)')
-cShapes.cd(1).SetLogy()
-for iShape, _ in enumerate(hPtShapes):
-    hPtShapes[iShape].SetLineWidth(2)
-    hPtShapes[iShape].SetLineColor(colors[iShape])
-    hPtShapes[iShape].Draw('chistsame')
+cShapesD = TCanvas('cShapes', '', 1000, 500)
+cShapesD.Divide(2, 1)
+cShapesD.cd(1).DrawFrame(ptMin, 1.e-8, ptMax, 1., ';#it{p}_{T} GeV/#it{c}; d#it{N}/d#it{p}_{T} (a. u.)')
+cShapesD.cd(1).SetLogy()
+for histo in hPtDistrD:
+    histo.DrawCopy('chistsame')
 leg.Draw()
-cShapes.cd(2).DrawFrame(0, 1.e-3, 36, 1.e+1, ';#it{p}_{T} GeV/#it{c}; #it{p}_{T} weights')
-cShapes.cd(2).SetLogy()
+cShapesD.cd(2).DrawFrame(ptMin, 1.e-3, ptMax, 1.e+1, ';#it{p}_{T} GeV/#it{c}; #it{p}_{T} weights')
+cShapesD.cd(2).SetLogy()
 lineatone.Draw('same')
-for iShape, _ in enumerate(hPtWeights):
-    hPtWeights[iShape].Draw('chistsame')
-    hPtWeights[iShape].SetLineWidth(2)
-    hPtWeights[iShape].SetLineColor(colors[iShape+1])
+for histo in hPtWeightsD:
+    histo.DrawCopy('chistsame')
 
-cShapes.SaveAs(outFilePtWeightsName)
+cShapesD.SaveAs(f'{outDir}/PtWeightsD{outSuffix}.pdf')
 
-if inFileEffNames and len(inFileEffNames) == len(PtShapes):
-    ptmin = hEffPrompt[0].GetBinLowEdge(1)
-    ptmax = hEffPrompt[0].GetBinLowEdge(hEffPrompt[0].GetNbinsX(
-    ))+hEffPrompt[0].GetBinWidth(hEffPrompt[0].GetNbinsX())
-    cEff = TCanvas('cEff', '', 1000, 500)
-    cEff.Divide(2, 1)
-    cEff.cd(1).DrawFrame(ptmin, 1.e-4, ptmax, 1., ';#it{p}_{T} GeV/#it{c}; prompt efficiency')
-    cEff.cd(1).SetLogy()
-    for iEff, hEff in enumerate(hEffPrompt):
-        hEff.SetLineWidth(2)
-        hEff.SetLineColor(colors[iEff])
-        hEff.SetMarkerColor(colors[iEff])
-        hEff.SetMarkerSize(1)
-        hEff.Draw('same')
-    legEff.Draw()
-    cEff.cd(2).DrawFrame(ptmin, 0.8, ptmax, 1.2, ';#it{p}_{T} GeV/#it{c}; prompt efficiency ratio')
-    for iEff, heffRatio in enumerate(hEffPromptRatio):
-        heffRatio.SetLineWidth(2)
-        heffRatio.SetLineColor(colors[iEff])
-        heffRatio.SetMarkerColor(colors[iEff])
-        heffRatio.SetMarkerSize(1)
-        heffRatio.Draw('same')
-    cEff.SaveAs(outFileEffName)
-    
+if enableBweights:
+    cShapesB = TCanvas('cShapes', '', 1000, 500)
+    cShapesB.Divide(2, 1)
+    cShapesB.cd(1).DrawFrame(ptMin, 1.e-8, ptMax, 1., ';#it{p}_{T} GeV/#it{c}; d#it{N}/d#it{p}_{T}^{B} (a. u.)')
+    cShapesB.cd(1).SetLogy()
+    for histo in hPtDistrD:
+        histo.DrawCopy('chistsame')
+    leg.Draw()
+    cShapesB.cd(2).DrawFrame(ptMin, 1.e-3, ptMax, 1.e+1, ';#it{p}_{T} GeV/#it{c}; #it{p}_{T}^{B} weights')
+    cShapesB.cd(2).SetLogy()
+    lineatone.Draw('same')
+    for histo in hPtWeightsD:
+        histo.DrawCopy('chistsame')
+
+    cShapesB.SaveAs(f'{outDir}/PtWeightsB{outSuffix}.pdf')
+
+
+cEffD = TCanvas('cEffD', '', 1000, 500)
+cEffD.Divide(2, 1)
+cEffD.cd(1).DrawFrame(ptMin, 1.e-4, ptMax, 1., ';#it{p}_{T} GeV/#it{c}; prompt efficiency')
+cEffD.cd(1).SetLogy()
+for histo in hEffPrompt:
+    histo.DrawCopy('same')
+legEff.Draw()
+cEffD.cd(2).DrawFrame(ptMin, 0.8, ptMax, 1.2, ';#it{p}_{T} GeV/#it{c}; prompt efficiency ratio')
+for histo in hEffPromptRatio:
+    histo.DrawCopy('same')
+cEffD.SaveAs(f'{outDir}/SystPtWeightsPrompt{outSuffix}.pdf')
+
+cEffB = TCanvas('cEffB', '', 1000, 500)
+cEffB.Divide(2, 1)
+cEffB.cd(1).DrawFrame(ptMin, 1.e-4, ptMax, 1., ';#it{p}_{T} GeV/#it{c}; FD efficiency')
+cEffB.cd(1).SetLogy()
+for histo in hEffFD:
+    histo.DrawCopy('same')
+legEff.Draw()
+cEffB.cd(2).DrawFrame(ptMin, 0.8, ptMax, 1.2, ';#it{p}_{T} GeV/#it{c}; FD efficiency ratio')
+for histo in hEffFDRatio:
+    histo.DrawCopy('same')
+cEffB.SaveAs(f'{outDir}/SystPtWeightsFD{outSuffix}.pdf')
+
 input('Press enter to exit')
