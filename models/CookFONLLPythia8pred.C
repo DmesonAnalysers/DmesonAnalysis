@@ -45,31 +45,31 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
 
   const int numMothers = 4;
   const int numDaughters = 6;
-  std::array<std::string, numMothers> mothToDauHistos = {"hBplusdau", "hB0dau", "hBsdau", "hLbdau"};
+  std::array<std::string, numMothers> mothToDauHistos = {"hB0dau", "hBplusdau", "hBsdau", "hLbdau"};
   std::array<std::string, numDaughters> predFDHistos = {"hnonpromptD0pt", "hnonpromptDpluspt", "hnonpromptDspt",
                                                         "hnonpromptLcpt", "hnonpromptDstarpt", "hnonpromptLcpt"};
   std::array<std::string, numDaughters> predPromptHistos = {"hfonllPromptD0", "hfonllPromptDplus", "hfonllPromptDs",
                                                             "hfonllPromptLc", "hfonllPromptDstar", "hfonllPromptLc"};
   std::array<std::string, numDaughters> predTag = {"D0Kpi", "Dpluskpipi", "DsPhipitoKkpi", "Lcpkpi", "DstarD0pi", "LcK0sp"};
   std::array<std::string, numDaughters - 1> partTag = {"D0", "Dplus", "Ds", "Lc", "Dstar"};
-  std::array<double, numMothers> origBFF = {0.34, 0.34, 0.101, 0.218}; // (B+, B0, Bs, Lb) FF used in the input predictions
-  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromB = {{{0.876, 0.555, 0.008, 0.},   // D0 and (BRfromB+, BRfromB0, BRfromBs, BRfromLb) from PDG (2018)
-                                                                          {0.124, 0.392, 0., 0.},      // D+
-                                                                          {0.09, 0.117, 0.93, 0.011},  // Ds
-                                                                          {0.049, 0.066, 0., 0.333},   // Lc
-                                                                          {0.061, 0.23, 0.003, 0.},    // D*+
-                                                                          {0.049, 0.066, 0., 0.333}    // Lc
+  std::array<double, numMothers> origBFF = {0.34, 0.34, 0.101, 0.218}; // (B0, B+, Bs, Lb) FF used in the input predictions
+  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromB = {{{0.555, 0.876, 0.008, 0.},   // D0 and (BRfromB0, BRfromB+, BRfromBs, BRfromLb) from PDG (2018)
+                                                                          {0.392, 0.124, 0., 0.},      // D+
+                                                                          {0.117, 0.09, 0.93, 0.011},  // Ds
+                                                                          {0.066, 0.049, 0., 0.333},   // Lc
+                                                                          {0.23, 0.061, 0.003, 0.},    // D*+
+                                                                          {0.066, 0.049, 0., 0.333}    // Lc
                                                                           }};
   // B0 and B+ BR from B0/B+- admixture
-  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromBmix = {{{0.624, 0.624, 0.008, 0.},   // D0 and (BRfromB+, BRfromB0, BRfromBs, BRfromLb) from PDG (2018)
+  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromBmix = {{{0.624, 0.624, 0.008, 0.},   // D0 and (BRfromB0, BRfromB+, BRfromBs, BRfromLb) from PDG (2018)
                                                                              {0.241, 0.241, 0., 0.},      // D+
                                                                              {0.083, 0.083, 0.93, 0.011}, // Ds
                                                                              {0.036, 0.036, 0., 0.333},   // Lc
                                                                              {0.225, 0.225, 0.003, 0.},   // D*+
                                                                              {0.036, 0.036, 0., 0.333}    // Lc
                                                                              }};
-  std::array<double, numMothers> ppbarBFF = {0.34, 0.34, 0.101, 0.218}; // (B+, B0,Bs, Lb) from PDG (2018)
-  std::array<double, numMothers> eeBFF = {0.412, 0.412, 0.088, 0.089}; // (B+, B0, Bs, Lb) from PDG (2018)
+  std::array<double, numMothers> ppbarBFF = {0.34, 0.34, 0.101, 0.218}; // (B0, B+, Bs, Lb) from PDG (2018)
+  std::array<double, numMothers> eeBFF = {0.412, 0.412, 0.088, 0.089}; // (B0, B+, Bs, Lb) from PDG (2018)
   std::array<double, numDaughters> decayBR = {0.0389, 0.0898, 0.0227, 0.0623, 0.0263, 0.0158}; // (D0, D+, Ds, Lc->pKpi, D*+, LC->K0sp) from PDG (2018)
   std::array<std::array<double, numMothers>, numDaughters> origBR = {};
 
