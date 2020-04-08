@@ -1,10 +1,19 @@
 '''
 python script for the projection of D+ and Ds+ mesons THnSparses
 run: python ProjectDplusDsSparse.py cfgFileName.yml cutSetFileName.yml outFileName.root
+                                    [--ptweights PtWeightsFileName.root histoName]
+                                    [--ptweightsB PtWeightsFileName.root histoName]
+
+if the --ptweights argument is provided, pT weights will be applied to prompt and FD pT distributions
+if the --ptweightsB argument is provided, pT weights will be applied to FD pT distributions instead of
+those for the prompt
 '''
 
 import argparse
 import yaml
+import numpy as np
+from scipy.interpolate import InterpolatedUnivariateSpline
+import uproot
 from ROOT import TFile, TH1F  # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadSparseFromTask, LoadNormObjFromTask
 from utils.AnalysisUtils import MergeHists
@@ -16,6 +25,10 @@ parser.add_argument('cutSetFileName', metavar='text', default='cutSetFileName.ym
                     help='input file with cut set')
 parser.add_argument('outFileName', metavar='text', default='outFileName.root',
                     help='output root file name')
+parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=False,
+                    help='First path of the pT weights file, second name of the pT weights histogram')
+parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
+                    help='First path of the pT weights file, second name of the pT weights histogram')
 args = parser.parse_args()
 
 with open(args.cfgFileName, 'r') as ymlCfgFile:
@@ -24,8 +37,15 @@ with open(args.cfgFileName, 'r') as ymlCfgFile:
 infilenames = inputCfg['filename']
 if not isinstance(infilenames, list):
     infilenames = [infilenames]
-isMC = inputCfg['isMC']
 enableSecPeak = inputCfg['enableSecPeak']
+isMC = inputCfg['isMC']
+if not isMC:
+    if args.ptweights:
+        print('WARNING: pt weights will not be applied since it is not MC')
+        args.ptweights = None
+    if args.ptweightsB:
+        print('WARNING: ptB weights will not be applied since it is not MC')
+        args.ptweightsB = None
 
 for iFile, infilename in enumerate(infilenames):
     if iFile == 0:
@@ -40,6 +60,28 @@ for iFile, infilename in enumerate(infilenames):
             sparseGen[sparsetype].Add(sparseGenPart[sparsetype])
         hEv.Add(hEvPart)
         normCounter.Add(normCounterPart)
+
+# compute pt weights
+if args.ptweights:
+    ptWeights = uproot.open(args.ptweights[0])[args.ptweights[1]]
+    ptCentW = [(ptWeights.edges[iBin]+ptWeights.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
+    sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values)
+    if not args.ptweightsB:
+        sPtWeightsGenDfromB = sPtWeights
+        sPtWeightsRecoDfromB = sPtWeights
+
+if args.ptweightsB:
+    ptWeightsB = uproot.open(args.ptweights[0])[args.ptweights[1]]
+    ptCentWB = [(ptWeightsB.edges[iBin]+ptWeightsB.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
+    sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values)
+    hPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2)
+    hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(0, 2)
+    averagePtBvsPtGen = np.array(hPtBvsPtGenD.ProfileX())
+    averagePtBvsPtReco = np.array(hPtBvsPtRecoD.ProfileX())
+    aPtGenWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtGen]
+    aPtRecoWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtReco]
+    sPtWeightsGenDfromB = InterpolatedUnivariateSpline(ptCentW, aPtGenWeightsB)
+    sPtWeightsRecoDfromB = InterpolatedUnivariateSpline(ptCentW, aPtRecoWeightsB)
 
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
@@ -86,10 +128,24 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         hVar.Write()
         if isMC:
             hVarPrompt = sparseReco['RecoPrompt'].Projection(cutVars[iVar]['axisnum'])
+            # apply pt weights
+            if iVar == 'Pt' and args.ptweights:
+                for iBin in range(hVarPrompt.GetNbinsX()):
+                    relStatUnc = hVarPrompt.GetBinError(iBin) / hVarPrompt.GetBinContent(iBin)
+                    ptCent = hVarPrompt.GetBinWidth(iBin)
+                    hVarPrompt.SetBinContent(iBin, hVarPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
+                    hVarPrompt.SetBinError(iBin, hVarPrompt.GetBinContent(iBin) * relStatUnc)
             hVarPrompt.SetName(f'hPrompt%{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             prompt_dict[iVar].append(hVarPrompt)
             hVarPrompt.Write()
             hVarFD = sparseReco['RecoFD'].Projection(cutVars[iVar]['axisnum'])
+            # apply pt weights
+            if iVar == 'Pt' and (args.ptweightsB or args.ptweights):
+                for iBin in range(hVarFD.GetNbinsX()):
+                    relStatUnc = hVarFD.GetBinError(iBin) / hVarFD.GetBinContent(iBin)
+                    ptCent = hVarFD.GetBinWidth(iBin)
+                    hVarFD.SetBinContent(iBin, hVarFD.GetBinContent(iBin) * sPtWeightsRecoDfromB(ptCent))
+                    hVarFD.SetBinError(iBin, hVarFD.GetBinContent(iBin) * relStatUnc)
             hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             fd_dict[iVar].append(hVarFD)
             hVarFD.Write()
@@ -108,10 +164,24 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
         hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
+        # apply pt weights
+        if args.ptweights:
+            for iBin in range(hGenPtPrompt.GetNbinsX()):
+                relStatUnc = hGenPtPrompt.GetBinError(iBin) / hGenPtPrompt.GetBinContent(iBin)
+                ptCent = hGenPtPrompt.GetBinWidth(iBin)
+                hGenPtPrompt.SetBinContent(iBin, hGenPtPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
+                hGenPtPrompt.SetBinError(iBin, hGenPtPrompt.GetBinContent(iBin) * relStatUnc)
         hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         prompt_gen_list.append(hGenPtPrompt)
         hGenPtPrompt.Write()
         hGenPtFD = sparseGen['GenFD'].Projection(0)
+        # apply pt weights
+        if args.ptweightsB or args.ptweights:
+            for iBin in range(hGenPtFD.GetNbinsX()):
+                relStatUnc = hGenPtFD.GetBinError(iBin) / hGenPtFD.GetBinContent(iBin)
+                ptCent = hGenPtFD.GetBinWidth(iBin)
+                hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeightsRecoDfromB(ptCent))
+                hGenPtFD.SetBinError(iBin, hGenPtFD.GetBinContent(iBin) * relStatUnc)
         hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         fd_gen_list.append(hGenPtFD)
         hGenPtFD.Write()
@@ -131,15 +201,11 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         sparseReco['RecoAll'].GetAxis(
             cutVars[iVar]['axisnum']).SetRange(-1, -1)
         if isMC:
-            sparseReco['RecoPrompt'].GetAxis(
-                cutVars[iVar]['axisnum']).SetRange(-1, -1)
-            sparseReco['RecoFD'].GetAxis(
-                cutVars[iVar]['axisnum']).SetRange(-1, -1)
+            sparseReco['RecoPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
+            sparseReco['RecoFD'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
             if enableSecPeak:
-                sparseReco['RecoSecPeakPrompt'].GetAxis(
-                    cutVars[iVar]['axisnum']).SetRange(-1, -1)
-                sparseReco['RecoSecPeakFD'].GetAxis(
-                    cutVars[iVar]['axisnum']).SetRange(-1, -1)
+                sparseReco['RecoSecPeakPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
+                sparseReco['RecoSecPeakFD'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
 
 for iPt in range(0, len(cutVars['Pt']['min']) - 1):
     ptLowLabel = cutVars['Pt']['min'][iPt] * 10
