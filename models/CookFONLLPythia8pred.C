@@ -35,7 +35,6 @@ enum { // options for re-weight
 void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FFppbar_yDcut.root",
                           std::string inFileNameCent = "DfromB_FONLLcentPythia8_FFppbar_yDcut.root",
                           std::string inFileNameMax = "DfromB_FONLLmaxPythia8_FFppbar_yDcut.root",
-                          std::string brFileName = "DfromB_FONLLcentPythia8_FFppbar_forBR.root",
                           std::string outFileName = "DmesonLcPredictions_502TeV_y05 _pythia8.root",
                           int brOpt = kBRPDG,
                           int ffOpt = kFFOriginal,
@@ -69,7 +68,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
                                                                              {0.225, 0.225, 0.003, 0.},   // D*+
                                                                              {0.036, 0.036, 0., 0.333}    // Lc
                                                                              }};
-  std::array<double, numMothers> ppbarBFF = {0.34, 0.34, 0.101, 0.218}; // ( B+, B0,Bs, Lb) from PDG (2018)
+  std::array<double, numMothers> ppbarBFF = {0.34, 0.34, 0.101, 0.218}; // (B+, B0,Bs, Lb) from PDG (2018)
   std::array<double, numMothers> eeBFF = {0.412, 0.412, 0.088, 0.089}; // (B+, B0, Bs, Lb) from PDG (2018)
   std::array<double, numDaughters> decayBR = {0.0389, 0.0898, 0.0227, 0.0623, 0.0263, 0.0158}; // (D0, D+, Ds, Lc->pKpi, D*+, LC->K0sp) from PDG (2018)
   std::array<std::array<double, numMothers>, numDaughters> origBR = {};
@@ -102,59 +101,55 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
     std::cout<<std::endl;
   }
 
-  // get the original BR and compute the corr. factor if necessary
-  TFile *inBRFile = TFile::Open(brFileName.data());
-  for(int iMother = 0; iMother < numMothers; iMother++) {
-    TH1F *hMothToDau = (TH1F *)inBRFile->Get(mothToDauHistos[iMother].data());
-    double totMothers = hMothToDau->GetBinContent(1);
-
-    for(int iDau = 0; iDau < numDaughters - 1; iDau++) {
-      double totDau = hMothToDau->GetBinContent(iDau + 2);
-      origBR[iDau][iMother] = 1. * totDau / totMothers; 
-    }
-
-    // manually set origBR for the LcK0sp case, they are equal to the LcpKpi case
-    origBR[5][iMother] = origBR[3][iMother];
-  }
-  inBRFile->Close();
-
-  // print original BR factors from file
-  if(brOpt == kBROriginal) {
-    for(int iMother = 0; iMother < numMothers; iMother++) {
-      std::cout<<"BR for "<<mothToDauHistos[iMother]<<" extracted from "<<brFileName<<" file\n";
-      for(int iDau = 0; iDau < numDaughters - 1; iDau++) 
-        std::cout<<"  to  " + partTag[iDau] << ": "<<origBR[iDau][iMother]<<std::endl;
-    }
-  }
-
-  // print fraction of b to b-hadrons FF times BR extracted from file
-  if(brOpt == kBROriginal) {
-    std::cout<<"b to X factors with BR extracted from "<<brFileName<<" file\n";
-    for(int iDau = 0; iDau < numDaughters - 1; iDau++) {
-        double frac = 0.;
-        for(int iMother = 0; iMother < numMothers; iMother++) {
-          double motherFF = 1.;
-          if(ffOpt == kFFOriginal)
-            motherFF = origBFF[iMother];
-          else if(ffOpt == kFFppbar)
-            motherFF = ppbarBFF[iMother];
-          else if(ffOpt == kFFee)
-            motherFF = eeBFF[iMother];
-          frac += motherFF * origBR[iDau][iMother];
-        }
-        std::cout<<"Factor b to " + partTag[iDau] << ": "<<frac<<std::endl;
-    }
-    std::cout<<std::endl;
-  }
-
   TFile outFile(outFileName.data(),"recreate");
 
   for(int iFile = 0; iFile < 3; iFile++) {
     TFile *inFile = TFile::Open(inFileNames[iFile].data());
 
+    // get the original BR
+    for(int iMother = 0; iMother < numMothers; iMother++) {
+      TH1F *hMothToDau = (TH1F *)inFile->Get(mothToDauHistos[iMother].data());
+      double totMothers = hMothToDau->GetBinContent(1);
+
+      for(int iDau = 0; iDau < numDaughters - 1; iDau++) {
+        double totDau = hMothToDau->GetBinContent(iDau + 2);
+        origBR[iDau][iMother] = 1. * totDau / totMothers; 
+      }
+      // manually set origBR for the LcK0sp case, it is equal to the LcpKpi case
+      origBR[5][iMother] = origBR[3][iMother];
+    }
+
+    // print original BR factors from file, only for central case
+    if(brOpt == kBROriginal && edgeNames[iFile] == "central") {
+      for(int iMother = 0; iMother < numMothers; iMother++) {
+        std::cout<<"BR for "<<mothToDauHistos[iMother]<<" extracted from "<<inFileNames[iFile]<<" file\n";
+        for(int iDau = 0; iDau < numDaughters - 1; iDau++) 
+          std::cout<<"  to  " + partTag[iDau] << ": "<<origBR[iDau][iMother]<<std::endl;
+      }
+    }
+
+    // print fraction of b to b-hadrons FF times BR extracted from file, only for central case
+    if(brOpt == kBROriginal && edgeNames[iFile] == "central") {
+      std::cout<<"b to X factors with BR extracted from "<<inFileNames[iFile]<<" file\n";
+      for(int iDau = 0; iDau < numDaughters - 1; iDau++) {
+          double frac = 0.;
+          for(int iMother = 0; iMother < numMothers; iMother++) {
+            double motherFF = 1.;
+            if(ffOpt == kFFOriginal)
+              motherFF = origBFF[iMother];
+            else if(ffOpt == kFFppbar)
+              motherFF = ppbarBFF[iMother];
+            else if(ffOpt == kFFee)
+              motherFF = eeBFF[iMother];
+            frac += motherFF * origBR[iDau][iMother];
+          }
+          std::cout<<"Factor b to " + partTag[iDau] << ": "<<frac<<std::endl;
+      }
+      std::cout<<std::endl;
+    }
+
     // get and correct the predictions
     for(int iDau = 0; iDau < numDaughters; iDau++) {
-
       TH1F *hDauFDPred = nullptr;
 
       // crude method, estimate a global correction factor
@@ -231,22 +226,23 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
       // prompt predictions
       TH1F *hDauPromptPred = (TH1F *)inFile->Get(predPromptHistos[iDau].data());
       hDauPromptPred->SetDirectory(0);
-      hDauPromptPred->Scale(decayBR[iDau]);
+      hDauPromptPred->Scale(decayBR[iDau] / 1.e-6);
       std::string name = "h" + predTag[iDau] + "pred_" + edgeNames[iFile];
       std::string title = predTag[iDau] + " " + edgeNames[iFile] + " value prediction (with BR)";
       hDauPromptPred->SetName(name.data());
       hDauPromptPred->SetTitle(title.data());
       hDauPromptPred->GetXaxis()->SetTitle("p_{T} (GeV)");
-      hDauPromptPred->GetYaxis()->SetTitle("d#sigma/dp_{T} (#mub/GeV)");
+      hDauPromptPred->GetYaxis()->SetTitle("d#sigma/dp_{T} x BR (pb/GeV)");
       outFile.cd();
       hDauPromptPred->Write();
 
       // non-prompt predictions
-      hDauFDPred->Scale(decayBR[iDau]);
+      hDauFDPred->Scale(decayBR[iDau] / 1.e-6);
       std::string nameFD = "h" + predTag[iDau] + "fromBpred_" + edgeNames[iFile] + "_corr";
       std::string titleFD = predTag[iDau] + " from B " + edgeNames[iFile] + " value prediction (with BR and B->D correction)";
       hDauFDPred->SetName(nameFD.data());
       hDauFDPred->SetTitle(titleFD.data());
+      hDauFDPred->GetYaxis()->SetTitle("d#sigma/dp_{T} x BR (pb/GeV)");
       outFile.cd();
       hDauFDPred->Write();
     }
