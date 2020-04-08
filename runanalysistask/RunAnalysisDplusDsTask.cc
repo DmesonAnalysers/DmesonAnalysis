@@ -83,6 +83,8 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     bool local = false;
     bool gridTest = false;
     string pathToLocalAODfiles = "";
+    if (!gGrid)
+        TGrid::Connect("alien://");
     if (config["runtype"].as<string>() == "local")
     {
         local = true;
@@ -90,9 +92,6 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     }
     else
     {
-        if (!gGrid)
-            TGrid::Connect("alien://");
-
         if (config["runtype"].as<string>() == "test")
             gridTest = true;
     }
