@@ -1,0 +1,25 @@
+inputs:
+    ptweightsfile: ptweights/DsPbPb/PtWeigths_LHC19c3a.root
+    enableBweights: false # only for pp (FONLL only), since no RAA prediction available for B mesons
+    shapes:
+        pythia: # always enabled --> unweighted
+            efffile: outputs/genptshape/Eff_Ds_010_Pythia.root
+        fonll:
+            enabled: true
+            efffile: outputs/genptshape/Eff_Ds_010_FONLL.root
+        tamu:
+            enabled: true
+            efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_TAMU.root
+        phsd:
+            enabled: true
+            efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_PHSD.root
+        mc@shq:
+            enabled: true
+            efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_Gossiaux.root
+        catania:
+            enabled: true
+            efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_Catania.root
+
+outputfile:
+    directory: outputs/genptshape
+    suffix: _010_LHC19c3a.pdf
