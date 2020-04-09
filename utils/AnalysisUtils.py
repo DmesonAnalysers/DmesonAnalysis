@@ -542,3 +542,29 @@ def MergeHists(listOfHists):
             listMerge.Add(hist)
     hMerged.Merge(listMerge)
     return hMerged
+
+
+def ApplySplineFuncToColumn(df, column, spline):
+    '''
+    Method to apply a function to a pandas column via a spline object
+
+    Parameters
+    ----------
+
+    - df: input pandas.Dataframe
+    - column: column of the pandas dataframe to which apply the spline
+    - spline: spline (scipy.interpolate.InterpolatedUnivariateSpline object)
+
+    Returns
+    ----------
+
+    - y: pandas.Series with result of the function application to column
+
+    '''
+    y = []
+    for x in df[column].values:
+        y.append(spline(x))
+
+    y = pd.Series(y)
+    
+    return y

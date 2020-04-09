@@ -19,7 +19,7 @@ from root_numpy import fill_hist
 from ROOT import TFile, TH1F, TDatabasePDG # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadNormObjFromTask, LoadSparseFromTask
 from utils.DfUtils import FilterBitDf, LoadDfFromRootOrParquet
-from utils.AnalysisUtils import MergeHists
+from utils.AnalysisUtils import MergeHists, ApplySplineFuncToColumn
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -117,33 +117,38 @@ if isMC:
     if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only FD and not reflected
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
+    dataFramePrompt.reset_index(inplace=True)
 
     dataFrameFD = LoadDfFromRootOrParquet(inputCfg['tree']['filenameFD'], inputCfg['tree']['dirname'],
                                           inputCfg['tree']['treename'])
     if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and not reflected
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
+    dataFrameFD.reset_index(inplace=True)
 
     # compute pt weights
     if args.ptweights:
         ptWeights = uproot.open(args.ptweights[0])[args.ptweights[1]]
         ptCentW = [(ptWeights.edges[iBin]+ptWeights.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
         sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values)
-        dataFramePrompt['pt_weights'] = dataFramePrompt.apply(lambda cand: sPtWeights(cand['pt_cand']), axis=1)
+        dataFramePrompt['pt_weights'] = ApplySplineFuncToColumn(dataFramePrompt, 'pt_cand', sPtWeights)
         if not args.ptweightsB:
-            dataFrameFD['pt_weights'] = dataFrameFD.apply(lambda cand: sPtWeights(cand['pt_cand']), axis=1)
+            dataFrameFD['pt_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'pt_cand', sPtWeights)
             sPtWeightsDfromB = sPtWeights
 
     if args.ptweightsB:
         ptWeightsB = uproot.open(args.ptweights[0])[args.ptweights[1]]
         ptCentWB = [(ptWeightsB.edges[iBin]+ptWeightsB.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
         sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values)
-        dataFrameFD['pt_weights'] = dataFrameFD.apply(lambda cand: sPtWeightsB(cand['pt_B']), axis=1)
+        dataFrameFD['pt_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'pt_B', sPtWeightsB)
         # average correction for gen part since tree not available (--> good approximation)
-        hPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2)
-        averagePtBvsPtGen = np.array(hPtBvsPtGenD.ProfileX())
-        aPtGenWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtGen]
-        sPtWeightsDfromB = InterpolatedUnivariateSpline(ptCentW, aPtGenWeightsB)
+        hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
+        ptCentGen, averagePtBvsPtGen = [], []
+        for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
+            ptCentGen.append(hPtBvsPtGenD.GetBinCenter(iPt))
+            averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
+        aPtGenWeightsB = list(sPtWeightsB(averagePtBvsPtGen))
+        sPtWeightsDfromB = InterpolatedUnivariateSpline(ptCentGen, aPtGenWeightsB)
 
     for (cuts, ptMin, ptMax) in zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max']):
         print(f'Projecting distributions for {ptMin:.1f} < pT < {ptMax:.1f} GeV/c')
@@ -157,22 +162,26 @@ if isMC:
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
 
         hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
+        hGenPtPrompt.Sumw2()
         if args.ptweights:
             for iPt in range(hGenPtPrompt.GetNbinsX()):
-                relStatUnc = hGenPtPrompt.GetBinError(iPt) / hGenPtPrompt.GetBinContent(iPt)
-                ptCent = hGenPtPrompt.GetBinWidth(iPt)
-                hGenPtPrompt.SetBinContent(iPt, hGenPtPrompt.GetBinContent(iPt) * sPtWeights(ptCent))
-                hGenPtPrompt.SetBinError(iPt, hGenPtPrompt.GetBinContent(iPt) * relStatUnc)
+                if hGenPtPrompt.GetBinContent(iPt) > 0:
+                    relStatUnc = hGenPtPrompt.GetBinError(iPt) / hGenPtPrompt.GetBinContent(iPt)
+                    ptCent = hGenPtPrompt.GetBinCenter(iPt)
+                    hGenPtPrompt.SetBinContent(iPt, hGenPtPrompt.GetBinContent(iPt) * sPtWeights(ptCent))
+                    hGenPtPrompt.SetBinError(iPt, hGenPtPrompt.GetBinContent(iPt) * relStatUnc)
         hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         promptGenList.append(hGenPtPrompt)
 
         hGenPtFD = sparseGen['GenFD'].Projection(0)
-        if args.ptweights or args.ptweights:
+        hGenPtFD.Sumw2()
+        if args.ptweights or args.ptweightsB:
             for iPt in range(hGenPtFD.GetNbinsX()):
-                relStatUnc = hGenPtFD.GetBinError(iPt) / hGenPtFD.GetBinContent(iPt)
-                ptCent = hGenPtFD.GetBinWidth(iPt)
-                hGenPtFD.SetBinContent(iPt, hGenPtFD.GetBinContent(iPt) * sPtWeightsDfromB(ptCent))
-                hGenPtFD.SetBinError(iPt, hGenPtFD.GetBinContent(iPt) * relStatUnc)
+                if hGenPtFD.GetBinContent(iPt) > 0:
+                    relStatUnc = hGenPtFD.GetBinError(iPt) / hGenPtFD.GetBinContent(iPt)
+                    ptCent = hGenPtFD.GetBinCenter(iPt)
+                    hGenPtFD.SetBinContent(iPt, hGenPtFD.GetBinContent(iPt) * sPtWeightsDfromB(ptCent))
+                    hGenPtFD.SetBinError(iPt, hGenPtFD.GetBinContent(iPt) * relStatUnc)
         hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         FDGenList.append(hGenPtFD)
 
@@ -187,21 +196,29 @@ if isMC:
         if args.ptweights:
             hTmp = hPtPrompt.Clone('hTmp')
             fill_hist(hTmp, dataFramePromptSel['pt_cand'].values) # for stat unc
-            fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'].values, dataFramePromptSel['pt_weights'].values)
+            fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'].values, weights=dataFramePromptSel['pt_weights'].values)
             for iPt in range(1, hTmp.GetNbinsX()+1):
-                hPtPrompt.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtPrompt.GetBinContent(iPt))
+                if hTmp.GetBinContent(iPt) == 0.:
+                    hPtPrompt.SetBinError(iPt, 0.)
+                else:
+                    hPtPrompt.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtPrompt.GetBinContent(iPt))
         else:
             fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'].values)
+            hPtPrompt.Sumw2()
         fill_hist(hInvMassPrompt, dataFramePromptSel['inv_mass'].values)
 
         if args.ptweightsB or args.ptweights:
             hTmp = hPtFD.Clone('hTmp')
             fill_hist(hTmp, dataFrameFDSel['pt_cand'].values) # for stat unc
-            fill_hist(hPtFD, dataFrameFDSel['pt_cand'].values, dataFrameFDSel['pt_weights'].values)
+            fill_hist(hPtFD, dataFrameFDSel['pt_cand'].values, weights=dataFrameFDSel['pt_weights'].values)
             for iPt in range(1, hTmp.GetNbinsX()+1):
-                hPtFD.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtFD.GetBinContent(iPt))
+                if hTmp.GetBinContent(iPt) == 0.:
+                    hPtFD.SetBinError(iPt, 0.)
+                else:
+                    hPtFD.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtFD.GetBinContent(iPt))
         else:
             fill_hist(hPtFD, dataFrameFDSel['pt_cand'].values)
+            hPtFD.Sumw2()
         fill_hist(hInvMassFD, dataFrameFDSel['inv_mass'].values)
 
         promptDict['InvMass'].append(hInvMassPrompt)
