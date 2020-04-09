@@ -43,3 +43,8 @@ options:
         xlimits: [2., 16.]
         ylimits: [0., 2.]
         ylimitsratio: [0., 2.]
+        logy: true
+        logx: false
+        ratio:
+            logy: false
+            logx: false
