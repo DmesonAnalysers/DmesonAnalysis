@@ -3,6 +3,7 @@ Script with miscellanea utils methods for the analysis
 '''
 
 import numpy as np
+import pandas as pd
 from ROOT import TH1F, TF1, TMath, TList # pylint: disable=import-error,no-name-in-module
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
@@ -82,7 +83,6 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     mEff = np.matrix(mEff)
 
     for iIter in range(nMaxIter):
-        #covariances not taken into account in weight matrix at the moment
         if iIter == 0:
             mCorrYield.itemset(0, 0)
             mCorrYield.itemset(1, 0)
@@ -534,6 +534,7 @@ def MergeHists(listOfHists):
     - hMerged: merged histo
 
     '''
+
     listMerge = TList()
     for iHist, hist in enumerate(listOfHists):
         if iHist == 0:
@@ -561,10 +562,76 @@ def ApplySplineFuncToColumn(df, column, spline):
     - y: pandas.Series with result of the function application to column
 
     '''
+
     y = []
     for x in df[column].values:
         y.append(spline(x))
 
     y = pd.Series(y)
-    
+
     return y
+
+
+def ComputeRatioDiffBins(hNum, hDen, uncOpt=''):
+    '''
+    Method to compute ratio between histograms with different bins (but compatible)
+
+    Parameters
+    ----------
+
+    - hNum: histogram for numerator
+    - hDen: histogram for denominator
+    - uncOpt: uncertainty option as in ROOT.TH1.Divide
+
+    Returns
+    ----------
+
+    - hRatio: ratio histogram
+
+    '''
+
+    ptMinNum = hNum.GetBinLowEdge(1)
+    ptMaxNum = hNum.GetXaxis().GetBinUpEdge(hNum.GetNbinsX())
+    ptMinDen = hDen.GetBinLowEdge(1)
+    ptMaxDen = hDen.GetXaxis().GetBinUpEdge(hDen.GetNbinsX())
+    if ptMinNum < ptMinDen:
+        ptMin = ptMinDen
+    else:
+        ptMin = ptMinNum
+    if ptMaxNum > ptMaxDen:
+        ptMax = ptMaxDen
+    else:
+        ptMax = ptMaxNum
+
+    if hNum.GetNbinsX() < hDen.GetNbinsX():
+        ptLimsRatio = np.array(hNum.GetXaxis().GetXbins(), 'd')
+    else:
+        ptLimsRatio = np.array(hDen.GetXaxis().GetXbins(), 'd')
+    ptLimsRatio = ptLimsRatio[(ptLimsRatio >= ptMin) & (ptLimsRatio <= ptMax)]
+    nPtBins = len(ptLimsRatio)-1
+
+    hRatio = TH1F('hRatio', f';{hNum.GetXaxis().GetTitle()};ratio', nPtBins, ptLimsRatio)
+    hNumReb = TH1F('hNumReb', '', nPtBins, ptLimsRatio)
+    hDenReb = TH1F('hDenReb', '', nPtBins, ptLimsRatio)
+
+    for iPtRatio in range(1, hRatio.GetNbinsX()+1):
+        deltaPt = ptLimsRatio[iPtRatio]-ptLimsRatio[iPtRatio-1]
+        num, numUnc, den, denUnc = (0 for _ in range(4))
+        for iPtNum in range(1, hNum.GetNbinsX()+1):
+            if hNum.GetBinLowEdge(iPtNum) >= ptLimsRatio[iPtRatio-1] and \
+                hNum.GetXaxis().GetBinUpEdge(iPtNum) <= ptLimsRatio[iPtRatio]:
+                num += hNum.GetBinContent(iPtNum) * hNum.GetBinWidth(iPtNum)
+                numUnc += hNum.GetBinError(iPtNum)**2 * hNum.GetBinWidth(iPtNum)**2 # considered uncorrelated
+        hNumReb.SetBinContent(iPtRatio, num/deltaPt)
+        hNumReb.SetBinError(iPtRatio, np.sqrt(numUnc)/deltaPt)
+        for iPtDen in range(1, hDen.GetNbinsX()+1):
+            if hDen.GetBinLowEdge(iPtDen) >= ptLimsRatio[iPtRatio-1] and \
+                hDen.GetXaxis().GetBinUpEdge(iPtDen) <= ptLimsRatio[iPtRatio]:
+                den += hDen.GetBinContent(iPtDen) * hDen.GetBinWidth(iPtDen)
+                denUnc += hDen.GetBinError(iPtDen)**2 * hDen.GetBinWidth(iPtDen)**2 # considered uncorrelated
+        hDenReb.SetBinContent(iPtRatio, den/deltaPt)
+        hDenReb.SetBinError(iPtRatio, np.sqrt(denUnc)/deltaPt)
+
+    hRatio.Divide(hNumReb, hDenReb, 1., 1., uncOpt)
+
+    return hRatio

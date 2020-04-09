@@ -8,9 +8,11 @@ from os.path import join
 import argparse
 import numpy as np
 import yaml
-from ROOT import TCanvas, TFile, TLegend # pylint: disable=import-error,no-name-in-module
+from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker #pylint: disable=wrong-import-position,import-error,no-name-in-module
+#pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker
+from utils.AnalysisUtils import ComputeRatioDiffBins
 
 # load inputs
 parser = argparse.ArgumentParser(description='Arguments')
@@ -45,6 +47,10 @@ yLimits = inputCfg['options']['canvas']['ylimits']
 yLimitsRatio = inputCfg['options']['canvas']['ylimitsratio']
 xTitle = inputCfg['options']['canvas']['xaxistitle']
 yTitle = inputCfg['options']['canvas']['yaxistitle']
+logX = inputCfg['options']['canvas']['logx']
+logY = inputCfg['options']['canvas']['logy']
+ratioLogX = inputCfg['options']['canvas']['ratio']['logx']
+ratioLogY = inputCfg['options']['canvas']['ratio']['logy']
 
 xLegLimits = inputCfg['options']['legend']['xlimits']
 yLegLimits = inputCfg['options']['legend']['ylimits']
@@ -75,19 +81,21 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
         hToCompare[iFile].Scale(scale)
     #TODO: else: scale graph --> add util function in AnalysisUtils
     if doRatio:
-        hRatioToCompare.append(hToCompare[iFile].Clone(f'hRatio{iFile}'))
         if 'TH' in objType:
+            if drawRatioUnc:
+                if ratioUncCorr:
+                    hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0], 'B'))
+                else:
+                    hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
+            else:
+                hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
+                for iBin in range(1, hRatioToCompare[iFile].GetNbinsX()+1):
+                    hRatioToCompare[iFile].SetBinError(iBin, 1.e-20)
+            hRatioToCompare[iFile].SetName(f'hRatio{iFile}')
             hRatioToCompare[iFile].SetDirectory(0)
         #TODO: add util function in AnalysisUtils to manage ratios between graphs or graph and histo
-        if drawRatioUnc:
-            if ratioUncCorr:
-                hRatioToCompare[iFile].Divide(hToCompare[iFile], hToCompare[0], 1., 1., 'B')
-            else:
-                hRatioToCompare[iFile].Divide(hToCompare[iFile], hToCompare[0])
-        else:
-            hRatioToCompare[iFile].Divide(hToCompare[iFile], hToCompare[0])
-            for iBin in range(1, hRatioToCompare[iFile].GetNbinsX()+1):
-                hRatioToCompare[iFile].SetBinError(iBin, 1.e-20)
+        SetObjectStyle(hRatioToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker),
+                       fillstyle=0)
 
     leg.AddEntry(hToCompare[iFile], legNames[iFile], legOpt[iFile])
 
@@ -109,9 +117,18 @@ cOut = TCanvas('cOutput', '', wCanv, hCanv)
 
 if doRatio:
     cOut.Divide(2, 1)
-    cOut.cd(1).DrawFrame(xLimits[0], yLimits[0], xLimits[1], yLimits[1], f';{xTitle};{yTitle}')
+    hFrame = cOut.cd(1).DrawFrame(xLimits[0], yLimits[0], xLimits[1], yLimits[1], f';{xTitle};{yTitle}')
+    if logX:
+        cOut.cd(1).SetLogx()
+    if logY:
+        cOut.cd(1).SetLogy()
 else:
-    cOut.cd().DrawFrame(xLimits[0], yLimits[0], xLimits[1], yLimits[1], f';{xTitle};{yTitle}')
+    hFrame = cOut.cd().DrawFrame(xLimits[0], yLimits[0], xLimits[1], yLimits[1], f';{xTitle};{yTitle}')
+    if logX:
+        cOut.cd().SetLogx()
+    if logY:
+        cOut.cd().SetLogy()
+hFrame.GetYaxis().SetDecimals()
 
 for histo, objType, drawOpt in zip(hToCompare, objTypes, drawOptions):
     if 'TH' in objType:
@@ -121,7 +138,17 @@ for histo, objType, drawOpt in zip(hToCompare, objTypes, drawOptions):
 leg.Draw()
 
 if doRatio:
-    cOut.cd(2).DrawFrame(xLimits[0], yLimitsRatio[0], xLimits[1], yLimitsRatio[1], f';{xTitle};Ratio')
+    hFrameRatio = cOut.cd(2).DrawFrame(xLimits[0], yLimitsRatio[0], xLimits[1], yLimitsRatio[1], f';{xTitle};Ratio')
+    hFrameRatio.GetYaxis().SetDecimals()
+    if ratioLogX:
+        cOut.cd(2).SetLogx()
+    if ratioLogY:
+        cOut.cd(2).SetLogy()
+    lineAtOne = TLine(xLimits[0], 1., xLimits[1], 1.)
+    lineAtOne.SetLineColor(GetROOTColor('kBlack'))
+    lineAtOne.SetLineWidth(2)
+    lineAtOne.SetLineStyle(9)
+    lineAtOne.Draw()
     for iHisto, (histo, objType, drawOpt) in enumerate(zip(hRatioToCompare, objTypes, drawOptions)):
         if iHisto > 0:
             if 'TH' in objType:
