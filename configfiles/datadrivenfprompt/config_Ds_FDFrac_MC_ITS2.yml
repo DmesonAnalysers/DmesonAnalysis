@@ -1,0 +1,70 @@
+rawyields:
+    inputdir: /home/alidock/DmesonAnalysis/optimisation/output/projection/ITS2/
+    inputfiles: ['projection_out_Bkg0_0.1_FD1.0_1.1.root',
+                 'projection_out_Bkg0_0.1_FD1.1_1.2.root',
+                 'projection_out_Bkg0_0.1_FD1.2_1.3.root',
+                 'projection_out_Bkg0_0.1_FD1.3_1.4.root',
+                 'projection_out_Bkg0_0.1_FD1.4_1.5.root',
+                 'projection_out_Bkg0_0.1_FD1.5_1.6.root',
+                 'projection_out_Bkg0_0.1_FD1.6_1.7.root',
+                 'projection_out_Bkg0_0.1_FD1.7_1.8.root',
+                 'projection_out_Bkg0_0.1_FD1.8_1.9.root',
+                 'projection_out_Bkg0_0.1_FD1.9_2.0.root',
+                 'projection_out_Bkg0_0.1_FD2.0_2.1.root',
+                 'projection_out_Bkg0_0.1_FD2.1_2.2.root',
+                 'projection_out_Bkg0_0.1_FD2.2_2.3.root',
+                 'projection_out_Bkg0_0.1_FD2.3_2.4.root',
+                 'projection_out_Bkg0_0.1_FD2.4_2.5.root',
+                 'projection_out_Bkg0_0.1_FD2.5_2.6.root',
+                 'projection_out_Bkg0_0.1_FD2.6_2.7.root',
+                 'projection_out_Bkg0_0.1_FD2.7_2.8.root',
+                 'projection_out_Bkg0_0.1_FD2.8_2.9.root',
+                 'projection_out_Bkg0_0.1_FD2.9_3.0.root'
+                ]
+    histoname: hProjectS
+
+efficiencies:
+    inputdir: /home/alidock/DmesonAnalysis/optimisation/output/projection/ITS2/
+    inputfiles: ['projection_out_Bkg0_0.1_FD1.0_1.1.root',
+                 'projection_out_Bkg0_0.1_FD1.1_1.2.root',
+                 'projection_out_Bkg0_0.1_FD1.2_1.3.root',
+                 'projection_out_Bkg0_0.1_FD1.3_1.4.root',
+                 'projection_out_Bkg0_0.1_FD1.4_1.5.root',
+                 'projection_out_Bkg0_0.1_FD1.5_1.6.root',
+                 'projection_out_Bkg0_0.1_FD1.6_1.7.root',
+                 'projection_out_Bkg0_0.1_FD1.7_1.8.root',
+                 'projection_out_Bkg0_0.1_FD1.8_1.9.root',
+                 'projection_out_Bkg0_0.1_FD1.9_2.0.root',
+                 'projection_out_Bkg0_0.1_FD2.0_2.1.root',
+                 'projection_out_Bkg0_0.1_FD2.1_2.2.root',
+                 'projection_out_Bkg0_0.1_FD2.2_2.3.root',
+                 'projection_out_Bkg0_0.1_FD2.3_2.4.root',
+                 'projection_out_Bkg0_0.1_FD2.4_2.5.root',
+                 'projection_out_Bkg0_0.1_FD2.5_2.6.root',
+                 'projection_out_Bkg0_0.1_FD2.6_2.7.root',
+                 'projection_out_Bkg0_0.1_FD2.7_2.8.root',
+                 'projection_out_Bkg0_0.1_FD2.8_2.9.root',
+                 'projection_out_Bkg0_0.1_FD2.9_3.0.root'
+                ]
+    histonames:
+        prompt: hProjectEffAccPrompt
+        feeddown: hProjectEffAccFD
+
+minimisation:
+    correlated: false #true --> fully correlated, false --> fully uncorrelated        
+
+theorydriven:
+    enableFc: true
+    enableNb: false
+    predictions:
+        crosssec: 
+            inputfile: models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
+            histonames: 
+                prompt: hDsPhipitoKkpipred
+                feeddown: hDsPhipitoKkpifromBpred
+        Raa:
+            prompt: /home/alidock/DmesonAnalysis/models/tamu/Ds_TAMU_RAA_5TeV_010.txt # can either be a fixed value or the path to a text file
+            feeddown: /home/alidock/DmesonAnalysis/models/tamu/NonPromptDs_TAMU_RAA_5TeV_010.txt # can either be a fixed value or a text file
+            model: tamu # avaliable models: 'phsd', 'Catania', 'tamu', 'MCatsHQ'    
+    # below only needed for Nb
+    sigmaMB: 50.87e+9

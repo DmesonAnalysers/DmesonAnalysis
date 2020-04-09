@@ -12,6 +12,7 @@ import yaml
 from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, GetPromptFDFractionFc, GetFractionNb
+from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
@@ -39,13 +40,64 @@ if nSets != len(cutSetCfg['efficiencies']['inputfiles']):
 
 hRawYields, hEffPrompt, hEffFD, hEv = [], [], [], []
 
+# load RAA
+RaaPrompt_config = cutSetCfg['theorydriven']['predictions']['Raa']['prompt']
+if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, int):
+    if not isinstance(RaaPrompt_config, str):
+        print('ERROR: RAA must be at least a string or a number. Exit')
+        sys.exit()
+    else:
+        Raa_model_name = cutSetCfg['theorydriven']['predictions']['Raa']['model']
+        if Raa_model_name not in ['phsd', 'Catania', 'tamu', 'MCatsHQ']:
+            print('ERROR: wrong model name, please check the list of avaliable models. Exit')
+            sys.exit()
+        else:
+            if Raa_model_name == 'phsd':
+                RaaPromptSpline, _ = ReadPHSD(RaaPrompt_config)
+            elif Raa_model_name == 'Catania':
+                RaaPromptSpline, _ = ReadCatania(RaaPrompt_config)
+            elif Raa_model_name == 'MCatsHQ':
+                RaaFDSpline, _ = ReadMCatsHQ(RaaPrompt_config)
+            elif Raa_model_name == 'tamu':
+                RaaPromptSpline, _ = ReadTAMU(RaaPrompt_config)
+else:
+    RaaPrompt = RaaPrompt_config
+
+RaaFD_config = cutSetCfg['theorydriven']['predictions']['Raa']['feeddown']
+if not isinstance(RaaFD_config, float) and not isinstance(RaaFD_config, int):
+    if not isinstance(RaaFD_config, str):
+        print('ERROR: RAA must be at least a string or a number. Exit')
+        sys.exit()
+    else:
+        Raa_model_name = cutSetCfg['theorydriven']['predictions']['Raa']['model']
+        if Raa_model_name not in ['phsd', 'Catania', 'tamu', 'MCatsHQ']:
+            print('ERROR: wrong model name, please check the list of avaliable models. Exit')
+            sys.exit()
+        else:
+            if Raa_model_name == 'phsd':
+                RaaFDSpline, _ = ReadPHSD(RaaFD_config)
+            elif Raa_model_name == 'Catania':
+                RaaFDSpline, _ = ReadCatania(RaaFD_config)
+            elif Raa_model_name == 'MCatsHQ':
+                RaaFDSpline, _ = ReadMCatsHQ(RaaFD_config)
+            elif Raa_model_name == 'tamu':
+                RaaFDSpline, _ = ReadTAMU(RaaFD_config)
+else:
+    RaaFD = RaaFD_config
+
+# load inputs for theory-driven methods
+compareToFc = cutSetCfg['theorydriven']['enableFc']
+compareToNb = cutSetCfg['theorydriven']['enableNb']
+hCrossSecPrompt, hCrossSecFD = [], []
+
 for inFileNameRawYield, inFileNameEff in zip(inputFilesRaw, inputFilesEff):
     inFileNameRawYield = os.path.join(cutSetCfg['rawyields']['inputdir'], inFileNameRawYield)
     inFileRawYield = TFile.Open(inFileNameRawYield)
     hRawYields.append(inFileRawYield.Get(cutSetCfg['rawyields']['histoname']))
     hRawYields[-1].SetDirectory(0)
-    hEv.append(inFileRawYield.Get('hEvForNorm'))
-    hEv[-1].SetDirectory(0)
+    if compareToNb:
+        hEv.append(inFileRawYield.Get('hEvForNorm'))
+        hEv[-1].SetDirectory(0)
     inFileNameEff = os.path.join(cutSetCfg['efficiencies']['inputdir'], inFileNameEff)
     inFileEff = TFile.Open(inFileNameEff)
     hEffPrompt.append(inFileEff.Get(cutSetCfg['efficiencies']['histonames']['prompt']))
@@ -53,10 +105,7 @@ for inFileNameRawYield, inFileNameEff in zip(inputFilesRaw, inputFilesEff):
     hEffPrompt[-1].SetDirectory(0)
     hEffFD[-1].SetDirectory(0)
 
-# load inputs for theory-driven methods
-compareToFc = cutSetCfg['theorydriven']['enableFc']
-compareToNb = cutSetCfg['theorydriven']['enableNb']
-hCrossSecPrompt, hCrossSecFD = [], []
+
 if compareToFc or compareToNb:
     crossSecCfg = cutSetCfg['theorydriven']['predictions']['crosssec']
     inFileCrossSec = TFile.Open(crossSecCfg['inputfile'])
@@ -238,10 +287,15 @@ for iPt in range(hRawYields[0].GetNbinsX()):
         hPromptFracVsCut[iPt].SetBinError(iCutSet+1, fPromptUnc)
         hFDFracVsCut[iPt].SetBinContent(iCutSet+1, fFD)
         hFDFracVsCut[iPt].SetBinError(iCutSet+1, fFDUnc)
-
+        
         # theory-driven, if enabled
+        ptCent = (ptMax + ptMin) / 2.
+        if isinstance(RaaPrompt_config, str):
+            RaaPrompt = float(RaaPromptSpline['yCent'](ptCent))
+        if isinstance(RaaFD_config, str):
+            RaaFD = float(RaaFDSpline['yCent'](ptCent))
         if compareToFc:
-            fPromptFc, fFDFc = GetPromptFDFractionFc(effP, effF, crossSecPrompt, crossSecFD)
+            fPromptFc, fFDFc = GetPromptFDFractionFc(effP, effF, crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
             gPromptFracFcVsCut[iPt].SetPoint(iCutSet, iCutSet+1, fPromptFc[0])
             gPromptFracFcVsCut[iPt].SetPointError(iCutSet, 0.5, 0.5, fPromptFc[0] - fPromptFc[1],
                                                   fPromptFc[2] - fPromptFc[0])
