@@ -43,6 +43,8 @@ python3 ProjectDplusDsSparse.py configfile.yml cutset.yml output.root
 ```
 where ```configfile.yml``` is a configuration file with the info of the input files (such as [config_Dplus_pp_data_tree.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/config_Ds_MC_3050.yml)), while ```cutset.yml``` is the set of selections to be applied.
 
+To apply p<sub>T</sub> weights in case of MC the ```--ptweights``` argument followed by the name of the input file with the p<sub>T</sub> weights and the name of the p<sub>T</sub>-weights histogram should be parsed. In this case, the p<sub>T</sub> weights are applied to both the prompt and the FD distributions. If also the ```--ptweightsB``` argument followed by the name of the input file with the p<sub>T</sub><sup>B</sup> weights and the name of the p<sub>T</sub><sup>B</sup>-weights histogram is parsed, the p<sub>T</sub> weights for the FD are computed from the B-mother p<sub>T</sub>
+
 ## Main analysis with TTrees or dataframes
 
 ### Filter trees to prepare data sets for ML studies
@@ -63,6 +65,8 @@ python3 ProjectDplusDsTree.py configfile.yml cutset.yml output.root
 ```
 where ```configfile.yml``` is a configuration file with the info of the input files, including the original task output (such as [config_Dplus_pp_data_tree.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/config_Dplus_pp_data_tree.yml)), while ```cutset.yml``` is the set of selections to be applied.
 It autodetects whether the input files are ```root``` files containing TTrees or ```parquet``` files containing pandas dataframes.
+
+To apply p<sub>T</sub> weights in case of MC the ```--ptweights``` argument followed by the name of the input file with the p<sub>T</sub> weights and the name of the p<sub>T</sub>-weights histogram should be parsed. In this case, the p<sub>T</sub> weights are applied to both the prompt and the FD distributions. If also the ```--ptweightsB``` argument followed by the name of the input file with the p<sub>T</sub><sup>B</sup> weights and the name of the p<sub>T</sub><sup>B</sup>-weights histogram is parsed, the p<sub>T</sub> weights for the FD are computed from the B-mother p<sub>T</sub>
 
 ## Common analysis
 The following steps can be performed after having projected THnSparse or TTree (dataframe) objects
@@ -86,8 +90,6 @@ The efficiency-times-acceptance computation is done in two steps:
 python3 ComputeEfficiencyDplusDs.py config_Fit.yml centName distributionsMC.root output.root
 ```
 where ```distributions.root``` is the file obtained projecting the MC THnSparse and ```config_Fit.yml``` is the same config file used for the raw-yield extraction needed to have the same p<sub>T</sub> binning. The ```--batch``` option can be used to execute the script in batch mode.
-
-To apply p<sub>T</sub> weights the ```--ptweights``` argument followed by the name of the input file with the p<sub>T</sub> weights and the name of the p<sub>T</sub>-weights histogram
 
 * Acceptance and efficiency combination:
 ```python
