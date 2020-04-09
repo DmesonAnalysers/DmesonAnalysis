@@ -11,7 +11,6 @@
 #include <iostream>
 
 #include "TFile.h"
-#include "TH1F.h"
 #include "TH1D.h"
 #include "TH2D.h"
 
@@ -52,7 +51,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
                                                             "hfonllPromptLc", "hfonllPromptDstar", "hfonllPromptLc"};
   std::array<std::string, numDaughters> predTag = {"D0Kpi", "Dpluskpipi", "DsPhipitoKkpi", "Lcpkpi", "DstarD0pi", "LcK0sp"};
   std::array<std::string, numDaughters - 1> partTag = {"D0", "Dplus", "Ds", "Lc", "Dstar"};
-  std::array<double, numMothers> origBFF = {0.34, 0.34, 0.101, 0.218}; // (B0, B+, Bs, Lb) FF used in the input predictions
+  std::array<double, numMothers> origBFF = {0.34, 0.34, 0.101, 0.219}; // (B0, B+, Bs, Lb) FF used in the input predictions
   std::array<std::array<double, numMothers>, numDaughters> pdgBRfromB = {{{0.555, 0.876, 0.008, 0.},   // D0 and (BRfromB0, BRfromB+, BRfromBs, BRfromLb) from PDG (2018)
                                                                           {0.392, 0.124, 0., 0.},      // D+
                                                                           {0.117, 0.09, 0.93, 0.011},  // Ds
@@ -68,7 +67,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
                                                                              {0.225, 0.225, 0.003, 0.},   // D*+
                                                                              {0.036, 0.036, 0., 0.333}    // Lc
                                                                              }};
-  std::array<double, numMothers> ppbarBFF = {0.34, 0.34, 0.101, 0.218}; // (B0, B+, Bs, Lb) from PDG (2018)
+  std::array<double, numMothers> ppbarBFF = {0.34, 0.34, 0.101, 0.219}; // (B0, B+, Bs, Lb) from PDG (2018)
   std::array<double, numMothers> eeBFF = {0.412, 0.412, 0.088, 0.089}; // (B0, B+, Bs, Lb) from PDG (2018)
   std::array<double, numDaughters> decayBR = {0.0389, 0.0898, 0.0227, 0.0623, 0.0263, 0.0158}; // (D0, D+, Ds, Lc->pKpi, D*+, LC->K0sp) from PDG (2018)
   std::array<std::array<double, numMothers>, numDaughters> origBR = {};
@@ -108,7 +107,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
 
     // get the original BR
     for(int iMother = 0; iMother < numMothers; iMother++) {
-      TH1F *hMothToDau = (TH1F *)inFile->Get(mothToDauHistos[iMother].data());
+      TH1D *hMothToDau = (TH1D *)inFile->Get(mothToDauHistos[iMother].data());
       double totMothers = hMothToDau->GetBinContent(1);
 
       for(int iDau = 0; iDau < numDaughters - 1; iDau++) {
@@ -150,7 +149,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
 
     // get and correct the predictions
     for(int iDau = 0; iDau < numDaughters; iDau++) {
-      TH1F *hDauFDPred = nullptr;
+      TH1D *hDauFDPred = nullptr;
 
       // crude method, estimate a global correction factor
       if(wOpt == kSimple) {
@@ -180,7 +179,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
         }
 
         double corr = newFrac / oldFrac;
-        hDauFDPred = (TH1F *)inFile->Get(predFDHistos[iDau].data());
+        hDauFDPred = (TH1D *)inFile->Get(predFDHistos[iDau].data());
         hDauFDPred->SetDirectory(0);
         hDauFDPred->Scale(corr);
 
@@ -190,9 +189,9 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
 
       // more accurate method, re-weight each contribution individually
       if(wOpt == kAccurate) {
-        TH1F *hTemp = (TH1F *)inFile->Get(predFDHistos[iDau].data());
+        TH1D *hTemp = (TH1D *)inFile->Get(predFDHistos[iDau].data());
         hTemp->SetDirectory(0);
-        hDauFDPred = (TH1F *)hTemp->Clone();
+        hDauFDPred = (TH1D *)hTemp->Clone();
         hDauFDPred->Reset();
 
         std::string hName = predFDHistos[iDau] + "ByOrigin";
@@ -224,7 +223,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
       }
 
       // prompt predictions
-      TH1F *hDauPromptPred = (TH1F *)inFile->Get(predPromptHistos[iDau].data());
+      TH1D *hDauPromptPred = (TH1D *)inFile->Get(predPromptHistos[iDau].data());
       hDauPromptPred->SetDirectory(0);
       hDauPromptPred->Scale(decayBR[iDau] / 1.e-6);
       std::string name = "h" + predTag[iDau] + "pred_" + edgeNames[iFile];
