@@ -130,7 +130,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hVarPrompt = sparseReco['RecoPrompt'].Projection(cutVars[iVar]['axisnum'])
             # apply pt weights
             if iVar == 'Pt' and args.ptweights:
-                for iBin in range(hVarPrompt.GetNbinsX()):
+                for iBin in range(1, hVarPrompt.GetNbinsX()+1):
                     if hVarPrompt.GetBinContent(iBin) > 0.:
                         relStatUnc = hVarPrompt.GetBinError(iBin) / hVarPrompt.GetBinContent(iBin)
                         ptCent = hVarPrompt.GetBinWidth(iBin)
@@ -142,7 +142,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hVarFD = sparseReco['RecoFD'].Projection(cutVars[iVar]['axisnum'])
             # apply pt weights
             if iVar == 'Pt' and (args.ptweightsB or args.ptweights):
-                for iBin in range(hVarFD.GetNbinsX()):
+                for iBin in range(1, hVarFD.GetNbinsX()+1):
                     if hVarFD.GetBinContent(iBin) > 0.:
                         relStatUnc = hVarFD.GetBinError(iBin) / hVarFD.GetBinContent(iBin)
                         ptCent = hVarFD.GetBinWidth(iBin)
@@ -168,7 +168,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
         # apply pt weights
         if args.ptweights:
-            for iBin in range(hGenPtPrompt.GetNbinsX()):
+            for iBin in range(1, hGenPtPrompt.GetNbinsX()+1):
                 if hGenPtPrompt.GetBinContent(iPt) > 0:
                     relStatUnc = hGenPtPrompt.GetBinError(iBin) / hGenPtPrompt.GetBinContent(iBin)
                     ptCent = hGenPtPrompt.GetBinWidth(iBin)
@@ -180,7 +180,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         hGenPtFD = sparseGen['GenFD'].Projection(0)
         # apply pt weights
         if args.ptweightsB or args.ptweights:
-            for iBin in range(hGenPtFD.GetNbinsX()):
+            for iBin in range(1, hGenPtFD.GetNbinsX()+1):
                 if hGenPtFD.GetBinContent(iPt) > 0:
                     relStatUnc = hGenPtFD.GetBinError(iBin) / hGenPtFD.GetBinContent(iBin)
                     ptCent = hGenPtFD.GetBinWidth(iBin)

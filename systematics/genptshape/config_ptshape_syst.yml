@@ -1,25 +1,25 @@
 inputs:
-    ptweightsfile: ptweights/DsPbPb/PtWeigths_LHC19c3a.root
-    enableBweights: false # only for pp (FONLL only), since no RAA prediction available for B mesons
+    ptweightsfile: ptweights/pp/NonPromptDplusWeights_LHC20a7.root
+    enableBweights: true # only for pp (FONLL only), since no RAA prediction available for B mesons
     shapes:
         pythia: # always enabled --> unweighted
-            efffile: outputs/genptshape/Eff_Ds_010_Pythia.root
+            efffile: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape/Efficiency_Dplus_pp5TeV_FD_central_noWeights.root
         fonll:
             enabled: true
-            efffile: outputs/genptshape/Eff_Ds_010_FONLL.root
+            efffile: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape/Efficiency_Dplus_pp5TeV_FD_central.root
         tamu:
-            enabled: true
+            enabled: false
             efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_TAMU.root
         phsd:
-            enabled: true
+            enabled: false
             efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_PHSD.root
         mc@shq:
-            enabled: true
+            enabled: false
             efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_Gossiaux.root
         catania:
-            enabled: true
+            enabled: false
             efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_Catania.root
 
 outputfile:
-    directory: outputs/genptshape
-    suffix: _010_LHC19c3a.pdf
+    directory: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape/
+    suffix: FONLL_D_B_shapes.pdf
