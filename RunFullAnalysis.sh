@@ -1,8 +1,8 @@
 #!/bin/bash
 #steps to be performed
-DoDataProjection=true
+DoDataProjection=false
 DoMCProjection=true
-DoDataRawYields=true
+DoDataRawYields=false
 DoMCRawYields=false
 DoEfficiency=true
 DoAccEff=true
@@ -16,26 +16,26 @@ ProjectTree=true
 
 #PARAMETERS TO BE SET (use "" for parameters not needed)
 ################################################################################################
-Meson="Ds" # whether it is Dplus or Ds analysis
+Meson="Dplus" # whether it is Dplus or Ds analysis
 Cent="kpp5TeVFD" # used also to asses prompt or non-prompt and system
 
-cfgFileData="configfiles/config_Ds_pp_data_tree.yml"
-cfgFileMC="configfiles/config_Ds_pp_MC_tree.yml"
-cfgFileFit="configfiles/fit/config_Ds_Fit_pp5TeV.yml"
+cfgFileData="../AnalysisNonPromptDpp2017/Dplus/configfiles/inputs/config_Dplus_pp_data_tree.yml"
+cfgFileMC="../AnalysisNonPromptDpp2017/Dplus/configfiles/inputs/config_Dplus_pp_MC_tree.yml"
+cfgFileFit="../AnalysisNonPromptDpp2017/Dplus/configfiles/fit/config_Dplus_pp5TeV.yml"
 
-accFileName="accfiles/Acceptance_Toy_DsKKpi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root"
+accFileName="accfiles/Acceptance_Toy_DplusKpipi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root"
 predFileName="models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root"
 pprefFileName="" #"ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_6_8_12_16_24_36_50.root"
 
-PtWeightsDFileName="" #"ptweights/PtWeigths_LHC19c3b.root"
-PtWeightsDHistoName="" #"hPtWeightsFONLLtimesTAMUcent"
-PtWeightsBFileName=""
-PtWeightsBHistoName=""
+PtWeightsDFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
+PtWeightsDHistoName="hPtWeightsFONLLDcent"
+PtWeightsBFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
+PtWeightsBHistoName="hPtWeightsFONLLBcent"
 
-DataDrivenFractionFileName=""
+DataDrivenFractionFileName="../AnalysisNonPromptDpp2017/Dplus/outputs/fraction/FDfraction_central.root"
 
 #assuming cutsets config files starting with "cutset" and are .yml
-CutSetsDir="configfiles/cutsets/Ds/pp/data_driven_fprompt_FDen_cuts"
+CutSetsDir="../AnalysisNonPromptDpp2017/Dplus/configfiles/cutsets/FD"
 declare -a CutSets=()
 for filename in ${CutSetsDir}/*.yml; do
     tmp_name="$(basename -- ${filename} .yml)"
@@ -44,8 +44,8 @@ for filename in ${CutSetsDir}/*.yml; do
 done
 arraylength=${#CutSets[@]}
 
-OutDirRawyields="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/data_driven_fprompt/raw_yield"
-OutDirEfficiency="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/data_driven_fprompt/eff_testw"
+OutDirRawyields="../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape"
+OutDirEfficiency="../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape"
 OutDirCrossSec=""
 OutDirRaa=""
 ################################################################################################
@@ -160,10 +160,10 @@ if $DoMCProjection; then
     if [ "${PtWeightsDFileName}" == "" -o "${PtWeightsDHistoName}" == "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ]; then
       python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root
     elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ]; then
-        echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName}
+        echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} $(tput sgr0)
         python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName}
     elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" != "" ] && [ "${PtWeightsBHistoName}" != "" ]; then
-        echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} and ${PtWeightsBHistoName} ptB weights from ${PtWeightsBFileName}
+        echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} and ${PtWeightsBHistoName} ptB weights from ${PtWeightsBFileName} $(tput sgr0)
         python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName} --ptweightsB ${PtWeightsBFileName} ${PtWeightsBHistoName}
     fi
   done
