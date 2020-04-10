@@ -55,12 +55,10 @@ def ReadFONLL(fileNameFONLL, isPtDiff=False):
         dfFONLL['min_ptdiff'] = dfFONLL['min'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
         dfFONLL['max_ptdiff'] = dfFONLL['max'] / (dfFONLL['ptmax']-dfFONLL['ptmin'])
     else:
-        print(dfFONLL)
         dfFONLL.rename(columns={'pt': 'ptcent'}, inplace=True)
         dfFONLL.rename(columns={'central': 'central_ptdiff'}, inplace=True)
         dfFONLL.rename(columns={'min': 'min_ptdiff'}, inplace=True)
         dfFONLL.rename(columns={'max': 'max_ptdiff'}, inplace=True)
-        print(dfFONLL)
 
     splineFONLL = InterpolateModel(dfFONLL['ptcent'], dfFONLL['central_ptdiff'],
                                    dfFONLL['min_ptdiff'], dfFONLL['max_ptdiff'])
