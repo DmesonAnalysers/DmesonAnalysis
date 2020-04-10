@@ -582,19 +582,19 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
 def ComputeRatioDiffBins(hNum, hDen, uncOpt=''):
     '''
     Method to compute ratio between histograms with different bins (but compatible)
-    
+
     Parameters
     ----------
-    
+
     - hNum: histogram for numerator
     - hDen: histogram for denominator
     - uncOpt: uncertainty option as in ROOT.TH1.Divide
-    
+
     Returns
     ----------
-    
+
     - hRatio: ratio histogram
-    
+
     '''
 
     ptMinNum = hNum.GetBinLowEdge(1)
