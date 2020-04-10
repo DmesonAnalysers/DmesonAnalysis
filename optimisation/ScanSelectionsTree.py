@@ -178,7 +178,7 @@ estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'EffAccPrompt': 
             'EffAccFD': '(Acc#times#font[152]{e})_{FD}', 'fPrompt': '#it{f}_{ prompt}^{ fc}',
             'fFD': '#it{f}_{ FD}^{ fc}'}
 
-varsName4Tuple = ':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:' + ':'.join(estNames.keys())
+varsName4Tuple = ':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:EffAccPromptError:EffAccFDError:SError:' + ':'.join(estNames.keys())
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = 1
@@ -215,6 +215,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         ptBinPreselEff = hPreselEffPrompt.GetXaxis().FindBin(ptMin*1.0001)
         preselEffPrompt = hPreselEffPrompt.GetBinContent(ptBinPreselEff)
         preselEffFD = hPreselEffFD.GetBinContent(ptBinPreselEff)
+        preselEffPromptUnc = hPreselEffPrompt.GetBinError(ptBinPreselEff)
+        preselEffFDUnc = hPreselEffFD.GetBinError(ptBinPreselEff)
     else:
         preselEffPrompt = 1.
         preselEffFD = 1.
@@ -331,7 +333,12 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             if expSignal + expBkg > 0:
                 expSignif = expSignal / np.sqrt(expSignal + expBkg)
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, expSignif,
+            # Efficiency  and Signal Error
+            SError = expSignal / expSignif
+            EffAccFDError = np.sqrt( effFDUnc*effFDUnc + preselEffFDUnc*preselEffFDUnc + accUnc*accUnc )
+            EffAccPromptError = np.sqrt( effPromptUnc*effPromptUnc + preselEffPromptUnc*preselEffPromptUnc + accUnc*accUnc)
+
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, EffAccPromptError, EffAccFDError, SError, expSignif,
                                        expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))
             estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'EffAccPrompt': effTimesAccPrompt,
@@ -357,21 +364,13 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             if est != 'Signif':
                 hFrame = cSignifVsRest[counter].cd(iPad).DrawFrame(tSignif.GetMinimum(est)*0.8,
                                                                    tSignif.GetMinimum('Signif')*0.8,
-                                                                   tSignif.GetMinimum('Signif')*0.8,
-                                                                   tSignif.GetMinimum('Signif')*0.8,
                                                                    tSignif.GetMaximum(est)*1.2,
-                                                                   tSignif.GetMaximum(est)*1.2,
-                                                                   tSignif.GetMaximum(est)*1.2,
-                                                                   tSignif.GetMaximum('Signif')*1.2,
-                                                                   tSignif.GetMaximum('Signif')*1.2,
                                                                    tSignif.GetMaximum('Signif')*1.2,
                                                                    f";{estNames[est]};{estNames['Signif']}")
                 hFrame.GetXaxis().SetDecimals()
                 hFrame.GetYaxis().SetDecimals()
                 hSignifVsRest[iPt][est] = (TH2F(f'hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
                                                 f";{estNames[est]};{estNames['Signif']}", 50,
-                                                tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50, 
-                                                tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50,
                                                 tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50, 
                                                 tSignif.GetMinimum('Signif')*0.8, tSignif.GetMaximum('Signif')*1.))
                 tSignif.Draw(f'Signif:{est}>>hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', 
@@ -389,8 +388,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 cEstimVsCut[counter].Divide(3, 2)
                 for iPad, est in enumerate(hEstimVsCut[iPt]):
                     hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8,
-                                                                       maxVar, tSignif.GetMaximum(est)*1.2,
-                                                                       maxVar, tSignif.GetMaximum(est)*1.2,
                                                                        maxVar, tSignif.GetMaximum(est)*1.2,
                                                                        f';{varNames[0]};{estNames[est]}')
                     if 'Eff' in est:
