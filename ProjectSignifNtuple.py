@@ -9,7 +9,8 @@ import itertools
 import yaml
 import numpy as np
 from root_numpy import fill_hist
-from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, kGreen, kOpenCrossX
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.DfUtils import LoadDfFromRootOrParquet
@@ -43,26 +44,16 @@ if not 'ML_output_Bkg' or not 'ML_output_FD' in cutVars:
 selToApply = []
 counter = 0
 for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['max'])):
-    for iBkg, _  in enumerate(zip(cutVars['ML_output_Bkg']['min'], cutVars['ML_output_Bkg']['max'])):
-        for iFD, _ in enumerate(zip(cutVars['ML_output_FD']['min'], cutVars['ML_output_FD']['max'])):
-            selToApply.append('')
-            for iVar, varName in enumerate(cutVars):
-                if selToApply[counter] != '':
-                    selToApply[counter] += ' & '
-                if varName == 'ML_output_Bkg':
-                    selToApply[counter] += f"{cutVars[varName]['min'][iBkg]} < {cutVars[varName]['name']} <= {cutVars[varName]['max'][iBkg]}"
-                elif varName == 'ML_output_FD':
-                    selToApply[counter] += f"{cutVars[varName]['min'][iFD]} < {cutVars[varName]['name']} <= {cutVars[varName]['max'][iFD]}"
-                else:
-                    selToApply[counter] += f"{cutVars[varName]['min'][counter]} < {cutVars[varName]['name']} < {cutVars[varName]['max'][counter]}"
-            counter += 1          
+    selToApply.append('')
+    for iVar, varName in enumerate(cutVars):
+        if selToApply[counter] != '':
+            selToApply[counter] += ' & '
+        selToApply[counter] += f"{cutVars[varName]['min'][counter]} < {cutVars[varName]['name']} <= {cutVars[varName]['max'][counter]}"
+    counter += 1
 
 #output file preparation
 outFile = TFile(args.outFileName, 'RECREATE')
 outFile.cd()
-outDirPros = TDirectoryFile('DsNTupleProjection', 'DsNTupleProjection')
-outDirPros.Write()
-outDirPros.cd()
 TProject = TCanvas('DsNtupleProjOverPt', '', 1920, 1080)
 TProject.Divide(2, round(len(VarDrawList)/2))
 hProject = []
@@ -73,9 +64,12 @@ xbins = cutVars['Pt']['min'] + list(set(cutVars['Pt']['max']) - set(cutVars['Pt'
 for iVar, VartoDraw in enumerate(VarDrawList):
     hProject.append(TH1F(f'hProject{VartoDraw}', f'{VartoDraw} over p''_{T}'f'; p''_{T}'' [GeV/c] ;'f'{VartoDraw}',
                     nbins, np.asarray(xbins, float)))
+    SetObjectStyle(hProject[iVar], color=kGreen-iVar, markerstyle=kOpenCrossX, markersize=1.5, linewidh=2, linestyle=7)
     for iPt, _ in enumerate(cutVars['Pt']['min']):
         dfSignifSel = dfSignif.query(selToApply[iPt])
         hProject[iVar].SetBinContent(iPt+1, dfSignifSel[f'{VartoDraw}'])
+        if VartoDraw == 'EffAccFD' or VartoDraw == 'EffAccPrompt' or VartoDraw == 'S':
+            hProject[iVar].SetBinError(iPt+1, dfSignifSel[f'{VartoDraw}Error'])          
     TProject.cd(iVar+1)
     hProject[iVar].DrawCopy()
     TProject.Update()
