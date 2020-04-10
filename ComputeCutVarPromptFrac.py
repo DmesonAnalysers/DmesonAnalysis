@@ -287,7 +287,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
         hPromptFracVsCut[iPt].SetBinError(iCutSet+1, fPromptUnc)
         hFDFracVsCut[iPt].SetBinContent(iCutSet+1, fFD)
         hFDFracVsCut[iPt].SetBinError(iCutSet+1, fFDUnc)
-        
+
         # theory-driven, if enabled
         ptCent = (ptMax + ptMin) / 2.
         if isinstance(RaaPrompt_config, str):
@@ -299,6 +299,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
             gPromptFracFcVsCut[iPt].SetPoint(iCutSet, iCutSet+1, fPromptFc[0])
             gPromptFracFcVsCut[iPt].SetPointError(iCutSet, 0.5, 0.5, fPromptFc[0] - fPromptFc[1],
                                                   fPromptFc[2] - fPromptFc[0])
+            print(f'iPt:\t{iPt}\tiCutSet:\t{iCutSet}\nfPromptFc:\t{fPromptFc}\nfFDFc:\t{fFDFc}\n')
             gFDFracFcVsCut[iPt].SetPoint(iCutSet, iCutSet+1, fFDFc[0])
             gFDFracFcVsCut[iPt].SetPointError(iCutSet, 0.5, 0.5, fFDFc[0] - fFDFc[1], fFDFc[2] - fFDFc[0])
 
