@@ -108,10 +108,10 @@ for iFile, inFileName in enumerate(inFileNames):
 
 # define pT binning (from gen sparses if MC)
 if isMC:
-    nPtBins = sparseGen['GenPrompt'].GetAxis(0).GetNbinsX()
+    nPtBins = sparseGen['GenPrompt'].GetAxis(0).GetNbins()
     ptLimLow = sparseGen['GenPrompt'].GetAxis(0).GetBinLowEdge(1)
     ptLimHigh = sparseGen['GenPrompt'].GetAxis(0).GetBinLowEdge(nPtBins) + \
-        sparseGen['GenPrompt'].GetAxis(0).GetBinWditdh(nPtBins)
+        sparseGen['GenPrompt'].GetAxis(0).GetBinWidth(nPtBins)
 else:
     nPtBins = 500
     ptLimLow = 0.
