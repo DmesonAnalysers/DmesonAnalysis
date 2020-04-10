@@ -1,6 +1,8 @@
 '''
 Script for the computation of pT shape weights
-run: python3 ComputePtGenWeights.py inFileMC.root outFile.root [--Dspecie Dname] [--Bspecie Bname] [--PbPb]
+run: python3 ComputePtGenWeights.py inFileMC.root outFile.root
+                                    [--Dspecie Dname] [--Bspecie Bname]
+                                    [--PbPb] [--rebin] [--smooth]
 '''
 
 import sys
@@ -21,6 +23,10 @@ parser.add_argument('--Bspecie', metavar='text', required=False,
                     help='B specie for which compute the weights (Bs, Bplus, Bzero, Lb)')
 parser.add_argument('--PbPb', action='store_true', default=False,
                     help='flag to activate pT shapes with Raa')
+parser.add_argument('--rebin', type=int, default=1,
+                    help='rebin of spectra')
+parser.add_argument('--smooth', type=int, default=1,
+                    help='smooth of pT weights')
 args = parser.parse_args()
 
 if not args.Dspecie:
@@ -46,6 +52,7 @@ hPtYGenD.SetDirectory(0)
 hPtGenD = hPtYGenD.ProjectionX('hPtGenD')
 hPtGenD.SetDirectory(0)
 hPtGenD.Sumw2()
+hPtGenD.Rebin(args.rebin)
 hPtGenD.Scale(1./hPtGenD.Integral())
 
 if args.Bspecie:
@@ -63,6 +70,7 @@ if args.Bspecie:
     hPtGenB = hYPtGenB.ProjectionX('hPtGenB')
     hPtGenB.SetDirectory(0)
     hPtGenB.Sumw2()
+    hPtGenB.Rebin(args.rebin)
     hPtGenB.Scale(1./hPtGenB.Integral())
 
 infileGenPtShape.Close()
@@ -117,20 +125,25 @@ for histoName, pred in zip(histoDNames, modelPred):
     hPtFONLLD[-1].Scale(1./hPtFONLLD[-1].Integral())
     hPtWeightsFONLLD.append(hPtFONLLD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
     hPtWeightsFONLLD[-1].Divide(hPtFONLLD[-1], hPtGenD)
+    hPtWeightsFONLLD[-1].Smooth(args.smooth)
     if args.PbPb:
         hPtFONLLtimesTAMUD[-1].Scale(1./hPtFONLLtimesTAMUD[-1].Integral())
         hPtFONLLtimesPHSDD[-1].Scale(1./hPtFONLLtimesPHSDD[-1].Integral())
         hPtFONLLtimesGossiauxD[-1].Scale(1./hPtFONLLtimesGossiauxD[-1].Integral())
         hPtFONLLtimesCataniaD[-1].Scale(1./hPtFONLLtimesCataniaD[-1].Integral())
 
-        hPtWeightsFONLLtimesTAMUD[-1].append(hPtFONLLtimesTAMUD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
+        hPtWeightsFONLLtimesTAMUD.append(hPtFONLLtimesTAMUD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesTAMUD[-1].Divide(hPtFONLLtimesTAMUD[-1], hPtGenD)
+        hPtWeightsFONLLtimesTAMUD[-1].Smooth(args.smooth)
         hPtWeightsFONLLtimesPHSDD.append(hPtFONLLtimesPHSDD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesPHSDD[-1].Divide(hPtFONLLtimesPHSDD[-1], hPtGenD)
+        hPtWeightsFONLLtimesPHSDD[-1].Smooth(args.smooth)
         hPtWeightsFONLLtimesGossiauxD.append(hPtFONLLtimesGossiauxD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesGossiauxD[-1].Divide(hPtFONLLtimesGossiauxD[-1], hPtGenD)
+        hPtWeightsFONLLtimesGossiauxD[-1].Smooth(args.smooth)
         hPtWeightsFONLLtimesCataniaD.append(hPtFONLLtimesCataniaD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesCataniaD[-1].Divide(hPtFONLLtimesCataniaD[-1], hPtGenD)
+        hPtWeightsFONLLtimesCataniaD[-1].Smooth(args.smooth)
 
 # B meson weights
 if args.Bspecie:
@@ -145,6 +158,7 @@ if args.Bspecie:
         hPtFONLLB[-1].Scale(1./hPtFONLLB[-1].Integral())
         hPtWeightsFONLLB.append(hPtFONLLB[-1].Clone(histoName.replace('Pt', 'PtWeights')))
         hPtWeightsFONLLB[-1].Divide(hPtFONLLB[-1], hPtGenB)
+        hPtWeightsFONLLB[-1].Smooth(args.smooth)
 
 outfile = TFile(args.outFileName, 'recreate')
 hPtGenD.Write()
