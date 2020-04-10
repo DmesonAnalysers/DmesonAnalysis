@@ -180,6 +180,8 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
     else:
         for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
             for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
+                if True:
+                    print(f'sigmaP:\t{sigmaP}\tsigmaF:\t{sigmaF}\nraaP:\t{raaP}\traaF:\t{raaF}\n')
                 if iSigma == 0 and iRaa == 0:
                     fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
                     fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
@@ -416,7 +418,7 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
     return expBkg3s, hMassData
 
 
-def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=True, bkgFunc='pol2'):
+def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=True, bkgFunc='pol3'):
     '''
     Helper method to get the expected bkg from MC
 
@@ -448,6 +450,7 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=
     if doFit:
         funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
         hMassBkg.Fit(funcBkg, 'Q')
+        hMassBkg.Write()
         expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
     else:
         massBinMin = hMassBkg.GetXaxis().FindBin(mean - 3 * sigma)
