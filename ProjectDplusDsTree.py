@@ -131,16 +131,16 @@ if isMC:
         ptWeights = uproot.open(args.ptweights[0])[args.ptweights[1]]
         ptCentW = [(ptWeights.edges[iBin]+ptWeights.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
         sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values)
-        dataFramePrompt['pt_weights'] = ApplySplineFuncToColumn(dataFramePrompt, 'pt_cand', sPtWeights)
+        dataFramePrompt['pt_weights'] = ApplySplineFuncToColumn(dataFramePrompt, 'pt_cand', sPtWeights, 0, 50)
         if not args.ptweightsB:
-            dataFrameFD['pt_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'pt_cand', sPtWeights)
+            dataFrameFD['pt_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'pt_cand', sPtWeights, 0, 50)
             sPtWeightsDfromB = sPtWeights
 
     if args.ptweightsB:
         ptWeightsB = uproot.open(args.ptweights[0])[args.ptweights[1]]
         ptCentWB = [(ptWeightsB.edges[iBin]+ptWeightsB.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
         sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values)
-        dataFrameFD['pt_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'pt_B', sPtWeightsB)
+        dataFrameFD['pt_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'pt_B', sPtWeightsB, 0, 50)
         # average correction for gen part since tree not available (--> good approximation)
         hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
         ptCentGen, averagePtBvsPtGen = [], []

@@ -545,7 +545,7 @@ def MergeHists(listOfHists):
     return hMerged
 
 
-def ApplySplineFuncToColumn(df, column, spline):
+def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10):
     '''
     Method to apply a function to a pandas column via a spline object
 
@@ -555,6 +555,8 @@ def ApplySplineFuncToColumn(df, column, spline):
     - df: input pandas.Dataframe
     - column: column of the pandas dataframe to which apply the spline
     - spline: spline (scipy.interpolate.InterpolatedUnivariateSpline object)
+    - minRange: minimum of the range of the user-defined validity of the spline
+    - maxRange: maximum of the range of the user-defined validity of the spline
 
     Returns
     ----------
@@ -565,8 +567,13 @@ def ApplySplineFuncToColumn(df, column, spline):
 
     y = []
     for x in df[column].values:
-        y.append(spline(x))
-
+        if minRange <= x <= maxRange:
+            y.append(spline(x))
+        elif x < minRange:
+            y.append(spline(minRange))
+        else:
+            y.append(spline(maxRange))
+            
     y = pd.Series(y)
 
     return y
