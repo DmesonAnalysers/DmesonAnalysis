@@ -1,0 +1,2 @@
+hipe4ml>=0.0.5
+root_numpy>=4.7.3
