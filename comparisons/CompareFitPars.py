@@ -1,47 +1,35 @@
 import sys
 import argparse
-from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,no-name-in-module
-from ROOT import gStyle, kRed, kBlack, kBlue, kOrange, kGreen # pylint: disable=import-error,no-name-in-module,unused-import
-from ROOT import kFullCircle, kOpenCircle, kFullSquare, kFullDiamond, kFullCross, kOpenCross # pylint: disable=import-error,no-name-in-module,unused-import
+from ROOT import TCanvas, TFile, TLegend, TLine, TDatabasePDG # pylint: disable=import-error,no-name-in-module
+from ROOT import gStyle, kRed, kAzure, kBlack, kBlue, kOrange, kGreen # pylint: disable=import-error,no-name-in-module,unused-import
+from ROOT import kFullCircle, kOpenCircle, kFullSquare, kFullDiamond, kFullCross, kOpenCross, kOpenSquare # pylint: disable=import-error,no-name-in-module,unused-import
 sys.path.append('..')
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error,no-name-in-module
+#pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.AnalysisUtils import ComputeRatioDiffBins
 
-def create_ratio_hist(num_hist_list, den_hist):
-    ratio_list = []
-    for num_hist in num_hist_list:
-        ratio_hist = den_hist.Clone()
-        ratio_hist.Reset()
-        n_bin_orig = num_hist.GetNbinsX()
-        for ipt in range(ratio_hist.GetNbinsX()+1):
-            pt_cent = ratio_hist.GetBinCenter(ipt)
-            pt_bin = num_hist.FindBin(pt_cent)
-            if 0 < pt_bin <= n_bin_orig:
-                ratio_hist.SetBinContent(ipt, num_hist.GetBinContent(pt_bin))
-                ratio_hist.SetBinError(ipt, num_hist.GetBinError(pt_bin))
-            else:
-                ratio_hist.SetBinContent(ipt, 0.)
-                ratio_hist.SetBinError(ipt, 0.)
-        ratio_hist.Divide(den_hist)
-        ratio_list.append(ratio_hist)
-    return ratio_list
-
-def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
-    inputdir = './'
-    input_files = ['../ML_DsAnalysis/QM_prel/outputs/3050/raw_yields/RawYieldsDs_3050_pt2_36.root',
-                   'outputs/3_24bin_merge/raw_yields/RawYieldsDs_3050_100419cuts.root']
-    input_files_MC = ['../ML_DsAnalysis/QM_prel/outputs/3050/raw_yields/RawYieldsDs_3050_MC_pt2_36.root']
-    colors = [kBlack, kGreen+3, kRed]
-    markers = [kFullCircle, kFullDiamond, kFullSquare]
-    legendnames = ['ML', 'Std', 'ML - MC']
-    suffix = 'compMCStd'
+def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-statements
+    inputdir = '../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields'
+    input_files = ['RawYieldsDplus_pp5TeV_prompt_central.root', 'RawYieldsDplus_pp5TeV_FD_central.root']
+    input_files_MC = ['RawYieldsDplusMC_pp5TeV_prompt_central.root', 'RawYieldsDplusMC_pp5TeV_FD_central.root']
+    colors = [kOrange+7, kAzure+2, kRed+1, kAzure+4]
+    markers = [kOpenCircle, kOpenSquare, kFullCircle, kFullSquare]
+    legendnames = ['MC - prompt enhanced', 'MC - FD enhanced', 'data - prompt enhanced', 'data - FD enhanced']
+    suffix = 'CompMCData_FDfixSigma'
     min_pt = 2.
-    max_pt = 36.
+    max_pt = 16.
 
-    SetGlobalStyle(padleftmargin=0.18, padtopmargin=0.05, titlesize=0.045, labelsize=0.04)
+    SetGlobalStyle(padleftmargin=0.18, padtopmargin=0.05, padbottommargin=0.14,
+                   titleoffsety=1.6, titlesize=0.045, labelsize=0.04)
     hMean, hSigma = [], []
-    input_files = input_files + input_files_MC
+    input_files = input_files_MC + input_files
 
-    lineMass = TLine(min_pt, 1.96850, max_pt, 1.96850)
+    if meson == 'Ds':
+        massD = TDatabasePDG.Instance().GetParticle(431).Mass()
+    elif meson == 'Dplus':
+        massD = TDatabasePDG.Instance().GetParticle(411).Mass()
+
+    lineMass = TLine(min_pt, massD, max_pt, massD)
     lineMass.SetLineWidth(2)
     lineMass.SetLineColor(kBlack)
     lineMass.SetLineStyle(9)
@@ -74,7 +62,9 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
         mean_num_list = list(hMean)
         mean_num_list.pop()
         mean_den_hist = hMean[-1]
-        mean_ratio_list = create_ratio_hist(mean_num_list, mean_den_hist)
+        mean_ratio_list = []
+        for histo in mean_num_list:
+            mean_ratio_list.append(ComputeRatioDiffBins(histo, mean_den_hist))
         cMeanRatio = TCanvas('cMeanRatio', '', 800, 800)
         cMeanRatio.DrawFrame(min_pt, 0.99, max_pt, 1.01, ';#it{p}_{T} (GeV/#it{c}); peak mean / peak mean MC')
         lineRatio = TLine(min_pt, 1., max_pt, 1.)
@@ -96,9 +86,13 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
         sigma_num_list = list(hSigma)
         sigma_num_list.pop()
         sigma_den_hist = hSigma[-1]
-        sigma_ratio_list = create_ratio_hist(sigma_num_list, sigma_den_hist)
+        sigma_ratio_list = []
+        for histo in sigma_num_list:
+            sigma_ratio_list.append(ComputeRatioDiffBins(histo, sigma_den_hist))
         cSigmaRatio = TCanvas('cSigmaRatio', '', 800, 800)
-        cSigmaRatio.DrawFrame(min_pt, 0.6, max_pt, 1.8, ';#it{p}_{T} (GeV/#it{c}); peak width / peak width MC')
+        hFrameSigma = cSigmaRatio.DrawFrame(min_pt, 0.6, max_pt, 1.8,
+                                            ';#it{p}_{T} (GeV/#it{c}); peak width / peak width MC')
+        hFrameSigma.GetYaxis().SetDecimals()
         legSigmaRatio = TLegend(0.4, 0.73, 0.7, 0.93)
         legSigmaRatio.SetFillStyle(0)
         legSigmaRatio.SetBorderSize(0)
@@ -114,7 +108,9 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
         cSigmaRatio.SaveAs(f'{inputdir}/SigmaRatio_{suffix}.pdf')
 
     cMean = TCanvas('cMean', '', 800, 800)
-    cMean.DrawFrame(min_pt, 1.9641, max_pt, 1.9759, ';#it{p}_{T} (GeV/#it{c}); peak mean (GeV/#it{c}^{2})')
+    hFrameMean = cMean.DrawFrame(min_pt, massD*0.995, max_pt, massD*1.01,
+                                 ';#it{p}_{T} (GeV/#it{c}); peak mean (GeV/#it{c}^{2})')
+    hFrameMean.GetYaxis().SetDecimals()
     lineMass.Draw("same")
     for histo_mean in hMean:
         histo_mean.Draw('same')
@@ -132,8 +128,9 @@ def comp_fit_pars(do_ratio=False): #pylint: disable-msg=too-many-statements
 def main():
     parser = argparse.ArgumentParser(description='Arguments')
     parser.add_argument("--ratio", help="make ratio to MC", action="store_true")
+    parser.add_argument("--Dspecie", help="Dplus or Ds mesons", metavar="text", default="Ds")
     args = parser.parse_args()
-    comp_fit_pars(args.ratio)
+    comp_fit_pars(args.ratio, args.Dspecie)
     input('Press enter to exit')
 
 main()
