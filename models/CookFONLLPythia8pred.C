@@ -226,6 +226,8 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
       TH1D *hDauPromptPred = (TH1D *)inFile->Get(predPromptHistos[iDau].data());
       hDauPromptPred->SetDirectory(0);
       hDauPromptPred->Scale(decayBR[iDau] / 1.e-6);
+      for(int iBin = 0; iBin <= hDauPromptPred->GetXaxis()->GetNbins(); iBin++)
+        hDauPromptPred->SetBinError(iBin + 1, 1.e-18);
       std::string name = "h" + predTag[iDau] + "pred_" + edgeNames[iFile];
       std::string title = predTag[iDau] + " " + edgeNames[iFile] + " value prediction (with BR)";
       hDauPromptPred->SetName(name.data());
