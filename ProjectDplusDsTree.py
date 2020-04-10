@@ -66,11 +66,6 @@ else:
 massBins = 400
 massLimLow = mD - 0.2
 massLimHigh = mD + 0.2
-# define pT binning
-nPtBins = 500
-ptLimLow = 0.
-ptLimHigh = 50.
-ptBinWidth = (ptLimHigh-ptLimLow) / nPtBins
 
 # selections to be applied
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
@@ -109,6 +104,19 @@ for iFile, inFileName in enumerate(inFileNames):
             _, sparseGenPart = LoadSparseFromTask(inFileName, inputCfg) #only gen sparses used
             for sparseType in sparseGenPart:
                 sparseGen[sparseType].Add(sparseGenPart[sparseType])
+
+
+# define pT binning (from gen sparses if MC)
+if isMC:
+    nPtBins = sparseGen['GenPrompt'].GetAxis(0).GetNbinsX()
+    ptLimLow = sparseGen['GenPrompt'].GetAxis(0).GetBinLowEdge(1)
+    ptLimHigh = sparseGen['GenPrompt'].GetAxis(0).GetBinLowEdge(nPtBins) + \
+        sparseGen['GenPrompt'].GetAxis(0).GetBinWditdh(nPtBins)
+else:
+    nPtBins = 500
+    ptLimLow = 0.
+    ptLimHigh = 50.
+ptBinWidth = (ptLimHigh-ptLimLow) / nPtBins
 
 # load trees
 if isMC:
@@ -164,7 +172,7 @@ if isMC:
         hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
         hGenPtPrompt.Sumw2()
         if args.ptweights:
-            for iPt in range(hGenPtPrompt.GetNbinsX()):
+            for iPt in range(1, hGenPtPrompt.GetNbinsX()+1):
                 if hGenPtPrompt.GetBinContent(iPt) > 0:
                     relStatUnc = hGenPtPrompt.GetBinError(iPt) / hGenPtPrompt.GetBinContent(iPt)
                     ptCent = hGenPtPrompt.GetBinCenter(iPt)
@@ -176,7 +184,7 @@ if isMC:
         hGenPtFD = sparseGen['GenFD'].Projection(0)
         hGenPtFD.Sumw2()
         if args.ptweights or args.ptweightsB:
-            for iPt in range(hGenPtFD.GetNbinsX()):
+            for iPt in range(1, hGenPtFD.GetNbinsX()+1):
                 if hGenPtFD.GetBinContent(iPt) > 0:
                     relStatUnc = hGenPtFD.GetBinError(iPt) / hGenPtFD.GetBinContent(iPt)
                     ptCent = hGenPtFD.GetBinCenter(iPt)
