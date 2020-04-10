@@ -8,14 +8,14 @@ sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import ComputeRatioDiffBins
 
-def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-statements
+def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-statements,too-many-locals
     inputdir = '../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields'
-    input_files = ['RawYieldsDplus_pp5TeV_prompt_central.root', 'RawYieldsDplus_pp5TeV_FD_central.root']
+    input_files = ['RawYieldsDplus_pp5TeV_prompt_central.root', 'RawYieldsDplus_pp5TeV_FD_central_freesigma.root']
     input_files_MC = ['RawYieldsDplusMC_pp5TeV_prompt_central.root', 'RawYieldsDplusMC_pp5TeV_FD_central.root']
     colors = [kOrange+7, kAzure+2, kRed+1, kAzure+4]
     markers = [kOpenCircle, kOpenSquare, kFullCircle, kFullSquare]
     legendnames = ['MC - prompt enhanced', 'MC - FD enhanced', 'data - prompt enhanced', 'data - FD enhanced']
-    suffix = 'CompMCData_FDfixSigma'
+    suffix = 'CompMCData'
     min_pt = 2.
     max_pt = 16.
 
@@ -60,8 +60,8 @@ def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-sta
 
     if do_ratio:
         mean_num_list = list(hMean)
-        mean_num_list.pop()
-        mean_den_hist = hMean[-1]
+        mean_num_list.pop(0)
+        mean_den_hist = hMean[0]
         mean_ratio_list = []
         for histo in mean_num_list:
             mean_ratio_list.append(ComputeRatioDiffBins(histo, mean_den_hist))
@@ -75,17 +75,17 @@ def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-sta
         legMeanRatio.SetFillStyle(0)
         legMeanRatio.SetBorderSize(0)
         legMeanRatio.SetTextSize(0.04)
-        for hist, color, marker, legend_name in zip(mean_ratio_list, colors[:-1],
-                                                    markers[:-1], legendnames[:-1]):
-            SetObjectStyle(histo_mean, linecolor=color, markercolor=color, markerstyle=marker)
+        for hist, color, marker, legend_name in zip(mean_ratio_list, colors[1:],
+                                                    markers[1:], legendnames[1:]):
+            SetObjectStyle(hist, linecolor=color, markercolor=color, markerstyle=marker)
             hist.Draw('same')
             legMeanRatio.AddEntry(hist, legend_name, 'p')
         lineRatio.Draw()
         legMeanRatio.Draw()
 
         sigma_num_list = list(hSigma)
-        sigma_num_list.pop()
-        sigma_den_hist = hSigma[-1]
+        sigma_num_list.pop(0)
+        sigma_den_hist = hSigma[0]
         sigma_ratio_list = []
         for histo in sigma_num_list:
             sigma_ratio_list.append(ComputeRatioDiffBins(histo, sigma_den_hist))
@@ -97,9 +97,9 @@ def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-sta
         legSigmaRatio.SetFillStyle(0)
         legSigmaRatio.SetBorderSize(0)
         legSigmaRatio.SetTextSize(0.04)
-        for hist, color, marker, legend_name in zip(sigma_ratio_list, colors[:-1],
-                                                    markers[:-1], legendnames[:-1]):
-            SetObjectStyle(histo_mean, linecolor=color, markercolor=color, markerstyle=marker)
+        for hist, color, marker, legend_name in zip(sigma_ratio_list, colors[1:],
+                                                    markers[1:], legendnames[1:]):
+            SetObjectStyle(hist, linecolor=color, markercolor=color, markerstyle=marker)
             hist.Draw('same')
             legSigmaRatio.AddEntry(hist, legend_name, 'p')
         lineRatio.Draw()
