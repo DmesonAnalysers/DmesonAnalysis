@@ -1,6 +1,6 @@
-// Macro to "cook" the FONLL + Pythia8 predictions of D-meson and Lc cross sections.
+// Macro to "cook" the FONLL + Pythia predictions of D-meson and Lc cross sections obtained from ComputeBtoDdecay.C .
 //
-// The BR and FF are set to the DPG values and can be changed. The output as the same structure and histogram names
+// The BR and FF are set to the DPG values and can be changed. The output has the same structure and histogram names
 // as the one used in D2H analyses.
 //
 // Author: F. Catalano, fabio.catalano@cern.ch
@@ -17,13 +17,13 @@
 enum { // options for branching ratios
   kBROriginal, // keep the values used in the input files
   kBRPDG, // use hard coded values from PDG (2018)
-  kBRPDGmix // use hard coded values from PDG (2018) and the B0/+- admixture
+  kBRPDGmix // use hard coded values from PDG (2018) and the B0/B+- admixture
 };
 
 enum { // options for fragmentation fractions
   kFFOriginal, // keep the values used in the input files
-  kFFppbar,
-  kFFee
+  kFFppbar, // use hard coded values from ppbar, PDG (2018)
+  kFFee  // use hard coded values from e+e-, PDG (2018)
 };
 
 enum { // options for re-weight
@@ -31,9 +31,9 @@ enum { // options for re-weight
   kAccurate // correct each b-hadron contribution indipendently (modify also the pT dependence)
 };
 
-void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FFppbar_yDcut.root",
-                          std::string inFileNameCent = "DfromB_FONLLcentPythia8_FFppbar_yDcut.root",
-                          std::string inFileNameMax = "DfromB_FONLLmaxPythia8_FFppbar_yDcut.root",
+void CookFONLLPythiaPred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FFppbar_yDcut.root", // min FONLL predictions
+                          std::string inFileNameCent = "DfromB_FONLLcentPythia8_FFppbar_yDcut.root", // central FONLL predictions
+                          std::string inFileNameMax = "DfromB_FONLLmaxPythia8_FFppbar_yDcut.root",  // max FONLL predictions
                           std::string outFileName = "DmesonLcPredictions_502TeV_y05 _pythia8.root",
                           int brOpt = kBRPDG,
                           int ffOpt = kFFOriginal,
@@ -60,7 +60,7 @@ void CookFONLLPythia8pred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FF
                                                                           {0.066, 0.049, 0., 0.333}    // Lc
                                                                           }};
   // B0 and B+ BR from B0/B+- admixture
-  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromBmix = {{{0.624, 0.624, 0.008, 0.},   // D0 and (BRfromB0, BRfromB+, BRfromBs, BRfromLb) from PDG (2018)
+  std::array<std::array<double, numMothers>, numDaughters> pdgBRfromBmix = {{{0.624, 0.624, 0.008, 0.},   // D0 and (BRfromB0, BRfromB+, BRfromBs, BRfromLb) from PDG (2018) and B0/B+- admixture
                                                                              {0.241, 0.241, 0., 0.},      // D+
                                                                              {0.083, 0.083, 0.93, 0.011}, // Ds
                                                                              {0.036, 0.036, 0., 0.333},   // Lc
