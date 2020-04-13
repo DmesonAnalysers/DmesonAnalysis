@@ -22,6 +22,9 @@ theorydriven:
             histonames: 
                 prompt: hDpluskpipipred
                 feeddown: hDpluskpipifromBpred
-        Raa: null   
+        Raa:
+            prompt: 1.
+            feeddown: 1.
+            model: null
     # below only needed for Nb
     sigmaMB: 50.87e+9
