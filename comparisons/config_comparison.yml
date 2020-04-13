@@ -34,6 +34,7 @@ options:
         ylimits: [0.6, 0.9]
         titles: [central, narrow left, narrow right, narrow left and right, wide left, wide right, wide left and right, alt step 1, alt step 2]
         options: [lp, lp, lp, lp, lp, lp, lp, lp, lp]
+        textsize: 0.045
 
     canvas:
         width: 1920

@@ -1,6 +1,6 @@
 '''
 Script for the comparison of ROOT TH1s or TGraphs
-run: python CompareGraphs.py fitConfigFileName.yml centClass inputFileName.root outFileName.root
+run: python CompareGraphs.py cfgFileName.yml
 '''
 
 import sys
@@ -56,13 +56,14 @@ xLegLimits = inputCfg['options']['legend']['xlimits']
 yLegLimits = inputCfg['options']['legend']['ylimits']
 legNames = inputCfg['options']['legend']['titles']
 legOpt = inputCfg['options']['legend']['options']
+legTextSize = inputCfg['options']['legend']['textsize']
 
 # set global style
 SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14)
 
 leg = TLegend(xLegLimits[0], yLegLimits[0], xLegLimits[1], yLegLimits[1])
 leg.SetFillStyle(0)
-leg.SetTextSize(0.045)
+leg.SetTextSize(legTextSize)
 
 hToCompare, hRatioToCompare = [], []
 for iFile, (inFileName, objName, objType, scale, color, marker) in \
@@ -73,6 +74,7 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
     hToCompare.append(inFile.Get(objName))
     if 'TH' in objType:
         hToCompare[iFile].SetName(f'h{iFile}')
+        hToCompare[iFile].SetStats(0)
     else:
         hToCompare[iFile].SetName(f'g{iFile}')
     SetObjectStyle(hToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker), fillstyle=0)
