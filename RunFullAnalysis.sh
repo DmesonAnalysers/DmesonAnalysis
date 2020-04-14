@@ -32,7 +32,7 @@ PtWeightsDHistoName="hPtWeightsFONLLDcent"
 PtWeightsBFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
 PtWeightsBHistoName="hPtWeightsFONLLBcent"
 
-DataDrivenFractionFileName="../AnalysisNonPromptDpp2017/Dplus/outputs/fraction/FDfraction_central.root"
+DataDrivenFractionFileName=""
 
 #assuming cutsets config files starting with "cutset" and are .yml
 CutSetsDir="../AnalysisNonPromptDpp2017/Dplus/configfiles/cutsets/FD"
@@ -90,7 +90,7 @@ if [ ! -f "${pprefFileName}" ] && [ "${pprefFileName}" != "" ]; then
   exit 2
 fi
 
-if [ ! -f "${DataDrivenFractionFileName}" ] && [ ${DoDataDrivenCrossSection} ]; then
+if [ ! -f "${DataDrivenFractionFileName}" ] && $DoDataDrivenCrossSection; then
   echo $(tput setaf 1) ERROR: data-driven fraction file "${DataDrivenFractionFileName}" does not exist! $(tput sgr0)
   exit 2
 fi

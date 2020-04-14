@@ -113,7 +113,7 @@ if doRatio and displayRMS:
         RMS.append(np.std(aRatios))
         shift.append(np.mean(aRatios))
 print('\033[92mRMS values:', np.around(RMS, decimals=3), '\033[0m')
-print('\033[92mshift values:', np.around(shift, decimals=3), '\033[0m')
+print('\033[92mshift values:', np.around(shift, decimals=3) - 1., '\033[0m')
 
 cOut = TCanvas('cOutput', '', wCanv, hCanv)
 
