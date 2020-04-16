@@ -225,6 +225,7 @@ hEvForNorm.Write()
 cCrossSec.Write()
 cFrac.Write()
 cEff.Write()
+systErr.Write()
 outFile.Close()
 
 if not args.batch:
