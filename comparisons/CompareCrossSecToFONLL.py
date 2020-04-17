@@ -90,10 +90,6 @@ if args.prompt:
     hFONLLPromptCentral.Scale(1.e-6 / BR / 20, 'width')
     hFONLLPromptMin.Scale(1.e-6 / BR / 20, 'width')
     hFONLLPromptMax.Scale(1.e-6 / BR / 20, 'width')
-    for iPt in range(hFONLLPromptCentral.GetNbinsX()):
-        hFONLLPromptCentral.SetBinError(iPt+1, 1.e-20)
-        hFONLLPromptCentral.SetBinError(iPt+1, 1.e-20)
-        hFONLLPromptCentral.SetBinError(iPt+1, 1.e-20)
     hFONLLPromptCentral.SetDirectory(0)
     hFONLLPromptMin.SetDirectory(0)
     hFONLLPromptMax.SetDirectory(0)
