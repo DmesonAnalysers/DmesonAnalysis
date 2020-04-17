@@ -2,9 +2,10 @@
 Script with miscellanea utils methods for the analysis
 '''
 
+import ctypes
 import numpy as np
 import pandas as pd
-from ROOT import TH1F, TF1, TMath, TList, TGraphAsymmErrors, Double # pylint: disable=import-error,no-name-in-module
+from ROOT import TH1F, TF1, TMath, TList, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -656,9 +657,9 @@ def ScaleGraph(graph, scaleFactor):
     - scaleFactor: scale factor
     '''
     for iPt in range(graph.GetN()):
-        x, y = Double(), Double()
+        x, y = ctypes.c_double(), ctypes.c_double()
         graph.GetPoint(iPt, x, y)
-        graph.SetPoint(iPt, x, y * scaleFactor)
+        graph.SetPoint(iPt, x.value, y.value * scaleFactor)
         yUncLow = graph.GetErrorYlow(iPt)
         yUncHigh = graph.GetErrorYhigh(iPt)
         graph.SetPointEYlow(iPt, yUncLow * scaleFactor)
@@ -686,7 +687,7 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
 
     gRatio = TGraphAsymmErrors(0)
     for iPt in range(gNum.GetN()):
-        x, num = Double(), Double()
+        x, num = ctypes.c_double(), ctypes.c_double()
         gNum.GetPoint(iPt, x, num)
         xUncLow = gNum.GetErrorXlow(iPt)
         xUncHigh = gNum.GetErrorXhigh(iPt)
@@ -697,9 +698,9 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
             ratioUncLow = np.sqrt((numUncLow/num)**2 + (hDen.GetBinError(iPt+1)/den)**2) * num/den
             ratioUncHigh = np.sqrt((numUncHigh/num)**2 + (hDen.GetBinError(iPt+1)/den)**2) * num/den
         else:
-            ratioUncLow = numUncLow/num * num/den
-            ratioUncHigh = numUncHigh/num * num/den
-        gRatio.SetPoint(iPt, x, num/den)
+            ratioUncLow = numUncLow/num.value * num.value/den
+            ratioUncHigh = numUncHigh/num.value * num.value/den
+        gRatio.SetPoint(iPt, x.value, num.value/den)
         gRatio.SetPointError(iPt, xUncLow, xUncHigh, ratioUncLow, ratioUncHigh)
 
     return gRatio
