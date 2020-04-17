@@ -5,21 +5,22 @@ from ROOT import kRed, kBlack, kBlue, kAzure, kFullCircle, kFullSquare, kFullDia
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error,no-name-in-module
 
-inDir = '../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/improver/'
-inFileNames = ['wimprover/Eff_times_Acc_Dplus_pp5TeV_FD_central.root',
-               'woimprover/Eff_times_Acc_Dplus_pp5TeV_FD_central.root']
+inDir = '~/Desktop/Analyses/pp5TeV/Ds_wML_mult/outputs/100320'
+inFileNames = ['eff/Efficiency_Ds_FDen_pt2_12_conservative.root',
+               'systematics/eff_noImprover/Efficiency_Ds_FDen_conservative_pt2_12_noImprover.root']
 histoNames = ['hEff', 'hEff']
-colors = [kAzure+4, kRed+1]
+colors = [kRed, kBlue]
 markers = [kFullSquare, kFullCircle]
-legendnames = ['w/ improver', 'w/o improver']
-outSuffix = 'Improver'
+legNames = ['Improver', 'No Improver (same ML models)']
+outDir = '~/Desktop/Analyses/pp5TeV/Ds_wML_mult/outputs/100320/systematics/eff_noImprover'
+outSuffix = 'Improver_sameModels'
 
 SetGlobalStyle(padleftmargin=0.16, padtopmargin=0.05, padbottommargin=0.14,
                titleoffsety=1.5, titlesize=0.05, labelsize=0.045)
 
 hEffPrompt, hEffFD, hEffPromptRatio, hEffFDRatio = ([] for _ in range(4))
 
-leg = TLegend(0.4, 0.28, 0.9, 0.43)
+leg = TLegend(0.2, 0.18, 0.9, 0.33)
 leg.SetFillStyle(0)
 leg.SetBorderSize(0)
 leg.SetTextSize(0.04)
@@ -44,7 +45,7 @@ for iFile, inFileName in enumerate(inFileNames):
     hEffFDRatio[iFile].SetDirectory(0)
     hEffFDRatio[iFile].Divide(hEffFD[iFile], hEffFD[0])
     hEffFDRatio[iFile].GetYaxis().SetRangeUser(0.8, 1.2)
-    leg.AddEntry(hEffFD[iFile], legendnames[iFile], 'p')
+    leg.AddEntry(hEffFD[iFile], legNames[iFile], 'p')
     for iBin in range(hEffPromptRatio[iFile].GetNbinsX()):
         hEffPromptRatio[iFile].SetBinError(iBin+1, 1.e-20)
         hEffFDRatio[iFile].SetBinError(iBin+1, 1.e-20)
@@ -78,7 +79,7 @@ for iFile in range(len(inFileNames)):
         continue
     hEffFDRatio[iFile].Draw('same')
 
-cPrompt.SaveAs(f'{inDir}/PromptEfficiencyComparison_{outSuffix}.pdf')
-cFD.SaveAs(f'{inDir}/FDEfficiencyComparison_{outSuffix}.pdf')
+cPrompt.SaveAs('%s/PromptEfficiencyComparison_%s.pdf' % (outDir, outSuffix))
+cFD.SaveAs('%s/FDEfficiencyComparison_%s.pdf' % (outDir, outSuffix))
 
 input('Press enter to exit')
