@@ -12,7 +12,9 @@ import numpy as np
 from ROOT import TFile, TCanvas, TGraphAsymmErrors, TLegend, TLine, TLatex # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error,no-name-in-module
+#pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.AnalysisUtils import ScaleGraph, DivideGraphByHisto
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('FONLLFileName', metavar='text', default='FONLL.root', help='root file FONLL predictions')
@@ -24,6 +26,7 @@ parser.add_argument('--prompt', metavar='text', default=None,
 parser.add_argument('--FD', metavar='text', default=None,
                     help='enable comparison for FD D and pass Cross section file name')
 parser.add_argument('--logx', action='store_true', default=False, help='enable log scale for x axis')
+parser.add_argument('--syst', action='store_true', default=False, help='plot also graph of syst unc')
 args = parser.parse_args()
 
 if not args.Dplus and not args.Ds:
@@ -45,13 +48,22 @@ SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14, titleoffsety=1.6, maxdi
 if args.prompt:
     infilePrompt = TFile.Open(args.prompt)
     hCrossSectionPrompt = infilePrompt.Get('hCrossSection')
+    if args.syst:
+        gCrossSectionPrompt = infilePrompt.Get('gCrossSectionSystTot')
     if not hCrossSectionPrompt:
         hCrossSectionPrompt = infilePrompt.Get('histoSigmaCorr')
         hCrossSectionPrompt.Scale(1.e-6 / BR)
         hCrossSectionPrompt.SetStats(0)
+        if args.syst:
+            gCrossSectionPrompt = infilePrompt.Get('gSigmaCorr')
+            gCrossSectionPrompt.RemovePoint(0)
+            ScaleGraph(gCrossSectionPrompt, 1.e-6 / BR)
     hCrossSectionPrompt.SetName('hCrossSectionPrompt')
     hCrossSectionPrompt.SetDirectory(0)
     SetObjectStyle(hCrossSectionPrompt, color=kBlack, markerstyle=kFullCircle)
+    if args.syst:
+        SetObjectStyle(gCrossSectionPrompt, color=kBlack, fillstyle=0)
+        gCrossSectionPrompt.SetName('gCrossSectionPrompt')
     infilePrompt.Close()
 
     ptLimitsPrompt = np.array(hCrossSectionPrompt.GetXaxis().GetXbins(), 'd')
@@ -97,7 +109,7 @@ if args.prompt:
                                       1-hFONLLPromptMin.GetBinContent(iPt+1)/hFONLLPromptCentral.GetBinContent(iPt+1),
                                       hFONLLPromptMax.GetBinContent(iPt+1)/hFONLLPromptCentral.GetBinContent(iPt+1)-1)
 
-    SetObjectStyle(hFONLLPromptCentral, color=kRed+1, markerstyle=0)
+    SetObjectStyle(hFONLLPromptCentral, color=kRed+1, markerstyle=0, fillstyle=0)
     SetObjectStyle(gFONLLPrompt, color=kRed+1, fillalpha=0.2, fillstyle=1000)
     SetObjectStyle(gFONLLPromptUnc, color=kRed+1, fillalpha=0.2, fillstyle=1000)
     infileFONLL.Close()
@@ -106,6 +118,10 @@ if args.prompt:
     hRatioPromptOverFONLL.Divide(hRatioPromptOverFONLL, hFONLLPromptCentral)
     hRatioPromptOverFONLL.GetYaxis().SetTitle('Data / FONLL')
 
+    if args.syst:
+        gRatioPromptOverFONLL = DivideGraphByHisto(gCrossSectionPrompt, hFONLLPromptCentral, False)
+        SetObjectStyle(gRatioPromptOverFONLL, color=kBlack, fillstyle=0)
+
     lineFONLLPrompt = TLine(ptMinPrompt, 1., ptMaxPrompt, 1.)
     lineFONLLPrompt.SetLineColor(kRed+1)
     lineFONLLPrompt.SetLineWidth(2)
@@ -113,13 +129,21 @@ if args.prompt:
 if args.FD:
     infileFD = TFile.Open(args.FD)
     hCrossSectionFD = infileFD.Get('hCrossSection')
+    if args.syst:
+        gCrossSectionFD = infileFD.Get('gCrossSectionSystTot')
     if not hCrossSectionFD:
         hCrossSectionFD = infileFD.Get('histoSigmaCorr')
         hCrossSectionFD.SetStats(0)
         hCrossSectionFD.Scale(1.e-6 / BR)
+        if args.syst:
+            gCrossSectionFD = infileFD.Get('gSigmaCorr')
+            ScaleGraph(gCrossSectionFD, 1.e-6 / BR)
     hCrossSectionFD.SetName('hCrossSectionFD')
     hCrossSectionFD.SetDirectory(0)
     SetObjectStyle(hCrossSectionFD, color=kBlack, markerstyle=kFullSquare)
+    if args.syst:
+        SetObjectStyle(gCrossSectionFD, color=kBlack, fillstyle=0)
+        gCrossSectionFD.SetName('gCrossSectionFD')
     infileFD.Close()
 
     ptLimitsFD = np.array(hCrossSectionFD.GetXaxis().GetXbins(), 'd')
@@ -174,7 +198,7 @@ if args.FD:
                                   1-hFONLLFDMin.GetBinContent(iPt+1)/hFONLLFDCentral.GetBinContent(iPt+1),
                                   hFONLLFDMax.GetBinContent(iPt+1)/hFONLLFDCentral.GetBinContent(iPt+1)-1)
 
-    SetObjectStyle(hFONLLFDCentral, color=kAzure+4, markerstyle=0)
+    SetObjectStyle(hFONLLFDCentral, color=kAzure+4, markerstyle=0, fillstyle=0)
     SetObjectStyle(gFONLLFD, color=kAzure+4, fillalpha=0.2, fillstyle=1000)
     SetObjectStyle(gFONLLFDUnc, color=kAzure+4, fillalpha=0.2, fillstyle=1000)
     infileFONLL.Close()
@@ -182,6 +206,10 @@ if args.FD:
     hRatioFDOverFONLL = hCrossSectionFD.Clone('hRatioFDOverFONLL')
     hRatioFDOverFONLL.Divide(hRatioFDOverFONLL, hFONLLFDCentral)
     hRatioFDOverFONLL.GetYaxis().SetTitle('Data / FONLL')
+
+    if args.syst:
+        gRatioFDOverFONLL = DivideGraphByHisto(gCrossSectionFD, hFONLLFDCentral, False)
+        SetObjectStyle(gRatioFDOverFONLL, color=kBlack, fillstyle=0)
 
     lineFONLLFD = TLine(ptMinFD, 1., ptMaxFD, 1.)
     lineFONLLFD.SetLineColor(kAzure+4)
@@ -197,6 +225,7 @@ if args.logx and ptMin <= 0:
 cCrossSec = TCanvas('cCrossSec', '', 700, 800)
 hFrame = cCrossSec.DrawFrame(ptMin, sigmaMin, ptMax, sigmaMax,
                              ';#it{p}_{T} (GeV/#it{c});#frac{d#sigma}{d#it{p}_{T}} (#mub GeV^{-1} #it{c})')
+hFrame.GetXaxis().SetMoreLogLabels()
 cCrossSec.SetLogy()
 if args.logx:
     cCrossSec.SetLogx()
@@ -216,16 +245,20 @@ legFD.SetFillStyle(0)
 
 if args.prompt:
     gFONLLPrompt.Draw('2')
-    hFONLLPromptCentral.Draw('same')
-    hCrossSectionPrompt.Draw('esame')
+    hFONLLPromptCentral.DrawCopy('same')
+    hCrossSectionPrompt.DrawCopy('esame')
+    if args.syst:
+        gCrossSectionPrompt.Draw('2')
     legPrompt.AddEntry('', f'Prompt {mesonName}', '')
     legPrompt.AddEntry(hCrossSectionPrompt, 'Data', 'p')
     legPrompt.AddEntry(gFONLLPrompt, 'FONLL', 'f')
     legPrompt.Draw()
 if args.FD:
     gFONLLFD.Draw('2')
-    hFONLLFDCentral.Draw('same')
-    hCrossSectionFD.Draw('esame')
+    hFONLLFDCentral.DrawCopy('same')
+    hCrossSectionFD.DrawCopy('esame')
+    if args.syst:
+        gCrossSectionFD.Draw('2')
     legFD.AddEntry('', f'Non-prompt {mesonName}', '')
     legFD.AddEntry(hCrossSectionFD, 'Data', 'p')
     legFD.AddEntry(gFONLLFD, 'FONLL', 'f')
@@ -246,32 +279,46 @@ if args.FD and args.prompt:
     hFramePrompt = cRatioToFONLL.cd(1).DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3.,
                                                  ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
     hFramePrompt.GetYaxis().SetDecimals()
+    if args.logx:
+        cRatioToFONLL.cd(1).SetLogx()
     gFONLLPromptUnc.Draw('2')
     lineFONLLPrompt.Draw('same')
-    hRatioPromptOverFONLL.Draw('same')
+    hRatioPromptOverFONLL.DrawCopy('same')
+    if args.syst:
+        gRatioPromptOverFONLL.Draw('2')
     lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
     hFrameFD = cRatioToFONLL.cd(2).DrawFrame(ptMinFD, 0., ptMaxFD, 3., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
     hFrameFD.GetYaxis().SetDecimals()
+    if args.logx:
+        cRatioToFONLL.cd(2).SetLogx()
     gFONLLFDUnc.Draw('2')
     lineFONLLFD.Draw('same')
-    hRatioFDOverFONLL.Draw('same')
+    hRatioFDOverFONLL.DrawCopy('same')
+    if args.syst:
+        gRatioFDOverFONLL.Draw('2')
     lat.DrawLatex(0.6, 0.85, f'Non-prompt {mesonName}')
 else:
     cRatioToFONLL = TCanvas('cRatioToFONLL', '', 500, 500)
+    if args.logx:
+        cRatioToFONLL.SetLogx()
     if args.prompt:
         hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3.,
                                                ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
         hFramePrompt.GetYaxis().SetDecimals()
         gFONLLPromptUnc.Draw('2')
         lineFONLLPrompt.Draw('same')
-        hRatioPromptOverFONLL.Draw('same')
+        hRatioPromptOverFONLL.DrawCopy('same')
+        if args.syst:
+            gRatioPromptOverFONLL.Draw('2')
         lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
     else:
         hFrameFD = cRatioToFONLL.DrawFrame(ptMinFD, 0., ptMaxFD, 3., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
         hFrameFD.GetYaxis().SetDecimals()
         gFONLLFDUnc.Draw('2')
         lineFONLLFD.Draw('same')
-        hRatioFDOverFONLL.Draw('same')
+        hRatioFDOverFONLL.DrawCopy('same')
+        if args.syst:
+            gRatioFDOverFONLL.Draw('2')
         lat.DrawLatex(0.6, 0.85, f'Non-prompt {mesonName}')
 
 outFileRatioName = args.outFileName.replace('.pdf', '_RatioToFONLL.pdf')

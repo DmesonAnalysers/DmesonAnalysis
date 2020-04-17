@@ -2,9 +2,10 @@
 Script with miscellanea utils methods for the analysis
 '''
 
+import ctypes
 import numpy as np
 import pandas as pd
-from ROOT import TH1F, TF1, TMath, TList # pylint: disable=import-error,no-name-in-module
+from ROOT import TH1F, TF1, TMath, TList, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -170,13 +171,13 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
         fracPromptCent = 0.
         fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
         fracFD = [fracFDCent, fracFDCent, fracFDCent]
-        return fracPrompt, fracFD 
+        return fracPrompt, fracFD
     elif accEffFD == 0:
         fracFDCent = 0.
         fracPromptCent = 1.
         fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
         fracFD = [fracFDCent, fracFDCent, fracFDCent]
-        return fracPrompt, fracFD 
+        return fracPrompt, fracFD
     else:
         for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
             for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
@@ -440,8 +441,9 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=
     '''
     if hMassSignal:
         funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
-        funcSignal.SetParameters(hMassSignal.Integral() * hMassSignal.GetBinWidth(1), hMassSignal.GetMean(), hMassSignal.GetRMS())
-        hMassSignal.Fit('funcSignal','Q0')
+        funcSignal.SetParameters(hMassSignal.Integral() * hMassSignal.GetBinWidth(1),
+                                 hMassSignal.GetMean(), hMassSignal.GetRMS())
+        hMassSignal.Fit('funcSignal', 'Q0')
         mean = funcSignal.GetParameter(1)
         sigma = funcSignal.GetParameter(2)
 
@@ -573,7 +575,7 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
             y.append(spline(minRange))
         else:
             y.append(spline(maxRange))
-            
+
     y = pd.Series(y)
 
     return y
@@ -642,3 +644,63 @@ def ComputeRatioDiffBins(hNum, hDen, uncOpt=''):
     hRatio.Divide(hNumReb, hDenReb, 1., 1., uncOpt)
 
     return hRatio
+
+
+def ScaleGraph(graph, scaleFactor):
+    '''
+    Helper method to scale a TGraph
+
+    Parameters
+    ----------
+
+    - graph: graph to scale
+    - scaleFactor: scale factor
+    '''
+    for iPt in range(graph.GetN()):
+        x, y = ctypes.c_double(), ctypes.c_double()
+        graph.GetPoint(iPt, x, y)
+        graph.SetPoint(iPt, x.value, y.value * scaleFactor)
+        yUncLow = graph.GetErrorYlow(iPt)
+        yUncHigh = graph.GetErrorYhigh(iPt)
+        graph.SetPointEYlow(iPt, yUncLow * scaleFactor)
+        graph.SetPointEYhigh(iPt, yUncHigh * scaleFactor)
+
+
+def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
+    '''
+    Helper method to divide a TGraph by a TH1 (assuming same binning)
+
+    Parameters
+    ----------
+
+    - gNum: graph to divide (numerator)
+    - hDen: histogram (denominator)
+
+    Returns
+    ----------
+
+    - gRatio: resulting graph
+    '''
+    if gNum.GetN() != hDen.GetNbinsX():
+        print('ERROR: only graphs and histos with same number of bins can be divided!')
+        return None
+
+    gRatio = TGraphAsymmErrors(0)
+    for iPt in range(gNum.GetN()):
+        x, num = ctypes.c_double(), ctypes.c_double()
+        gNum.GetPoint(iPt, x, num)
+        xUncLow = gNum.GetErrorXlow(iPt)
+        xUncHigh = gNum.GetErrorXhigh(iPt)
+        numUncLow = gNum.GetErrorYlow(iPt)
+        numUncHigh = gNum.GetErrorYhigh(iPt)
+        den = hDen.GetBinContent(iPt+1)
+        if useHistoUnc:
+            ratioUncLow = np.sqrt((numUncLow/num)**2 + (hDen.GetBinError(iPt+1)/den)**2) * num/den
+            ratioUncHigh = np.sqrt((numUncHigh/num)**2 + (hDen.GetBinError(iPt+1)/den)**2) * num/den
+        else:
+            ratioUncLow = numUncLow/num.value * num.value/den
+            ratioUncHigh = numUncHigh/num.value * num.value/den
+        gRatio.SetPoint(iPt, x.value, num.value/den)
+        gRatio.SetPointError(iPt, xUncLow, xUncHigh, ratioUncLow, ratioUncHigh)
+
+    return gRatio
