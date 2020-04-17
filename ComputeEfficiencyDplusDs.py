@@ -68,11 +68,16 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
 
     # get unweighted yields (for uncertainty)
-    nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (ctypes.c_double() for _ in range(4))
-    nRecoPrompt = hRecoPrompt[iPt].IntegralAndError(0, hRecoPrompt[iPt].GetNbinsX()+1, nRecoPromptUnc)
-    nGenPrompt = hGenPrompt[iPt].IntegralAndError(0, hGenPrompt[iPt].GetNbinsX()+1, nGenPromptUnc)
-    nRecoFD = hRecoFD[iPt].IntegralAndError(0, hRecoFD[iPt].GetNbinsX()+1, nRecoFDUnc)
-    nGenFD = hGenFD[iPt].IntegralAndError(0, hGenFD[iPt].GetNbinsX()+1, nGenFDUnc)
+    nRecoPromptUnc_ref, nGenPromptUnc_ref, nRecoFDUnc_ref, nGenFDUnc_ref = (ctypes.c_double() for _ in range(4))
+    nRecoPrompt = hRecoPrompt[iPt].IntegralAndError(0, hRecoPrompt[iPt].GetNbinsX()+1, nRecoPromptUnc_ref)
+    nGenPrompt = hGenPrompt[iPt].IntegralAndError(0, hGenPrompt[iPt].GetNbinsX()+1, nGenPromptUnc_ref)
+    nRecoFD = hRecoFD[iPt].IntegralAndError(0, hRecoFD[iPt].GetNbinsX()+1, nRecoFDUnc_ref)
+    nGenFD = hGenFD[iPt].IntegralAndError(0, hGenFD[iPt].GetNbinsX()+1, nGenFDUnc_ref)
+
+    nRecoPromptUnc = nRecoPromptUnc_ref.value
+    nGenPromptUnc = nGenPromptUnc_ref.value
+    nRecoFDUnc = nRecoFDUnc_ref.value
+    nGenFDUnc = nGenFDUnc_ref.value
 
     effPrompt, effPromptUnc = ComputeEfficiency(nRecoPrompt, nGenPrompt, nRecoPromptUnc.value, nGenPromptUnc.value)
     effFD, effFDUnc = ComputeEfficiency(nRecoFD, nGenFD, nRecoFDUnc.value, nGenFDUnc.value)
