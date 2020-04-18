@@ -10,7 +10,7 @@ from itertools import product
 import numpy as np
 import yaml
 from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, TRandom3  # pylint: disable=import-error,no-name-in-module
-from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle  # pylint: disable=import-error,no-name-in-module
+from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, GetPromptFDFractionFc, GetFractionNb
 from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
@@ -184,21 +184,24 @@ for iPt in range(hRawYields[0].GetNbinsX()):
 
     if doRawYieldsSmearing:
         listRawYield.reverse()
-        listRawYieldSemared = []
+        listRawYieldSmeared = []
         listDelta = []
         listDeltaSmeared = []
-        for iRawYeld in range(len(listRawYield)-1):
+        for iRawYeld, _ in enumerate(listRawYield):
             if iRawYeld == 0:
                 listDelta.append(0.)
-            listDelta.append(listRawYield[iRawYeld+1] - listRawYield[iRawYeld])
-        for iSmear in range(len(listRawYield)): 
-            listDeltaSmeared.append(TRandom3().Poisson(listDelta[iSmear]))
-            if cutSetCfg['minimisation']['correlated']:
-                listRawYieldSemared.append(TRandom3().Poisson(listRawYield[iSmear]) + listDeltaSmeared[iSmear])
             else:
-                listRawYieldSemared.append(TRandom3().Poisson(listRawYield[iSmear]))
-        listRawYieldSemared.reverse() 
-        listRawYield = listRawYieldSemared
+                listDelta.append(listRawYield[iRawYeld] - listRawYield[iRawYeld-1])
+            listDeltaSmeared.append(TRandom3().Poisson(listDelta[iRawYeld]))
+            if cutSetCfg['minimisation']['correlated']:
+                if iRawYeld == 0:
+                    listRawYieldSmeared.append(TRandom3().Poisson(listRawYield[iRawYeld]))
+                else:
+                    listRawYieldSmeared.append(listRawYieldSmeared[iRawYeld-1] + listDeltaSmeared[iRawYeld])
+            else:
+                listRawYieldSmeared.append(TRandom3().Poisson(listRawYield[iRawYeld]))
+        listRawYieldSmeared.reverse()
+        listRawYield = listRawYieldSmeared
 
     corrYields, covMatrixCorrYields, chiSquare, matrices = \
         GetPromptFDYieldsAnalyticMinimisation(listEffPrompt, listEffFD, listRawYield, listEffPromptUnc, listEffFDUnc,
@@ -226,14 +229,14 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                  nSets, 0.5, nSets + 0.5))
     hFDFracVsCut.append(TH1F(f'hFDFracVsCut_{ptString}', f'{commonString};#it{{f}}_{{FD}}', nSets, 0.5, nSets + 0.5))
 
-    SetObjectStyle(hRawYieldsVsCut[iPt], linecolor=kBlack, markercolor=kBlack, markerstyle=kFullSquare)
-    SetObjectStyle(hRawYieldPromptVsCut[iPt], color=kRed+1, fillcolor=kRed+1, markerstyle=kFullCircle, fillalpha=0.3)
-    SetObjectStyle(hRawYieldFDVsCut[iPt], color=kAzure+4, fillcolor=kAzure+4, markerstyle=kFullSquare, fillalpha=0.3)
+    SetObjectStyle(hRawYieldsVsCut[iPt], linecolor=kBlack, markercolor=kBlack, markerstyle=kOpenSquare)
+    SetObjectStyle(hRawYieldPromptVsCut[iPt], color=kRed+1, fillcolor=kRed+1, markerstyle=kOpenCircle, fillalpha=0.3)
+    SetObjectStyle(hRawYieldFDVsCut[iPt], color=kAzure+4, fillcolor=kAzure+4, markerstyle=kOpenSquare, fillalpha=0.3)
     SetObjectStyle(hRawYieldsVsCutReSum[iPt], linecolor=kGreen+2)
-    SetObjectStyle(hEffPromptVsCut[iPt], color=kRed+1, markerstyle=kFullCircle)
-    SetObjectStyle(hEffFDVsCut[iPt], color=kAzure+4, markerstyle=kFullSquare)
-    SetObjectStyle(hPromptFracVsCut[iPt], color=kRed+1, markerstyle=kFullCircle)
-    SetObjectStyle(hFDFracVsCut[iPt], color=kAzure+4, markerstyle=kFullSquare)
+    SetObjectStyle(hEffPromptVsCut[iPt], color=kRed+1, markerstyle=kOpenCircle)
+    SetObjectStyle(hEffFDVsCut[iPt], color=kAzure+4, markerstyle=kOpenSquare)
+    SetObjectStyle(hPromptFracVsCut[iPt], color=kRed+1, markerstyle=kOpenCircle)
+    SetObjectStyle(hFDFracVsCut[iPt], color=kAzure+4, markerstyle=kOpenSquare)
 
     hCorrMatrixCutSets.append(TH2F(f'hCorrMatrixCutSets_{ptString}', f'{commonString};cut set',
                                    nSets, 0.5, nSets + 0.5, nSets, 0.5, nSets + 0.5))
@@ -253,8 +256,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                                  f'{commonString};#it{{f}}_{{prompt}}')
             gFDFracFcVsCut.append(TGraphAsymmErrors(nSets))
             gFDFracFcVsCut[iPt].SetNameTitle(f'gFDFracFcVsCut_{ptString}', f'{commonString};#it{{f}}_{{FD}}')
-            SetObjectStyle(gPromptFracFcVsCut[iPt], color=kRed+3, fillalpha=0.3, markerstyle=kOpenCircle)
-            SetObjectStyle(gFDFracFcVsCut[iPt], color=kAzure+3, fillalpha=0.3, markerstyle=kOpenSquare)
+            SetObjectStyle(gPromptFracFcVsCut[iPt], color=kRed+3, fillalpha=0.3, markerstyle=kOpenCross)
+            SetObjectStyle(gFDFracFcVsCut[iPt], color=kAzure+3, fillalpha=0.3, markerstyle=kOpenCross)
 
         if compareToNb:
             gPromptFracNbVsCut.append(TGraphAsymmErrors(nSets))
@@ -262,8 +265,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                                  f'{commonString};#it{{f}}_{{prompt}}')
             gFDFracNbVsCut.append(TGraphAsymmErrors(nSets))
             gFDFracNbVsCut[iPt].SetNameTitle(f'gFDFracNbVsCut_{ptString}', f'{commonString};#it{{f}}_{{FD}}')
-            SetObjectStyle(gPromptFracNbVsCut[iPt], color=kRed-7, markerstyle=kOpenCircle)
-            SetObjectStyle(gFDFracNbVsCut[iPt], color=kAzure+5, markerstyle=kOpenSquare)
+            SetObjectStyle(gPromptFracNbVsCut[iPt], color=kRed-7, markerstyle=kOpenCross)
+            SetObjectStyle(gFDFracNbVsCut[iPt], color=kAzure+5, markerstyle=kOpenCross)
 
     for iCutSet, (rawY, effP, effF, rawYunc, effPunc, effFunc) in enumerate(zip(listRawYield, listEffPrompt, listEffFD,
                                                                                 listRawYieldUnc, listEffPromptUnc,
@@ -374,8 +377,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     hPromptFracVsCut[iPt].DrawCopy('Esame')
     hFDFracVsCut[iPt].DrawCopy('Esame')
     if compareToFc:
-        gPromptFracFcVsCut[iPt].Draw('2Z')
-        gFDFracFcVsCut[iPt].Draw('2Z')
+        gPromptFracFcVsCut[iPt].Draw('2PZ')
+        gFDFracFcVsCut[iPt].Draw('2PZ')
     if compareToNb:
         gPromptFracNbVsCut[iPt].Draw('PZ')
         gFDFracNbVsCut[iPt].Draw('PZ')
