@@ -335,8 +335,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
             # Efficiency  and Signal Error
             SError = expSignal / expSignif
-            EffAccFDError = np.sqrt( effFDUnc*effFDUnc + preselEffFDUnc*preselEffFDUnc + accUnc*accUnc )
-            EffAccPromptError = np.sqrt( effPromptUnc*effPromptUnc + preselEffPromptUnc*preselEffPromptUnc + accUnc*accUnc)
+            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2)*effTimesAccFD
+            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + (accUnc/acc)**2)*effTimesAccPrompt
 
             tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, EffAccPromptError, EffAccFDError, SError, expSignif,
                                        expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])

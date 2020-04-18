@@ -9,7 +9,7 @@ import os
 from itertools import product
 import numpy as np
 import yaml
-from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, TRandom3  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, gRandom  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, GetPromptFDFractionFc, GetFractionNb
 from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
@@ -119,7 +119,7 @@ if compareToFc or compareToNb:
     if compareToNb:
         sigmaMB = cutSetCfg['theorydriven']['sigmaMB']
 
-SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.08, titleoffsetx=1., titleoffsety=1.4, opttitle=1, palette=kRainBow)
+SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.08, titleoffsetx=1., titleoffsety=1.4, opttitle=1, palette=kRainBow, maxdigits=2)
 
 legDistr = TLegend(0.45, 0.69, 0.75, 0.89)
 legDistr.SetFillStyle(0)
@@ -192,14 +192,14 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                 listDelta.append(0.)
             else:
                 listDelta.append(listRawYield[iRawYeld] - listRawYield[iRawYeld-1])
-            listDeltaSmeared.append(TRandom3().Poisson(listDelta[iRawYeld]))
+            listDeltaSmeared.append(gRandom.PoissonD(listDelta[iRawYeld]))
             if cutSetCfg['minimisation']['correlated']:
                 if iRawYeld == 0:
-                    listRawYieldSmeared.append(TRandom3().Poisson(listRawYield[iRawYeld]))
+                    listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld]))
                 else:
                     listRawYieldSmeared.append(listRawYieldSmeared[iRawYeld-1] + listDeltaSmeared[iRawYeld])
             else:
-                listRawYieldSmeared.append(TRandom3().Poisson(listRawYield[iRawYeld]))
+                listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld]))
         listRawYieldSmeared.reverse()
         listRawYield = listRawYieldSmeared
 
@@ -380,8 +380,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
         gPromptFracFcVsCut[iPt].Draw('2PZ')
         gFDFracFcVsCut[iPt].Draw('2PZ')
     if compareToNb:
-        gPromptFracNbVsCut[iPt].Draw('PZ')
-        gFDFracNbVsCut[iPt].Draw('PZ')
+        gPromptFracNbVsCut[iPt].Draw('2PZ')
+        gFDFracNbVsCut[iPt].Draw('2PZ')
     legFrac.Draw()
 
     cCorrMatrix.append(TCanvas(f'cCorrMatrix_{ptString}', '', 800, 800))
