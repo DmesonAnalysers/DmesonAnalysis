@@ -59,7 +59,7 @@ legOpt = inputCfg['options']['legend']['options']
 legTextSize = inputCfg['options']['legend']['textsize']
 
 # set global style
-SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14)
+SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14, titleoffsety=1.5)
 
 leg = TLegend(xLegLimits[0], yLegLimits[0], xLegLimits[1], yLegLimits[1])
 leg.SetFillStyle(0)
@@ -80,6 +80,7 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
     SetObjectStyle(hToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker), fillstyle=0)
     if 'TH' in objType:
         hToCompare[iFile].SetDirectory(0)
+        hToCompare[iFile].SetStats(0)
         hToCompare[iFile].Scale(scale)
     #TODO: else: scale graph --> add util function in AnalysisUtils
     if doRatio:
