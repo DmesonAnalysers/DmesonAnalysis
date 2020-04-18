@@ -1,64 +1,64 @@
 rawyields:
     inputdir: /home/alidock/DmesonAnalysis/optimisation/output/projection/ITS2/
-    inputfiles: ['projection_out_Bkg0_0.1_FD1.0_1.1.root',
-                 'projection_out_Bkg0_0.1_FD1.1_1.2.root',
-                 'projection_out_Bkg0_0.1_FD1.2_1.3.root',
-                 'projection_out_Bkg0_0.1_FD1.3_1.4.root',
-                 'projection_out_Bkg0_0.1_FD1.4_1.5.root',
-                 'projection_out_Bkg0_0.1_FD1.5_1.6.root',
-                 'projection_out_Bkg0_0.1_FD1.6_1.7.root',
-                 'projection_out_Bkg0_0.1_FD1.7_1.8.root',
-                 'projection_out_Bkg0_0.1_FD1.8_1.9.root',
-                 'projection_out_Bkg0_0.1_FD1.9_2.0.root',
-                 'projection_out_Bkg0_0.1_FD2.0_2.1.root',
-                 'projection_out_Bkg0_0.1_FD2.1_2.2.root',
-                 'projection_out_Bkg0_0.1_FD2.2_2.3.root',
-                 'projection_out_Bkg0_0.1_FD2.3_2.4.root',
-                 'projection_out_Bkg0_0.1_FD2.4_2.5.root',
-                 'projection_out_Bkg0_0.1_FD2.5_2.6.root',
-                 'projection_out_Bkg0_0.1_FD2.6_2.7.root',
-                 'projection_out_Bkg0_0.1_FD2.7_2.8.root',
-                 'projection_out_Bkg0_0.1_FD2.8_2.9.root',
-                 'projection_out_Bkg0_0.1_FD2.9_3.0.root'
+    inputfiles: ['projection_out_Bkg0_0.1_FD2.0_2.05-1.0_1.1.root',
+                 'projection_out_Bkg0_0.1_FD2.05_2.1-1.1_1.2.root',
+                 'projection_out_Bkg0_0.1_FD2.10_2.15-1.2_1.3.root',
+                 'projection_out_Bkg0_0.1_FD2.15_2.20-1.3_1.4.root',
+                 'projection_out_Bkg0_0.1_FD2.20_2.25-1.4_1.5.root',
+                 'projection_out_Bkg0_0.1_FD2.25_2.30-1.5_1.6.root',
+                 'projection_out_Bkg0_0.1_FD2.30_2.35-1.6_1.7.root',
+                 'projection_out_Bkg0_0.1_FD2.35_2.40-1.7_1.8.root',
+                 'projection_out_Bkg0_0.1_FD2.40_2.45-1.8_1.9.root',
+                 'projection_out_Bkg0_0.1_FD2.45_2.50-1.9_2.0.root',
+                 'projection_out_Bkg0_0.1_FD2.50_2.55-2.0_2.1.root',
+                 'projection_out_Bkg0_0.1_FD2.55_2.60-2.1_2.2.root',
+                 'projection_out_Bkg0_0.1_FD2.60_2.65-2.2_2.3.root',
+                 'projection_out_Bkg0_0.1_FD2.65_2.70-2.3_2.4.root',
+                 'projection_out_Bkg0_0.1_FD2.70_2.75-2.4_2.5.root',
+                 'projection_out_Bkg0_0.1_FD2.75_2.80-2.5_2.6.root',
+                 'projection_out_Bkg0_0.1_FD2.80_2.85-2.6_2.7.root',
+                 'projection_out_Bkg0_0.1_FD2.85_2.90-2.7_2.8.root',
+                 'projection_out_Bkg0_0.1_FD2.90_2.95-2.8_2.9.root',
+                 'projection_out_Bkg0_0.1_FD2.95_3.00-2.9_3.0.root'
                 ]
     histoname: hProjectS
 
 efficiencies:
     inputdir: /home/alidock/DmesonAnalysis/optimisation/output/projection/ITS2/
-    inputfiles: ['projection_out_Bkg0_0.1_FD1.0_1.1.root',
-                 'projection_out_Bkg0_0.1_FD1.1_1.2.root',
-                 'projection_out_Bkg0_0.1_FD1.2_1.3.root',
-                 'projection_out_Bkg0_0.1_FD1.3_1.4.root',
-                 'projection_out_Bkg0_0.1_FD1.4_1.5.root',
-                 'projection_out_Bkg0_0.1_FD1.5_1.6.root',
-                 'projection_out_Bkg0_0.1_FD1.6_1.7.root',
-                 'projection_out_Bkg0_0.1_FD1.7_1.8.root',
-                 'projection_out_Bkg0_0.1_FD1.8_1.9.root',
-                 'projection_out_Bkg0_0.1_FD1.9_2.0.root',
-                 'projection_out_Bkg0_0.1_FD2.0_2.1.root',
-                 'projection_out_Bkg0_0.1_FD2.1_2.2.root',
-                 'projection_out_Bkg0_0.1_FD2.2_2.3.root',
-                 'projection_out_Bkg0_0.1_FD2.3_2.4.root',
-                 'projection_out_Bkg0_0.1_FD2.4_2.5.root',
-                 'projection_out_Bkg0_0.1_FD2.5_2.6.root',
-                 'projection_out_Bkg0_0.1_FD2.6_2.7.root',
-                 'projection_out_Bkg0_0.1_FD2.7_2.8.root',
-                 'projection_out_Bkg0_0.1_FD2.8_2.9.root',
-                 'projection_out_Bkg0_0.1_FD2.9_3.0.root'
+    inputfiles: ['projection_out_Bkg0_0.1_FD2.0_2.05-1.0_1.1.root',
+                 'projection_out_Bkg0_0.1_FD2.05_2.1-1.1_1.2.root',
+                 'projection_out_Bkg0_0.1_FD2.10_2.15-1.2_1.3.root',
+                 'projection_out_Bkg0_0.1_FD2.15_2.20-1.3_1.4.root',
+                 'projection_out_Bkg0_0.1_FD2.20_2.25-1.4_1.5.root',
+                 'projection_out_Bkg0_0.1_FD2.25_2.30-1.5_1.6.root',
+                 'projection_out_Bkg0_0.1_FD2.30_2.35-1.6_1.7.root',
+                 'projection_out_Bkg0_0.1_FD2.35_2.40-1.7_1.8.root',
+                 'projection_out_Bkg0_0.1_FD2.40_2.45-1.8_1.9.root',
+                 'projection_out_Bkg0_0.1_FD2.45_2.50-1.9_2.0.root',
+                 'projection_out_Bkg0_0.1_FD2.50_2.55-2.0_2.1.root',
+                 'projection_out_Bkg0_0.1_FD2.55_2.60-2.1_2.2.root',
+                 'projection_out_Bkg0_0.1_FD2.60_2.65-2.2_2.3.root',
+                 'projection_out_Bkg0_0.1_FD2.65_2.70-2.3_2.4.root',
+                 'projection_out_Bkg0_0.1_FD2.70_2.75-2.4_2.5.root',
+                 'projection_out_Bkg0_0.1_FD2.75_2.80-2.5_2.6.root',
+                 'projection_out_Bkg0_0.1_FD2.80_2.85-2.6_2.7.root',
+                 'projection_out_Bkg0_0.1_FD2.85_2.90-2.7_2.8.root',
+                 'projection_out_Bkg0_0.1_FD2.90_2.95-2.8_2.9.root',
+                 'projection_out_Bkg0_0.1_FD2.95_3.00-2.9_3.0.root'
                 ]
     histonames:
         prompt: hProjectEffAccPrompt
         feeddown: hProjectEffAccFD
 
 minimisation:
-    correlated: false #true --> fully correlated, false --> fully uncorrelated        
-
+    correlated: true #true --> fully correlated, false --> fully uncorrelated (if false, RawYieldSmearing automatically enabled)   
+    doRawYieldSmearing: true 
 theorydriven:
     enableFc: true
     enableNb: false
     predictions:
         crosssec: 
-            inputfile: models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
+            inputfile: /home/alidock/DmesonAnalysis/models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
             histonames: 
                 prompt: hDsPhipitoKkpipred
                 feeddown: hDsPhipitoKkpifromBpred
