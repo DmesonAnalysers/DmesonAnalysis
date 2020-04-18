@@ -9,7 +9,7 @@ import os
 from itertools import product
 import numpy as np
 import yaml
-from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, TRandom3  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, GetPromptFDFractionFc, GetFractionNb
 from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
@@ -33,6 +33,7 @@ with open(args.cfgFileName, 'r') as ymlCutSetFile:
 inputFilesRaw = cutSetCfg['rawyields']['inputfiles']
 inputFilesEff = cutSetCfg['efficiencies']['inputfiles']
 nSets = len(cutSetCfg['rawyields']['inputfiles'])
+doRawYieldsSmearing = cutSetCfg['minimisation']['doRawYieldSmearing']
 
 if nSets != len(cutSetCfg['efficiencies']['inputfiles']):
     print('ERROR: number or raw yield files and efficiency files not consistent! Please check your config file. Exit')
@@ -181,6 +182,24 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     listEffFD = [hEffF.GetBinContent(iPt+1) for hEffF in hEffFD]
     listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD]
 
+    if doRawYieldsSmearing:
+        listRawYield.reverse()
+        listRawYieldSemared = []
+        listDelta = []
+        listDeltaSmeared = []
+        for iRawYeld in range(len(listRawYield)-1):
+            if iRawYeld == 0:
+                listDelta.append(0.)
+            listDelta.append(listRawYield[iRawYeld+1] - listRawYield[iRawYeld])
+        for iSmear in range(len(listRawYield)): 
+            listDeltaSmeared.append(TRandom3().Poisson(listDelta[iSmear]))
+            if cutSetCfg['minimisation']['correlated']:
+                listRawYieldSemared.append(TRandom3().Poisson(listRawYield[iSmear]) + listDeltaSmeared[iSmear])
+            else:
+                listRawYieldSemared.append(TRandom3().Poisson(listRawYield[iSmear]))
+        listRawYieldSemared.reverse() 
+        listRawYield = listRawYieldSemared
+
     corrYields, covMatrixCorrYields, chiSquare, matrices = \
         GetPromptFDYieldsAnalyticMinimisation(listEffPrompt, listEffFD, listRawYield, listEffPromptUnc, listEffFDUnc,
                                               listRawYieldUnc, cutSetCfg['minimisation']['correlated'])
@@ -234,8 +253,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                                  f'{commonString};#it{{f}}_{{prompt}}')
             gFDFracFcVsCut.append(TGraphAsymmErrors(nSets))
             gFDFracFcVsCut[iPt].SetNameTitle(f'gFDFracFcVsCut_{ptString}', f'{commonString};#it{{f}}_{{FD}}')
-            SetObjectStyle(gPromptFracFcVsCut[iPt], color=kRed+3, markerstyle=kOpenCircle)
-            SetObjectStyle(gFDFracFcVsCut[iPt], color=kAzure+3, markerstyle=kOpenSquare)
+            SetObjectStyle(gPromptFracFcVsCut[iPt], color=kRed+3, fillalpha=0.3, markerstyle=kOpenCircle)
+            SetObjectStyle(gFDFracFcVsCut[iPt], color=kAzure+3, fillalpha=0.3, markerstyle=kOpenSquare)
 
         if compareToNb:
             gPromptFracNbVsCut.append(TGraphAsymmErrors(nSets))
@@ -355,8 +374,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     hPromptFracVsCut[iPt].DrawCopy('Esame')
     hFDFracVsCut[iPt].DrawCopy('Esame')
     if compareToFc:
-        gPromptFracFcVsCut[iPt].Draw('PZ')
-        gFDFracFcVsCut[iPt].Draw('PZ')
+        gPromptFracFcVsCut[iPt].Draw('2Z')
+        gFDFracFcVsCut[iPt].Draw('2Z')
     if compareToNb:
         gPromptFracNbVsCut[iPt].Draw('PZ')
         gFDFracNbVsCut[iPt].Draw('PZ')
