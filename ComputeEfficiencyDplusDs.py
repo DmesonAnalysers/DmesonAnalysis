@@ -4,10 +4,11 @@ run: python ComputeEfficiencyDplusDs.py fitConfigFileName.yml centClass inputFil
 '''
 
 import argparse
+import ctypes
 import numpy as np
 import yaml
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, kRed, kAzure, kFullCircle, kOpenSquare, Double # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, kRed, kAzure, kFullCircle, kOpenSquare # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import ComputeEfficiency
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
@@ -67,27 +68,27 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
 
     # get unweighted yields (for uncertainty)
-    nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (Double() for _ in range(4))
+    nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (ctypes.c_double() for _ in range(4))
     nRecoPrompt = hRecoPrompt[iPt].IntegralAndError(0, hRecoPrompt[iPt].GetNbinsX()+1, nRecoPromptUnc)
     nGenPrompt = hGenPrompt[iPt].IntegralAndError(0, hGenPrompt[iPt].GetNbinsX()+1, nGenPromptUnc)
     nRecoFD = hRecoFD[iPt].IntegralAndError(0, hRecoFD[iPt].GetNbinsX()+1, nRecoFDUnc)
     nGenFD = hGenFD[iPt].IntegralAndError(0, hGenFD[iPt].GetNbinsX()+1, nGenFDUnc)
 
-    effPrompt, effPromptUnc = ComputeEfficiency(nRecoPrompt, nGenPrompt, nRecoPromptUnc, nGenPromptUnc)
-    effFD, effFDUnc = ComputeEfficiency(nRecoFD, nGenFD, nRecoFDUnc, nGenFDUnc)
+    effPrompt, effPromptUnc = ComputeEfficiency(nRecoPrompt, nGenPrompt, nRecoPromptUnc.value, nGenPromptUnc.value)
+    effFD, effFDUnc = ComputeEfficiency(nRecoFD, nGenFD, nRecoFDUnc.value, nGenFDUnc.value)
     hEffPrompt.SetBinContent(iPt+1, effPrompt)
     hEffPrompt.SetBinError(iPt+1, effPromptUnc)
     hEffFD.SetBinContent(iPt+1, effFD)
     hEffFD.SetBinError(iPt+1, effFDUnc)
 
     hYieldPromptGen.SetBinContent(iPt+1, nGenPrompt)
-    hYieldPromptGen.SetBinError(iPt+1, nGenPromptUnc)
+    hYieldPromptGen.SetBinError(iPt+1, nGenPromptUnc.value)
     hYieldFDGen.SetBinContent(iPt+1, nGenFD)
-    hYieldFDGen.SetBinError(iPt+1, nGenFDUnc)
+    hYieldFDGen.SetBinError(iPt+1, nGenFDUnc.value)
     hYieldPromptReco.SetBinContent(iPt+1, nRecoPrompt)
-    hYieldPromptReco.SetBinError(iPt+1, nRecoPromptUnc)
+    hYieldPromptReco.SetBinError(iPt+1, nRecoPromptUnc.value)
     hYieldFDReco.SetBinContent(iPt+1, nRecoFD)
-    hYieldFDReco.SetBinError(iPt+1, nRecoFDUnc)
+    hYieldFDReco.SetBinError(iPt+1, nRecoFDUnc.value)
 
 leg = TLegend(0.6, 0.2, 0.8, 0.4)
 leg.SetTextSize(0.045)

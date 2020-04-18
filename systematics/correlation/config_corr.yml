@@ -1,0 +1,31 @@
+inputs:
+   var1:
+      name: raw yield
+      histoname: hRawYields
+      reffilename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_FD_central.root
+      variations:
+          dirname: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction
+          filenames: [lin/rawyields/RawYieldsDplus_pp5TeV_FD_central.root,
+                      pol2/rawyields/RawYieldsDplus_pp5TeV_FD_central.root, 
+                      sigma_minusunc/rawyields/RawYieldsDplus_pp5TeV_FD_central.root, 
+                      sigma_plusunc/rawyields/RawYieldsDplus_pp5TeV_FD_central.root, 
+                      narrower_massrange/rawyields/RawYieldsDplus_pp5TeV_FD_central.root, 
+                      wider_massrange/rawyields/RawYieldsDplus_pp5TeV_FD_central.root]
+   var2:
+      name: "#it{f}_{non-prompt}"
+      histoname: hFDFrac
+      reffilename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/crosssection/CrossSectionDplus_pp5TeV_FD_central.root
+      variations:
+          dirname: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction
+          filenames: [lin/CrossSectionDplus_FD_lin.root,
+                      pol2/CrossSectionDplus_FD_pol2.root, 
+                      sigma_minusunc/CrossSectionDplus_FD_sigma_minusunc.root, 
+                      sigma_plusunc/CrossSectionDplus_FD_sigma_plusunc.root, 
+                      narrower_massrange/CrossSectionDplus_FD_narrower_massrange.root, 
+                      wider_massrange/CrossSectionDplus_FD_wider_massrange.root]
+
+outputs:
+    variations:
+        relative: true
+        absolute: false
+    filename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/Corr_Syst_RawYield_FDFraction # output w/o extension

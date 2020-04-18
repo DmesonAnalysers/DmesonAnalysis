@@ -118,7 +118,7 @@ for model in hPtDistrD:
     print(model)
     hPtDistrD[model].DrawCopy('chistsame')
 leg.Draw()
-cShapesD.cd(2).DrawFrame(0., 0.8, ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); #it{p}_{T} weights')
+cShapesD.cd(2).DrawFrame(0., 0.5, ptMax, 1.5, ';#it{p}_{T} (GeV/#it{c}); #it{p}_{T} weights')
 lineatoneWeight.Draw('same')
 for model in hPtWeightsD:
     hPtWeightsD[model].DrawCopy('chistsame')
@@ -134,7 +134,7 @@ if enableBweights:
     for model in hPtDistrB:
         hPtDistrB[model].DrawCopy('chistsame')
     leg.Draw()
-    cShapesB.cd(2).DrawFrame(0, 0.8, ptMax*2, 1.2, ';#it{p}_{T}^{B} (GeV/#it{c}); #it{p}_{T}^{B} weights')
+    cShapesB.cd(2).DrawFrame(0, 0.5, ptMax*2, 1.5, ';#it{p}_{T}^{B} (GeV/#it{c}); #it{p}_{T}^{B} weights')
     lineatoneWeight.Draw('same')
     for model in hPtWeightsB:
         hPtWeightsB[model].DrawCopy('chistsame')
@@ -149,7 +149,7 @@ cEffD.cd(1).SetLogy()
 for model in hEffPrompt:
     hEffPrompt[model].DrawCopy('same')
 legEff.Draw()
-cEffD.cd(2).DrawFrame(ptMin, 0.2, ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); prompt efficiency ratio')
+cEffD.cd(2).DrawFrame(ptMin, 0.8, ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); prompt efficiency ratio')
 lineatone.Draw('same')
 for model in hEffPromptRatio:
     hEffPromptRatio[model].DrawCopy('same')
@@ -162,7 +162,7 @@ cEffB.cd(1).SetLogy()
 for model in hEffFD:
     hEffFD[model].DrawCopy('same')
 legEff.Draw()
-cEffB.cd(2).DrawFrame(ptMin, 0.2, ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); FD efficiency ratio')
+cEffB.cd(2).DrawFrame(ptMin, 0.8, ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); FD efficiency ratio')
 lineatone.Draw('same')
 for model in hEffFDRatio:
     hEffFDRatio[model].DrawCopy('same')

@@ -10,7 +10,8 @@ from itertools import product
 import numpy as np
 import yaml
 from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, gRandom  # pylint: disable=import-error,no-name-in-module
-from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow, kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross  # pylint: disable=import-error,no-name-in-module
+from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow # pylint: disable=import-error,no-name-in-module
+from ROOT import kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross, kOpenDiamond # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, GetPromptFDFractionFc, GetFractionNb
 from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
@@ -119,7 +120,8 @@ if compareToFc or compareToNb:
     if compareToNb:
         sigmaMB = cutSetCfg['theorydriven']['sigmaMB']
 
-SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.08, titleoffsetx=1., titleoffsety=1.4, opttitle=1, palette=kRainBow, maxdigits=2)
+SetGlobalStyle(padleftmargin=0.15, padtopmargin=0.08, titleoffsetx=1.,
+               titleoffsety=1.4, opttitle=1, palette=kRainBow, maxdigits=2)
 
 legDistr = TLegend(0.45, 0.69, 0.75, 0.89)
 legDistr.SetFillStyle(0)
@@ -229,14 +231,14 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                  nSets, 0.5, nSets + 0.5))
     hFDFracVsCut.append(TH1F(f'hFDFracVsCut_{ptString}', f'{commonString};#it{{f}}_{{FD}}', nSets, 0.5, nSets + 0.5))
 
-    SetObjectStyle(hRawYieldsVsCut[iPt], linecolor=kBlack, markercolor=kBlack, markerstyle=kOpenSquare)
+    SetObjectStyle(hRawYieldsVsCut[iPt], linecolor=kBlack, markercolor=kBlack, markerstyle=kFullCircle)
     SetObjectStyle(hRawYieldPromptVsCut[iPt], color=kRed+1, fillcolor=kRed+1, markerstyle=kOpenCircle, fillalpha=0.3)
     SetObjectStyle(hRawYieldFDVsCut[iPt], color=kAzure+4, fillcolor=kAzure+4, markerstyle=kOpenSquare, fillalpha=0.3)
     SetObjectStyle(hRawYieldsVsCutReSum[iPt], linecolor=kGreen+2)
-    SetObjectStyle(hEffPromptVsCut[iPt], color=kRed+1, markerstyle=kOpenCircle)
-    SetObjectStyle(hEffFDVsCut[iPt], color=kAzure+4, markerstyle=kOpenSquare)
-    SetObjectStyle(hPromptFracVsCut[iPt], color=kRed+1, markerstyle=kOpenCircle)
-    SetObjectStyle(hFDFracVsCut[iPt], color=kAzure+4, markerstyle=kOpenSquare)
+    SetObjectStyle(hEffPromptVsCut[iPt], color=kRed+1, markerstyle=kFullCircle)
+    SetObjectStyle(hEffFDVsCut[iPt], color=kAzure+4, markerstyle=kFullSquare)
+    SetObjectStyle(hPromptFracVsCut[iPt], color=kRed+1, markerstyle=kFullCircle)
+    SetObjectStyle(hFDFracVsCut[iPt], color=kAzure+4, markerstyle=kFullSquare)
 
     hCorrMatrixCutSets.append(TH2F(f'hCorrMatrixCutSets_{ptString}', f'{commonString};cut set',
                                    nSets, 0.5, nSets + 0.5, nSets, 0.5, nSets + 0.5))
@@ -256,8 +258,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                                  f'{commonString};#it{{f}}_{{prompt}}')
             gFDFracFcVsCut.append(TGraphAsymmErrors(nSets))
             gFDFracFcVsCut[iPt].SetNameTitle(f'gFDFracFcVsCut_{ptString}', f'{commonString};#it{{f}}_{{FD}}')
-            SetObjectStyle(gPromptFracFcVsCut[iPt], color=kRed+3, fillalpha=0.3, markerstyle=kOpenCross)
-            SetObjectStyle(gFDFracFcVsCut[iPt], color=kAzure+3, fillalpha=0.3, markerstyle=kOpenCross)
+            SetObjectStyle(gPromptFracFcVsCut[iPt], color=kRed+3, fillalpha=0.3, markerstyle=kOpenCircle, markersize=2.)
+            SetObjectStyle(gFDFracFcVsCut[iPt], color=kAzure+3, fillalpha=0.3, markerstyle=kOpenSquare, markersize=2.)
 
         if compareToNb:
             gPromptFracNbVsCut.append(TGraphAsymmErrors(nSets))
@@ -265,8 +267,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                                  f'{commonString};#it{{f}}_{{prompt}}')
             gFDFracNbVsCut.append(TGraphAsymmErrors(nSets))
             gFDFracNbVsCut[iPt].SetNameTitle(f'gFDFracNbVsCut_{ptString}', f'{commonString};#it{{f}}_{{FD}}')
-            SetObjectStyle(gPromptFracNbVsCut[iPt], color=kRed-7, markerstyle=kOpenCross)
-            SetObjectStyle(gFDFracNbVsCut[iPt], color=kAzure+5, markerstyle=kOpenCross)
+            SetObjectStyle(gPromptFracNbVsCut[iPt], color=kRed-7, markerstyle=kOpenDiamond, markersize=3.)
+            SetObjectStyle(gFDFracNbVsCut[iPt], color=kAzure+5, markerstyle=kOpenCross, markersize=2.)
 
     for iCutSet, (rawY, effP, effF, rawYunc, effPunc, effFunc) in enumerate(zip(listRawYield, listEffPrompt, listEffFD,
                                                                                 listRawYieldUnc, listEffPromptUnc,
@@ -346,25 +348,27 @@ for iPt in range(hRawYields[0].GetNbinsX()):
 
         deltaY = 0.
         if compareToFc:
-            legFrac.AddEntry(gPromptFracFcVsCut[iPt], 'Prompt #it{f}_{c}', 'lpe')
-            legFrac.AddEntry(gFDFracFcVsCut[iPt], 'Non-prompt #it{f}_{c}', 'lpe')
+            legFrac.AddEntry(gPromptFracFcVsCut[iPt], 'Prompt #it{f}_{c}', 'fp')
+            legFrac.AddEntry(gFDFracFcVsCut[iPt], 'Non-prompt #it{f}_{c}', 'fp')
             deltaY += 0.1
             legFrac.SetY1(0.83 - deltaY)
         if compareToNb:
-            legFrac.AddEntry(gPromptFracNbVsCut[iPt], 'Prompt #it{N}_{b}', 'lpe')
-            legFrac.AddEntry(gFDFracNbVsCut[iPt], 'Non-prompt #it{N}_{b}', 'lpe')
+            legFrac.AddEntry(gPromptFracNbVsCut[iPt], 'Prompt #it{N}_{b}', 'fp')
+            legFrac.AddEntry(gFDFracNbVsCut[iPt], 'Non-prompt #it{N}_{b}', 'fp')
             deltaY += 0.1
             legFrac.SetY1(0.83 - deltaY)
 
     cEff.append(TCanvas(f'cEff_{ptString}', '', 800, 800))
-    cEff[iPt].DrawFrame(0.5, 1.e-5, nSets + 0.5, 1., f'{commonString};efficiency')
+    cEff[iPt].DrawFrame(0.5, hEffPromptVsCut[iPt].GetMinimum()/5, nSets + 0.5, 1., f'{commonString};efficiency')
     cEff[iPt].SetLogy()
     hEffPromptVsCut[iPt].DrawCopy('same')
     hEffFDVsCut[iPt].DrawCopy('same')
     legEff.Draw()
 
     cDistr.append(TCanvas(f'cDistr_{ptString}', '', 800, 800))
-    cDistr[iPt].DrawFrame(0.5, 0., nSets + 0.5, hRawYieldsVsCut[iPt].GetMaximum() * 1.2, f'{commonString};raw yield')
+    hFrameDistr = cDistr[iPt].DrawFrame(0.5, 0., nSets + 0.5, hRawYieldsVsCut[iPt].GetMaximum() * 1.2,
+                                        f'{commonString};raw yield')
+    hFrameDistr.GetYaxis().SetDecimals()
     hRawYieldsVsCut[iPt].Draw('same')
     hRawYieldPromptVsCut[iPt].DrawCopy('histsame')
     hRawYieldFDVsCut[iPt].DrawCopy('histsame')
