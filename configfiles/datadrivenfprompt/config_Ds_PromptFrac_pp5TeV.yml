@@ -35,7 +35,8 @@ efficiencies:
         feeddown: hAccEffFD
 
 minimisation:
-    correlated: true #true --> fully correlated, false --> fully uncorrelated        
+    correlated: true #true --> fully correlated, false --> fully uncorrelated (if false, RawYieldSmearing automatically enabled)
+    doRawYieldSmearing: false
 
 theorydriven:
     enableFc: true
