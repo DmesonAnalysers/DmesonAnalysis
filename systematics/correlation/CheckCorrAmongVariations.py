@@ -36,7 +36,7 @@ if doRelVar:
     removeOutliersRel = inputCfg['outputs']['variations']['relative']['outliers']['remove']
 doAbsVar = inputCfg['outputs']['variations']['absolute']['enable']
 if doAbsVar:
-    removeOutliersAbs = inputCfg['outputs']['variations']['relative']['outliers']['remove']
+    removeOutliersAbs = inputCfg['outputs']['variations']['absolute']['outliers']['remove']
 outFileName = inputCfg['outputs']['filename']
 
 if len(inFileNamesVar['var1']) != len(inFileNamesVar['var2']):
