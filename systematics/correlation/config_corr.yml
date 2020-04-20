@@ -26,6 +26,18 @@ inputs:
 
 outputs:
     variations:
-        relative: true
-        absolute: false
+        relative: 
+            enable: true
+            outliers:
+                remove: true
+                DBSCAN:
+                    radius: 0.03
+                    minsample: 3
+        absolute:
+            enable: true
+            outliers:
+                remove: true
+                DBSCAN:
+                    radius: 0.03
+                    minsample: 3
     filename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/fraction/Corr_Syst_RawYield_FDFraction # output w/o extension
