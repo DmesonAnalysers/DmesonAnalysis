@@ -74,11 +74,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     nRecoFD = hRecoFD[iPt].IntegralAndError(0, hRecoFD[iPt].GetNbinsX()+1, nRecoFDUnc_ref)
     nGenFD = hGenFD[iPt].IntegralAndError(0, hGenFD[iPt].GetNbinsX()+1, nGenFDUnc_ref)
 
-    nRecoPromptUnc = nRecoPromptUnc_ref.value
-    nGenPromptUnc = nGenPromptUnc_ref.value
-    nRecoFDUnc = nRecoFDUnc_ref.value
-    nGenFDUnc = nGenFDUnc_ref.value
-
     effPrompt, effPromptUnc = ComputeEfficiency(nRecoPrompt, nGenPrompt, nRecoPromptUnc.value, nGenPromptUnc.value)
     effFD, effFDUnc = ComputeEfficiency(nRecoFD, nGenFD, nRecoFDUnc.value, nGenFDUnc.value)
     hEffPrompt.SetBinContent(iPt+1, effPrompt)

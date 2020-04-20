@@ -79,7 +79,7 @@ for iFile in range(len(inFileNames)):
         continue
     hEffFDRatio[iFile].Draw('same')
 
-cPrompt.SaveAs('%s/PromptEfficiencyComparison_%s.pdf' % (outDir, outSuffix))
-cFD.SaveAs('%s/FDEfficiencyComparison_%s.pdf' % (outDir, outSuffix))
+cPrompt.SaveAs(f'{outDir}/PromptEfficiencyComparison_{outSuffix}.pdf')
+cFD.SaveAs(f'{outDir}/FDEfficiencyComparison_{outSuffix}.pdf')
 
 input('Press enter to exit')
