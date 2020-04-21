@@ -36,7 +36,7 @@ if doRelVar:
     removeOutliersRel = inputCfg['outputs']['variations']['relative']['outliers']['remove']
 doAbsVar = inputCfg['outputs']['variations']['absolute']['enable']
 if doAbsVar:
-    removeOutliersAbs = inputCfg['outputs']['variations']['relative']['outliers']['remove']
+    removeOutliersAbs = inputCfg['outputs']['variations']['absolute']['outliers']['remove']
 outFileName = inputCfg['outputs']['filename']
 
 if len(inFileNamesVar['var1']) != len(inFileNamesVar['var2']):
@@ -138,8 +138,8 @@ if doRelVar:
     cRelVar = TCanvas('cRelVar', '', 800, 800)
     minVals = np.min(relVar, axis=0)
     maxVals = np.max(relVar, axis=0)
-    hFrameRel = cRelVar.DrawFrame(minVals[0]-0.2*abs(minVals[0]), minVals[1]-0.2*abs(minVals[1]),
-                                  maxVals[0]+0.2*abs(maxVals[0]), maxVals[1]+0.2*abs(maxVals[1]),
+    hFrameRel = cRelVar.DrawFrame(minVals[0]-0.5*abs(minVals[0]), minVals[1]-0.5*abs(minVals[1]),
+                                  maxVals[0]+0.5*abs(maxVals[0]), maxVals[1]+0.5*abs(maxVals[1]),
                                   f";relative variation of {varName['var1']};relative variation of {varName['var2']}")
     hFrameRel.GetYaxis().SetDecimals()
     hFrameRel.GetYaxis().SetNdivisions(505)
@@ -155,8 +155,8 @@ if doAbsVar:
     cAbsVar = TCanvas('cAbsVar', '', 800, 800)
     minVals = np.min(absVar, axis=0)
     maxVals = np.max(absVar, axis=0)
-    hFrameAbs = cAbsVar.DrawFrame(minVals[0]-0.2*abs(minVals[0]), minVals[1]-0.2*abs(minVals[1]),
-                                  maxVals[0]+0.2*abs(maxVals[0]), maxVals[1]+0.2*abs(maxVals[1]),
+    hFrameAbs = cAbsVar.DrawFrame(minVals[0]-0.5*abs(minVals[0]), minVals[1]-0.5*abs(minVals[1]),
+                                  maxVals[0]+0.5*abs(maxVals[0]), maxVals[1]+0.5*abs(maxVals[1]),
                                   f";absolute variation of {varName['var1']};absolute variation of {varName['var2']}")
     hFrameAbs.GetYaxis().SetDecimals()
     hFrameAbs.GetYaxis().SetNdivisions(505)
