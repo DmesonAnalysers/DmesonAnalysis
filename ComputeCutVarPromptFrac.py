@@ -12,7 +12,8 @@ import yaml
 from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, gRandom  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross, kOpenDiamond # pylint: disable=import-error,no-name-in-module
-from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, GetPromptFDFractionFc, GetFractionNb
+from utils.AnalysisUtils import GetPromptFDFractionFc, GetFractionNb
+from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, ApplyVariationToList
 from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
@@ -34,7 +35,14 @@ with open(args.cfgFileName, 'r') as ymlCutSetFile:
 inputFilesRaw = cutSetCfg['rawyields']['inputfiles']
 inputFilesEff = cutSetCfg['efficiencies']['inputfiles']
 nSets = len(cutSetCfg['rawyields']['inputfiles'])
+
 doRawYieldsSmearing = cutSetCfg['minimisation']['doRawYieldSmearing']
+
+applyEffVariation = cutSetCfg['minimisation']['applyEffVariation']['enable']
+relEffVariation = cutSetCfg['minimisation']['applyEffVariation']['relvariation']
+effVariationOpt = cutSetCfg['minimisation']['applyEffVariation']['option']
+applyEffVarToPrompt = cutSetCfg['minimisation']['applyEffVariation']['prompt']
+applyEffVarToFD = cutSetCfg['minimisation']['applyEffVariation']['feeddown']
 
 if nSets != len(cutSetCfg['efficiencies']['inputfiles']):
     print('ERROR: number or raw yield files and efficiency files not consistent! Please check your config file. Exit')
@@ -184,6 +192,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     listEffFD = [hEffF.GetBinContent(iPt+1) for hEffF in hEffFD]
     listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD]
 
+    # apply smearing to raw yields
     if doRawYieldsSmearing:
         listRawYield.reverse()
         listRawYieldSmeared = []
@@ -204,6 +213,13 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                 listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld]))
         listRawYieldSmeared.reverse()
         listRawYield = listRawYieldSmeared
+
+    # apply variation to efficiency
+    if applyEffVariation:
+        if applyEffVarToPrompt:
+            listEffPrompt = ApplyVariationToList(listEffPrompt, relEffVariation, effVariationOpt)
+        if applyEffVarToFD:
+            listEffFD = ApplyVariationToList(listEffFD, relEffVariation, effVariationOpt)
 
     corrYields, covMatrixCorrYields, chiSquare, matrices = \
         GetPromptFDYieldsAnalyticMinimisation(listEffPrompt, listEffFD, listRawYield, listEffPromptUnc, listEffFDUnc,

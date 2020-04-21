@@ -35,8 +35,14 @@ efficiencies:
         feeddown: hAccEffFD
 
 minimisation:
-    correlated: true # true --> fully correlated, false --> fully uncorrelated
+    correlated: true # true --> fully correlated, false --> fully uncorrelated        
     doRawYieldSmearing: false # whether to smear the yields with a poissonian error 
+    applyEffVariation:
+        enable: false
+        relvariation: 0.05
+        option: decreasing # available options: [upshift, downshift, decreasing, increasing]
+        prompt: true
+        feeddown: true 
 
 theorydriven:
     enableFc: true

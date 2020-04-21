@@ -704,3 +704,39 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
         gRatio.SetPointError(iPt, xUncLow, xUncHigh, ratioUncLow, ratioUncHigh)
 
     return gRatio
+
+def ApplyVariationToList(listToVary, relVar, option='decreasing'):  
+    '''
+    Helper method to apply a relative variation to a list of numbers
+
+    Parameters
+    ----------
+
+    - listToVary: list of values to be varied
+    - relVar: relative variation
+    - option: option for variation among
+        - upshift: all the values are shifted upwards by relVar
+        - downshift: all the values are shifted downwards by relVar
+        - decreasing: the first value is not varied; the next ones are decreased smoothly up to relVar for the last one
+        - increasing: the first value is not varied; the next ones are increased smoothly up to relVar for the last one
+
+    Returns
+    ----------
+
+    - listVaried: list of varied values
+    '''
+
+    if option not in ['upshift', 'downshift', 'decreasing', 'increasing']:
+        print(f'ERROR: option for variation of list not valid! Returning None')
+        return None
+
+    if option == 'upshift':
+        listVaried = [el + el*relVar for el in listToVary]
+    elif option == 'downshift':
+        listVaried = [el - el*relVar for el in listToVary]
+    elif option == 'decreasing':
+        listVaried = [el - el*relVar*iEl for iEl, el in enumerate(listToVary)]
+    elif option == 'increasing':
+        listVaried = [el + el*relVar*iEl for iEl, el in enumerate(listToVary)]
+
+    return listVaried
