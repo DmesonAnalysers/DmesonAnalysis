@@ -735,8 +735,8 @@ def ApplyVariationToList(listToVary, relVar, option='decreasing'):
     elif option == 'downshift':
         listVaried = [el - el*relVar for el in listToVary]
     elif option == 'decreasing':
-        listVaried = [el - el*relVar*iEl for iEl, el in enumerate(listToVary)]
+        listVaried = [el - el*relVar/len(listToVary)*iEl for iEl, el in enumerate(listToVary)]
     elif option == 'increasing':
-        listVaried = [el + el*relVar*iEl for iEl, el in enumerate(listToVary)]
+        listVaried = [el + el*relVar/len(listToVary)*iEl for iEl, el in enumerate(listToVary)]
 
     return listVaried
