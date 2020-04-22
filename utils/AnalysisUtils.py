@@ -613,9 +613,17 @@ def ComputeRatioDiffBins(hNum, hDen, uncOpt=''):
         ptMax = ptMaxNum
 
     if hNum.GetNbinsX() < hDen.GetNbinsX():
-        ptLimsRatio = np.array(hNum.GetXaxis().GetXbins(), 'd')
+        if not hNum.GetXaxis().GetXbins(): # variable binning
+            ptLimsRatio = np.array(hNum.GetXaxis().GetXbins(), 'd')
+        else: # constant binning
+            binWidth = hNum.GetBinWidth(1)
+            ptLimsRatio = np.array([ptMinDen + iBin * binWidth for iBin in range(hNum.GetNbinsX()+1)], 'd')
     else:
-        ptLimsRatio = np.array(hDen.GetXaxis().GetXbins(), 'd')
+        if not hDen.GetXaxis().GetXbins(): # variable binning
+            ptLimsRatio = np.array(hDen.GetXaxis().GetXbins(), 'd')
+        else: # constant binning
+            binWidth = hDen.GetBinWidth(1)
+            ptLimsRatio = np.array([ptMinDen + iBin * binWidth for iBin in range(hDen.GetNbinsX()+1)], 'd')
     ptLimsRatio = ptLimsRatio[(ptLimsRatio >= ptMin) & (ptLimsRatio <= ptMax)]
     nPtBins = len(ptLimsRatio)-1
 
