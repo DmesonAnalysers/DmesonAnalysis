@@ -286,6 +286,8 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs_FiltTree_ITS2_Data(double ptmin=1., doubl
     analysiscuts->AddTrackCuts(esdTrackCuts);
 
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //
+    analysiscuts->SetMinCentrality(0.);
+    analysiscuts->SetMaxCentrality(10.);
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
     analysiscuts->SetTriggerMask(AliVEvent::kINT7 | AliVEvent::kCentral);
