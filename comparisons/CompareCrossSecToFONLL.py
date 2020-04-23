@@ -1,7 +1,7 @@
 '''
 python script to compare measured cross sections with FONLL
 run: python CompareCrossSecToFONLL.py FONLL.root outFileName.pdf [--Dplus] [--Ds] [--prompt CrossSecPrompt.root]
-                                                                 [--FD CrossSecFD.root] [--logx]
+                                                                 [--FD CrossSecFD.root] [--logx] [--syst]
 Either Dplus or Ds must be chosen
 Either prompt or FD (or both) must be set
 '''
@@ -58,6 +58,9 @@ if args.prompt:
             gCrossSectionPrompt = infilePrompt.Get('gSigmaCorr')
             gCrossSectionPrompt.RemovePoint(0)
             ScaleGraph(gCrossSectionPrompt, 1.e-6 / BR)
+            for iPt in range(hCrossSectionPrompt.GetNbinsX()):
+                gCrossSectionPrompt.SetPointEXhigh(iPt, 0.4)
+                gCrossSectionPrompt.SetPointEXlow(iPt, 0.4)
     hCrossSectionPrompt.SetName('hCrossSectionPrompt')
     hCrossSectionPrompt.SetDirectory(0)
     SetObjectStyle(hCrossSectionPrompt, color=kBlack, markerstyle=kFullCircle)
@@ -205,7 +208,7 @@ if args.FD:
 
     hRatioFDOverFONLL = hCrossSectionFD.Clone('hRatioFDOverFONLL')
     hRatioFDOverFONLL.Divide(hRatioFDOverFONLL, hFONLLFDCentral)
-    hRatioFDOverFONLL.GetYaxis().SetTitle('Data / FONLL')
+    hRatioFDOverFONLL.GetYaxis().SetTitle('Data / FONLL + Pythia8 (e^{+}e^{-} FF)')
 
     if args.syst:
         gRatioFDOverFONLL = DivideGraphByHisto(gCrossSectionFD, hFONLLFDCentral, False)
@@ -261,7 +264,7 @@ if args.FD:
         gCrossSectionFD.Draw('2')
     legFD.AddEntry('', f'Non-prompt {mesonName}', '')
     legFD.AddEntry(hCrossSectionFD, 'Data', 'p')
-    legFD.AddEntry(gFONLLFD, 'FONLL', 'f')
+    legFD.AddEntry(gFONLLFD, 'FONLL (B) + Pythia8 (e^{+}e^{-} FF)', 'f')
     legFD.Draw()
 
 lat = TLatex()
@@ -287,7 +290,8 @@ if args.FD and args.prompt:
     if args.syst:
         gRatioPromptOverFONLL.Draw('2')
     lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
-    hFrameFD = cRatioToFONLL.cd(2).DrawFrame(ptMinFD, 0., ptMaxFD, 3., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
+    hFrameFD = cRatioToFONLL.cd(2).DrawFrame(ptMinFD, 0., ptMaxFD, 3.,
+                                             ';#it{p}_{T} (GeV/#it{c});Data / FONLL (B) + Pythia8 (e^{+}e^{-} FF)')
     hFrameFD.GetYaxis().SetDecimals()
     if args.logx:
         cRatioToFONLL.cd(2).SetLogx()
@@ -312,7 +316,8 @@ else:
             gRatioPromptOverFONLL.Draw('2')
         lat.DrawLatex(0.7, 0.85, f'Prompt {mesonName}')
     else:
-        hFrameFD = cRatioToFONLL.DrawFrame(ptMinFD, 0., ptMaxFD, 3., ';#it{p}_{T} (GeV/#it{c}); Data / FONLL')
+        hFrameFD = cRatioToFONLL.DrawFrame(ptMinFD, 0., ptMaxFD, 3.,
+                                           ';#it{p}_{T} (GeV/#it{c});Data / FONLL (B) + Pythia8 (e^{+}e^{-} FF)')
         hFrameFD.GetYaxis().SetDecimals()
         gFONLLFDUnc.Draw('2')
         lineFONLLFD.Draw('same')
