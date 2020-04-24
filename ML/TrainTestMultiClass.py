@@ -7,6 +7,7 @@ run: python TrainTestMulticlass.py cfgFileNameML.yml [--train, --apply]
 import os
 import sys
 import argparse
+import pickle
 import yaml
 import numpy as np
 import pandas as pd
@@ -197,6 +198,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
     ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], yPredTest, None, LegLabels, inputCfg['ml']['roc_auc_average'],
                                       inputCfg['ml']['roc_auc_approach'])
     ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAll_pT_{PtMin}_{PtMax}.pdf')
+    pickle.dump(ROCCurveFig, open(f'{OutPutDirPt}/ROCCurveAll_pT_{PtMin}_{PtMax}.pkl', 'wb'))
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 9)
     ROCCurveTTFig = plot_utils.plot_roc_train_test(TrainTestData[3], yPredTest, TrainTestData[1], yPredTrain, None,
