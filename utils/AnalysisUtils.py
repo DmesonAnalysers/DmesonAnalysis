@@ -5,7 +5,7 @@ Script with miscellanea utils methods for the analysis
 import ctypes
 import numpy as np
 import pandas as pd
-from ROOT import TH1F, TF1, TMath, TList, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from ROOT import TH1F, TF1, TMath, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -668,10 +668,17 @@ def ScaleGraph(graph, scaleFactor):
         x, y = ctypes.c_double(), ctypes.c_double()
         graph.GetPoint(iPt, x, y)
         graph.SetPoint(iPt, x.value, y.value * scaleFactor)
-        yUncLow = graph.GetErrorYlow(iPt)
-        yUncHigh = graph.GetErrorYhigh(iPt)
-        graph.SetPointEYlow(iPt, yUncLow * scaleFactor)
-        graph.SetPointEYhigh(iPt, yUncHigh * scaleFactor)
+        if isinstance(graph, TGraph):
+            continue
+        elif isinstance(graph, TGraphAsymmErrors):
+            yUncLow = graph.GetErrorYlow(iPt)
+            yUncHigh = graph.GetErrorYhigh(iPt)
+            graph.SetPointEYlow(iPt, yUncLow * scaleFactor)
+            graph.SetPointEYhigh(iPt, yUncHigh * scaleFactor)
+        elif isinstance(graph, TGraphErrors):
+            yUncLow = graph.GetErrorYlow(iPt)
+            yUncHigh = graph.GetErrorYhigh(iPt)
+            graph.SetPointError(iPt, graph.GetErrorX(iPt), graph.GetErrorY(iPt) * scaleFactor)
 
 
 def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
@@ -701,10 +708,11 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
         xUncHigh = gNum.GetErrorXhigh(iPt)
         numUncLow = gNum.GetErrorYlow(iPt)
         numUncHigh = gNum.GetErrorYhigh(iPt)
-        den = hDen.GetBinContent(iPt+1)
+        ptBinHisto = hDen.GetXaxis().FindBin(x.value)
+        den = hDen.GetBinContent(ptBinHisto)
         if useHistoUnc:
-            ratioUncLow = np.sqrt((numUncLow/num)**2 + (hDen.GetBinError(iPt+1)/den)**2) * num/den
-            ratioUncHigh = np.sqrt((numUncHigh/num)**2 + (hDen.GetBinError(iPt+1)/den)**2) * num/den
+            ratioUncLow = np.sqrt((numUncLow/num)**2 + (hDen.GetBinError(ptBinHisto)/den)**2) * num/den
+            ratioUncHigh = np.sqrt((numUncHigh/num)**2 + (hDen.GetBinError(ptBinHisto)/den)**2) * num/den
         else:
             ratioUncLow = numUncLow/num.value * num.value/den
             ratioUncHigh = numUncHigh/num.value * num.value/den
@@ -713,7 +721,8 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
 
     return gRatio
 
-def ApplyVariationToList(listToVary, relVar, option='decreasing'):  
+
+def ApplyVariationToList(listToVary, relVar, option='decreasing'):
     '''
     Helper method to apply a relative variation to a list of numbers
 
