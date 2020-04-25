@@ -722,7 +722,7 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
     return gRatio
 
 
-def ApplyVariationToList(listToVary, relVar, option='decreasing'):  
+def ApplyVariationToList(listToVary, relVar, option='decreasing'):
     '''
     Helper method to apply a relative variation to a list of numbers
 
