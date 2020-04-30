@@ -72,7 +72,7 @@ with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
 cutVars = cutSetCfg['cutvars']
 selToApply = []
-for iPt in range(len(cutVars['Pt']['min'])):
+for iPt, _ in enumerate(cutVars['Pt']['min']):
     selToApply.append('')
     for varName in cutVars:
         if varName == 'InvMass':
