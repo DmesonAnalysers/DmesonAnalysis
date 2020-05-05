@@ -1,0 +1,33 @@
+input: # files to use
+    filenamePrompt: ['/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_12_50_ModelApplied.parquet.gzip',
+                     '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_1_2_ModelApplied.parquet.gzip',
+                     '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_2_4_ModelApplied.parquet.gzip',
+                     '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_4_6_ModelApplied.parquet.gzip',
+                     '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_6_12_ModelApplied.parquet.gzip']
+    filenameFD: ['/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_12_50_ModelApplied.parquet.gzip',
+                 '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_1_2_ModelApplied.parquet.gzip',
+                 '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_2_4_ModelApplied.parquet.gzip',
+                 '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_4_6_ModelApplied.parquet.gzip',
+                 '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/FD_pT_6_12_ModelApplied.parquet.gzip']
+    filenamePromptNoImp: ['/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/Prompt_pT_12_50_ModelApplied.parquet.gzip',
+                          '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/Prompt_pT_1_2_ModelApplied.parquet.gzip',
+                          '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/Prompt_pT_2_4_ModelApplied.parquet.gzip',
+                          '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/Prompt_pT_4_6_ModelApplied.parquet.gzip',
+                          '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/Prompt_pT_6_12_ModelApplied.parquet.gzip']
+    filenameFDNoImp: ['/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/FD_pT_12_50_ModelApplied.parquet.gzip',
+                      '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/FD_pT_1_2_ModelApplied.parquet.gzip',
+                      '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/FD_pT_2_4_ModelApplied.parquet.gzip',
+                      '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/FD_pT_4_6_ModelApplied.parquet.gzip',
+                      '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover/FD_pT_6_12_ModelApplied.parquet.gzip']
+    dirname: Null
+    treename: Null
+
+output:
+    leg_labels: ['with improver', 'w/o improver'] # legend labels
+    dir: '/home/alidock/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs/100320/MC_comp_Improver' # output dir
+
+pt_ranges: # ranges in pt to split the data for the comparison
+    min: [2, 4, 6, 8] # list
+    max: [4, 6, 8, 12] # list
+
+var_to_remove: ['pt_B', 'inv_mass'] # list of variables to remove from plot
