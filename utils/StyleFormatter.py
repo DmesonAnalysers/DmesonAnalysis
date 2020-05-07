@@ -2,7 +2,7 @@
 Script with helper methods for style settings
 '''
 
-from ROOT import gStyle, TGaxis # pylint: disable=import-error,no-name-in-module
+from ROOT import gStyle, gROOT, TGaxis # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kWhite, kGray, kRed, kBlue, kGreen # pylint: disable=import-error,no-name-in-module
 from ROOT import kMagenta, kAzure, kCyan, kOrange, kYellow, kSpring, kTeal, kViolet, kPink # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCircle, kFullSquare, kFullDiamond, kFullCross, kFullTriangleUp, kFullTriangleDown # pylint: disable=import-error,no-name-in-module
@@ -122,6 +122,8 @@ def SetGlobalStyle(**kwargs):
 
     if 'palette' in kwargs:
         gStyle.SetPalette(kwargs['palette'])
+
+    gROOT.ForceStyle()
 
 
 def SetObjectStyle(obj, **kwargs):
