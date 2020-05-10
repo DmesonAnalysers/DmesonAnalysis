@@ -108,6 +108,11 @@ inFileCrossSec = TFile.Open(inputCfg['predictions']['crosssec']['filename'])
 hCrossSecPrompt = inFileCrossSec.Get(inputCfg['predictions']['crosssec']['histonames']['prompt'])
 hCrossSecFD = inFileCrossSec.Get(inputCfg['predictions']['crosssec']['histonames']['feeddown'])
 
+#background correction factor
+if inputCfg['BkgCorrFactor']['filename']:
+    infileBkgCorrFactor = TFile.Open(inputCfg['BkgCorrFactor']['filename'])
+    hBkgCorrFactor = infileBkgCorrFactor.Get(inputCfg['BkgCorrFactor']['histonames'])
+
 # load RAA
 RaaPrompt_config = inputCfg['predictions']['Raa']['prompt']
 if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, int):
@@ -178,8 +183,7 @@ estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'EffAccPrompt': 
             'EffAccFD': '(Acc#times#font[152]{e})_{FD}', 'fPrompt': '#it{f}_{ prompt}^{ fc}',
             'fFD': '#it{f}_{ FD}^{ fc}'}
 
-varsName4Tuple = ':'.join(cutVars) + \
-    ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:EffAccPromptError:EffAccFDError:SError:' + ':'.join(estNames.keys())
+varsName4Tuple = ':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:BError:EffAccPromptError:EffAccFDError:SError:' + ':'.join(estNames.keys())
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = 1
@@ -326,7 +330,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
 
-            # S/B and significance and Signal Error
+            expBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin((ptMax+ptMin)/2))
+
+            # S/B and significance
             expSoverB = 0.
             expSignif = 0.
             Serror = 0.
@@ -336,15 +342,14 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 expSignif = expSignal / np.sqrt(expSignal + expBkg)
                 SError = expSignal / expSignif
 
-            # Efficiency
-            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2) \
-                * effTimesAccFD
-            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + \
-                (accUnc/acc)**2)*effTimesAccPrompt
+            # Efficiency, Bkg and Signal Error
+            BError =  np.sqrt(expBkg)
+            SError = expSignal / expSignif
+            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2)*effTimesAccFD
+            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + (accUnc/acc)**2)*effTimesAccPrompt
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg,
-                                       EffAccPromptError, EffAccFDError, SError, expSignif,
-                                       expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, BError, EffAccPromptError, EffAccFDError, SError,
+                                       expSignif,expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))
             estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'EffAccPrompt': effTimesAccPrompt,
                          'EffAccFD': effTimesAccFD, 'fPrompt': fPrompt[0], 'fFD': fFD[0]}
