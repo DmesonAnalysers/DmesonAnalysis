@@ -336,15 +336,14 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 expSignif = expSignal / np.sqrt(expSignal + expBkg)
                 SError = expSignal / expSignif
 
-            # Efficiency
-            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2) \
-                * effTimesAccFD
-            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + \
-                (accUnc/acc)**2)*effTimesAccPrompt
+            # Efficiency, Bkg and Signal Error
+            BError =  np.sqrt(expBkg)
+            SError = expSignal / expSignif
+            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2)*effTimesAccFD
+            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + (accUnc/acc)**2)*effTimesAccPrompt
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg,
-                                       EffAccPromptError, EffAccFDError, SError, expSignif,
-                                       expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, BError, EffAccPromptError, EffAccFDError, SError,
+                                       expSignif,expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))
             estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'EffAccPrompt': effTimesAccPrompt,
                          'EffAccFD': effTimesAccFD, 'fPrompt': fPrompt[0], 'fFD': fFD[0]}
