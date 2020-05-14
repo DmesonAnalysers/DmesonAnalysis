@@ -178,7 +178,8 @@ estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'EffAccPrompt': 
             'EffAccFD': '(Acc#times#font[152]{e})_{FD}', 'fPrompt': '#it{f}_{ prompt}^{ fc}',
             'fFD': '#it{f}_{ FD}^{ fc}'}
 
-varsName4Tuple = ':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:EffAccPromptError:EffAccFDError:SError:' + ':'.join(estNames.keys())
+varsName4Tuple = ':'.join(cutVars) + \
+    ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:EffAccPromptError:EffAccFDError:SError:' + ':'.join(estNames.keys())
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = 1
@@ -335,10 +336,13 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
             # Efficiency  and Signal Error
             SError = expSignal / expSignif
-            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2)*effTimesAccFD
-            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + (accUnc/acc)**2)*effTimesAccPrompt
+            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2) \
+                * effTimesAccFD
+            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + \
+                (accUnc/acc)**2)*effTimesAccPrompt
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, EffAccPromptError, EffAccFDError, SError, expSignif,
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg,
+                                       EffAccPromptError, EffAccFDError, SError, expSignif,
                                        expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))
             estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'EffAccPrompt': effTimesAccPrompt,
@@ -353,8 +357,11 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 for est in estValues:
                     hEstimVsCut[iPt][est].SetBinContent(binVar0, binVar1, estValues[est])
 
-        print(f'Time elapsed to test cut sets for pT bin {ptMin}-{ptMax} '
-              f'and {ParCutsName} bin {ParCutMin}-{ParCutMax}: {time.time()-startTime:.2f}')
+        if ParCutsName != 'Integral':
+            print(f'Time elapsed to test cut sets for pT bin {ptMin}-{ptMax} '
+                  f'and {ParCutsName} bin {ParCutMin}-{ParCutMax}: {time.time()-startTime:.2f}s')
+        else:
+            print(f'Time elapsed to test cut sets for pT bin {ptMin}-{ptMax}: {time.time()-startTime:.2f}s')
         # plots
         outDirPlotsPt[iPt].mkdir(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
         cSignifVsRest.append(TCanvas(f'cSignifVsRest_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
@@ -371,9 +378,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 hFrame.GetYaxis().SetDecimals()
                 hSignifVsRest[iPt][est] = (TH2F(f'hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
                                                 f";{estNames[est]};{estNames['Signif']}", 50,
-                                                tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50, 
+                                                tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50,
                                                 tSignif.GetMinimum('Signif')*0.8, tSignif.GetMaximum('Signif')*1.))
-                tSignif.Draw(f'Signif:{est}>>hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', 
+                tSignif.Draw(f'Signif:{est}>>hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
                              f'PtMin == {ptMin} && PtMax == {ptMax}', 'colz same')
                 cSignifVsRest[counter].Update()
                 cSignifVsRest[counter].Modified()
