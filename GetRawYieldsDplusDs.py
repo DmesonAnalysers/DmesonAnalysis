@@ -199,7 +199,7 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
     AliVertexingHFUtils.RebinHisto(hM, reb).Copy(hMassForFit[iPt]) #to cast TH1D to TH1F
     hMassForFit[iPt].SetDirectory(0)
     hMassForFit[iPt].SetTitle(
-        f"{ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}};{massAxisTit};"
+        f"{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};"
         f"Counts per {hMassForFit[iPt].GetBinWidth(1)*1000:.0f} MeV/#it{{c}}^{{2}}")
     hMassForFit[iPt].SetName(f"MassForFit{iPt}")
     SetObjectStyle(hMassForFit[iPt], color=kBlack, markerstyle=kFullCircle)
@@ -305,8 +305,7 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
             massFitter[iPt].SetInitialGaussianMean(massForFit)
 
         if fitConfig[cent]['FixSigma']:
-            if isinstance(fitConfig[cent]['SigmaMultFactor'], float) or \
-                isinstance(fitConfig[cent]['SigmaMultFactor'], int):
+            if isinstance(fitConfig[cent]['SigmaMultFactor'], (float, int)):
                 massFitter[iPt].SetFixGaussianSigma(
                     hSigmaToFix.GetBinContent(iPt+1)*fitConfig[cent]['SigmaMultFactor'])
             else:
