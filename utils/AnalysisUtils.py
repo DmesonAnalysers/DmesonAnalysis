@@ -668,9 +668,7 @@ def ScaleGraph(graph, scaleFactor):
         x, y = ctypes.c_double(), ctypes.c_double()
         graph.GetPoint(iPt, x, y)
         graph.SetPoint(iPt, x.value, y.value * scaleFactor)
-        if isinstance(graph, TGraph):
-            continue
-        elif isinstance(graph, TGraphAsymmErrors):
+        if isinstance(graph, TGraphAsymmErrors):
             yUncLow = graph.GetErrorYlow(iPt)
             yUncHigh = graph.GetErrorYhigh(iPt)
             graph.SetPointEYlow(iPt, yUncLow * scaleFactor)
@@ -679,6 +677,8 @@ def ScaleGraph(graph, scaleFactor):
             yUncLow = graph.GetErrorYlow(iPt)
             yUncHigh = graph.GetErrorYhigh(iPt)
             graph.SetPointError(iPt, graph.GetErrorX(iPt), graph.GetErrorY(iPt) * scaleFactor)
+        elif isinstance(graph, TGraph):
+            continue
 
 
 def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
