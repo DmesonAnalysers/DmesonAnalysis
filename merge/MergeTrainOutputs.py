@@ -102,7 +102,7 @@ if not inputCfg['MergeOptions']['MergeByRun']:
         print(f'\33[32mPartially merging files for run {run}\33[0m')
         nBunch = 0
         for dirNum, inDir in enumerate(inDirs[iRun]):
-            inName = os.path.join(inputCfg["OutputPath"], f'{run}', f'inDir')
+            inName = os.path.join(inputCfg["OutputPath"], f'{run}', f'{inDir}')
             fileMerger.AddFile(f'{inName}/{inputCfg["InputFileName"]}')
             if (dirNum%inputCfg['MergeOptions']['NfilesPerChunk'] == 0 and dirNum != 0) or inDir == max(inDirs[iRun]):
                 outBunchName = os.path.join(inputCfg['OutputPath'], f'{run}',
@@ -111,7 +111,7 @@ if not inputCfg['MergeOptions']['MergeByRun']:
                 nBunch += 1
         # remove partial files
         for dirNum, inDir in enumerate(inDirs[iRun]):
-            inName = os.path.join(inputCfg["OutputPath"], f'{run}', f'inDir')
+            inName = os.path.join(inputCfg["OutputPath"], f'{run}', f'{inDir}')
             os.remove(f'{inName}/{inputCfg["InputFileName"]}')
             os.rmdir(inName)
 
