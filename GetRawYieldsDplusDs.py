@@ -47,16 +47,23 @@ ptLims.append(ptMaxs[-1])
 mesonName = fitConfig[cent]['Meson']
 inclSecPeak = fitConfig[cent]['InclSecPeak']
 
-SgnFunc, BkgFunc = [], []
+SgnFunc, BkgFunc, degPol = [], [], []
 for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]['SgnFunc'])):
+    degPol.append(-1)
     if bkg == 'kExpo':
         BkgFunc.append(AliHFInvMassFitter.kExpo)
     elif bkg == 'kLin':
-        SgnFunc.append(AliHFInvMassFitter.kLin)
+        BkgFunc.append(AliHFInvMassFitter.kLin)
     elif bkg == 'kPol2':
-        SgnFunc.append(AliHFInvMassFitter.kPol2)
+        BkgFunc.append(AliHFInvMassFitter.kPol2)
+    elif bkg == 'kPol3':
+        BkgFunc.append(6)
+        degPol[-1] = 3
+    elif bkg == 'kPol4':
+        BkgFunc.append(6)
+        degPol[-1] = 4
     else:
-        print('ERROR: only kExpo, kLin, and kPol2 background functions supported! Exit')
+        print('ERROR: only kExpo, kLin, kPol2, kPol3, and kPol4 background functions supported! Exit')
         exit()
 
     if sgn == 'kGaus':
@@ -185,9 +192,13 @@ massDplus = TDatabasePDG.Instance().GetParticle(411).Mass()
 massDs = TDatabasePDG.Instance().GetParticle(431).Mass()
 massForFit = massDplus if fitConfig[cent]['Meson'] == 'Dplus' else massDs
 
-cMass = TCanvas("cMass", "cMass", 1920, 1080)
+canvSizes = [1920, 1080]
+if nPtBins == 1:
+    canvSizes = [500, 500]
+
+cMass = TCanvas("cMass", "cMass", canvSizes[0], canvSizes[1])
 DivideCanvas(cMass, nPtBins)
-cResiduals = TCanvas("cResiduals", "cResiduals", 1920, 1080)
+cResiduals = TCanvas("cResiduals", "cResiduals", canvSizes[0], canvSizes[1])
 DivideCanvas(cResiduals, nPtBins)
 
 massFitter = []
@@ -202,7 +213,11 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
         f"{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};"
         f"Counts per {hMassForFit[iPt].GetBinWidth(1)*1000:.0f} MeV/#it{{c}}^{{2}}")
     hMassForFit[iPt].SetName(f"MassForFit{iPt}")
-    SetObjectStyle(hMassForFit[iPt], color=kBlack, markerstyle=kFullCircle)
+    if nPtBins < 15:
+        markerSize = 1.
+    else:
+        markerSize = 0.5
+    SetObjectStyle(hMassForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=markerSize)
 
     # MC
     if args.isMC:
@@ -296,6 +311,8 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
 
     else:  # data
         massFitter.append(AliHFInvMassFitter(hMassForFit[iPt], massMin, massMax, bkg, sgn))
+        if degPol[iPt] > 0:
+            massFitter[iPt].SetPolDegreeForBackgroundFit(degPol[iPt])
 
         if fitConfig[cent]['UseLikelihood']:
             massFitter[iPt].SetUseLikelihoodFit()

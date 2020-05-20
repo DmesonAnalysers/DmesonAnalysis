@@ -36,7 +36,7 @@ double SingleGaus(double *m, double *pars);
 double DoublePeakSingleGaus(double *x, double *pars);
 double DoubleGaus(double *m, double *pars);
 double DoublePeakDoubleGaus(double *m, double *pars);
-void SetHistoStyle(TH1 *histo, int color=kBlack);
+void SetHistoStyle(TH1 *histo, int color=kBlack, double markersize=1.);
 void SetStyle();
 void DivideCanvas(TCanvas* c, int nPtBins);
 
@@ -82,17 +82,46 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     vector<string> bkgfunc = config[centname.Data()]["BkgFunc"].as<vector<string>>();
     vector<string> sgnfunc = config[centname.Data()]["SgnFunc"].as<vector<string>>();
     const unsigned int nPtBins = PtMin.size();
-    int BkgFunc[nPtBins], SgnFunc[nPtBins];
+    int BkgFunc[nPtBins], SgnFunc[nPtBins], degPol[nPtBins];
     double PtLims[nPtBins+1];
 
     for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
         PtLims[iPt] = PtMin[iPt];
         PtLims[iPt+1] = PtMax[iPt];
-        if(bkgfunc[iPt] == "kExpo") BkgFunc[iPt] = AliHFInvMassFitter::kExpo;
-        else if(bkgfunc[iPt] == "kLin") BkgFunc[iPt] = AliHFInvMassFitter::kLin;
-        else if(bkgfunc[iPt] == "kPol2") BkgFunc[iPt] = AliHFInvMassFitter::kPol2;
-        if(sgnfunc[iPt] == "kGaus") SgnFunc[iPt] = AliHFInvMassFitter::kGaus;
-        else if(sgnfunc[iPt] == "k2Gaus") SgnFunc[iPt] = AliHFInvMassFitter::k2Gaus;
+
+        degPol[iPt] = -1;
+        if(bkgfunc[iPt] == "kExpo")
+            BkgFunc[iPt] = AliHFInvMassFitter::kExpo;
+        else if(bkgfunc[iPt] == "kLin")
+            BkgFunc[iPt] = AliHFInvMassFitter::kLin;
+        else if(bkgfunc[iPt] == "kPol2")
+            BkgFunc[iPt] = AliHFInvMassFitter::kPol2;
+        else if(bkgfunc[iPt] == "kPol3")
+        {
+            BkgFunc[iPt] = 6;
+            degPol[iPt] = 3;
+        }
+        else if(bkgfunc[iPt] == "kPol4")
+        {
+            BkgFunc[iPt] = 6;
+            degPol[iPt] = 4;
+        }
+        else
+        {
+            cerr << "ERROR: only kExpo, kLin, kPol2, kPol3, and kPol4 background functions supported! Exit" << endl;
+            return -1;
+        }
+        
+
+        if(sgnfunc[iPt] == "kGaus")
+            SgnFunc[iPt] = AliHFInvMassFitter::kGaus;
+        else if(sgnfunc[iPt] == "k2Gaus")
+            SgnFunc[iPt] = AliHFInvMassFitter::k2Gaus;
+        else
+        {
+            cerr << "ERROR: only kGaus and k2Gaus signal functions supported! Exit" << endl;
+            return -1;
+        }
     }
 
     TString massaxistit = "";
@@ -197,9 +226,16 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     double massForFit = (meson==kDplus) ? massDplus : massDs;
     TH1F* hMassForFit[nPtBins];
 
-    TCanvas* cMass = new TCanvas("cMass","cMass",1920,1080);
+    int canvSize[2] = {1920, 1080};
+    if(nPtBins == 1)
+    {
+        canvSize[0] = 500;
+        canvSize[1] = 500;
+    }
+
+    TCanvas* cMass = new TCanvas("cMass","cMass",canvSize[0],canvSize[1]);
     DivideCanvas(cMass,nPtBins);
-    TCanvas* cResiduals = new TCanvas("cResiduals","cResiduals",1920,1080);
+    TCanvas* cResiduals = new TCanvas("cResiduals","cResiduals",canvSize[0],canvSize[1]);
     DivideCanvas(cResiduals,nPtBins);
     for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
 
@@ -207,7 +243,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         TString pttitle = Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c}",PtMin[iPt],PtMax[iPt]);
         hMassForFit[iPt]->SetTitle(Form("%s;%s;Counts per %0.f MeV/#it{c}^{2}",pttitle.Data(),massaxistit.Data(),hMassForFit[iPt]->GetBinWidth(1)*1000));
         hMassForFit[iPt]->SetName(Form("MassForFit%d",iPt));
-        SetHistoStyle(hMassForFit[iPt]);
+        double markerSize = 1.;
+        if(nPtBins>15)
+            markerSize = 0.5;
+        SetHistoStyle(hMassForFit[iPt], kBlack, markerSize);
 
         if(isMC) { //MC
             int parRawYield = 0, parMean = 1., parSigma1 = 2; //always the same
@@ -301,7 +340,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             }
         }
         else { //data
-            auto massFitter = new AliHFInvMassFitter(hMassForFit[iPt],MassMin[iPt],MassMax[iPt],BkgFunc[iPt],SgnFunc[iPt]);
+            auto massFitter = new AliHFInvMassFitter(hMassForFit[iPt] ,MassMin[iPt], MassMax[iPt], BkgFunc[iPt], SgnFunc[iPt]);
+            if(degPol[iPt] > 0)
+                massFitter->SetPolDegreeForBackgroundFit(degPol[iPt]);
+
             if(UseLikelihood) massFitter->SetUseLikelihoodFit();
             if(fixMean)
                 massFitter->SetFixGaussianMean(hMeanToFix->GetBinContent(iPt+1));
@@ -434,10 +476,13 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                     cResiduals->cd();
                 massFitter->DrawHistoMinusFit(gPad);
             }
+
+            // plotting issue not understood when used high degree polynomials for at least one pT bin
+            auto bkgFunc = massFitter->GetBackgroundFullRangeFunc();
+            delete bkgFunc;
         }
         cMass->Modified();
         cMass->Update();
-
         cResiduals->Modified();
         cResiduals->Update();
     }
@@ -515,9 +560,9 @@ double DoublePeakDoubleGaus(double *m, double *pars) {
 }
 
 //__________________________________________________________________________________________________________________
-void SetHistoStyle(TH1 *histo, int color) {
+void SetHistoStyle(TH1 *histo, int color, double markersize) {
     histo->SetStats(kFALSE);
-    histo->SetMarkerSize(1.);
+    histo->SetMarkerSize(markersize);
     histo->SetMarkerStyle(20);
     histo->SetLineWidth(2);
     histo->SetMarkerColor(color);
