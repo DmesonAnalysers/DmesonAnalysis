@@ -29,6 +29,10 @@ options:
             corr: false
         displayRMS: true
 
+    errcomp: # comparison of uncertainties
+        enable: true
+        relative: true
+
     legend:
         xlimits: [0.2, 0.6]
         ylimits: [0.6, 0.9]
@@ -44,8 +48,12 @@ options:
         xlimits: [2., 16.]
         ylimits: [0., 2.]
         ylimitsratio: [0., 2.]
+        ylimitserr: [0., 0.35]
         logy: true
         logx: false
         ratio:
             logy: false
             logx: false
+        errcomp:
+            logy: false
+            logx: false  
