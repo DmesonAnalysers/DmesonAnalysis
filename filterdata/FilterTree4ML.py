@@ -6,6 +6,7 @@ with option --parquet the output files are saved into parquet files instead of r
 
 import sys
 import argparse
+import numpy as np
 import yaml
 sys.path.append('..')
 from utils.DfUtils import WriteTree, FilterBitDf, LoadDfFromRootOrParquet #pylint: disable=wrong-import-position,import-error,no-name-in-module
@@ -62,6 +63,9 @@ if preSelections:
     del dataFramePtCut
 else:
     dataFramePtCutSel = dataFramePtCut
+
+if cfg['missingvalues']['enable']:
+    dataFramePtCutSel = dataFramePtCutSel.replace(cfg['missingvalues']['toreplace'], value=np.nan)
 
 if isMC:
     print('Getting bkg dataframe')
