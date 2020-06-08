@@ -195,7 +195,7 @@ where the config file ```cfgFile.yml``` includes all the information of the vari
     ```python3
     python3 GetPtWeightSyst.py cfgFileName.yml
     ```
-    where the ROOT file ```cfgFileName.yml``` is a config file as [config_ptshape_syst.yml.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/systematics/genptshape/config_ptshape_syst.yml.yml)
+    where ```cfgFileName.yml``` is a config file as [config_ptshape_syst.yml.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/systematics/genptshape/config_ptshape_syst.yml.yml)
 
 ## Test and validation of alternative code for production of TTrees ([AliAnalysisTaskSEHFTreeCreator.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/treeHF/AliAnalysisTaskSEHFTreeCreator.cxx))
 The validation of the code for production of trees used in ML studies can be done using the scripts in the ```runanalysistask``` folder
