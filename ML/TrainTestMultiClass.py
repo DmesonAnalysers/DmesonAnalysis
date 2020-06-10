@@ -17,26 +17,16 @@ import matplotlib.pyplot as plt
 
 from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
+from hipe4ml.tree_handler import TreeHandler
 
-sys.path.append('..')
-from utils.DfUtils import LoadDfFromRootOrParquet #pylint: disable=wrong-import-position,import-error,no-name-in-module
-
-def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf): #pylint: disable=too-many-statements
+def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylint: disable=too-many-statements
     '''
     function for data preparation
     '''
-    DataDfPtSel = DataDf.query(f'{PtMin} < pt_cand < {PtMax}')
-    if inputCfg['data_prep']['filt_bkg_mass']:
-        BkgDfPtSel = DataDfPtSel.query(inputCfg['data_prep']['filt_bkg_mass'])
-    else:
-        BkgDfPtSel = DataDfPtSel
-    PromptDfPtSel = PromptDf.query(f'{PtMin} < pt_cand < {PtMax}')
-    FDDfPtSel = FDDf.query(f'{PtMin} < pt_cand < {PtMax}')
-
-    nPrompt = len(PromptDfPtSel)
-    nFD = len(FDDfPtSel)
-    nBkg = len(BkgDfPtSel)
-    print((f'Number of available candidates in {PtMin} < pT < {PtMax} GeV/c:\n     Prompt: {nPrompt}'
+    nPrompt = len(PromptDf)
+    nFD = len(FDDf)
+    nBkg = len(BkgDf)
+    print((f'Number of available candidates in {PtBin[0]} < pT < {PtBin[1]} GeV/c:\n     Prompt: {nPrompt}'
            f'\n     FD: {nFD}\n     Bkg: {nBkg}'))
 
     dataset_opt = inputCfg['data_prep']['dataset_opt']
@@ -56,24 +46,21 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
             print((f'Remaining FD candidates ({nFD - nCandToKeep}) will be used for the '
                    'efficiency together with test set'))
 
-        TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandToKeep], PromptDfPtSel.iloc[:nCandToKeep],
-                                FDDfPtSel.iloc[:nCandToKeep]], sort=True)
+        TotDf = pd.concat([BkgDf.iloc[:nCandToKeep], PromptDf.iloc[:nCandToKeep], FDDf.iloc[:nCandToKeep]], sort=True)
         LabelsArray = np.array([0]*nCandToKeep + [1]*nCandToKeep + [2]*nCandToKeep)
         if test_f < 1:
-            TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=test_f,
+            TrainSet, TestSet, yTrain, yTest = train_test_split(TotDf, LabelsArray, test_size=test_f,
                                                                 random_state=seed_split)
         else:
             TrainSet = pd.DataFrame()
-            TestSet = TotDfPtSel.copy()
+            TestSet = TotDf.copy()
             yTrain = pd.Series()
             yTest = LabelsArray.copy()
 
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
-        CandTypeFlags = pd.Series(yTest)
-        PromptDfPtSelForEff = pd.concat([PromptDfPtSel.iloc[nCandToKeep:], TestSet[CandTypeFlags.values == 1]],
-                                        sort=False)
-        FDDfPtSelForEff = pd.concat([FDDfPtSel.iloc[nCandToKeep:], TestSet[CandTypeFlags.values == 2]], sort=False)
-        del TotDfPtSel
+        PromptDfSelForEff = pd.concat([PromptDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).values == 1]], sort=False)
+        FDDfSelForEff = pd.concat([FDDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).values == 2]], sort=False)
+        del TotDf
 
     elif dataset_opt == 'max_signal':
         nCandBkg = round(inputCfg['data_prep']['bkg_mult'][iBin] * (nPrompt + nFD))
@@ -84,22 +71,21 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
             print('\033[93mWARNING: using all bkg available, not good!\033[0m')
         print(f'Fraction of real data candidates used for ML: {nCandBkg/nBkg:.5f}')
 
-        TotDfPtSel = pd.concat([BkgDfPtSel.iloc[:nCandBkg], PromptDfPtSel, FDDfPtSel], sort=True)
+        TotDf = pd.concat([BkgDf.iloc[:nCandBkg], PromptDf, FDDf], sort=True)
         LabelsArray = np.array([0]*nCandBkg + [1]*nPrompt + [2]*nFD)
         if test_f < 1:
-            TrainSet, TestSet, yTrain, yTest = train_test_split(TotDfPtSel, LabelsArray, test_size=test_f,
+            TrainSet, TestSet, yTrain, yTest = train_test_split(TotDf, LabelsArray, test_size=test_f,
                                                                 random_state=seed_split)
         else:
             TrainSet = pd.DataFrame()
-            TestSet = TotDfPtSel.copy()
+            TestSet = TotDf.copy()
             yTrain = pd.Series()
             yTest = LabelsArray.copy()
 
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
-        CandTypeFlags = pd.Series(yTest)
-        PromptDfPtSelForEff = TestSet[CandTypeFlags.values == 1]
-        FDDfPtSelForEff = TestSet[CandTypeFlags.values == 2]
-        del TotDfPtSel
+        PromptDfSelForEff = TestSet[pd.Series(yTest).values == 1]
+        FDDfSelForEff = TestSet[pd.Series(yTest).values == 2]
+        del TotDf
 
     else:
         print(f'\033[91mERROR: {dataset_opt} is not a valid option!\033[0m')
@@ -110,22 +96,22 @@ def data_prep(inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
     LegLabels = inputCfg['output']['leg_labels']
     OutputLabels = inputCfg['output']['out_labels']
     #_____________________________________________
-    plot_utils.plot_distr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, (12, 7), 100, True, LegLabels, 0.3)
+    plot_utils.plot_distr([BkgDf, PromptDf, FDDf], VarsToDraw, 100, LegLabels, figsize=(12, 7), alpha=0.3,
+                          log=True, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
-    plt.savefig(f'{OutPutDirPt}/DistributionsAll_pT_{PtMin}_{PtMax}.pdf')
+    plt.savefig(f'{OutPutDirPt}/DistributionsAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     plt.close('all')
     #_____________________________________________
-    CorrMatrixFig = plot_utils.plot_corr([BkgDfPtSel, PromptDfPtSel, FDDfPtSel], VarsToDraw, LegLabels)
+    CorrMatrixFig = plot_utils.plot_corr([BkgDf, PromptDf, FDDf], VarsToDraw, LegLabels)
     for Fig, Lab in zip(CorrMatrixFig, OutputLabels):
         plt.figure(Fig.number)
         plt.subplots_adjust(left=0.2, bottom=0.25, right=0.95, top=0.9)
-        Fig.savefig(f'{OutPutDirPt}/CorrMatrix{Lab}_pT_{PtMin}_{PtMax}.pdf')
+        Fig.savefig(f'{OutPutDirPt}/CorrMatrix{Lab}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
 
-    del BkgDfPtSel, PromptDfPtSel, FDDfPtSel
-    return TrainTestData, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff
+    return TrainTestData, PromptDfSelForEff, FDDfSelForEff
 
 
-def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylint: disable=too-many-statements
+def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disable=too-many-statements
     '''
     function for model training and testing
     '''
@@ -161,7 +147,7 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
             metric = f'roc_auc_{roc_method}'
 
         print('Performing hyper-parameters optimisation: ...', end='\r')
-        OutFileHypPars = open(f'{OutPutDirPt}/HyperParOpt_pT_{PtMin}_{PtMax}.txt', 'wt')
+        OutFileHypPars = open(f'{OutPutDirPt}/HyperParOpt_pT_{PtBin[0]}_{PtBin[1]}.txt', 'wt')
         sys.stdout = OutFileHypPars
         ModelHandl.optimize_params_bayes(TrainTestData, BayesOptConfig, metric,
                                          nfold=inputCfg['ml']['hyper_par_opt']['nfolds'],
@@ -171,18 +157,19 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
         OutFileHypPars.close()
         sys.stdout = sys.__stdout__
         print('Performing hyper-parameters optimisation: Done!')
-        print(f'Output saved in {OutPutDirPt}/HyperParOpt_pT_{PtMin}_{PtMax}.txt')
+        print(f'Output saved in {OutPutDirPt}/HyperParOpt_pT_{PtBin[0]}_{PtBin[1]}.txt')
         print(f'Best hyper-parameters:\n{ModelHandl.get_model_params()}')
     else:
         ModelHandl.set_model_params(HyperPars)
 
     # train and test the model with the updated hyper-parameters
-    ModelHandl.train_test_model(TrainTestData, inputCfg['ml']['roc_auc_average'], inputCfg['ml']['roc_auc_approach'])
+    yPredTest = ModelHandl.train_test_model(TrainTestData, True, output_margin=inputCfg['ml']['raw_output'],
+                                            average=inputCfg['ml']['roc_auc_average'],
+                                            multi_class_opt=inputCfg['ml']['roc_auc_approach'])
     yPredTrain = ModelHandl.predict(TrainTestData[0], inputCfg['ml']['raw_output'])
-    yPredTest = ModelHandl.predict(TrainTestData[2], inputCfg['ml']['raw_output'])
 
     # save model handler in pickle
-    ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtMin}_{PtMax}.pickle')
+    ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.pickle')
 
     #plots
     LegLabels = inputCfg['output']['leg_labels']
@@ -192,36 +179,36 @@ def train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin): #pylin
     MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'],
                                                     LegLabels, inputCfg['plots']['train_test_log'], density=True)
     for Fig, Lab in zip(MLOutputFig, OutputLabels):
-        Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtMin}_{PtMax}.pdf')
+        Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 9)
     ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], yPredTest, None, LegLabels, inputCfg['ml']['roc_auc_average'],
                                       inputCfg['ml']['roc_auc_approach'])
-    ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAll_pT_{PtMin}_{PtMax}.pdf')
-    pickle.dump(ROCCurveFig, open(f'{OutPutDirPt}/ROCCurveAll_pT_{PtMin}_{PtMax}.pkl', 'wb'))
+    ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+    pickle.dump(ROCCurveFig, open(f'{OutPutDirPt}/ROCCurveAll_pT_{PtBin[0]}_{PtBin[1]}.pkl', 'wb'))
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 9)
     ROCCurveTTFig = plot_utils.plot_roc_train_test(TrainTestData[3], yPredTest, TrainTestData[1], yPredTrain, None,
                                                    LegLabels, inputCfg['ml']['roc_auc_average'],
                                                    inputCfg['ml']['roc_auc_approach'])
-    ROCCurveTTFig.savefig(f'{OutPutDirPt}/ROCCurveTrainTest_pT_{PtMin}_{PtMax}.pdf')
+    ROCCurveTTFig.savefig(f'{OutPutDirPt}/ROCCurveTrainTest_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     #_____________________________________________
     PrecisionRecallFig = plot_utils.plot_precision_recall(TrainTestData[3], yPredTest, LegLabels)
-    PrecisionRecallFig.savefig(f'{OutPutDirPt}/PrecisionRecallAll_pT_{PtMin}_{PtMax}.pdf')
+    PrecisionRecallFig.savefig(f'{OutPutDirPt}/PrecisionRecallAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (12, 7)
     FeaturesImportanceFig = plot_utils.plot_feature_imp(TrainTestData[2][TrainCols], TrainTestData[3], ModelHandl,
                                                         LegLabels)
     for iFig, Fig in enumerate(FeaturesImportanceFig):
         if iFig < 3:
-            Fig.savefig(f'{OutPutDirPt}/FeatureImportance{OutputLabels[iFig]}_pT_{PtMin}_{PtMax}.pdf')
+            Fig.savefig(f'{OutPutDirPt}/FeatureImportance{OutputLabels[iFig]}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
         else:
-            Fig.savefig(f'{OutPutDirPt}/FeatureImportanceAll_pT_{PtMin}_{PtMax}.pdf')
+            Fig.savefig(f'{OutPutDirPt}/FeatureImportanceAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
 
     return ModelHandl
 
 
-def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff):
+def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff):
     OutputLabels = inputCfg['output']['out_labels']
     print('Applying ML model to prompt dataframe: ...', end='\r')
     yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff, inputCfg['ml']['raw_output'])
@@ -236,7 +223,7 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
     PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, df_column_to_save_list]
     for Pred, Lab in enumerate(OutputLabels):
         PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
-    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
     print('Applying ML model to prompt dataframe: Done!')
 
     print('Applying ML model to FD dataframe: ...', end='\r')
@@ -244,7 +231,7 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
     FDDfPtSelForEff = FDDfPtSelForEff.loc[:, df_column_to_save_list]
     for Pred, Lab in enumerate(OutputLabels):
         FDDfPtSelForEff[f'ML_output_{Lab}'] = yPredFDEff[:, Pred]
-    FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
     print('Applying ML model to FD dataframe: Done!')
 
     print('Applying ML model to data dataframe: ...', end='\r')
@@ -255,7 +242,7 @@ def appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfP
     DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list_data]
     for Pred, Lab in enumerate(OutputLabels):
         DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
-    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtMin}_{PtMax}_ModelApplied.parquet.gzip')
+    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
     print('Applying ML model to data dataframe: Done!')
 
 
@@ -272,17 +259,28 @@ def main():
         inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
     print('Loading analysis configuration: Done!')
 
-    print('Loading data files: ...', end='\r')
-    PromptDf = LoadDfFromRootOrParquet(inputCfg['input']['prompt'])
-    FDDf = LoadDfFromRootOrParquet(inputCfg['input']['FD'])
-    DataDf = LoadDfFromRootOrParquet(inputCfg['input']['data'])
-    print('Loading data files: Done!')
+    print('Loading and preparing data files: ...', end='\r')
+    PromptHandler = TreeHandler(inputCfg['input']['prompt'])
+    FDHandler = TreeHandler(inputCfg['input']['FD'])
+    DataHandler = TreeHandler(inputCfg['input']['data'])
 
-    for iBin, (PtMin, PtMax) in enumerate(zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'])):
+    if inputCfg['data_prep']['filt_bkg_mass']:
+        BkgHandler = DataHandler.get_subset(inputCfg['data_prep']['filt_bkg_mass'], frac=1.,
+                                            rndm_state=inputCfg['data_prep']['seed_split'])
+    else:
+        BkgHandler = DataHandler
 
-        print(f'\n\033[94mStarting ML analysis --- {PtMin} < pT < {PtMax} GeV/c\033[0m')
+    PtBins = [[a, b] for a, b in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'])]
+    PromptHandler.slice_data_frame('pt_cand', PtBins, True)
+    FDHandler.slice_data_frame('pt_cand', PtBins, True)
+    DataHandler.slice_data_frame('pt_cand', PtBins, True)
+    BkgHandler.slice_data_frame('pt_cand', PtBins, True)
+    print('Loading and preparing data files: Done!')
 
-        OutPutDirPt = os.path.join(inputCfg['output']['dir'], f'pt{PtMin}_{PtMax}')
+    for iBin, PtBin in enumerate(PtBins):
+        print(f'\n\033[94mStarting ML analysis --- {PtBin[0]} < pT < {PtBin[1]} GeV/c\033[0m')
+
+        OutPutDirPt = os.path.join(inputCfg['output']['dir'], f'pt{PtBin[0]}_{PtBin[1]}')
         if os.path.isdir(OutPutDirPt):
             print('\033[93mWARNING: Output directory already exists, overwrites possibly ongoing!\033[0m')
         else:
@@ -290,15 +288,17 @@ def main():
 
         # data preparation
         #_____________________________________________
-        TrainTestData, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff = data_prep( \
-            inputCfg, iBin, PtMin, PtMax, OutPutDirPt, DataDf, PromptDf, FDDf)
+        TrainTestData, PromptDfSelForEff, FDDfSelForEff = data_prep(inputCfg, iBin, PtBin, OutPutDirPt,
+                                                                    PromptHandler.get_slice(iBin),
+                                                                    FDHandler.get_slice(iBin),
+                                                                    BkgHandler.get_slice(iBin))
         if args.apply and inputCfg['data_prep']['test_fraction'] < 1.:
             print('\033[93mWARNING: Using only a fraction of the MC for the application! Are you sure?\033[0m')
 
         # training, testing
         #_____________________________________________
         if not args.apply:
-            ModelHandl = train_test(inputCfg, PtMin, PtMax, OutPutDirPt, TrainTestData, iBin)
+            ModelHandl = train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin)
         else:
             ModelList = inputCfg['ml']['saved_models']
             ModelPath = ModelList[iBin]
@@ -312,11 +312,12 @@ def main():
         # model application
         #_____________________________________________
         if not args.train:
-            appl(inputCfg, PtMin, PtMax, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff)
+            appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataHandler.get_slice(iBin),
+                 PromptDfSelForEff, FDDfSelForEff)
 
         # delete dataframes to release memory
         for data in TrainTestData:
             del data
-        del DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff
+        del PromptDfSelForEff, FDDfSelForEff
 
 main()
