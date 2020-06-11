@@ -1,11 +1,11 @@
-input: # files to use
-    prompt: [/home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/Prompt_STE__pT_1_50.parquet.gzip]
-    FD: [/home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/FD_STE__pT_1_50.parquet.gzip]
-    data: [/home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/Bkg_STE__pT_1_50.parquet.gzip]
+input: # files to use, set FD to null for binary classification
+    prompt: /home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/Prompt_STE__pT_1_50.parquet.gzip
+    FD: /home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/FD_STE__pT_1_50.parquet.gzip
+    data: /home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/Bkg_STE__pT_1_50.parquet.gzip
 
 output:
-    leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels
-    out_labels: ['Bkg', 'Prompt', 'FD'] # output labels
+    leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels, keep the right number of classes
+    out_labels: ['Bkg', 'Prompt', 'FD'] # output labels, keep the right number of classes
     dir: '/home/stefanop/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS3/ML_output_w_optimisation' # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing

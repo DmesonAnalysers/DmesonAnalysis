@@ -1,6 +1,6 @@
 '''
 python script to run basic training and application using the hipe4ml package
-run: python TrainTestMulticlass.py cfgFileNameML.yml [--train, --apply]
+run: python MLClassification.py cfgFileNameML.yml [--train, --apply]
 --train -> to perform only the training and save the models in pkl
 --apply -> to perform only the application loading saved models
 '''
@@ -26,28 +26,41 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
     nPrompt = len(PromptDf)
     nFD = len(FDDf)
     nBkg = len(BkgDf)
-    print((f'Number of available candidates in {PtBin[0]} < pT < {PtBin[1]} GeV/c:\n     Prompt: {nPrompt}'
-           f'\n     FD: {nFD}\n     Bkg: {nBkg}'))
+    if FDDf.empty:
+        out = f'\n     Signal: {nPrompt}\n     Bkg: {nBkg}'
+    else:
+        out = f'\n     Prompt: {nPrompt}\n     FD: {nFD}\n     Bkg: {nBkg}'
+    print(f'Number of available candidates in {PtBin[0]} < pT < {PtBin[1]} GeV/c:{out}')
 
     dataset_opt = inputCfg['data_prep']['dataset_opt']
     seed_split = inputCfg['data_prep']['seed_split']
     test_f = inputCfg['data_prep']['test_fraction']
 
     if dataset_opt == 'equal':
-        nCandToKeep = min([nPrompt, nFD, nBkg])
-        print(('Keep same number of prompt, FD, and background (minimum) for training and '
+        if FDDf.empty:
+            nCandToKeep = min([nPrompt, nBkg])
+            out = 'signal'
+            out2 = 'signal'
+        else:
+            nCandToKeep = min([nPrompt, nFD, nBkg])
+            out = 'prompt, FD'
+            out2 = 'prompt'
+        print((f'Keep same number of {out} and background (minimum) for training and '
                f'testing ({1 - test_f}-{test_f}): {nCandToKeep}'))
         print(f'Fraction of real data candidates used for ML: {nCandToKeep/nBkg:.5f}')
 
         if nPrompt > nCandToKeep:
-            print((f'Remaining prompt candidates ({nPrompt - nCandToKeep})'
+            print((f'Remaining {out2} candidates ({nPrompt - nCandToKeep})'
                    'will be used for the efficiency together with test set'))
         if nFD > nCandToKeep:
             print((f'Remaining FD candidates ({nFD - nCandToKeep}) will be used for the '
                    'efficiency together with test set'))
 
         TotDf = pd.concat([BkgDf.iloc[:nCandToKeep], PromptDf.iloc[:nCandToKeep], FDDf.iloc[:nCandToKeep]], sort=True)
-        LabelsArray = np.array([0]*nCandToKeep + [1]*nCandToKeep + [2]*nCandToKeep)
+        if FDDf.empty:
+            LabelsArray = np.array([0]*nCandToKeep + [1]*nCandToKeep)
+        else:
+            LabelsArray = np.array([0]*nCandToKeep + [1]*nCandToKeep + [2]*nCandToKeep)
         if test_f < 1:
             TrainSet, TestSet, yTrain, yTest = train_test_split(TotDf, LabelsArray, test_size=test_f,
                                                                 random_state=seed_split)
@@ -59,12 +72,16 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
 
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
         PromptDfSelForEff = pd.concat([PromptDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).values == 1]], sort=False)
-        FDDfSelForEff = pd.concat([FDDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).values == 2]], sort=False)
+        if FDDf.empty:
+            FDDfSelForEff = pd.DataFrame()
+        else:
+            FDDfSelForEff = pd.concat([FDDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).values == 2]], sort=False)
         del TotDf
 
     elif dataset_opt == 'max_signal':
         nCandBkg = round(inputCfg['data_prep']['bkg_mult'][iBin] * (nPrompt + nFD))
-        print((f'Keep all prompt and FD and use {nCandBkg} bkg candidates for training and '
+        out = 'signal' if FDDf.empty else 'prompt and FD'
+        print((f'Keep all {out} and use {nCandBkg} bkg candidates for training and '
                f'testing ({1 - test_f}-{test_f})'))
         if nCandBkg >= nBkg:
             nCandBkg = nBkg
@@ -72,7 +89,10 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
         print(f'Fraction of real data candidates used for ML: {nCandBkg/nBkg:.5f}')
 
         TotDf = pd.concat([BkgDf.iloc[:nCandBkg], PromptDf, FDDf], sort=True)
-        LabelsArray = np.array([0]*nCandBkg + [1]*nPrompt + [2]*nFD)
+        if FDDf.empty:
+            LabelsArray = np.array([0]*nCandBkg + [1]*nPrompt)
+        else:
+            LabelsArray = np.array([0]*nCandBkg + [1]*nPrompt + [2]*nFD)
         if test_f < 1:
             TrainSet, TestSet, yTrain, yTest = train_test_split(TotDf, LabelsArray, test_size=test_f,
                                                                 random_state=seed_split)
@@ -84,7 +104,7 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
 
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
         PromptDfSelForEff = TestSet[pd.Series(yTest).values == 1]
-        FDDfSelForEff = TestSet[pd.Series(yTest).values == 2]
+        FDDfSelForEff = pd.DataFrame() if FDDf.empty else TestSet[pd.Series(yTest).values == 2]
         del TotDf
 
     else:
@@ -95,14 +115,14 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
     VarsToDraw = inputCfg['plots']['plotting_columns']
     LegLabels = inputCfg['output']['leg_labels']
     OutputLabels = inputCfg['output']['out_labels']
+    ListDf = [BkgDf, PromptDf] if FDDf.empty else [BkgDf, PromptDf, FDDf]
     #_____________________________________________
-    plot_utils.plot_distr([BkgDf, PromptDf, FDDf], VarsToDraw, 100, LegLabels, figsize=(12, 7), alpha=0.3,
-                          log=True, grid=False)
+    plot_utils.plot_distr(ListDf, VarsToDraw, 100, LegLabels, figsize=(12, 7), alpha=0.3, log=True, grid=False)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(f'{OutPutDirPt}/DistributionsAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     plt.close('all')
     #_____________________________________________
-    CorrMatrixFig = plot_utils.plot_corr([BkgDf, PromptDf, FDDf], VarsToDraw, LegLabels)
+    CorrMatrixFig = plot_utils.plot_corr(ListDf, VarsToDraw, LegLabels)
     for Fig, Lab in zip(CorrMatrixFig, OutputLabels):
         plt.figure(Fig.number)
         plt.subplots_adjust(left=0.2, bottom=0.25, right=0.95, top=0.9)
@@ -115,6 +135,7 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
     '''
     function for model training and testing
     '''
+    n_classes = len(np.unique(TrainTestData[3]))
     modelClf = xgb.XGBClassifier()
     TrainCols = inputCfg['ml']['training_columns']
     HyperPars = inputCfg['ml']['hyper_par'][iBin]
@@ -135,16 +156,19 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
             print('\033[91mERROR: bayes_opt_config must be defined!\033[0m')
             sys.exit()
 
-        average_method = inputCfg['ml']['roc_auc_average']
-        roc_method = inputCfg['ml']['roc_auc_approach']
-        if not (average_method in ['macro', 'weighted'] and roc_method in ['ovo', 'ovr']):
-            print('\033[91mERROR: selected ROC configuration is not valid!\033[0m')
-            sys.exit()
+        if n_classes > 2:
+            average_method = inputCfg['ml']['roc_auc_average']
+            roc_method = inputCfg['ml']['roc_auc_approach']
+            if not (average_method in ['macro', 'weighted'] and roc_method in ['ovo', 'ovr']):
+                print('\033[91mERROR: selected ROC configuration is not valid!\033[0m')
+                sys.exit()
 
-        if average_method == 'weighted':
-            metric = f'roc_auc_{roc_method}_{average_method}'
+            if average_method == 'weighted':
+                metric = f'roc_auc_{roc_method}_{average_method}'
+            else:
+                metric = f'roc_auc_{roc_method}'
         else:
-            metric = f'roc_auc_{roc_method}'
+            metric = 'roc_auc'
 
         print('Performing hyper-parameters optimisation: ...', end='\r')
         OutFileHypPars = open(f'{OutPutDirPt}/HyperParOpt_pT_{PtBin[0]}_{PtBin[1]}.txt', 'wt')
@@ -178,8 +202,11 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
     plt.rcParams["figure.figsize"] = (10, 7)
     MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'],
                                                     LegLabels, inputCfg['plots']['train_test_log'], density=True)
-    for Fig, Lab in zip(MLOutputFig, OutputLabels):
-        Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+    if n_classes > 2:
+        for Fig, Lab in zip(MLOutputFig, OutputLabels):
+            Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+    else:
+        MLOutputFig.savefig(f'{OutPutDirPt}/MLOutputDistr_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 9)
     ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], yPredTest, None, LegLabels, inputCfg['ml']['roc_auc_average'],
@@ -199,9 +226,11 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
     plt.rcParams["figure.figsize"] = (12, 7)
     FeaturesImportanceFig = plot_utils.plot_feature_imp(TrainTestData[2][TrainCols], TrainTestData[3], ModelHandl,
                                                         LegLabels)
+    n_plot = n_classes if n_classes > 2 else 1
     for iFig, Fig in enumerate(FeaturesImportanceFig):
-        if iFig < 3:
-            Fig.savefig(f'{OutPutDirPt}/FeatureImportance{OutputLabels[iFig]}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        if iFig < n_plot:
+            label = OutputLabels[iFig] if n_classes > 2 else ''
+            Fig.savefig(f'{OutPutDirPt}/FeatureImportance{label}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
         else:
             Fig.savefig(f'{OutPutDirPt}/FeatureImportanceAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
 
@@ -221,18 +250,24 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     if 'pt_cand' not in df_column_to_save_list:
         print('\033[93mWARNING: pt_cand is not going to be saved in the output dataframe!\033[0m')
     PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, df_column_to_save_list]
-    for Pred, Lab in enumerate(OutputLabels):
-        PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
-    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/Prompt_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
+    if FDDfPtSelForEff.empty:
+        out = 'Signal'
+        PromptDfPtSelForEff[f'ML_output'] = yPredPromptEff
+    else:
+        out = 'Prompt'
+        for Pred, Lab in enumerate(OutputLabels):
+            PromptDfPtSelForEff[f'ML_output_{Lab}'] = yPredPromptEff[:, Pred]
+    PromptDfPtSelForEff.to_parquet(f'{OutPutDirPt}/{out}_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
     print('Applying ML model to prompt dataframe: Done!')
 
-    print('Applying ML model to FD dataframe: ...', end='\r')
-    yPredFDEff = ModelHandl.predict(FDDfPtSelForEff, inputCfg['ml']['raw_output'])
-    FDDfPtSelForEff = FDDfPtSelForEff.loc[:, df_column_to_save_list]
-    for Pred, Lab in enumerate(OutputLabels):
-        FDDfPtSelForEff[f'ML_output_{Lab}'] = yPredFDEff[:, Pred]
-    FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
-    print('Applying ML model to FD dataframe: Done!')
+    if not FDDfPtSelForEff.empty:
+        print('Applying ML model to FD dataframe: ...', end='\r')
+        yPredFDEff = ModelHandl.predict(FDDfPtSelForEff, inputCfg['ml']['raw_output'])
+        FDDfPtSelForEff = FDDfPtSelForEff.loc[:, df_column_to_save_list]
+        for Pred, Lab in enumerate(OutputLabels):
+            FDDfPtSelForEff[f'ML_output_{Lab}'] = yPredFDEff[:, Pred]
+        FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
+        print('Applying ML model to FD dataframe: Done!')
 
     print('Applying ML model to data dataframe: ...', end='\r')
     yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'])
@@ -240,8 +275,11 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     if 'pt_B' in df_column_to_save_list_data:
         df_column_to_save_list_data.remove('pt_B') # only in MC
     DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list_data]
-    for Pred, Lab in enumerate(OutputLabels):
-        DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
+    if FDDfPtSelForEff.empty:
+        DataDfPtSel[f'ML_output'] = yPredData
+    else:
+        for Pred, Lab in enumerate(OutputLabels):
+            DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
     DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
     print('Applying ML model to data dataframe: Done!')
 
@@ -261,7 +299,7 @@ def main():
 
     print('Loading and preparing data files: ...', end='\r')
     PromptHandler = TreeHandler(inputCfg['input']['prompt'])
-    FDHandler = TreeHandler(inputCfg['input']['FD'])
+    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'])
     DataHandler = TreeHandler(inputCfg['input']['data'])
 
     if inputCfg['data_prep']['filt_bkg_mass']:
@@ -272,7 +310,8 @@ def main():
 
     PtBins = [[a, b] for a, b in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'])]
     PromptHandler.slice_data_frame('pt_cand', PtBins, True)
-    FDHandler.slice_data_frame('pt_cand', PtBins, True)
+    if FDHandler is not None:
+        FDHandler.slice_data_frame('pt_cand', PtBins, True)
     DataHandler.slice_data_frame('pt_cand', PtBins, True)
     BkgHandler.slice_data_frame('pt_cand', PtBins, True)
     print('Loading and preparing data files: Done!')
@@ -288,9 +327,9 @@ def main():
 
         # data preparation
         #_____________________________________________
+        FDDfPt = pd.DataFrame() if FDHandler is None else FDHandler.get_slice(iBin)
         TrainTestData, PromptDfSelForEff, FDDfSelForEff = data_prep(inputCfg, iBin, PtBin, OutPutDirPt,
-                                                                    PromptHandler.get_slice(iBin),
-                                                                    FDHandler.get_slice(iBin),
+                                                                    PromptHandler.get_slice(iBin), FDDfPt,
                                                                     BkgHandler.get_slice(iBin))
         if args.apply and inputCfg['data_prep']['test_fraction'] < 1.:
             print('\033[93mWARNING: Using only a fraction of the MC for the application! Are you sure?\033[0m')

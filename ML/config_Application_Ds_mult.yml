@@ -1,12 +1,12 @@
-input: # files to use
-    prompt: /data/NonPromptD/Ds/LHC20a7/Prompt_Dspp5TeVNoOutlier_D2H_pT_1_50.parquet.gzip
-    FD: /data/NonPromptD/Ds/LHC20a7/FD_Dspp5TeVNoOutlier_D2H_pT_1_50.parquet.gzip
-    data: /data/NonPromptD/Ds/LHC17pq/Data_Dspp5TeVNoOutlier_pT_1_50.parquet.gzip
+input: # files to use, set FD to null for binary classification
+    prompt: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/noImprover/Prompt_Dspp5TeVNoOutlier_D2H_noImprover_pT_1_50.parquet.gzip
+    FD: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/noImprover/FD_Dspp5TeVNoOutlier_D2H_noImprover_pT_1_50.parquet.gzip
+    data: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/noImprover/Prompt_Dspp5TeVNoOutlier_D2H_noImprover_pT_1_50.parquet.gzip
 
 output:
-    leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels
-    out_labels: ['Bkg', 'Prompt', 'FD'] # output labels
-    dir: '/home/fcatalan/Dspp/ml_training/eff' # output dir
+    leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels, keep the right number of classes
+    out_labels: ['Bkg', 'Prompt', 'FD'] # output labels, keep the right number of classes
+    dir: '../../../Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover' # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing
     min: [1, 2, 4, 6, 12] # list 
@@ -19,7 +19,7 @@ data_prep:
                             # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = bkg_mult * (n_prompt + n_FD)
     bkg_mult: [2., 1., 0.3, 0.1, 0.05] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
     seed_split: 42 # seed used for train_test_split(...)
-    test_fraction: 0.2 # fraction of data used for test set and efficiencies --> set to 1. if you want to apply the model to the full dataframes  
+    test_fraction: 1. # fraction of data used for test set and efficiencies --> set to 1. if you want to apply the model to the full dataframes  
     
 ml:
     raw_output: False # use raw_output (True) of probability (False) as output of the model
@@ -38,7 +38,7 @@ ml:
                # list of dicts of hyperparameters (one for each pT bin)
 
     hyper_par_opt:
-      do_hyp_opt: True # whether to do the parameter optimization
+      do_hyp_opt: False # whether to do the parameter optimization
       njobs: 8 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
       nfolds: 5 # number of folds used in cross validation
       initpoints: 10 # steps of random exploration you want to perform
@@ -51,11 +51,11 @@ ml:
                         'colsample_bytree': !!python/tuple [0.8, 1.]}
                         # configuration dictionary for optimize_params_bayes()
 
-    saved_models: [/home/fcatalan/Dspp/ml_training/final/pt1_2/ModelHandler_pT_1_2.pickle,
-                   /home/fcatalan/Dspp/ml_training/final/pt2_4/ModelHandler_pT_2_4.pickle,
-                   /home/fcatalan/Dspp/ml_training/final/pt4_6/ModelHandler_pT_4_6.pickle,
-                   /home/fcatalan/Dspp/ml_training/final/pt6_12/ModelHandler_pT_6_12.pickle,
-                   /home/fcatalan/Dspp/ml_training/final/pt12_50/ModelHandler_pT_12_50.pickle
+    saved_models: [../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt1_2/ModelHandler_pT_1_2.pickle,
+                   ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt2_4/ModelHandler_pT_2_4.pickle,
+                   ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt4_6/ModelHandler_pT_4_6.pickle,
+                   ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt6_12/ModelHandler_pT_6_12.pickle,
+                   ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt12_50/ModelHandler_pT_12_50.pickle
                   ] 
                    # list of saved ModelHandler (path+file), compatible with the pt bins
 
@@ -66,4 +66,4 @@ plots:
     train_test_log: True # use log scale for plots of train and test distributions
 
 df_column_to_save_opt: 
-    df_column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
+    df_column_to_save_list: ['inv_mass', 'pt_cand', 'pt_B'] # list of variables saved in the dataframes with the applied models
