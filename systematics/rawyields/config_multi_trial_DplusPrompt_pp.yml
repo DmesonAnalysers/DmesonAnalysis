@@ -1,23 +1,23 @@
 meson: Dplus
 
 reffilenames:
-    data: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_FD_central.root
-    MC: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_prompt_central.root
+    data: ../../../Analysispp2017DplusLowPt/outputs/rawyields/RawYields_Dplus_pp5TeV_central.root
+    MC: ../../../Analysispp2017DplusLowPt/outputs/rawyields/RawYields_Dplus_pp5TeV_central.root
 
-outfilename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/rawyields/RawYieldSyst_Dplus_pp5TeV_FD_central2.root
+outfilename: ../../../Analysispp2017DplusLowPt/outputs/systematics/rawyields/RawYieldSyst_Dplus_pp5TeV_Prompt_central_pt0-1.root
 
 multitrial:
-    ptbins: null #list of pt bins, set null if you want to keep them all
+    ptbins: [ 0 ] #list of pt bins, set null if you want to keep them all
     mins: [ 1.66, 1.68, 1.70, 1.72, 1.74, 1.76 ] # lower fit limit
     maxs: [ 1.95, 1.96, 1.97, 1.98, 1.99, 2.00 ] # upper fit limit
-    rebins: [ 4, 5, 6, 7, 8, 9, 10 ] # mass rebin values
+    rebins: [ 2, 3, 4, 5, 6, 7, 8 ] # mass rebin values
     sgnfuncs: [ kGaus ] # signal functions of AliHFInvMassFitter
-    bkgfuncs: [ kExpo, kLin, kPol2 ] # bkg functions of AliHFInvMassFitter
-    sigma: [ kFixed, kFixedMinusUnc, kFixedPlusUnc ] 
+    bkgfuncs: [ kPol2, kPol3, kPol4 ] # bkg functions of AliHFInvMassFitter
+    sigma: [ kFree ] 
     # all possibilities: 
     # kFree, kFixed, kFixedMinus10Perc, kFixedPlus10Perc, kFixedMinus15Perc, kFixedPlus15Perc, kFixedMinus20Perc, kFixedPlus20Perc, kFixedMinusUnc, kFixedPlusUnc
     # those with variations (Plus/Minus) are exclusive (i.e. it is not possible to run with 10% and 15% variation at the same time)
-    mean: [ kFree ] # other possibilities: kFixed
+    mean: [ kFree, kFixedMinusUnc, kFixedPlusUnc ]
     # all possibilities: 
     # kFixed, kFree, kFixedMinusUnc, kFixedPlusUnc
     bincounting:
