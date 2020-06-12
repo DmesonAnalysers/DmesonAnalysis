@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <regex>
 
 #include "yaml-cpp/yaml.h"
@@ -32,16 +33,14 @@
 
 #endif
 
-using namespace std;
-
 //________________________________________________________________________________________________________________
 // function prototypes
 int RawYieldSystematics(TString cfgFileName = "cfgFile.yml");
 double min(TH1F *histo);
 double max(TH1F *histo);
-int LoadRefFiles(string refFileName, string refFileNameMC,
+int LoadRefFiles(std::string refFileName, std::string refFileNameMC,
                  TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
-                 TH1F *&hMeanRef, TH1F *&hSigmaMC);
+                 TH1F *&hMeanRef, TH1F *&hSigmaMC, TH1F *&hMeanMC);
 void SetStyle();
 
 
@@ -51,24 +50,30 @@ int RawYieldSystematics(TString cfgFileName) {
 
     // load inputs
     YAML::Node config = YAML::LoadFile(cfgFileName.Data());
-    string refFileName = config["reffilenames"]["data"].as<string>();
-    string refFileNameMC = config["reffilenames"]["MC"].as<string>();
-    string outFileName = config["outfilename"].as<string>();
-    vector<double> mins = config["multitrial"]["mins"].as<vector<double>>();
-    vector<double> maxs = config["multitrial"]["maxs"].as<vector<double>>();
-    vector<int> rebins = config["multitrial"]["rebins"].as<vector<int>>();
-    vector<string> signalFuncs = config["multitrial"]["sgnfuncs"].as<vector<string>>();
-    vector<string> bkgFuncs = config["multitrial"]["bkgfuncs"].as<vector<string>>();
-    vector<string> sigmaOpt = config["multitrial"]["sigma"].as<vector<string>>();
+    std::string refFileName = config["reffilenames"]["data"].as<std::string>();
+    std::string refFileNameMC = config["reffilenames"]["MC"].as<std::string>();
+    std::string outFileName = config["outfilename"].as<std::string>();
+    std::vector<int> ptBins;
+    bool allPtBins = true;
+    if(config["multitrial"]["ptbins"].Type() != YAML::NodeType::Null) {
+        ptBins = config["multitrial"]["ptbins"].as<std::vector<int> >();
+        allPtBins = false;
+    }
+    std::vector<double> mins = config["multitrial"]["mins"].as<std::vector<double> >();
+    std::vector<double> maxs = config["multitrial"]["maxs"].as<std::vector<double> >();
+    std::vector<int> rebins = config["multitrial"]["rebins"].as<std::vector<int> >();
+    std::vector<std::string> signalFuncs = config["multitrial"]["sgnfuncs"].as<std::vector<std::string> >();
+    std::vector<std::string> bkgFuncs = config["multitrial"]["bkgfuncs"].as<std::vector<std::string> >();
+    std::vector<std::string> sigmaOpt = config["multitrial"]["sigma"].as<std::vector<std::string> >();
     const unsigned int nSigmaConf = sigmaOpt.size();
-    vector<string> meanOpt = config["multitrial"]["mean"].as<vector<string>>();
+    std::vector<std::string> meanOpt = config["multitrial"]["mean"].as<std::vector<std::string> >();
     const unsigned int nMeanConf = meanOpt.size();
-    vector<double> nSigmaBinCounting = config["multitrial"]["bincounting"]["nsigma"].as<vector<double>>();
+    std::vector<double> nSigmaBinCounting = config["multitrial"]["bincounting"]["nsigma"].as<std::vector<double> >();
     const unsigned int nBinCounting = nSigmaBinCounting.size();
     double minChi2 = config["quality"]["chisquare"]["min"].as<double>();
     double maxChi2 = config["quality"]["chisquare"]["max"].as<double>();
 
-    string mesonName = config["meson"].as<string>();    
+    std::string mesonName = config["meson"].as<std::string>();    
     double massDs = TDatabasePDG::Instance()->GetParticle(431)->Mass();
     double massDplus = TDatabasePDG::Instance()->GetParticle(411)->Mass();
     double mass = -1;
@@ -85,7 +90,8 @@ int RawYieldSystematics(TString cfgFileName) {
     TH1F *hSigmaRef = nullptr;
     TH1F *hMeanRef = nullptr;
     TH1F *hSigmaMC = nullptr;
-    int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef, hSigmaMC);
+    TH1F *hMeanMC = nullptr;
+    int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef, hSigmaMC, hMeanMC);
     if (loadref > 0) {
         cerr << "ERROR: missing information in reference files! Check them please." << endl;
         return loadref;
@@ -138,6 +144,9 @@ int RawYieldSystematics(TString cfgFileName) {
 
     for (int iPt = 0; iPt < nPtBins; iPt++) {
 
+        if(!allPtBins && (std::find(ptBins.begin(), ptBins.end(), iPt) == ptBins.end())) // pt bin not included
+            continue;
+
         // configure multi-trial
         AliHFInvMassMultiTrialFit multiTrial;
         multiTrial.SetUseLogLikelihoodFit();
@@ -179,9 +188,20 @@ int RawYieldSystematics(TString cfgFileName) {
         }
 
         multiTrial.SetUseFixedMeanFreeS(false);
+        multiTrial.SetUseFreeSigFixMeanUp(false);
+        multiTrial.SetUseFreeSigFixMeanDown(false);
         for(auto opt: meanOpt) {
-            if(opt == "kFixed")
+            if(opt == "kFixed") {
                 multiTrial.SetUseFixedMeanFreeS();
+            }
+            else if(opt == "kFixedMinusUnc") {
+                multiTrial.SetLowerMassToFix(hMeanMC->GetBinContent(iPt+1)-hMeanMC->GetBinError(iPt+1));
+                multiTrial.SetUseFreeSigFixMeanUp();
+            }
+            else if(opt == "kFixedPlusUnc") {
+                multiTrial.SetUpperMassToFix(hMeanMC->GetBinContent(iPt+1)+hMeanMC->GetBinError(iPt+1));
+                multiTrial.SetUseFreeSigFixMeanDown();
+            }
         }
 
         multiTrial.SetUseFixSigUpFreeMean(false);
@@ -191,8 +211,6 @@ int RawYieldSystematics(TString cfgFileName) {
         multiTrial.SetUseFixSigFixMean(false);
         multiTrial.SetUseFixSigFixMeanUp(false);
         multiTrial.SetUseFixSigFixMeanDown(false);
-        multiTrial.SetUseFreeSigFixMeanUp(false);
-        multiTrial.SetUseFreeSigFixMeanDown(false);
         multiTrial.SetUseFixSigVarWithFixMean(false);
         for(auto opt: sigmaOpt) {
             if(opt == "kFree")
@@ -237,10 +255,10 @@ int RawYieldSystematics(TString cfgFileName) {
 
         // perform multi-trial
         cout << "\n\n*****************************************************" << endl;
-        cout << Form("Perform multi-trial for %0.f < pT < %0.f GeV/c", PtLims[iPt], PtLims[iPt+1]) << endl;
+        cout << Form("Perform multi-trial for %0.1f < pT < %0.1f GeV/c", PtLims[iPt]*10, PtLims[iPt+1]*10) << endl;
         multiTrial.DoMultiTrials(hMass[iPt]);
-        ntupleFit[iPt] = (TNtuple *)(multiTrial.GetNtupleMultiTrials())->Clone(Form("ntupleFit_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]));
-        ntupleBinC[iPt] = (TNtuple *)(multiTrial.GetNtupleBinCounting())->Clone(Form("ntupleBinC_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]));
+        ntupleFit[iPt] = (TNtuple *)(multiTrial.GetNtupleMultiTrials())->Clone(Form("ntupleFit_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10));
+        ntupleBinC[iPt] = (TNtuple *)(multiTrial.GetNtupleBinCounting())->Clone(Form("ntupleBinC_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10));
         ntupleFit[iPt]->SetDirectory(0);
         ntupleBinC[iPt]->SetDirectory(0);
 
@@ -281,40 +299,40 @@ int RawYieldSystematics(TString cfgFileName) {
 
         int nBins = 100;
 
-        hRawYield[iPt] = new TH1F(Form("hRawYield_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]), 
-                                  Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};raw yield;entries", PtLims[iPt], PtLims[iPt+1]), nBins, rawMin, rawMax);
+        hRawYield[iPt] = new TH1F(Form("hRawYield_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), 
+                                  Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};raw yield;entries", PtLims[iPt], PtLims[iPt+1]), nBins, rawMin, rawMax);
         hRawYield[iPt]->SetFillStyle(3004);
         hRawYield[iPt]->SetLineWidth(2);
         hRawYield[iPt]->SetLineColor(kBlue + 1);
         hRawYield[iPt]->SetFillColor(kBlue + 1);
-        ntupleFit[iPt]->Draw(Form("rawy>>hRawYield_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
+        ntupleFit[iPt]->Draw(Form("rawy>>hRawYield_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
 
-        hSigma[iPt] = new TH1F(Form("hSigma_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]), 
-                               Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};width (GeV/c^{2});Entries", PtLims[iPt], PtLims[iPt+1]), nBins, sigmaMin, sigmaMax);
+        hSigma[iPt] = new TH1F(Form("hSigma_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), 
+                               Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};width (GeV/c^{2});Entries", PtLims[iPt], PtLims[iPt+1]), nBins, sigmaMin, sigmaMax);
         hSigma[iPt]->SetFillStyle(3004);
         hSigma[iPt]->SetLineWidth(2);
         hSigma[iPt]->SetLineColor(kBlue + 1);
         hSigma[iPt]->SetFillColor(kBlue + 1);
-        ntupleFit[iPt]->Draw(Form("sigma>>hSigma_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
+        ntupleFit[iPt]->Draw(Form("sigma>>hSigma_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
 
-        hMean[iPt] = new TH1F(Form("hMean_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]),
-                              Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};mean (GeV/c^{2});entries", PtLims[iPt], PtLims[iPt+1]), nBins, meanMin, meanMax);
+        hMean[iPt] = new TH1F(Form("hMean_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+                              Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};mean (GeV/c^{2});entries", PtLims[iPt], PtLims[iPt+1]), nBins, meanMin, meanMax);
         hMean[iPt]->SetFillStyle(3004);
         hMean[iPt]->SetLineWidth(2);
         hMean[iPt]->SetLineColor(kBlue + 1);
         hMean[iPt]->SetFillColor(kBlue + 1);
-        ntupleFit[iPt]->Draw(Form("mean>>hMean_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
+        ntupleFit[iPt]->Draw(Form("mean>>hMean_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
 
-        hChiSquare[iPt] = new TH1F(Form("hChiSquare_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]),
-                                   Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};#chi^{2}/ndf;entries", PtLims[iPt], PtLims[iPt+1]), nBins, 0., maxChi2);
+        hChiSquare[iPt] = new TH1F(Form("hChiSquare_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+                                   Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};#chi^{2}/ndf;entries", PtLims[iPt], PtLims[iPt+1]), nBins, 0., maxChi2);
         hChiSquare[iPt]->SetFillStyle(3004);
         hChiSquare[iPt]->SetLineWidth(2);
         hChiSquare[iPt]->SetLineColor(kBlue + 1);
         hChiSquare[iPt]->SetFillColor(kBlue + 1);
-        ntupleFit[iPt]->Draw(Form("chi2>>hChiSquare_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
+        ntupleFit[iPt]->Draw(Form("chi2>>hChiSquare_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
 
-        hRawYieldVsTrial[iPt] = new TH1F(Form("hRawYieldVsTrial_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]),
-                                         Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};trial # ;raw yield", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
+        hRawYieldVsTrial[iPt] = new TH1F(Form("hRawYieldVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+                                         Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;raw yield", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
         hRawYieldVsTrial[iPt]->GetYaxis()->SetRangeUser(0., rawMax*1.5);
         hRawYieldVsTrial[iPt]->SetMarkerStyle(20);
         hRawYieldVsTrial[iPt]->SetLineWidth(2);
@@ -322,8 +340,8 @@ int RawYieldSystematics(TString cfgFileName) {
         hRawYieldVsTrial[iPt]->SetLineColor(kBlue + 1);
         hRawYieldVsTrial[iPt]->SetMarkerColor(kBlack);
 
-        hSigmaVsTrial[iPt] = new TH1F(Form("hMeanVsTrial_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]),
-                                      Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};trial # ;width (GeV/c^{2})", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
+        hSigmaVsTrial[iPt] = new TH1F(Form("hMeanVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+                                      Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;width (GeV/c^{2})", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
         hSigmaVsTrial[iPt]->GetYaxis()->SetRangeUser(sigmaMin, sigmaMax);
         hSigmaVsTrial[iPt]->SetMarkerStyle(20);
         hSigmaVsTrial[iPt]->SetLineWidth(2);
@@ -331,8 +349,8 @@ int RawYieldSystematics(TString cfgFileName) {
         hSigmaVsTrial[iPt]->SetLineColor(kBlue + 1);
         hSigmaVsTrial[iPt]->SetMarkerColor(kBlack);
 
-        hMeanVsTrial[iPt] = new TH1F(Form("hSigmaVsTrial_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]),
-                                     Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};trial # ;mean (GeV/c^{2})", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
+        hMeanVsTrial[iPt] = new TH1F(Form("hSigmaVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+                                     Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;mean (GeV/c^{2})", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
         hMeanVsTrial[iPt]->GetYaxis()->SetRangeUser(meanMin, meanMax);
         hMeanVsTrial[iPt]->SetMarkerStyle(20);
         hMeanVsTrial[iPt]->SetLineWidth(2);
@@ -340,8 +358,8 @@ int RawYieldSystematics(TString cfgFileName) {
         hMeanVsTrial[iPt]->SetLineColor(kBlue + 1);
         hMeanVsTrial[iPt]->SetMarkerColor(kBlack);
 
-        hChiSquareVsTrial[iPt] = new TH1F(Form("hChiSquareVsTrial_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]),
-                                          Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};trial # ;#chi^{2}/ndf", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
+        hChiSquareVsTrial[iPt] = new TH1F(Form("hChiSquareVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+                                          Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;#chi^{2}/ndf", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
         hChiSquareVsTrial[iPt]->GetYaxis()->SetRangeUser(0, maxChi2);
         hChiSquareVsTrial[iPt]->SetMarkerStyle(20);
         hChiSquareVsTrial[iPt]->SetLineWidth(2);
@@ -380,17 +398,17 @@ int RawYieldSystematics(TString cfgFileName) {
         }
         
         for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
-            hBinCount[iBinCount][iPt] = new TH1F(Form("hBinCount_%0.1fsigma_pT_%0.f-%0.f", nSigmaBinCounting[iBinCount], PtLims[iPt], PtLims[iPt+1]), 
-                                                Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};raw yield;entries", PtLims[iPt], PtLims[iPt+1]), nBins, rawMin, rawMax);
+            hBinCount[iBinCount][iPt] = new TH1F(Form("hBinCount_%0.1fsigma_pT_%0.f-%0.f", nSigmaBinCounting[iBinCount], PtLims[iPt]*10, PtLims[iPt+1]*10), 
+                                                Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};raw yield;entries", PtLims[iPt], PtLims[iPt+1]), nBins, rawMin, rawMax);
             hBinCount[iBinCount][iPt]->SetFillStyle(3004);
             hBinCount[iBinCount][iPt]->SetLineWidth(2);
             hBinCount[iBinCount][iPt]->SetLineColor(binCountColors[iBinCount]);
             hBinCount[iBinCount][iPt]->SetFillColor(binCountColors[iBinCount]);
-            ntupleBinC[iPt]->Draw(Form("rawyBC1>>hBinCount_%0.1fsigma_pT_%0.f-%0.f", nSigmaBinCounting[iBinCount], PtLims[iPt], PtLims[iPt+1]),
+            ntupleBinC[iPt]->Draw(Form("rawyBC1>>hBinCount_%0.1fsigma_pT_%0.f-%0.f", nSigmaBinCounting[iBinCount], PtLims[iPt]*10, PtLims[iPt+1]*10),
                                   Form("chi2 > %f && chi2 < %f && nSigmaBC == %f", minChi2, maxChi2, nSigmaBinCounting[iBinCount]));
 
-            hBinCountVsTrial[iBinCount][iPt] = new TH1F(Form("hBinCountVsTrial_%0.1fsigma_pT_%0.f-%0.f", nSigmaBinCounting[iBinCount], PtLims[iPt], PtLims[iPt+1]),
-                                                        Form("%0.f < #it{p}_{T} < %0.f GeV/#it{c};trial # ;raw yield", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
+            hBinCountVsTrial[iBinCount][iPt] = new TH1F(Form("hBinCountVsTrial_%0.1fsigma_pT_%0.f-%0.f", nSigmaBinCounting[iBinCount], PtLims[iPt]*10, PtLims[iPt+1]*10),
+                                                        Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;raw yield", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
             hBinCountVsTrial[iBinCount][iPt]->GetYaxis()->SetRangeUser(0., rawMax*1.5);
             hBinCountVsTrial[iBinCount][iPt]->SetMarkerStyle(20);
             hBinCountVsTrial[iBinCount][iPt]->SetLineWidth(2);
@@ -470,7 +488,11 @@ int RawYieldSystematics(TString cfgFileName) {
     // produce plots
     TCanvas *cMultiTrial[nPtBins];
     for(int iPt = 0; iPt < nPtBins; iPt++) {
-        cMultiTrial[iPt] = new TCanvas(Form("cMultiTrial_pT_%0.f-%0.f", PtLims[iPt], PtLims[iPt+1]), "", 1920, 1080);
+
+        if(!allPtBins && (std::find(ptBins.begin(), ptBins.end(), iPt) == ptBins.end())) // pt bin not included
+            continue;
+
+        cMultiTrial[iPt] = new TCanvas(Form("cMultiTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), "", 1920, 1080);
         cMultiTrial[iPt]->Divide(2, 2);
 
         cMultiTrial[iPt]->cd(1);
@@ -514,6 +536,10 @@ int RawYieldSystematics(TString cfgFileName) {
     // save output files
     TFile outFile(outFileName.data(), "recreate");
     for (int iPt = 0; iPt < nPtBins; iPt++) {
+
+        if(!allPtBins && (std::find(ptBins.begin(), ptBins.end(), iPt) == ptBins.end())) // pt bin not included
+            continue;
+
         ntupleFit[iPt]->Write();
         ntupleBinC[iPt]->Write();
         hRawYield[iPt]->Write();
@@ -533,11 +559,17 @@ int RawYieldSystematics(TString cfgFileName) {
     outFile.Close();
     cout << "\n" << outFileName.data() << " saved." << endl;
 
-    outFileName = regex_replace(outFileName, regex(".root"), ".pdf");
-    cMultiTrial[0]->SaveAs(Form("%s[", outFileName.data()));
-    for (int iPt = 0; iPt < nPtBins; iPt++) 
+    outFileName = std::regex_replace(outFileName, std::regex(".root"), ".pdf");
+    int lastPt = -1;
+    for (int iPt = 0; iPt < nPtBins; iPt++) {
+        if(!allPtBins && (std::find(ptBins.begin(), ptBins.end(), iPt) == ptBins.end())) // pt bin not included
+            continue;
+        if(lastPt < 0) // first bin
+            cMultiTrial[iPt]->SaveAs(Form("%s[", outFileName.data()));
         cMultiTrial[iPt]->SaveAs(outFileName.data());
-    cMultiTrial[nPtBins-1]->SaveAs(Form("%s]", outFileName.data()));
+        lastPt = iPt;
+    }
+    cMultiTrial[lastPt]->SaveAs(Form("%s]", outFileName.data()));
 
     return 0;
 }
@@ -568,9 +600,9 @@ double max(TH1F *histo) {
 
 
 //__________________________________________________________________________________________________________________
-int LoadRefFiles(string refFileName, string refFileNameMC,
+int LoadRefFiles(std::string refFileName, std::string refFileNameMC,
                  TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
-                 TH1F *&hMeanRef, TH1F *&hSigmaMC) {
+                 TH1F *&hMeanRef, TH1F *&hSigmaMC, TH1F *&hMeanMC) {
 
     TFile *reffile = TFile::Open(refFileName.data());
     if (reffile) {
@@ -589,8 +621,11 @@ int LoadRefFiles(string refFileName, string refFileNameMC,
     TFile *reffileMC = TFile::Open(refFileNameMC.data());
     if (reffileMC) {
         hSigmaMC = (TH1F *)reffileMC->Get("hRawYieldsSigma");
+        hMeanMC = (TH1F *)reffileMC->Get("hRawYieldsMean");
         if (hSigmaMC)
             hSigmaMC->SetDirectory(0);
+        if (hMeanMC)
+            hMeanMC->SetDirectory(0);
         reffileMC->Close();
     }
 
@@ -608,6 +643,8 @@ int LoadRefFiles(string refFileName, string refFileNameMC,
         return 6;
     if (!hSigmaMC)
         return 7;
+    if (!hMeanMC)
+        return 8;
 
     return 0;
 }
