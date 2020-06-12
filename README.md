@@ -10,7 +10,7 @@ Code for the measurement of  D<sub>s</sub><sup>+</sup> and D<sup>+</sup>-meson p
 The code in this repository requires to have installed: 
 - [python3](https://www.python.org)(>=3.6)
 - [AliPhysics](https://github.com/alisw/AliPhysics)
-- [hipe4ml](https://github.com/hipe4ml/hipe4ml)(>=0.0.5)
+- [hipe4ml](https://github.com/hipe4ml/hipe4ml)(>=0.0.6 or installed from dev branch)
 - [root_numpy](http://scikit-hep.org/root_numpy)(>=4.7.3dev0)
 
 ## Documentation
