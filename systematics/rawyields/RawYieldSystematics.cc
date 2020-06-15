@@ -82,7 +82,7 @@ int RawYieldSystematics(TString cfgFileName) {
     else if(mesonName == "Dplus")
         mass = massDplus;
     else {
-        cerr << "ERROR: you must specify if it is D+ or Ds+! Exit." << endl;
+        std::cerr << "ERROR: you must specify if it is D+ or Ds+! Exit." << std::endl;
         return -1;
     }
 
@@ -93,7 +93,7 @@ int RawYieldSystematics(TString cfgFileName) {
     TH1F *hMeanMC = nullptr;
     int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef, hSigmaMC, hMeanMC);
     if (loadref > 0) {
-        cerr << "ERROR: missing information in reference files! Check them please." << endl;
+        std::cerr << "ERROR: missing information in reference files! Check them please." << std::endl;
         return loadref;
     }
 
@@ -142,6 +142,7 @@ int RawYieldSystematics(TString cfgFileName) {
     int binCountColors[] = {kOrange + 1, kGreen + 2, kRed + 1};
     int binCountColorsMarker[] = {kBlack, kCyan, kBlack};
 
+    bool isFirstBin = true;
     for (int iPt = 0; iPt < nPtBins; iPt++) {
 
         if(!allPtBins && (std::find(ptBins.begin(), ptBins.end(), iPt) == ptBins.end())) // pt bin not included
@@ -213,8 +214,10 @@ int RawYieldSystematics(TString cfgFileName) {
         multiTrial.SetUseFixSigFixMeanDown(false);
         multiTrial.SetUseFixSigVarWithFixMean(false);
         for(auto opt: sigmaOpt) {
-            if(opt == "kFree")
+            if(opt == "kFree") {
+                multiTrial.SetSigmaGaussMC(hSigmaRef->GetBinContent(iPt+1)); // protection for bins with large sigma (otherwise ntuples not filled)
                 multiTrial.SetUseFreeS();
+            }
             else if(opt == "kFixed") {
                 multiTrial.SetSigmaGaussMC(hSigmaMC->GetBinContent(iPt+1));
                 multiTrial.SetUseFixSigFreeMean();
@@ -254,8 +257,8 @@ int RawYieldSystematics(TString cfgFileName) {
         }
 
         // perform multi-trial
-        cout << "\n\n*****************************************************" << endl;
-        cout << Form("Perform multi-trial for %0.1f < pT < %0.1f GeV/c", PtLims[iPt]*10, PtLims[iPt+1]*10) << endl;
+        std::cout << "\n\n*****************************************************" << std::endl;
+        std::cout << Form("Perform multi-trial for %0.1f < pT < %0.1f GeV/c", PtLims[iPt]*10, PtLims[iPt+1]*10) << std::endl;
         multiTrial.DoMultiTrials(hMass[iPt]);
         ntupleFit[iPt] = (TNtuple *)(multiTrial.GetNtupleMultiTrials())->Clone(Form("ntupleFit_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10));
         ntupleBinC[iPt] = (TNtuple *)(multiTrial.GetNtupleBinCounting())->Clone(Form("ntupleBinC_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10));
@@ -273,7 +276,7 @@ int RawYieldSystematics(TString cfgFileName) {
                                                            minChi2, maxChi2, minSigmaConf, minMeanConf)); // keep only one configuration of sigma and mean for BC
         int nTrials = nTrialsFit + nTrialsBinC;
 
-        double rawMin = ntupleFit[iPt]->GetMinimum("rawy") * 0.5;
+        double rawMin = ntupleFit[iPt]->GetMinimum("rawy") > 0 ? ntupleFit[iPt]->GetMinimum("rawy") * 0.5 : 0;
         double rawMax = ntupleFit[iPt]->GetMaximum("rawy") * 1.5;
         if (loadref != 1 && loadref != 2 && loadref != 4) {
             lRawRefVsTrial[iPt] = new TLine(-0.5, hRawYieldRef->GetBinContent(iPt+1), nTrials - 0.5, hRawYieldRef->GetBinContent(iPt+1));
@@ -473,13 +476,14 @@ int RawYieldSystematics(TString cfgFileName) {
             statsbc[iBinCount][iPt]->AddText(Form("#frac{max-min}{#sqrt{12}} = %0.1f (%0.1f%%)", disp, Flatunc));
         }
 
-        if (iPt == 0) {
+        if (isFirstBin) {
             leg->AddEntry(lRawRefVsTrial[iPt], "Central value", "l");
             leg->AddEntry(hRawYieldVsTrial[iPt], "Fit method", "lpe");
             for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
                 leg->AddEntry(hBinCountVsTrial[iBinCount][iPt], Form("Bin counting (%0.1f#sigma)", nSigmaBinCounting[iBinCount]), "lpe");
             }
         }
+        isFirstBin = false;
 
         if(gPad)
             gPad->Close();
@@ -557,7 +561,7 @@ int RawYieldSystematics(TString cfgFileName) {
         cMultiTrial[iPt]->Write();
     }
     outFile.Close();
-    cout << "\n" << outFileName.data() << " saved." << endl;
+    std::cout << "\n" << outFileName.data() << " saved." << std::endl;
 
     outFileName = std::regex_replace(outFileName, std::regex(".root"), ".pdf");
     int lastPt = -1;
