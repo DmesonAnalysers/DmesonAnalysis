@@ -346,7 +346,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
             if(UseLikelihood) massFitter->SetUseLikelihoodFit();
             if(fixMean)
-                massFitter->SetFixGaussianMean(hMeanToFix->GetBinContent(iPt+1));
+                massFitter->SetFixGaussianMean(1.872); //hMeanToFix->GetBinContent(iPt+1));
             else
                 massFitter->SetInitialGaussianMean(massForFit);
             if(fixSigma)
@@ -363,6 +363,14 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                         cout << "WARNING: impossible to fix sigma! Wrong mult factor set in config file!" << endl;
                 }
             }
+            else
+            {
+                if(hSigmaToFix)
+                    massFitter->SetInitialGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
+                else
+                    massFitter->SetInitialGaussianSigma(0.008);
+            }
+            
 
             if(InclSecPeak[iPt] && meson==kDs) massFitter->IncludeSecondGausPeak(massDplus,false,0.008,true); //TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
             massFitter->MassFitter(false);
