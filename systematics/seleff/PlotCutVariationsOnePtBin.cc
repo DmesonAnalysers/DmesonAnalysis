@@ -100,13 +100,13 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
                 hPromptFrac[iFile] = (TH1D*)hCrossSection[iFile]->Clone();
                 hFDFrac[iFile] = (TH1D*)hCrossSection[iFile]->Clone();
                 TGraphAsymmErrors* gFcConservative = (TGraphAsymmErrors*)infile_crossec->Get("gFcConservative");
-                for(int iPt=0; iPt<gFcConservative->GetN(); iPt++) {
+                for(int iPt=1; iPt<gFcConservative->GetN(); iPt++) {
                     double pT, promptFrac;
                     gFcConservative->GetPoint(iPt, pT, promptFrac);
-                    hPromptFrac[iFile]->SetBinContent(iPt+1, promptFrac);
-                    hPromptFrac[iFile]->SetBinError(iPt+1, 0.);
-                    hFDFrac[iFile]->SetBinContent(iPt+1, 1-promptFrac);
-                    hFDFrac[iFile]->SetBinError(iPt+1, 0.);
+                    hPromptFrac[iFile]->SetBinContent(iPt, promptFrac);
+                    hPromptFrac[iFile]->SetBinError(iPt, 0.);
+                    hFDFrac[iFile]->SetBinContent(iPt, 1-promptFrac);
+                    hFDFrac[iFile]->SetBinError(iPt, 0.);
                 }
             }
         }
