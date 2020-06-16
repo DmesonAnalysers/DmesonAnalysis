@@ -346,7 +346,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
             if(UseLikelihood) massFitter->SetUseLikelihoodFit();
             if(fixMean)
-                massFitter->SetFixGaussianMean(1.872); //hMeanToFix->GetBinContent(iPt+1));
+                massFitter->SetFixGaussianMean(hMeanToFix->GetBinContent(iPt+1));
             else
                 massFitter->SetInitialGaussianMean(massForFit);
             if(fixSigma)
