@@ -363,6 +363,14 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                         cout << "WARNING: impossible to fix sigma! Wrong mult factor set in config file!" << endl;
                 }
             }
+            else
+            {
+                if(hSigmaToFix)
+                    massFitter->SetInitialGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
+                else
+                    massFitter->SetInitialGaussianSigma(0.008);
+            }
+            
 
             if(InclSecPeak[iPt] && meson==kDs) massFitter->IncludeSecondGausPeak(massDplus,false,0.008,true); //TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
             massFitter->MassFitter(false);

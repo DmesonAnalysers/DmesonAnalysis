@@ -228,10 +228,23 @@ if $DoHFPtSpec; then
     Channel="kDplusKpipi"
   fi
   
+  cc=""
+  year=""
+  sigma=1.
+  if [ ${Cent} == "k010" -o "${Cent}" == "k3050" -o "${Cent}" == "k6080" ]; then
+    cc=$Cent
+    year="k2018"
+    sigma=1.
+  elif [ ${Cent} == "kpp5TeVPrompt" -o "${Cent}" == "kpp5TeVFD" ]; then
+    cc="kpp5"
+    year="k2017"
+    sigma=50870000000.
+  fi
+
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Compute HFPtspectrum $(tput sgr0)
-    echo '.x HFPtSpectrum.C+('${Channel}',"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYields'${Meson}${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root",kNb,1.,true,'${Cent}',k2018)' | root -l -b
+    echo '.x HFPtSpectrum.C+('${Channel}',"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYields'${Meson}${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root",kNb,'${sigma}',true,'${cc}','${year}')' | root -l -b
     echo '.q'
   done
 fi
