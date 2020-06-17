@@ -7,7 +7,7 @@ infile:
 outfile:
     dirpath: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml
     suffix: _Dspp5TeVNoOutlier_MLtraining
-    treename: treeMLs
+    treename: treeMLDs
     
 skimming:
     pt:
