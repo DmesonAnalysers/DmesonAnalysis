@@ -231,7 +231,7 @@ if $DoHFPtSpec; then
   cc=""
   year=""
   sigma=1.
-  if [ ${Cent} == "k010" -o "${Cent}" == "k3050" -o "${Cent}" == "k3050" ]; then
+  if [ ${Cent} == "k010" -o "${Cent}" == "k3050" -o "${Cent}" == "k6080" ]; then
     cc=$Cent
     year="k2018"
     sigma=1.
