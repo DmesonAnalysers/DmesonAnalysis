@@ -336,10 +336,10 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                     print('WARNING: impossible to fix sigma! Wrong mult factor set in config file!')
         else:
             if hSigmaToFix:
-                massFitter[iPt].SetInitialGaussianMean(
+                massFitter[iPt].SetInitialGaussianSigma(
                     hSigmaToFix.GetBinContent(iPt+1)*fitConfig[cent]['SigmaMultFactor'])
             else:
-                massFitter[iPt].SetInitialGaussianMean(0.008)
+                massFitter[iPt].SetInitialGaussianSigma(0.008)
 
         if secPeak and mesonName == 'Ds':
             # TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
