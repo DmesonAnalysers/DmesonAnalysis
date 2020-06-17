@@ -1,12 +1,12 @@
 input: # files to use, set FD to null for binary classification
-    prompt: /data/NonPromptD/Ds/LHC20a7/Prompt_Dspp5TeVNoOutlier_D2H_pT_1_50.parquet.gzip
-    FD: /data/NonPromptD/Ds/LHC20a7/FD_Dspp5TeVNoOutlier_D2H_pT_1_50.parquet.gzip
-    data: /data/NonPromptD/Ds/LHC17pq/Data_Dspp5TeVNoOutlier_pT_1_50.parquet.gzip
+    prompt: /home/fcatalan/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/Prompt_Dspp5TeVNoOutlier_MLtraining_pT_1_50.parquet.gzip 
+    FD: /home/fcatalan/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/FD_Dspp5TeVNoOutlier_MLtraining_pT_1_50.parquet.gzip 
+    data: /home/fcatalan/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/data/ml/Data_Dspp5TeVNoOutlier_pT_1_50.parquet.gzip
 
 output:
     leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels, keep the right number of classes
     out_labels: ['Bkg', 'Prompt', 'FD'] # output labels, keep the right number of classes
-    dir: '/home/fcatalan/Dspp/ml_training/eff' # output dir
+    dir: '/home/fcatalan/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training' # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing
     min: [1, 2, 4, 6, 12] # list 
@@ -22,7 +22,7 @@ data_prep:
     test_fraction: 0.2 # fraction of data used for test set and efficiencies --> set to 1. if you want to apply the model to the full dataframes  
     
 ml:
-    raw_output: False # use raw_output (True) of probability (False) as output of the model
+    raw_output: False # use raw_output (True) or probability (False) as output of the model
     roc_auc_average: 'macro' # 'macro' or 'weighted'
     roc_auc_approach: 'ovo'  # 'ovo' or 'ovr'
     training_columns: [cos_p, cos_p_xy, d_len, d_len_xy, norm_dl_xy, imp_par_xy, sig_vert, delta_mass_KK, cos_PiKPhi_3,
