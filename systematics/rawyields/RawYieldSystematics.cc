@@ -343,7 +343,7 @@ int RawYieldSystematics(TString cfgFileName) {
         hRawYieldVsTrial[iPt]->SetLineColor(kBlue + 1);
         hRawYieldVsTrial[iPt]->SetMarkerColor(kBlack);
 
-        hSigmaVsTrial[iPt] = new TH1F(Form("hMeanVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+        hSigmaVsTrial[iPt] = new TH1F(Form("hSigmaVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
                                       Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;width (GeV/c^{2})", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
         hSigmaVsTrial[iPt]->GetYaxis()->SetRangeUser(sigmaMin, sigmaMax);
         hSigmaVsTrial[iPt]->SetMarkerStyle(20);
@@ -352,7 +352,7 @@ int RawYieldSystematics(TString cfgFileName) {
         hSigmaVsTrial[iPt]->SetLineColor(kBlue + 1);
         hSigmaVsTrial[iPt]->SetMarkerColor(kBlack);
 
-        hMeanVsTrial[iPt] = new TH1F(Form("hSigmaVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+        hMeanVsTrial[iPt] = new TH1F(Form("hMeanVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
                                      Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;mean (GeV/c^{2})", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
         hMeanVsTrial[iPt]->GetYaxis()->SetRangeUser(meanMin, meanMax);
         hMeanVsTrial[iPt]->SetMarkerStyle(20);
