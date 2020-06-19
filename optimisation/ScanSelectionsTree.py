@@ -326,16 +326,17 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
 
-            # S/B and significance
+            # S/B and significance and Signal Error
             expSoverB = 0.
             expSignif = 0.
+            Serror = 0.
             if expBkg > 0:
                 expSoverB = expSignal / expBkg
             if expSignal + expBkg > 0:
                 expSignif = expSignal / np.sqrt(expSignal + expBkg)
+                SError = expSignal / expSignif
 
-            # Efficiency  and Signal Error
-            SError = expSignal / expSignif
+            # Efficiency
             EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2) \
                 * effTimesAccFD
             EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + \
