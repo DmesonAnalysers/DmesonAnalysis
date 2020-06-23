@@ -28,8 +28,8 @@ leg.SetFillStyle(0)
 leg.SetBorderSize(0)
 leg.SetTextSize(0.04)
 
-for iFile, _ in enumerate(inputfilenames):
-    inputfile = TFile(f'{inputdir}/{inputfile}')
+for iFile, filename in enumerate(inputfilenames):
+    inputfile = TFile(f'{inputdir}/{filename}')
     hSignal.append(inputfile.Get(signalhistonames[iFile]))
     hBackground.append(inputfile.Get(bkghistonames[iFile]))
     hSignif.append(inputfile.Get(signifhistonames[iFile]))
