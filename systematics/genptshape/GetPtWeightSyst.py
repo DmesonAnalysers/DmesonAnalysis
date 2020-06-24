@@ -104,10 +104,15 @@ lineatone.SetLineWidth(2)
 lineatone.SetLineStyle(9)
 lineatone.SetLineColor(kBlack)
 
-lineatoneWeight = TLine(0., 1., 50., 1.)
+lineatoneWeight = TLine(0., 1., ptMax, 1.)
 lineatoneWeight.SetLineWidth(2)
 lineatoneWeight.SetLineStyle(9)
 lineatoneWeight.SetLineColor(kBlack)
+
+lineatoneWeightB = TLine(0., 1., ptMax*2, 1.)
+lineatoneWeightB.SetLineWidth(2)
+lineatoneWeightB.SetLineStyle(9)
+lineatoneWeightB.SetLineColor(kBlack)
 
 cShapesD = TCanvas('cShapesD', '', 1000, 500)
 cShapesD.Divide(2, 1)
@@ -115,7 +120,6 @@ cShapesD.cd(1).DrawFrame(0., hPtDistrD['pythia'].GetMinimum()*0.1, ptMax, hPtDis
                          ';#it{p}_{T} (GeV/#it{c}); d#it{N}/d#it{p}_{T} (a. u.)')
 cShapesD.cd(1).SetLogy()
 for model in hPtDistrD:
-    print(model)
     hPtDistrD[model].DrawCopy('chistsame')
 leg.Draw()
 cShapesD.cd(2).DrawFrame(0., 0.5, ptMax, 1.5, ';#it{p}_{T} (GeV/#it{c}); #it{p}_{T} weights')
@@ -135,7 +139,7 @@ if enableBweights:
         hPtDistrB[model].DrawCopy('chistsame')
     leg.Draw()
     cShapesB.cd(2).DrawFrame(0, 0.5, ptMax*2, 1.5, ';#it{p}_{T}^{B} (GeV/#it{c}); #it{p}_{T}^{B} weights')
-    lineatoneWeight.Draw('same')
+    lineatoneWeightB.Draw('same')
     for model in hPtWeightsB:
         hPtWeightsB[model].DrawCopy('chistsame')
 

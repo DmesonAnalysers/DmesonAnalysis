@@ -39,6 +39,9 @@ def SetGlobalStyle(**kwargs):
     - opttitle (int), default = 0
     - optstat (int), default = 0
 
+    - padtickx (int), default = 1
+    - padticky (int), default = 1
+
     - maxdigits (int), default no max value
     '''
 
@@ -113,8 +116,16 @@ def SetGlobalStyle(**kwargs):
     else:
         gStyle.SetOptStat(0)
 
-    gStyle.SetPadTickX(1)
-    gStyle.SetPadTickY(1)
+    if 'padtickx' in kwargs:
+        gStyle.SetPadTickX(kwargs['padtickx'])
+    else:
+        gStyle.SetPadTickX(1)
+
+    if 'padticky' in kwargs:
+        gStyle.SetPadTickY(kwargs['padticky'])
+    else:
+        gStyle.SetPadTickY(1)
+
     gStyle.SetLegendBorderSize(0)
 
     if 'maxdigits' in kwargs:
