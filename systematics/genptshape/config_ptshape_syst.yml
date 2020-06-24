@@ -22,4 +22,4 @@ inputs:
 
 outputfile:
     directory: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape/
-    suffix: FONLL_D_B_shapes.pdf
+    suffix: FONLL_D_B_shapes
