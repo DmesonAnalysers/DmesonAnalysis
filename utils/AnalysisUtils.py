@@ -680,6 +680,48 @@ def ScaleGraph(graph, scaleFactor):
         elif isinstance(graph, TGraph):
             continue
 
+def ComputeRatioGraph(gNum, gDen):
+    '''
+    Helper method to divide two TGraph (assuming same binning)
+
+    Parameters
+    ----------
+
+    - gNum: graph to divide (numerator)
+    - gDen: graph to divide (denominator)
+
+    Returns
+    ----------
+
+    - gRatio: resulting graph
+    '''
+    if gNum.GetN() != gDen.GetN():
+        print('ERROR: only graphs with same number of bins can be divided!')
+        return None
+
+    gRatio = TGraphAsymmErrors(0)
+    for iPt in range(gNum.GetN()):
+        x, num = ctypes.c_double(), ctypes.c_double()
+        xd, den = ctypes.c_double(), ctypes.c_double()
+        gNum.GetPoint(iPt, x, num)
+        xUncLow = gNum.GetErrorXlow(iPt)
+        xUncHigh = gNum.GetErrorXhigh(iPt)
+        numUncLow = gNum.GetErrorYlow(iPt)
+        numUncHigh = gNum.GetErrorYhigh(iPt)
+        gDen.GetPoint(iPt, xd, den)
+        denUncLow = gDen.GetErrorYlow(iPt)
+        denUncHigh = gDen.GetErrorYhigh(iPt)
+        
+        ratio, ratioUncLow, ratioUncHigh = 0., 0., 0.
+        if num.value != 0. and den.value != 0.:
+            ratio = num.value/den.value
+            ratioUncLow = np.sqrt((numUncLow/num.value)**2 + (denUncLow/den.value)**2) * ratio
+            ratioUncHigh = np.sqrt((numUncHigh/num.value)**2 + (denUncHigh/den.value)**2) * ratio
+
+        gRatio.SetPoint(iPt, x.value, ratio)
+        gRatio.SetPointError(iPt, xUncLow, xUncHigh, ratioUncLow, ratioUncHigh)
+
+    return gRatio
 
 def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
     '''
@@ -711,8 +753,8 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
         ptBinHisto = hDen.GetXaxis().FindBin(x.value)
         den = hDen.GetBinContent(ptBinHisto)
         if useHistoUnc:
-            ratioUncLow = np.sqrt((numUncLow/num)**2 + (hDen.GetBinError(ptBinHisto)/den)**2) * num/den
-            ratioUncHigh = np.sqrt((numUncHigh/num)**2 + (hDen.GetBinError(ptBinHisto)/den)**2) * num/den
+            ratioUncLow = np.sqrt((numUncLow/num.value)**2 + (hDen.GetBinError(ptBinHisto)/den)**2) * num.value/den
+            ratioUncHigh = np.sqrt((numUncHigh/num.value)**2 + (hDen.GetBinError(ptBinHisto)/den)**2) * num.value/den
         else:
             ratioUncLow = numUncLow/num.value * num.value/den
             ratioUncHigh = numUncHigh/num.value * num.value/den
