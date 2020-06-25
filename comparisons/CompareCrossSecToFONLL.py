@@ -1,7 +1,7 @@
 '''
 python script to compare measured cross sections with FONLL
 run: python CompareCrossSecToFONLL.py FONLL.root outFileName.pdf [--Dplus] [--Ds] [--prompt CrossSecPrompt.root]
-                                                                 [--FD CrossSecFD.root] [--logx]
+                                                                 [--FD CrossSecFD.root] [--logx] [--syst]
 Either Dplus or Ds must be chosen
 Either prompt or FD (or both) must be set
 '''
@@ -58,6 +58,9 @@ if args.prompt:
             gCrossSectionPrompt = infilePrompt.Get('gSigmaCorr')
             gCrossSectionPrompt.RemovePoint(0)
             ScaleGraph(gCrossSectionPrompt, 1.e-6 / BR)
+            for iPt in range(hCrossSectionPrompt.GetNbinsX()):
+                gCrossSectionPrompt.SetPointEXhigh(iPt, 0.4)
+                gCrossSectionPrompt.SetPointEXlow(iPt, 0.4)
     hCrossSectionPrompt.SetName('hCrossSectionPrompt')
     hCrossSectionPrompt.SetDirectory(0)
     SetObjectStyle(hCrossSectionPrompt, color=kBlack, markerstyle=kFullCircle)
