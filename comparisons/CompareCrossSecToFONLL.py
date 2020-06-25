@@ -1,7 +1,7 @@
 '''
 python script to compare measured cross sections with FONLL
 run: python CompareCrossSecToFONLL.py FONLL.root outFileName.pdf [--Dplus] [--Ds] [--prompt CrossSecPrompt.root]
-                                                                 [--FD CrossSecFD.root] [--logx] [--syst]
+                                                                 [--FD CrossSecFD.root] [--logx]
 Either Dplus or Ds must be chosen
 Either prompt or FD (or both) must be set
 '''
@@ -58,9 +58,6 @@ if args.prompt:
             gCrossSectionPrompt = infilePrompt.Get('gSigmaCorr')
             gCrossSectionPrompt.RemovePoint(0)
             ScaleGraph(gCrossSectionPrompt, 1.e-6 / BR)
-            for iPt in range(hCrossSectionPrompt.GetNbinsX()):
-                gCrossSectionPrompt.SetPointEXhigh(iPt, 0.4)
-                gCrossSectionPrompt.SetPointEXlow(iPt, 0.4)
     hCrossSectionPrompt.SetName('hCrossSectionPrompt')
     hCrossSectionPrompt.SetDirectory(0)
     SetObjectStyle(hCrossSectionPrompt, color=kBlack, markerstyle=kFullCircle)
@@ -279,7 +276,7 @@ cCrossSec.SaveAs(args.outFileName)
 if args.FD and args.prompt:
     cRatioToFONLL = TCanvas('cRatioToFONLL', '', 500, 1000)
     cRatioToFONLL.Divide(1, 2)
-    hFramePrompt = cRatioToFONLL.cd(1).DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3.,
+    hFramePrompt = cRatioToFONLL.cd(1).DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 5.,
                                                  ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
     hFramePrompt.GetYaxis().SetDecimals()
     if args.logx:
@@ -306,7 +303,7 @@ else:
     if args.logx:
         cRatioToFONLL.SetLogx()
     if args.prompt:
-        hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 3.,
+        hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 5.,
                                                ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
         hFramePrompt.GetYaxis().SetDecimals()
         gFONLLPromptUnc.Draw('2')
