@@ -1,0 +1,29 @@
+meson: Ds
+
+reffilenames:
+    data: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs_prompt/100320/raw_yield/RawYield_Ds_data_pt1_24.root
+    MC: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs_prompt/100320/raw_yield/RawYield_Ds_MC_pt1_24.root
+
+outfilename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs_prompt/100320/systematics/raw_yield/RawYieldSyst_Ds_pp5TeV_pt16_24.root
+
+multitrial:
+    ptbins: [8] #list of pt bins, set null if you want to keep them all
+    mins: [1.76, 1.77, 1.78, 1.79, 1.80] # lower fit limit
+    maxs: [2.06, 2.08, 2.10, 2.12, 2.14] # upper fit limit
+    rebins: [8, 10, 12, 14, 16] # mass rebin values
+    sgnfuncs: [kGaus] # signal functions of AliHFInvMassFitter
+    bkgfuncs: [kExpo, kLin, kPol2] # bkg functions of AliHFInvMassFitter
+    sigma: [ kFree, kFixed ]
+    # all possibilities: 
+    # kFree, kFixed, kFixedMinus10Perc, kFixedPlus10Perc, kFixedMinus15Perc, kFixedPlus15Perc, kFixedMinus20Perc, kFixedPlus20Perc, kFixedMinusUnc, kFixedPlusUnc
+    # those with variations (Plus/Minus) are exclusive (i.e. it is not possible to run with 10% and 15% variation at the same time)
+    mean: [kFree] # other possibilities: kFixed
+    # all possibilities: 
+    # kFixed, kFree, kFixedMinusUnc, kFixedPlusUnc
+    bincounting:
+        nsigma: [3, 5] # multi-trial will be repeated for each nsigma value
+
+quality:
+    chisquare:
+        min: 0.
+        max: 2.
