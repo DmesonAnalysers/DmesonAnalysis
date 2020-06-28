@@ -117,11 +117,11 @@ def make_cuts_ml():
             for min_val, max_val, pt_min in zip(cuts['min'], cuts['max'], cutset_mod['cutvars']['Pt']['min']):
                 if edge_to_vary[i] == 'min':
                     new_value = min_val + step * step_variation[i][f'{pt_min:.0f}']
-                    if(new_value < 0. or new_value > max_val):
+                    if(new_value < 0. or new_value >= max_val):
                         new_value = min_val
                 else:
                     new_value = max_val + step * step_variation[i][f'{pt_min:.0f}']
-                    if(new_value > 1. or new_value < min_val):
+                    if(new_value > 1. or new_value <= min_val):
                         new_value = max_val
                 modified_list.append(new_value)
             cuts[edge_to_vary[i]] = modified_list
