@@ -222,9 +222,9 @@ fi
 #compute HFPtSpectrum
 if $DoHFPtSpec; then
   Channel=""
-  if $Meson == "Ds"; then
+  if [ ${Meson} == "Ds" ]; then 
     Channel="kDsKKpi"
-  else
+  elif [ ${Meson} == "Dplus" ]; then 
     Channel="kDplusKpipi"
   fi
   
