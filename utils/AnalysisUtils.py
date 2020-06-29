@@ -581,6 +581,44 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
     return y
 
 
+def ApplyHistoEntriesToColumn(df, column, histo):
+    '''
+    Method to apply a function to a pandas column via a spline object
+
+    Parameters
+    ----------
+
+    - df: input pandas.Dataframe
+    - column: column of the pandas dataframe to which apply the spline
+    - histo: ROOT.TH1 with values
+
+    Returns
+    ----------
+
+    - y: pandas.Series with result of the function application to column
+
+    '''
+    binMins, binMaxs, contents, y = ([] for _ in range(4))
+    for iBin in range(1, histo.GetNbinsX()+1):
+        binMins.append(histo.GetBinLowEdge(iBin))
+        binMaxs.append(histo.GetBinLowEdge(iBin)+histo.GetBinWidth(iBin))
+        contents.append(histo.GetBinContent(iBin))
+
+    for ix, x in enumerate(df[column].values):
+        for binMin, binMax, content in zip(binMins, binMaxs, contents):
+            if binMin <= x <= binMax:
+                y.append(content)
+                break
+        if x < binMins[0]:
+            y.append(contents[0])
+        elif x > binMaxs[-1]:
+            y.append(contents[-1])
+
+    y = pd.Series(y)
+
+    return y
+
+
 def ComputeRatioDiffBins(hNum, hDen, uncOpt=''):
     '''
     Method to compute ratio between histograms with different bins (but compatible)
