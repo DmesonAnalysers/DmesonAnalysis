@@ -117,7 +117,8 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
     OutputLabels = inputCfg['output']['out_labels']
     ListDf = [BkgDf, PromptDf] if FDDf.empty else [BkgDf, PromptDf, FDDf]
     #_____________________________________________
-    plot_utils.plot_distr(ListDf, VarsToDraw, 100, LegLabels, figsize=(12, 7), alpha=0.3, log=True, grid=False)
+    plot_utils.plot_distr(ListDf, VarsToDraw, 100, LegLabels, figsize=(12, 7),
+                          alpha=0.3, log=True, grid=False, density=True)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(f'{OutPutDirPt}/DistributionsAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     plt.close('all')
@@ -269,19 +270,19 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
         FDDfPtSelForEff.to_parquet(f'{OutPutDirPt}/FD_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
         print('Applying ML model to FD dataframe: Done!')
 
-    print('Applying ML model to data dataframe: ...', end='\r')
-    yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'])
-    df_column_to_save_list_data = df_column_to_save_list
-    if 'pt_B' in df_column_to_save_list_data:
-        df_column_to_save_list_data.remove('pt_B') # only in MC
-    DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list_data]
-    if FDDfPtSelForEff.empty:
-        DataDfPtSel[f'ML_output'] = yPredData
-    else:
-        for Pred, Lab in enumerate(OutputLabels):
-            DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
-    DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
-    print('Applying ML model to data dataframe: Done!')
+    # print('Applying ML model to data dataframe: ...', end='\r')
+    # yPredData = ModelHandl.predict(DataDfPtSel, inputCfg['ml']['raw_output'])
+    # df_column_to_save_list_data = df_column_to_save_list
+    # if 'pt_B' in df_column_to_save_list_data:
+    #     df_column_to_save_list_data.remove('pt_B') # only in MC
+    # DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list_data]
+    # if FDDfPtSelForEff.empty:
+    #     DataDfPtSel[f'ML_output'] = yPredData
+    # else:
+    #     for Pred, Lab in enumerate(OutputLabels):
+    #         DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
+    # DataDfPtSel.to_parquet(f'{OutPutDirPt}/Data_pT_{PtBin[0]}_{PtBin[1]}_ModelApplied.parquet.gzip')
+    # print('Applying ML model to data dataframe: Done!')
 
 
 def main():
