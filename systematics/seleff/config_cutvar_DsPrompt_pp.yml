@@ -1,0 +1,111 @@
+inputs:
+    directory: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs_prompt/100320/systematics/eff
+    commonfilenames:
+        rawyield: raw_yield/RawYieldsDs
+        efficiency: eff/Efficiency_Ds
+        crosssection: cross_sec/HFPtSpectrumDs
+    cutsets: ["_pp5TeV_PromptEn_outBkg_pos00",
+              "_pp5TeV_PromptEn_outBkg_neg11",
+              "_pp5TeV_PromptEn_outBkg_neg12",
+              "_pp5TeV_PromptEn_outBkg_neg13",
+              "_pp5TeV_PromptEn_outBkg_neg14",
+              "_pp5TeV_PromptEn_outBkg_neg15",
+              "_pp5TeV_PromptEn_outBkg_neg16",
+              "_pp5TeV_PromptEn_outBkg_neg17",
+              "_pp5TeV_PromptEn_outBkg_neg18",
+              "_pp5TeV_PromptEn_outBkg_neg19",
+              "_pp5TeV_PromptEn_outBkg_neg20",
+              "_pp5TeV_PromptEn_outBkg_pos01",
+              "_pp5TeV_PromptEn_outBkg_pos02",
+              "_pp5TeV_PromptEn_outBkg_pos03",
+              "_pp5TeV_PromptEn_outBkg_pos04",
+              "_pp5TeV_PromptEn_outBkg_pos05",
+              "_pp5TeV_PromptEn_outBkg_pos06",
+              "_pp5TeV_PromptEn_outBkg_pos07",
+              "_pp5TeV_PromptEn_outBkg_pos08",
+              "_pp5TeV_PromptEn_outBkg_pos09",
+              "_pp5TeV_PromptEn_outBkg_pos10",
+              "_pp5TeV_PromptEn_outPrompt_neg01",
+              "_pp5TeV_PromptEn_outPrompt_neg02",
+              "_pp5TeV_PromptEn_outPrompt_neg03",
+              "_pp5TeV_PromptEn_outPrompt_neg04",
+              "_pp5TeV_PromptEn_outPrompt_neg05",
+              "_pp5TeV_PromptEn_outPrompt_neg06",
+              "_pp5TeV_PromptEn_outPrompt_neg07",
+              "_pp5TeV_PromptEn_outPrompt_neg08",
+              "_pp5TeV_PromptEn_outPrompt_neg09",
+              "_pp5TeV_PromptEn_outPrompt_neg10",
+              "_pp5TeV_PromptEn_outPrompt_pos01",
+              "_pp5TeV_PromptEn_outPrompt_pos02",
+              "_pp5TeV_PromptEn_outPrompt_pos03",
+              "_pp5TeV_PromptEn_outPrompt_pos04",
+              "_pp5TeV_PromptEn_outPrompt_pos05",
+              "_pp5TeV_PromptEn_outPrompt_pos06",
+              "_pp5TeV_PromptEn_outPrompt_pos07",
+              "_pp5TeV_PromptEn_outPrompt_pos08",
+              "_pp5TeV_PromptEn_outPrompt_pos09",
+              "_pp5TeV_PromptEn_outPrompt_pos10",
+              "_pp5TeV_PromptEn_outPrompt_neg01_outBkg_neg01",
+              "_pp5TeV_PromptEn_outPrompt_neg01_outBkg_neg02",
+              "_pp5TeV_PromptEn_outPrompt_neg01_outBkg_neg03",
+              "_pp5TeV_PromptEn_outPrompt_neg01_outBkg_pos00",
+              "_pp5TeV_PromptEn_outPrompt_neg01_outBkg_pos01",
+              "_pp5TeV_PromptEn_outPrompt_neg01_outBkg_pos02",
+              "_pp5TeV_PromptEn_outPrompt_neg01_outBkg_pos03",
+              "_pp5TeV_PromptEn_outPrompt_neg02_outBkg_neg01",
+              "_pp5TeV_PromptEn_outPrompt_neg02_outBkg_neg02",
+              "_pp5TeV_PromptEn_outPrompt_neg02_outBkg_neg03",
+              "_pp5TeV_PromptEn_outPrompt_neg02_outBkg_pos00",
+              "_pp5TeV_PromptEn_outPrompt_neg02_outBkg_pos01",
+              "_pp5TeV_PromptEn_outPrompt_neg02_outBkg_pos02",
+              "_pp5TeV_PromptEn_outPrompt_neg02_outBkg_pos03",
+              "_pp5TeV_PromptEn_outPrompt_neg03_outBkg_neg01",
+              "_pp5TeV_PromptEn_outPrompt_neg03_outBkg_neg02",
+              "_pp5TeV_PromptEn_outPrompt_neg03_outBkg_neg03",
+              "_pp5TeV_PromptEn_outPrompt_neg03_outBkg_pos00",
+              "_pp5TeV_PromptEn_outPrompt_neg03_outBkg_pos01",
+              "_pp5TeV_PromptEn_outPrompt_neg03_outBkg_pos02",
+              "_pp5TeV_PromptEn_outPrompt_neg03_outBkg_pos03",
+              "_pp5TeV_PromptEn_outPrompt_pos00_outBkg_neg01",
+              "_pp5TeV_PromptEn_outPrompt_pos00_outBkg_neg02",
+              "_pp5TeV_PromptEn_outPrompt_pos00_outBkg_neg03",
+              "_pp5TeV_PromptEn_outPrompt_pos00_outBkg_pos01",
+              "_pp5TeV_PromptEn_outPrompt_pos00_outBkg_pos02",
+              "_pp5TeV_PromptEn_outPrompt_pos00_outBkg_pos03",
+              "_pp5TeV_PromptEn_outPrompt_pos01_outBkg_neg01",
+              "_pp5TeV_PromptEn_outPrompt_pos01_outBkg_neg02",
+              "_pp5TeV_PromptEn_outPrompt_pos01_outBkg_neg03",
+              "_pp5TeV_PromptEn_outPrompt_pos01_outBkg_pos00",
+              "_pp5TeV_PromptEn_outPrompt_pos01_outBkg_pos01",
+              "_pp5TeV_PromptEn_outPrompt_pos01_outBkg_pos02",
+              "_pp5TeV_PromptEn_outPrompt_pos01_outBkg_pos03",
+              "_pp5TeV_PromptEn_outPrompt_pos02_outBkg_neg01",
+              "_pp5TeV_PromptEn_outPrompt_pos02_outBkg_neg02",
+              "_pp5TeV_PromptEn_outPrompt_pos02_outBkg_neg03",
+              "_pp5TeV_PromptEn_outPrompt_pos02_outBkg_pos00",
+              "_pp5TeV_PromptEn_outPrompt_pos02_outBkg_pos01",
+              "_pp5TeV_PromptEn_outPrompt_pos02_outBkg_pos02",
+              "_pp5TeV_PromptEn_outPrompt_pos02_outBkg_pos03",
+              "_pp5TeV_PromptEn_outPrompt_pos03_outBkg_neg01",
+              "_pp5TeV_PromptEn_outPrompt_pos03_outBkg_neg02",
+              "_pp5TeV_PromptEn_outPrompt_pos03_outBkg_neg03",
+              "_pp5TeV_PromptEn_outPrompt_pos03_outBkg_pos00",
+              "_pp5TeV_PromptEn_outPrompt_pos03_outBkg_pos01",
+              "_pp5TeV_PromptEn_outPrompt_pos03_outBkg_pos02",
+              "_pp5TeV_PromptEn_outPrompt_pos03_outBkg_pos03"    
+              ] # the first one must be the default
+
+outfilename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs_prompt/100320/systematics/eff/CutVariationSystematics_Ds_pp5TeV_Prompt_1D_2D.pdf
+
+quality:
+    maxchisquare: 2.
+    minsignif: 3.6
+    minrelsignif: 0.5
+    minreleff: 0.6
+    maxreleff: 1.4
+    fillthrreleff: 0.005
+
+plots:
+    plotrelativevar: 1 # 0 -> false, 1 -> true
+    relassignedsyst: [0.08, 0.05, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03] # list of values to be plotted, null if you don't want to plot it
+  
