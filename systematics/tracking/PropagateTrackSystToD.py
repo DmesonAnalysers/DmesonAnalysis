@@ -8,7 +8,7 @@ import argparse
 import yaml
 import numpy as np
 from root_numpy import fill_hist
-from ROOT import TFile, TCanvas, TH2F # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TH2F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kRainBow, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
 #pylint: disable=wrong-import-position,import-error,no-name-in-module
@@ -102,8 +102,8 @@ for iPt, (cuts, ptMin, ptMax) in enumerate(zip(selToApply, cutVars['Pt']['min'],
         dataFramePromptSel = dataFramePrompt.astype(float).query(cuts)
         dataFrameFDSel = dataFrameFD.astype(float).query(cuts)
     else:
-        dataFramePromptSel.append(dataFramePrompt.astype(float).query(cuts))
-        dataFrameFDSel.append(dataFrameFD.astype(float).query(cuts))
+        dataFramePromptSel = dataFramePromptSel.append(dataFramePrompt.astype(float).query(cuts))
+        dataFrameFDSel = dataFrameFDSel.append(dataFrameFD.astype(float).query(cuts))
 
 dataFramePromptSel.reset_index(inplace=True)
 dataFrameFDSel.reset_index(inplace=True)
@@ -122,9 +122,9 @@ ptLims = cutVars['Pt']['min'].copy()
 ptLims.append(cutVars['Pt']['max'][-1])
 
 hSystVsPtPrompt = TH2F('hSystVsPtPrompt', ';#it{p}_{T} (GeV/#it{c});ME relative systematic uncertainty',
-                       nPtBins, np.array(ptLims, 'd'), 150, 0., 0.15)
+                       nPtBins, np.array(ptLims, 'd'), 30, 0., 0.15)
 hSystVsPtFD = TH2F('hSystVsPtFD', ';#it{p}_{T} (GeV/#it{c});ME relative systematic uncertainty',
-                   nPtBins, np.array(ptLims, 'd'), 150, 0., 0.15)
+                   nPtBins, np.array(ptLims, 'd'), 30, 0., 0.15)
 hPtDauVsPtDPrompt = TH2F('hPtDauVsPtDPrompt', ';#it{p}_{T}^{ D} (GeV/#it{c});#it{p}_{T}^{ dau} (GeV/#it{c})',
                          int(ptLims[-1]-ptLims[0])*10, ptLims[0], ptLims[-1],
                          int(ptLims[-1]-ptLims[0])*10, ptLims[0], ptLims[-1])
@@ -140,9 +140,9 @@ hSystVsPtAll.Add(hSystVsPtFD)
 hSystMeanPrompt = hSystVsPtPrompt.ProfileX()
 hSystMeanFD = hSystVsPtFD.ProfileX()
 hSystMeanAll = hSystVsPtAll.ProfileX()
-SetObjectStyle(hSystMeanPrompt, fillstyle=0, markersize=0.5)
-SetObjectStyle(hSystMeanFD, fillstyle=0, markersize=0.5)
-SetObjectStyle(hSystMeanAll, fillstyle=0, markersize=0.5)
+SetObjectStyle(hSystMeanPrompt, fillstyle=0, markersize=0.8)
+SetObjectStyle(hSystMeanFD, fillstyle=0, markersize=0.8)
+SetObjectStyle(hSystMeanAll, fillstyle=0, markersize=0.8)
 
 for iDau in range(3):
     hTmp = hPtDauVsPtDPrompt.Clone('hTmp')
@@ -169,8 +169,8 @@ hTotSystAll = hTrkEff.Clone('hTotSystAll')
 hTotSystPrompt.GetYaxis().SetTitle('Relative systematic uncertainty')
 hTotSystFD.GetYaxis().SetTitle('Relative systematic uncertainty')
 hTotSystAll.GetYaxis().SetTitle('Relative systematic uncertainty')
-SetObjectStyle(hTotSystPrompt, color=kRed+1, fillstyle=0, markerstyle=kFullSquare)
-SetObjectStyle(hTotSystFD, color=kAzure+4, fillstyle=0, markerstyle=kFullCircle)
+SetObjectStyle(hTotSystPrompt, color=kRed+1, fillstyle=0, markerstyle=kFullCircle)
+SetObjectStyle(hTotSystFD, color=kAzure+4, fillstyle=0, markerstyle=kFullSquare)
 SetObjectStyle(hTotSystAll, fillstyle=0, markerstyle=kFullDiamond)
 for iPt in range(1, hTotSystPrompt.GetNbinsX()+1):
     hTotSystPrompt.SetBinContent(iPt, np.sqrt(hTrkEff.GetBinContent(iPt)**2 + hSystMeanPrompt.GetBinContent(iPt)**2))
@@ -180,11 +180,24 @@ for iPt in range(1, hTotSystPrompt.GetNbinsX()+1):
     hTotSystFD.SetBinError(iPt, 1.e-20)
     hTotSystAll.SetBinError(iPt, 1.e-20)
 
+legAverage = TLegend(0.2, 0.7, 0.4, 0.8)
+legAverage.SetTextSize(0.045)
+legAverage.SetFillStyle(0)
+legAverage.AddEntry(hPtDauMeanPrompt, 'average', 'pl')
+
+leg = TLegend(0.2, 0.6, 0.4, 0.9)
+leg.SetTextSize(0.045)
+leg.SetFillStyle(0)
+leg.AddEntry(hTotSystPrompt, 'prompt', 'pl')
+leg.AddEntry(hTotSystFD, 'FD', 'pl')
+leg.AddEntry(hTotSystAll, 'prompt + FD', 'pl')
+
 cPrompt = TCanvas('cPrompt', 'Prompt', 1000, 500)
 cPrompt.Divide(2, 1)
-cPrompt.cd(1)
+cPrompt.cd(1).SetLogz()
 hSystVsPtPrompt.Draw('colz')
 hSystMeanPrompt.DrawCopy('PH][ E0 same')
+legAverage.Draw()
 cPrompt.cd(2).SetLogz()
 hPtDauVsPtDPrompt.Draw('colz')
 hPtDauMeanPrompt.DrawCopy('PH][ E0 same')
@@ -193,9 +206,10 @@ cPrompt.Update()
 
 cFD = TCanvas('cFD', 'FD', 1000, 500)
 cFD.Divide(2, 1)
-cFD.cd(1)
+cFD.cd(1).SetLogz()
 hSystVsPtFD.Draw('colz')
 hSystMeanFD.DrawCopy('PH][ E0 same')
+legAverage.Draw()
 cFD.cd(2).SetLogz()
 hPtDauVsPtDFD.Draw('colz')
 hPtDauMeanFD.DrawCopy('PH][ E0 same')
@@ -204,20 +218,22 @@ cFD.Update()
 
 cAll = TCanvas('cAll', 'Prompt+FD', 1000, 500)
 cAll.Divide(2, 1)
-cAll.cd(1)
+cAll.cd(1).SetLogz()
 hSystVsPtAll.Draw('colz')
 hSystMeanAll.DrawCopy('PH][ E0 same')
+legAverage.Draw()
 cAll.cd(2).SetLogz()
 hPtDauVsPtDAll.Draw('colz')
-hSystMeanAll.DrawCopy('PH][ E0 same')
+hPtDauMeanAll.DrawCopy('PH][ E0 same')
 cAll.Modified()
 cAll.Update()
 
-cFinalSyst = TCanvas('cFinalSyst', '', 800, 800)
+cFinalSyst = TCanvas('cFinalSyst', '', 500, 500)
 cFinalSyst.DrawFrame(ptLims[0], 0., ptLims[-1], 0.15, ';#it{p}_{T} (GeV/#it{c});Relative systematic uncertainty')
-hTotSystPrompt.DrawCopy('PH][ E0 same')
 hTotSystFD.DrawCopy('PH][ E0 same')
+hTotSystPrompt.DrawCopy('PH][ E0 same')
 hTotSystAll.DrawCopy('PH][ E0 same')
+leg.Draw()
 cFinalSyst.Modified()
 cFinalSyst.Update()
 
@@ -242,6 +258,14 @@ hTotSystPrompt.Write()
 hTotSystFD.Write()
 hTotSystAll.Write()
 outFile.Close()
+
+outFileNamePDF = args.outFileName
+outFileNamePDF = outFileNamePDF.replace('.root', '')
+
+cPrompt.SaveAs(f'{outFileNamePDF}_Prompt.pdf')
+cFD.SaveAs(f'{outFileNamePDF}_FD.pdf')
+cAll.SaveAs(f'{outFileNamePDF}_All.pdf')
+cFinalSyst.SaveAs(f'{outFileNamePDF}_FinalSyst.pdf')
 
 print('\nTotal tracking systematic uncertainty:')
 print('\nPrompt')
