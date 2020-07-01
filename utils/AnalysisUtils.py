@@ -604,7 +604,7 @@ def ApplyHistoEntriesToColumn(df, column, histo):
         binMaxs.append(histo.GetBinLowEdge(iBin)+histo.GetBinWidth(iBin))
         contents.append(histo.GetBinContent(iBin))
 
-    for ix, x in enumerate(df[column].values):
+    for x in df[column].values:
         for binMin, binMax, content in zip(binMins, binMaxs, contents):
             if binMin <= x <= binMax:
                 y.append(content)
