@@ -59,7 +59,7 @@ print('Applying selections')
 dataFramePtCut = dataFrame.query(f'pt_cand > {PtMin} & pt_cand < {PtMax}')
 del dataFrame
 if preSelections:
-    dataFramePtCutSel = dataFramePtCut.query(preSelections)
+    dataFramePtCutSel = dataFramePtCut.astype(float).query(preSelections)
     del dataFramePtCut
 else:
     dataFramePtCutSel = dataFramePtCut

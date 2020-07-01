@@ -43,6 +43,8 @@ def SetGlobalStyle(**kwargs):
     - padticky (int), default = 1
 
     - maxdigits (int), default no max value
+
+    - palette (int), default kBird
     '''
 
     # pad margins

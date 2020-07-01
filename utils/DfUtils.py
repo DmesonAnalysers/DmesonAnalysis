@@ -65,7 +65,7 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
     - filtered pandas dataframe
     '''
     maskOfBits = GetMaskOfBits(bitsToTest)
-    flags = dfToFilter[column] & maskOfBits
+    flags = dfToFilter[column].astype(int) & maskOfBits
     if logic == 'or':
         flags = flags.astype('bool')
     elif logic == 'and':

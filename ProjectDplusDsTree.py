@@ -122,7 +122,7 @@ ptBinWidth = (ptLimHigh-ptLimLow) / nPtBins
 if isMC:
     dataFramePrompt = LoadDfFromRootOrParquet(inputCfg['tree']['filenamePrompt'], inputCfg['tree']['dirname'],
                                               inputCfg['tree']['treename'])
-    if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only FD and not reflected
+    if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only prompt and not reflected
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
     dataFramePrompt.reset_index(inplace=True)
