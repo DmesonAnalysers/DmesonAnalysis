@@ -75,7 +75,7 @@ for iRun, run in enumerate(runs):
             outName = os.path.join(inputCfg["OutputPath"], f'{run}')
             os.system(f'alien_cp -select {inputCfg["InputFileName"]} -y 2 -T 32 {inName} file://{outName}/')
     else:
-        outName = inputCfg["OutputPath"]
+        outName = os.path.join(inputCfg["OutputPath"], f'{run}')
         os.system(f'alien_cp -select {inputCfg["InputFileName"]} -y 2 -T 32 {dirName} file://{outName}/')
 
 # remove runs with no output
@@ -124,7 +124,11 @@ if inputCfg['MergeOptions']['DoTotalMerge']:
     for run in runs:
         inRunDir = os.path.join(inputCfg['OutputPath'], f'{run}')
         for fileName in os.listdir(inRunDir):
-            filesToMerge.append(os.path.join(inRunDir, fileName))
+            if os.path.isdir(fileName):
+                for fileNameSubdir in os.listdir(os.path.join(inRunDir, fileName)):
+                    filesToMerge.append(os.path.join(inRunDir, fileName, fileNameSubdir))
+            else:
+                filesToMerge.append(os.path.join(inRunDir, fileName))
     if len(filesToMerge) > 10: # do final merge in bunches
         nBunch = 0
         for iFile, fileToMerge in enumerate(filesToMerge):
@@ -160,6 +164,9 @@ if inputCfg['MergeOptions']['DoTotalMerge']:
         if os.path.isfile(fileToMerge):
             os.remove(fileToMerge)
     for run in runs:
+        for subDir in os.listdir(os.path.join(inputCfg['OutputPath'], f'{run}')):
+            if os.path.isdir(subDir):
+                os.rmdir(os.path.join(inputCfg['OutputPath'], f'{run}', subDir))                
         os.rmdir(os.path.join(inputCfg['OutputPath'], f'{run}'))
 
 gROOT.Reset()
