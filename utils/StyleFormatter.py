@@ -171,8 +171,14 @@ def SetObjectStyle(obj, **kwargs):
     malpha = kwargs.get('markeralpha', 1)
     falpha = kwargs.get('fillalpha', 1)
     if 'alpha' in kwargs:
+        lalpha = kwargs['alpha']
+        malpha = kwargs['alpha']
+        falpha = kwargs['alpha']
+    if 'linealpha' in kwargs:
         lalpha = kwargs['linealpha']
+    if 'markeralpha' in kwargs:
         malpha = kwargs['markeralpha']
+    if 'fillalpha' in kwargs:
         falpha = kwargs['fillalpha']
 
     # line styles
