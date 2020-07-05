@@ -1,0 +1,15 @@
+isMC: no
+filename: [~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC17pq/AnalysisResults_Ds_massKK.root]
+dirname: PWGHF_D2H_InvMassDs_central_strongPIDpt6_50TPCcls_kINT7
+listname: coutputDs_central_strongPIDpt6_50TPCcls_kINT7
+sparsenameAll: null
+enableSecPeak: no #always no for data
+normname: null
+histoevname: null
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    meson: Ds #needed to define binning for invariant-mass histo
+    filenameAll: [ null ]
+    dirname: null
+    treename: null
