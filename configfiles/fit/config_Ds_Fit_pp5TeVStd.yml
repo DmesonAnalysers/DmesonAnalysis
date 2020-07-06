@@ -1,0 +1,16 @@
+pp5TeVPrompt:
+    Meson: 'Ds'
+    FixSigma: 1
+    SigmaFile: '~/Desktop/Analyses/pp5TeV/Ds_wML_mult/std_analysis/RawYields_Ds_d0cut_strongPIDpt6_LHC18a4a2_upto24.root'
+    SigmaMultFactor: 1.
+    FixMean: 0
+    MeanFile: ''
+    PtMin: [2, 3, 4, 5, 6, 8, 12, 16]
+    PtMax: [3, 4, 5, 6, 8, 12, 16, 24]  
+    MassMin: [1.78, 1.78, 1.78, 1.75, 1.72, 1.72, 1.72, 1.72]    
+    MassMax: [2.17, 2.17, 2.17, 2.17, 2.15, 2.15, 2.15, 2.15]
+    Rebin: [6, 6, 6, 6, 8, 8, 10, 12]
+    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1]
+    UseLikelihood: 1
+    BkgFunc: ['kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
+    SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
