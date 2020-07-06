@@ -26,16 +26,23 @@ def main():
         DfList.append(pd.read_parquet(filePath))
     print('Loading data files: Done!')
 
-    for (PtMin, PtMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max']):
+    VarsToDraw = inputCfg['plotting_columns']
+    LegLabels = inputCfg['output']['leg_labels']
+    OutPutDir = inputCfg['output']['dir']
+
+    for PtMin, PtMax, LimMin, LimMax in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'],
+                                            inputCfg['plot_lim_min'], inputCfg['plot_lim_max']):
         print(f'Plot variable distributions --- {PtMin} < pT < {PtMax} GeV/c')
         DfListPt = []
         for df in DfList:
             DfListPt.append(df.query(f'{PtMin} < pt_cand < {PtMax}'))
-        VarsToDraw = inputCfg['plotting_columns']
-        LegLabels = inputCfg['output']['leg_labels']
-        OutPutDir = inputCfg['output']['dir']
-        plot_utils.plot_distr(DfListPt, VarsToDraw, (12, 7), 100, True, LegLabels)
-        plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
+        DistrPlot = plot_utils.plot_distr(DfListPt, VarsToDraw, 100, LegLabels, figsize=(12, 12), density=True,
+                                          histtype='step', grid=False, log=True)
+        plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, hspace=0.4)
+        for ax, minVar, maxVar, xLabel in zip(DistrPlot, LimMin, LimMax, inputCfg['xaxes_label']):
+            ax.set_xlim(minVar, maxVar)    
+            ax.set_xlabel(xLabel)
+            ax.set_title('')
         plt.savefig(f'{OutPutDir}/DistrComp_pT_{PtMin}_{PtMax}.pdf')
         plt.close('all')
         del DfListPt
