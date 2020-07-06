@@ -3,10 +3,13 @@ python script for the projection of of D+ and Ds+ mesons TTrees
 run: python ProjectDplusDsTree.py cfgFileName.yml cutSetFileName.yml outFileName.root
                                   [--ptweights PtWeightsFileName.root histoName]
                                   [--ptweightsB PtWeightsFileName.root histoName]
+                                  [--std]
 
 if the --ptweights argument is provided, pT weights will be applied to prompt and FD pT distributions
 if the --ptweightsB argument is provided, pT weights will be applied to FD pT distributions instead of
 those for the prompt
+
+--std, used to apply standard analysis cuts on tree (account for differences in conventions)
 '''
 
 import sys
@@ -32,6 +35,7 @@ parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=F
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
                     help='First path of the pT weights file, second name of the pT weights histogram')
+parser.add_argument('--std', help='adapt to std. analysis cuts', action='store_true')          
 args = parser.parse_args()
 
 #config with input file details
@@ -63,9 +67,9 @@ elif meson == 'Dplus':
 else:
     print('Error: only Dplus and Ds mesons supported. Exit!')
     sys.exit()
-massBins = 400
-massLimLow = mD - 0.2
-massLimHigh = mD + 0.2
+massBins = 500
+massLimLow = mD - 0.25
+massLimHigh = mD + 0.25
 
 # selections to be applied
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
@@ -79,7 +83,9 @@ for iPt, _ in enumerate(cutVars['Pt']['min']):
             continue
         if selToApply[iPt] != '':
             selToApply[iPt] += ' & '
-        selToApply[iPt] += f"{cutVars[varName]['min'][iPt]}<{cutVars[varName]['name']}<{cutVars[varName]['max'][iPt]}"
+        if args.std and varName == 'CosPiKPhi3':
+            selToApply[iPt] += '~'
+        selToApply[iPt] += f"({cutVars[varName]['min'][iPt]}<{cutVars[varName]['name']}<{cutVars[varName]['max'][iPt]})"
 
 # dicts of TH1
 allDict = {'InvMass': [], 'Pt': []}
