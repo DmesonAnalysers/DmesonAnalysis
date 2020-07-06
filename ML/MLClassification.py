@@ -320,7 +320,7 @@ def main():
     for iBin, PtBin in enumerate(PtBins):
         print(f'\n\033[94mStarting ML analysis --- {PtBin[0]} < pT < {PtBin[1]} GeV/c\033[0m')
 
-        OutPutDirPt = os.path.join(inputCfg['output']['dir'], f'pt{PtBin[0]}_{PtBin[1]}')
+        OutPutDirPt = os.path.join(os.path.expanduser(inputCfg['output']['dir']), f'pt{PtBin[0]}_{PtBin[1]}')
         if os.path.isdir(OutPutDirPt):
             print('\033[93mWARNING: Output directory already exists, overwrites possibly ongoing!\033[0m')
         else:
@@ -345,6 +345,7 @@ def main():
             if not isinstance(ModelPath, str):
                 print(f'\033[91mERROR: path to model not correctly defined!\033[0m')
                 sys.exit()
+            ModelPath = os.path.expanduser(ModelPath)
             print(f'Loaded saved model: {ModelPath}')
             ModelHandl = ModelHandler()
             ModelHandl.load_model_handler(ModelPath)
