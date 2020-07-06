@@ -59,8 +59,8 @@ if args.prompt:
             gCrossSectionPrompt.RemovePoint(0)
             ScaleGraph(gCrossSectionPrompt, 1.e-6 / BR)
             for iPt in range(hCrossSectionPrompt.GetNbinsX()):
-                gCrossSectionPrompt.SetPointEXhigh(iPt, 0.4)
-                gCrossSectionPrompt.SetPointEXlow(iPt, 0.4)
+                gCrossSectionPrompt.SetPointEXhigh(iPt, hCrossSectionPrompt.GetBinWidth(iPt+1)/2.5)
+                gCrossSectionPrompt.SetPointEXlow(iPt, hCrossSectionPrompt.GetBinWidth(iPt+1)/2.5)
     hCrossSectionPrompt.SetName('hCrossSectionPrompt')
     hCrossSectionPrompt.SetDirectory(0)
     SetObjectStyle(hCrossSectionPrompt, color=kBlack, markerstyle=kFullCircle)
@@ -141,6 +141,9 @@ if args.FD:
         if args.syst:
             gCrossSectionFD = infileFD.Get('gSigmaCorr')
             ScaleGraph(gCrossSectionFD, 1.e-6 / BR)
+            for iPt in range(hCrossSectionFD.GetNbinsX()):
+                gCrossSectionFD.SetPointEXhigh(iPt, hCrossSectionFD.GetBinWidth(iPt+1)/2.5)
+                gCrossSectionFD.SetPointEXlow(iPt, hCrossSectionFD.GetBinWidth(iPt+1)/2.5)
     hCrossSectionFD.SetName('hCrossSectionFD')
     hCrossSectionFD.SetDirectory(0)
     SetObjectStyle(hCrossSectionFD, color=kBlack, markerstyle=kFullSquare)
