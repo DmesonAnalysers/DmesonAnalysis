@@ -354,6 +354,42 @@ def DoublePeakDoubleGaus(x, par):
     return par[0] * ((1-par[4])*firstGaus + par[4]*secondGaus) + thirdGaus
 
 
+def VoigtFunc(x, par):
+    '''
+    Voigtian function
+
+    Parameters
+    ----------
+
+    - x: function variable
+    - par: function parameters
+        par[0]: normalisation
+        par[1]: mean
+        par[2]: sigma
+        par[3]: gamma
+    '''
+
+    return par[0] * TMath.Voigt(x[0]-par[1], par[2], par[3])
+
+
+def ExpoPowLaw(x, par):
+    '''
+    Exponential times power law function
+
+    Parameters
+    ----------
+
+    - x: function variable
+    - par: function parameters
+        par[0]: normalisation
+        par[1]: mass (lowest possible value)
+        par[2]: expo slope
+    '''
+
+    return par[0] * np.sqrt(x[0] - par[1]) * np.exp(-1. * par[2] * (x[0] - par[1]))
+
+
+
 def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassSignal=None, mean=-1., sigma=-1.,
                                 hMassSecPeak=None, meanSecPeak=-1., sigmaSecPeak=-1.):
     '''
@@ -749,7 +785,7 @@ def ComputeRatioGraph(gNum, gDen):
         gDen.GetPoint(iPt, xd, den)
         denUncLow = gDen.GetErrorYlow(iPt)
         denUncHigh = gDen.GetErrorYhigh(iPt)
-        
+
         ratio, ratioUncLow, ratioUncHigh = 0., 0., 0.
         if num.value != 0. and den.value != 0.:
             ratio = num.value/den.value

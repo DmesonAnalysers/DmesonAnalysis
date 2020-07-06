@@ -4,10 +4,11 @@ run: python GetRawYieldsDsDplus.py fitConfigFileName.yml centClass inputFileName
 '''
 
 import argparse
+import ctypes
 import numpy as np
 import yaml
 from ROOT import TFile, TCanvas, TH1D, TH1F, TF1, TDatabasePDG, AliHFInvMassFitter, AliVertexingHFUtils  # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, gPad, Double, kBlack, kRed, kFullCircle, kFullSquare  # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, gPad, kBlack, kRed, kFullCircle, kFullSquare  # pylint: disable=import-error,no-name-in-module
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.AnalysisUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
 
@@ -353,9 +354,9 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
         mean = massFitter[iPt].GetMean()
         meanerr = massFitter[iPt].GetMeanUncertainty()
         redchi2 = massFitter[iPt].GetReducedChiSquare()
-        signif, signiferr = Double(), Double()
-        sgn, sgnerr = Double(), Double()
-        bkg, bkgerr = Double(), Double()
+        signif, signiferr = ctypes.c_double(), ctypes.c_double()
+        sgn, sgnerr = ctypes.c_double(), ctypes.c_double()
+        bkg, bkgerr = ctypes.c_double(), ctypes.c_double()
         massFitter[iPt].Significance(3, signif, signiferr)
         massFitter[iPt].Signal(3, sgn, sgnerr)
         massFitter[iPt].Background(3, bkg, bkgerr)
@@ -366,14 +367,15 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
         hRawYieldsSigma.SetBinError(iPt+1, sigmaerr)
         hRawYieldsMean.SetBinContent(iPt+1, mean)
         hRawYieldsMean.SetBinError(iPt+1, meanerr)
-        hRawYieldsSignificance.SetBinContent(iPt+1, signif)
-        hRawYieldsSignificance.SetBinError(iPt+1, signiferr)
-        hRawYieldsSoverB.SetBinContent(iPt+1, sgn/bkg)
-        hRawYieldsSoverB.SetBinError(iPt+1, sgn/bkg*np.sqrt(sgnerr**2/sgn**2+bkgerr**2/bkg**2))
-        hRawYieldsSignal.SetBinContent(iPt+1, sgn)
-        hRawYieldsSignal.SetBinError(iPt+1, sgnerr)
-        hRawYieldsBkg.SetBinContent(iPt+1, bkg)
-        hRawYieldsBkg.SetBinError(iPt+1, bkgerr)
+        hRawYieldsSignificance.SetBinContent(iPt+1, signif.value)
+        hRawYieldsSignificance.SetBinError(iPt+1, signiferr.value)
+        hRawYieldsSoverB.SetBinContent(iPt+1, sgn.value/bkg.value)
+        hRawYieldsSoverB.SetBinError(iPt+1, sgn.value/bkg.value*np.sqrt(
+            sgnerr.value**2/sgn.value**2+bkgerr.value**2/bkg.value**2))
+        hRawYieldsSignal.SetBinContent(iPt+1, sgn.value)
+        hRawYieldsSignal.SetBinError(iPt+1, sgnerr.value)
+        hRawYieldsBkg.SetBinContent(iPt+1, bkg.value)
+        hRawYieldsBkg.SetBinError(iPt+1, bkgerr.value)
         hRawYieldsChiSquare.SetBinContent(iPt+1, redchi2)
         hRawYieldsChiSquare.SetBinError(iPt+1, 1.e-20)
 
@@ -381,7 +383,7 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
         fBkgFunc = massFitter[iPt].GetBackgroundRecalcFunc()
 
         parFrac2Gaus, parsecondsigma = -1, -1
-        if sgn == AliHFInvMassFitter.k2Gaus:
+        if sgn.value == AliHFInvMassFitter.k2Gaus:
             if not (inclSecPeak and mesonName == 'Ds'):
                 parFrac2Gaus = fTotFunc.GetNpar()-2
                 parsecondsigma = fTotFunc.GetNpar()-1
