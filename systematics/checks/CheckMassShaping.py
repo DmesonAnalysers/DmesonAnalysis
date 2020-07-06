@@ -9,7 +9,7 @@ import sys
 import argparse
 import yaml
 from root_numpy import fill_hist
-from ROOT import TCanvas, TLegend, TDatabasePDG, TH1F, TH2F, TF1, TLine, TGraph # pylint: disable=import-error,no-name-in-module
+from ROOT import TCanvas, TLegend, TDatabasePDG, TH1F, TH2F, TF1, TLine, TGraph, TVirtualFitter, TLatex # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCircle, kFullSquare, kRainBow, kRed, kAzure, kGray, kBlack # pylint: disable=import-error,no-name-in-module
 from ROOT import RooStats # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
@@ -170,7 +170,12 @@ legFit = TLegend(0.18, 0.73, 0.78, 0.88)
 legFit.SetTextSize(0.05)
 legFit.SetFillStyle(0)
 
-cMass, cMassFit, cMassVsML, fMass, gMassPValue, gMassNsigma = ([] for _ in range(6))
+lat = TLatex()
+lat.SetTextSize(0.050)
+lat.SetTextColor(kBlack)
+lat.SetTextFont(42)
+
+cMass, cMassFit, cMassVsML, fMass, gMassPValue, gMassNsigma, hConfIntBkg = ([] for _ in range(7))
 for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['max'])):
 
     minMass = hMassSel[iPt].GetBinLowEdge(1)
@@ -215,30 +220,47 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
 
     fMass.append(TF1(f'fMassPt{ptMin*10:.0f}_{ptMax*10:.0f}', args.fitfunc, minMass, maxMass))
     fMass[iPt].SetLineColor(kBlack)
-
-    if iPt == 0:
-        legFit.AddEntry(hMassSel[iPt], 'MC bkg ML selected', 'lp')
-        legFit.AddEntry(fMass[iPt], f'{args.fitfunc} fit', 'lp')
-        legFit.AddEntry(line, f'{mesonTitle} mass', 'l')
+    fMass[iPt].SetLineWidth(1)
 
     gMassPValue.append(TGraph(0))
     gMassNsigma.append(TGraph(0))
     SetObjectStyle(gMassPValue[iPt], color=kRed+1)
     SetObjectStyle(gMassNsigma[iPt], color=kRed+1)
 
-    cMassFit.append(TCanvas(f'cMassFitPt{ptMin*10:.0f}_{ptMax*10:.0f}', '', 1200, 400))
-    cMassFit[iPt].Divide(3, 1)
     hMassToFit = hMassSel[iPt].Clone()
     for iBin in range(hMassToFit.GetNbinsX()): #remove signal region
         if mD-0.02 < hMassToFit.GetBinCenter(iBin+1) < mD + 0.02:
             hMassToFit.SetBinContent(iBin+1, 0)
+    hMassToFit.Fit(fMass[iPt], 'RE0')
+    hConfIntBkg.append(TH1F(f'hConfIntMassKKMCPt{ptMin}_{ptMax}', '', hMassSel[iPt].GetNbinsX(), minMass, maxMass))
+    TVirtualFitter.GetFitter().GetConfidenceIntervals(hConfIntBkg[iPt], 0.683)
+    SetObjectStyle(hConfIntBkg[iPt], color=kBlack, fillalpha=0.3, markerstyle=0)
+
+    if iPt == 0:
+        legFit.AddEntry(hMassSel[iPt], 'ML selected', 'lp')
+        legFit.AddEntry(hConfIntBkg[iPt], f'{args.fitfunc} fit', 'fl')
+        legFit.AddEntry(line, f'{mesonTitle} mass', 'l')
+
+    cMassFit.append(TCanvas(f'cMassFitPt{ptMin*10:.0f}_{ptMax*10:.0f}', '', 1200, 400))
+    cMassFit[iPt].Divide(3, 1)
     cMassFit[iPt].cd(1).DrawFrame(minMass, 0., maxMass, hMassSel[iPt].GetMaximum()*1.5,
                                   f';{massTitle};Counts')
-    hMassToFit.Fit(fMass[iPt], 'RE0')
     hMassSel[iPt].DrawCopy('esame')
+    hConfIntBkg[iPt].Draw('e3same')
     fMass[iPt].Draw('same')
     line.Draw()
     legFit.Draw()
+
+    for iBin in range(hMassSel[iPt].GetNbinsX()):
+        massCentre = hMassSel[iPt].GetBinCenter(iBin+1)
+        obs = hMassSel[iPt].GetBinContent(iBin+1)
+        exp = fMass[iPt].Eval(massCentre)
+        uncObs = hMassSel[iPt].GetBinError(iBin+1)
+        uncExp = hConfIntBkg[iPt].GetBinError(iBin+1)
+        pval = RooStats.NumberCountingUtils.BinomialObsP(obs, exp, uncExp/exp)
+        nsigma = (obs-exp)/uncObs
+        gMassPValue[iPt].SetPoint(iBin, massCentre, pval)
+        gMassNsigma[iPt].SetPoint(iBin, massCentre, nsigma)
 
     linePval = line.Clone()
     linePval.SetY2(1.)
@@ -276,17 +298,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
     lineAtZero.SetLineWidth(1)
     lineAtZero.SetLineStyle(2)
 
-    for iBin in range(hMassSel[iPt].GetNbinsX()):
-        massCentre = hMassSel[iPt].GetBinCenter(iBin+1)
-        obs = hMassSel[iPt].GetBinContent(iBin+1)
-        exp = fMass[iPt].Eval(massCentre)
-        unc = hMassSel[iPt].GetBinError(iBin+1)
-        pval = RooStats.NumberCountingUtils.BinomialObsP(obs, exp, unc/obs)
-        nsigma = (obs-exp)/unc
-        gMassPValue[iPt].SetPoint(iBin, massCentre, pval)
-        gMassNsigma[iPt].SetPoint(iBin, massCentre, nsigma)
-
-    cMassFit[iPt].cd(2).DrawFrame(minMass, -5., maxMass, 5., f';{massTitle}; n#sigma')
+    cMassFit[iPt].cd(2).DrawFrame(minMass, -5., maxMass, 5., f';{massTitle}; (count - fit) / #sigma(count)')
     lineAtZero.Draw()
     lineOneSigma.Draw()
     lineMinusOneSigma.Draw()
@@ -302,6 +314,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
     lineProbThreeSigma.Draw()
     cMassFit[iPt].Update()
     cMassFit[iPt].Modified()
+    lat.DrawLatex(maxMass * 1.01, 0.1585, '1#sigma')
+    lat.DrawLatex(maxMass * 1.01, 0.0225, '2#sigma')
+    lat.DrawLatex(maxMass * 1.01, 0.0015, '3#sigma')
 
 # save outputs
 if not os.path.isdir(args.outputPath):
