@@ -1,0 +1,20 @@
+input:
+    prompt_files: ['~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/pythia6_LHC18a4a2/Prompt_Dspp5TeVNoOutlier_EffPythia6_pT_1_50.parquet.gzip',
+                   '~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/Prompt_Dspp5TeVNoOutlier_D2H_pT_1_50.parquet.gzip']
+    fd_files: ['~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/pythia6_LHC18a4a2/FD_Dspp5TeVNoOutlier_EffPythia6_pT_1_50.parquet.gzip',
+               '~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/FD_Dspp5TeVNoOutlier_D2H_pT_1_50.parquet.gzip']
+
+pt_bin: [16, 24]
+
+scan_variable:
+    name: 'd_len'
+    rescale_factor: 1.e+4
+    title: 'Decay Length (#mum)'
+    histo_bins: 200
+    histo_lims: [0., 2000] # eventually in new coordinates
+    scan_range: [0, 1010]   # eventually in new coordinates
+    scan_step: 10           # eventually in new coordinates
+    
+
+legend:
+    conf_labels: ['Pythia6', 'Pythia8']
