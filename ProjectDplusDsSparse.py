@@ -136,7 +136,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                         ptCent = hVarPrompt.GetBinWidth(iBin)
                         hVarPrompt.SetBinContent(iBin, hVarPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
                         hVarPrompt.SetBinError(iBin, hVarPrompt.GetBinContent(iBin) * relStatUnc)
-            hVarPrompt.SetName(f'hPrompt%{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hVarPrompt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             prompt_dict[iVar].append(hVarPrompt)
             hVarPrompt.Write()
             hVarFD = sparseReco['RecoFD'].Projection(cutVars[iVar]['axisnum'])
