@@ -1,12 +1,12 @@
 input: # files to use, set FD to null for binary classification
-    prompt: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/noImprover/Prompt_Dspp5TeVNoOutlier_D2H_noImprover_pT_1_50.parquet.gzip
-    FD: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/noImprover/FD_Dspp5TeVNoOutlier_D2H_noImprover_pT_1_50.parquet.gzip
-    data: ../../../Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/noImprover/Prompt_Dspp5TeVNoOutlier_D2H_noImprover_pT_1_50.parquet.gzip
+    prompt: ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/pythia6_LHC18a4a2/Prompt_Dspp5TeVNoOutlier_EffPythia6_pT_1_50.parquet.gzip
+    FD: ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/pythia6_LHC18a4a2/FD_Dspp5TeVNoOutlier_EffPythia6_pT_1_50.parquet.gzip
+    data: ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/pythia6_LHC18a4a2/FD_Dspp5TeVNoOutlier_EffPythia6_pT_1_50.parquet.gzip
 
 output:
     leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels, keep the right number of classes
     out_labels: ['Bkg', 'Prompt', 'FD'] # output labels, keep the right number of classes
-    dir: '../../../Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_noImprover' # output dir
+    dir: '~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_pythia6' # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing
     min: [1, 2, 4, 6, 12] # list 
@@ -51,11 +51,11 @@ ml:
                         'colsample_bytree': !!python/tuple [0.8, 1.]}
                         # configuration dictionary for optimize_params_bayes()
 
-    saved_models: [../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt1_2/ModelHandler_pT_1_2.pickle,
-                   ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt2_4/ModelHandler_pT_2_4.pickle,
-                   ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt4_6/ModelHandler_pT_4_6.pickle,
-                   ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt6_12/ModelHandler_pT_6_12.pickle,
-                   ../../../Analyses/pp5TeV/Ds_wML_mult/ml_training/final/pt12_50/ModelHandler_pT_12_50.pickle
+    saved_models: [~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt1_2/ModelHandler_pT_1_2.pickle,
+                   ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt2_4/ModelHandler_pT_2_4.pickle,
+                   ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt4_6/ModelHandler_pT_4_6.pickle,
+                   ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt6_12/ModelHandler_pT_6_12.pickle,
+                   ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt12_50/ModelHandler_pT_12_50.pickle
                   ] 
                    # list of saved ModelHandler (path+file), compatible with the pt bins
 
@@ -66,4 +66,5 @@ plots:
     train_test_log: True # use log scale for plots of train and test distributions
 
 df_column_to_save_opt: 
-    df_column_to_save_list: ['inv_mass', 'pt_cand', 'pt_B'] # list of variables saved in the dataframes with the applied models
+    df_column_to_save_list: [inv_mass, pt_cand, cos_p, cos_p_xy, d_len, d_len_xy, norm_dl_xy, imp_par_xy, sig_vert, delta_mass_KK, cos_PiKPhi_3,
+                             max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2] # list of variables saved in the dataframes with the applied models

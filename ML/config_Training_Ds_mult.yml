@@ -51,11 +51,11 @@ ml:
                         'colsample_bytree': !!python/tuple [0.8, 1.]}
                         # configuration dictionary for optimize_params_bayes()
 
-    saved_models: [/home/fcatalan/Dspp/ml_training/final/pt1_2/ModelHandler_pT_1_2.pickle,
-                   /home/fcatalan/Dspp/ml_training/final/pt2_4/ModelHandler_pT_2_4.pickle,
-                   /home/fcatalan/Dspp/ml_training/final/pt4_6/ModelHandler_pT_4_6.pickle,
-                   /home/fcatalan/Dspp/ml_training/final/pt6_12/ModelHandler_pT_6_12.pickle,
-                   /home/fcatalan/Dspp/ml_training/final/pt12_50/ModelHandler_pT_12_50.pickle
+    saved_models: [~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt1_2/ModelHandler_pT_1_2.pickle,
+                   ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt2_4/ModelHandler_pT_2_4.pickle,
+                   ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt4_6/ModelHandler_pT_4_6.pickle,
+                   ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt6_12/ModelHandler_pT_6_12.pickle,
+                   ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training/multiclass/final/pt12_50/ModelHandler_pT_12_50.pickle
                   ] 
                    # list of saved ModelHandler (path+file), compatible with the pt bins
 

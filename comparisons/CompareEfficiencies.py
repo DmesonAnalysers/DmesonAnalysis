@@ -14,6 +14,7 @@ markers = [kFullSquare, kFullCircle]
 legNames = ['Improver', 'No Improver (same ML models)']
 outDir = '~/Desktop/Analyses/pp5TeV/Ds_wML_mult/outputs/100320/systematics/eff_noImprover'
 outSuffix = 'Improver_sameModels'
+showUnc = False
 
 SetGlobalStyle(padleftmargin=0.16, padtopmargin=0.05, padbottommargin=0.14,
                titleoffsety=1.5, titlesize=0.05, labelsize=0.045)
@@ -46,9 +47,10 @@ for iFile, inFileName in enumerate(inFileNames):
     hEffFDRatio[iFile].Divide(hEffFD[iFile], hEffFD[0])
     hEffFDRatio[iFile].GetYaxis().SetRangeUser(0.8, 1.2)
     leg.AddEntry(hEffFD[iFile], legNames[iFile], 'p')
-    for iBin in range(hEffPromptRatio[iFile].GetNbinsX()):
-        hEffPromptRatio[iFile].SetBinError(iBin+1, 1.e-20)
-        hEffFDRatio[iFile].SetBinError(iBin+1, 1.e-20)
+    if not showUnc:
+        for iBin in range(hEffPromptRatio[iFile].GetNbinsX()):
+            hEffPromptRatio[iFile].SetBinError(iBin+1, 1.e-20)
+            hEffFDRatio[iFile].SetBinError(iBin+1, 1.e-20)
 
 ptmin = hEffPrompt[0].GetBinLowEdge(1)
 ptmax = hEffPrompt[0].GetBinLowEdge(hEffPrompt[0].GetNbinsX())+hEffPrompt[0].GetBinWidth(hEffPrompt[0].GetNbinsX())
