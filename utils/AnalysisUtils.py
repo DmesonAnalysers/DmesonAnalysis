@@ -754,7 +754,8 @@ def ScaleGraph(graph, scaleFactor):
         elif isinstance(graph, TGraph):
             continue
 
-def ComputeRatioGraph(gNum, gDen):
+
+def ComputeRatioGraph(gNum, gDen, useDenUnc=True):
     '''
     Helper method to divide two TGraph (assuming same binning)
 
@@ -789,13 +790,18 @@ def ComputeRatioGraph(gNum, gDen):
         ratio, ratioUncLow, ratioUncHigh = 0., 0., 0.
         if num.value != 0. and den.value != 0.:
             ratio = num.value/den.value
-            ratioUncLow = np.sqrt((numUncLow/num.value)**2 + (denUncLow/den.value)**2) * ratio
-            ratioUncHigh = np.sqrt((numUncHigh/num.value)**2 + (denUncHigh/den.value)**2) * ratio
+            if useDenUnc:
+                ratioUncLow = np.sqrt((numUncLow/num.value)**2 + (denUncLow/den.value)**2) * ratio
+                ratioUncHigh = np.sqrt((numUncHigh/num.value)**2 + (denUncHigh/den.value)**2) * ratio
+            else:
+                ratioUncLow = numUncLow / num.value * ratio
+                ratioUncHigh = numUncHigh / num.value * ratio
 
         gRatio.SetPoint(iPt, x.value, ratio)
         gRatio.SetPointError(iPt, xUncLow, xUncHigh, ratioUncLow, ratioUncHigh)
 
     return gRatio
+
 
 def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
     '''
