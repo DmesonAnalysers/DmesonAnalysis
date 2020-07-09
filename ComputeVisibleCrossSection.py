@@ -53,20 +53,21 @@ systErr = inFileCross.Get('AliHFSystErr')
 inFileCross.Close()
 
 # compute visible cross section
-visCrossSec, visCrossSecStatUnc, visCrossSecUncorrSystUnc, \
-    visCrossSecCorrSystUncLow, visCrossSecCorrSystUncHigh = (0 for _ in range(5))
+visCrossSec, statUnc, uncorrSystUnc, corrSystUncLow, corrSystUncHigh, \
+    FDSystUncLow, FDSystUncHigh, trackSystUnc = (0 for _ in range(8))
 
 for iPt in range(hCrossSection.GetNbinsX()):
 
     binWidth = hCrossSection.GetBinWidth(iPt+1)
     ptCent = hCrossSection.GetBinCenter(iPt+1)
     visCrossSec += hCrossSection.GetBinContent(iPt+1) * binWidth
-    visCrossSecStatUnc += (hCrossSection.GetBinError(iPt+1) * binWidth)**2
+    statUnc += (hCrossSection.GetBinError(iPt+1) * binWidth)**2
 
     # uncorrelated systematic uncertainty (yield extraction)
-    visCrossSecUncorrSystUnc += systErr.GetRawYieldErr(ptCent)**2
+    uncorrSystUnc += systErr.GetRawYieldErr(ptCent)**2
 
     # correlated systematic uncertainty (sel eff, PID eff, gen pT shape, tracking, FD)
+    trackSystUnc += systErr.GetTrackingEffErr(ptCent) * binWidth
     totCorrSystUncSqLow = (systErr.GetCutsEffErr(ptCent)**2 + systErr.GetMCPtShapeErr(ptCent)**2 + \
         systErr.GetPIDEffErr(ptCent)**2 + systErr.GetTrackingEffErr(ptCent)**2) \
             * hCrossSection.GetBinContent(iPt+1)**2 * binWidth**2
@@ -74,6 +75,8 @@ for iPt in range(hCrossSection.GetNbinsX()):
         systErr.GetPIDEffErr(ptCent)**2 + systErr.GetTrackingEffErr(ptCent)**2) \
             * hCrossSection.GetBinContent(iPt+1)**2 * binWidth**2
     if isDataDriven:
+        FDSystUncLow += systErr.GetDataDrivenFDErr(ptCent) * binWidth
+        FDSystUncHigh += systErr.GetDataDrivenFDErr(ptCent) * binWidth
         totCorrSystUncSqLow += systErr.GetDataDrivenFDErr(ptCent)**2 \
             * hCrossSection.GetBinContent(iPt+1)**2 * binWidth**2
         totCorrSystUncSqHigh += systErr.GetDataDrivenFDErr(ptCent)**2 \
@@ -84,52 +87,71 @@ for iPt in range(hCrossSection.GetNbinsX()):
             gCrossSectionFDSyst.GetPoint(iPtFD, ptCentFD, sigma)
             if abs(ptCentFD.value-ptCent) < 0.01:
                 break
+        FDSystUncLow += gCrossSectionFDSyst.GetErrorYlow(iPtFD) * binWidth
+        FDSystUncHigh += gCrossSectionFDSyst.GetErrorYlow(iPtFD) * binWidth
         totCorrSystUncSqLow += gCrossSectionFDSyst.GetErrorYlow(iPtFD)**2 * binWidth**2
         totCorrSystUncSqLow += gCrossSectionFDSyst.GetErrorYhigh(iPtFD)**2 * binWidth**2
 
-    visCrossSecCorrSystUncLow += np.sqrt(totCorrSystUncSqLow)
-    visCrossSecCorrSystUncHigh += np.sqrt(totCorrSystUncSqHigh)
+    corrSystUncLow += np.sqrt(totCorrSystUncSqLow)
+    corrSystUncHigh += np.sqrt(totCorrSystUncSqHigh)
 
-visCrossSecStatUnc = np.sqrt(visCrossSecStatUnc)
-visCrossSecUncorrSystUnc = np.sqrt(visCrossSecUncorrSystUnc)
-visCrossSecTotSystUncLow = np.sqrt(visCrossSecUncorrSystUnc**2 + visCrossSecCorrSystUncLow**2)
-visCrossSecTotSystUncHigh = np.sqrt(visCrossSecUncorrSystUnc**2 + visCrossSecCorrSystUncHigh**2)
+statUnc = np.sqrt(statUnc)
+uncorrSystUnc = np.sqrt(uncorrSystUnc)
+totSystUncLow = np.sqrt(uncorrSystUnc**2 + corrSystUncLow**2)
+totSystUncHigh = np.sqrt(uncorrSystUnc**2 + corrSystUncHigh**2)
 
 # fill histos and graphs
 ptMin = hCrossSection.GetBinLowEdge(1)
 ptMax = hCrossSection.GetXaxis().GetBinUpEdge(hCrossSection.GetNbinsX())
 hVisibleCrossSectionStat = TH1F('hVisibleCrossSectionStat',
-                                f';;#sigma (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})', 1, 0.5, 1.5)
-gVisibleCrossSectionUncorrSyst = TGraphAsymmErrors(0)
-gVisibleCrossSectionCorrSyst = TGraphAsymmErrors(0)
-gVisibleCrossSectionTotSyst = TGraphAsymmErrors(0)
-gVisibleCrossSectionUncorrSyst.SetNameTitle('gVisibleCrossSectionUncorrSyst',
-                                            f';;#sigma (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
-gVisibleCrossSectionCorrSyst.SetNameTitle('gVisibleCrossSectionCorrSyst',
-                                          f';;#sigma (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
-gVisibleCrossSectionTotSyst.SetNameTitle('gVisibleCrossSectionTotSyst',
-                                         f';;#sigma (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
+                                f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})',
+                                1, 0.5, 1.5)
+
+gVisCrossSecUncorrSyst, gVisCrossSecCorrSyst, gVisCrossSecTotSyst, gVisCrossSecSystWoTrAndFD, \
+    gVisCrossSecSystTracking, gVisCrossSecSystFD = (TGraphAsymmErrors(0) for _ in range(6))
+gVisCrossSecUncorrSyst.SetNameTitle('gVisCrossSecUncorrSyst',
+                                    f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
+gVisCrossSecCorrSyst.SetNameTitle('gVisCrossSecCorrSyst',
+                                  f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
+gVisCrossSecTotSyst.SetNameTitle('gVisCrossSecTotSyst',
+                                 f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
+gVisCrossSecSystWoTrAndFD.SetNameTitle('gVisCrossSecSystWoTrackingAndFD',
+                                       f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
+gVisCrossSecSystTracking.SetNameTitle('gVisCrossSecSystTracking',
+                                      f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
+gVisCrossSecSystFD.SetNameTitle('gVisCrossSecSystFD',
+                                f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
 
 SetObjectStyle(hVisibleCrossSectionStat, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(gVisibleCrossSectionUncorrSyst, color=kBlack, fillstyle=0)
-SetObjectStyle(gVisibleCrossSectionCorrSyst, color=kBlack, fillstyle=0)
-SetObjectStyle(gVisibleCrossSectionTotSyst, color=kBlack, fillstyle=0)
+SetObjectStyle(gVisCrossSecUncorrSyst, color=kBlack, fillstyle=0)
+SetObjectStyle(gVisCrossSecCorrSyst, color=kBlack, fillstyle=0)
+SetObjectStyle(gVisCrossSecTotSyst, color=kBlack, fillstyle=0)
 
 hVisibleCrossSectionStat.SetBinContent(1, visCrossSec)
-hVisibleCrossSectionStat.SetBinError(1, visCrossSecStatUnc)
-gVisibleCrossSectionUncorrSyst.SetPoint(0, 1., visCrossSec)
-gVisibleCrossSectionCorrSyst.SetPoint(0, 1., visCrossSec)
-gVisibleCrossSectionTotSyst.SetPoint(0, 1., visCrossSec)
-gVisibleCrossSectionUncorrSyst.SetPointError(0, 0.3, 0.3, visCrossSecUncorrSystUnc, visCrossSecUncorrSystUnc)
-gVisibleCrossSectionCorrSyst.SetPointError(0, 0.3, 0.3, visCrossSecCorrSystUncLow, visCrossSecCorrSystUncHigh)
-gVisibleCrossSectionTotSyst.SetPointError(0, 0.3, 0.3, visCrossSecTotSystUncLow, visCrossSecTotSystUncHigh)
+hVisibleCrossSectionStat.SetBinError(1, statUnc)
+gVisCrossSecUncorrSyst.SetPoint(0, 1., visCrossSec)
+gVisCrossSecCorrSyst.SetPoint(0, 1., visCrossSec)
+gVisCrossSecTotSyst.SetPoint(0, 1., visCrossSec)
+gVisCrossSecSystWoTrAndFD.SetPoint(0, 1., visCrossSec)
+gVisCrossSecSystTracking.SetPoint(0, 1., visCrossSec)
+gVisCrossSecSystFD.SetPoint(0, 1., visCrossSec)
+gVisCrossSecUncorrSyst.SetPointError(0, 0.3, 0.3, uncorrSystUnc, uncorrSystUnc)
+gVisCrossSecCorrSyst.SetPointError(0, 0.3, 0.3, corrSystUncLow, corrSystUncHigh)
+gVisCrossSecTotSyst.SetPointError(0, 0.3, 0.3, totSystUncLow, totSystUncHigh)
+gVisCrossSecSystWoTrAndFD.SetPointError(0, 0.3, 0.3, np.sqrt(totSystUncLow**2 - trackSystUnc**2 - FDSystUncLow**2),
+                                        np.sqrt(totSystUncHigh**2 - trackSystUnc**2 - FDSystUncHigh**2))
+gVisCrossSecSystTracking.SetPointError(0, 0.3, 0.3, trackSystUnc, trackSystUnc)
+gVisCrossSecSystFD.SetPointError(0, 0.3, 0.3, FDSystUncLow, FDSystUncHigh)
 
 # otput file
 outFile = TFile.Open(args.outFileName, 'recreate')
 hVisibleCrossSectionStat.Write()
-gVisibleCrossSectionUncorrSyst.Write()
-gVisibleCrossSectionCorrSyst.Write()
-gVisibleCrossSectionTotSyst.Write()
+gVisCrossSecUncorrSyst.Write()
+gVisCrossSecCorrSyst.Write()
+gVisCrossSecTotSyst.Write()
+gVisCrossSecSystWoTrAndFD.Write()
+gVisCrossSecSystTracking.Write()
+gVisCrossSecSystFD.Write()
 outFile.Close()
 
 print(f'Saved output file: {args.outFileName}')

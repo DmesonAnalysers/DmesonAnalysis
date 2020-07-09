@@ -14,7 +14,7 @@ from ROOT import kBlack, kRed, kAzure, kFullCircle, kFullSquare # pylint: disabl
 sys.path.append('..')
 #pylint: disable=wrong-import-position,import-error,no-name-in-module
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-from utils.AnalysisUtils import ScaleGraph, DivideGraphByHisto
+from utils.AnalysisUtils import ScaleGraph, DivideGraphByHisto, ComputeRatioGraph
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('FONLLFileName', metavar='text', default='FONLL.root', help='root file FONLL predictions')
@@ -99,19 +99,15 @@ if args.prompt:
     hFONLLPromptCentral.SetStats(0)
     hFONLLPromptMin.SetStats(0)
     hFONLLPromptMax.SetStats(0)
-    gFONLLPrompt, gFONLLPromptUnc = (TGraphAsymmErrors(0) for _ in range(2))
+    gFONLLPrompt = TGraphAsymmErrors(0)
     for iPt in range(hFONLLPromptCentral.GetNbinsX()):
         gFONLLPrompt.SetPoint(iPt, hFONLLPromptCentral.GetBinCenter(iPt+1), hFONLLPromptCentral.GetBinContent(iPt+1))
         gFONLLPrompt.SetPointError(iPt, hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
                                    hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
                                    hFONLLPromptCentral.GetBinContent(iPt+1)-hFONLLPromptMin.GetBinContent(iPt+1),
                                    hFONLLPromptMax.GetBinContent(iPt+1)-hFONLLPromptCentral.GetBinContent(iPt+1))
-        gFONLLPromptUnc.SetPoint(iPt, hFONLLPromptCentral.GetBinCenter(iPt+1), 1.)
-        gFONLLPromptUnc.SetPointError(iPt, hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
-                                      hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
-                                      1-hFONLLPromptMin.GetBinContent(iPt+1)/hFONLLPromptCentral.GetBinContent(iPt+1),
-                                      hFONLLPromptMax.GetBinContent(iPt+1)/hFONLLPromptCentral.GetBinContent(iPt+1)-1)
 
+    gFONLLPromptUnc = ComputeRatioGraph(gFONLLPrompt, gFONLLPrompt, False)
     SetObjectStyle(hFONLLPromptCentral, color=kRed+1, markerstyle=0, fillstyle=0)
     SetObjectStyle(gFONLLPrompt, color=kRed+1, fillalpha=0.2, fillstyle=1000)
     SetObjectStyle(gFONLLPromptUnc, color=kRed+1, fillalpha=0.2, fillstyle=1000)
@@ -191,19 +187,15 @@ if args.FD:
     hFONLLFDCentral.SetStats(0)
     hFONLLFDMin.SetStats(0)
     hFONLLFDMax.SetStats(0)
-    gFONLLFD, gFONLLFDUnc = (TGraphAsymmErrors(0) for _ in range(2))
+    gFONLLFD = TGraphAsymmErrors(0)
     for iPt in range(hFONLLFDCentral.GetNbinsX()):
         gFONLLFD.SetPoint(iPt, hFONLLFDCentral.GetBinCenter(iPt+1), hFONLLFDCentral.GetBinContent(iPt+1))
         gFONLLFD.SetPointError(iPt, hFONLLFDCentral.GetBinWidth(iPt+1)/2,
                                hFONLLFDCentral.GetBinWidth(iPt+1)/2,
                                hFONLLFDCentral.GetBinContent(iPt+1)-hFONLLFDMin.GetBinContent(iPt+1),
                                hFONLLFDMax.GetBinContent(iPt+1)-hFONLLFDCentral.GetBinContent(iPt+1))
-        gFONLLFDUnc.SetPoint(iPt, hFONLLFDCentral.GetBinCenter(iPt+1), 1.)
-        gFONLLFDUnc.SetPointError(iPt, hFONLLFDCentral.GetBinWidth(iPt+1)/2,
-                                  hFONLLFDCentral.GetBinWidth(iPt+1)/2,
-                                  1-hFONLLFDMin.GetBinContent(iPt+1)/hFONLLFDCentral.GetBinContent(iPt+1),
-                                  hFONLLFDMax.GetBinContent(iPt+1)/hFONLLFDCentral.GetBinContent(iPt+1)-1)
 
+    gFONLLFDUnc = ComputeRatioGraph(gFONLLFD, gFONLLFD, False)
     SetObjectStyle(hFONLLFDCentral, color=kAzure+4, markerstyle=0, fillstyle=0)
     SetObjectStyle(gFONLLFD, color=kAzure+4, fillalpha=0.2, fillstyle=1000)
     SetObjectStyle(gFONLLFDUnc, color=kAzure+4, fillalpha=0.2, fillstyle=1000)
