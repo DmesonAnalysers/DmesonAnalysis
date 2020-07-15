@@ -88,7 +88,7 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
         hToCompare[iFile].SetDirectory(0)
         hToCompare[iFile].SetStats(0)
         hToCompare[iFile].Scale(scale)
-    else:	    #TODO: else: scale graph --> add util function in AnalysisUtils
+    else:
         ScaleGraph(hToCompare[iFile], scale)
     if doRatio:
         if 'TH' in objType:
@@ -99,24 +99,23 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
                     hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
             else:
                 hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
-                print(hRatioToCompare[0].GetBinContent(1))
                 for iBin in range(1, hRatioToCompare[iFile].GetNbinsX()+1):
                     hRatioToCompare[iFile].SetBinError(iBin, 1.e-20)
             hRatioToCompare[iFile].SetDirectory(0)
-        else:	        #TODO: add util function in AnalysisUtils to manage ratios between graphs or graph and histo
-            if drawRatioUnc:	
-                if ratioUncCorr:	
-                    print('WARNING: correlated uncertainty in ratio for TGraphs not implemented. Switching off')	
-                    ratioUncCorr = False	
-                     #TODO: extend ComputeRatioGraph to account for correlated uncertainties	
-                else:	
-                    hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))	
-            else:	
-                hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))	
-                for iBin in range(hRatioToCompare[iFile].GetN()):	
-                    hRatioToCompare[iFile].SetPointEYlow(iBin, 1.e-20)	
-                    hRatioToCompare[iFile].SetPointEYhigh(iBin, 1.e-20)	
-        #TODO: add case to manage ratio between graph and histo (utility function already available in AnalysisUtils)	
+        else:
+            if drawRatioUnc:
+                if ratioUncCorr:
+                    print('WARNING: correlated uncertainty in ratio for TGraphs not implemented. Switching off')
+                    ratioUncCorr = False
+                     #TODO: extend ComputeRatioGraph to account for correlated uncertainties
+                else:
+                    hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))
+            else:
+                hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))
+                for iBin in range(hRatioToCompare[iFile].GetN()):
+                    hRatioToCompare[iFile].SetPointEYlow(iBin, 1.e-20)
+                    hRatioToCompare[iFile].SetPointEYhigh(iBin, 1.e-20)
+        #TODO: add case to manage ratio between graph and histo (utility function already available in AnalysisUtils)
         hRatioToCompare[iFile].SetName(f'hRatio{iFile}')
         SetObjectStyle(hRatioToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker),
                        fillstyle=0)
