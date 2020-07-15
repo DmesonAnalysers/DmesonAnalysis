@@ -12,7 +12,7 @@ from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,n
 sys.path.append('..')
 #pylint: disable=wrong-import-position,import-error,no-name-in-module
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker
-from utils.AnalysisUtils import ComputeRatioDiffBins, ScaleGraph, ComputeRatioGraph
+from utils.AnalysisUtils import ComputeRatioDiffBins
 
 # load inputs
 parser = argparse.ArgumentParser(description='Arguments')
@@ -88,8 +88,7 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
         hToCompare[iFile].SetDirectory(0)
         hToCompare[iFile].SetStats(0)
         hToCompare[iFile].Scale(scale)
-    else:
-        ScaleGraph(hToCompare[iFile], scale)
+    #TODO: else: scale graph --> add util function in AnalysisUtils
     if doRatio:
         if 'TH' in objType:
             if drawRatioUnc:
@@ -99,24 +98,11 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
                     hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
             else:
                 hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
+                print(hRatioToCompare[0].GetBinContent(1))
                 for iBin in range(1, hRatioToCompare[iFile].GetNbinsX()+1):
                     hRatioToCompare[iFile].SetBinError(iBin, 1.e-20)
             hRatioToCompare[iFile].SetDirectory(0)
-        else:
-            if drawRatioUnc:
-                if ratioUncCorr:
-                    print('WARNING: correlated uncertainty in ratio for TGraphs not implemented. Switching off')
-                    ratioUncCorr = False
-                     #TODO: extend ComputeRatioGraph to account for correlated uncertainties
-                else:
-                    hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))
-            else:
-                hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))
-                for iBin in range(hRatioToCompare[iFile].GetN()):
-                    hRatioToCompare[iFile].SetPointEYlow(iBin, 1.e-20)
-                    hRatioToCompare[iFile].SetPointEYhigh(iBin, 1.e-20)
-        #TODO: add case to manage ratio between graph and histo (utility function already available in AnalysisUtils)
-        hRatioToCompare[iFile].SetName(f'hRatio{iFile}')
+        #TODO: add util function in AnalysisUtils to manage ratios between graphs or graph and histo
         SetObjectStyle(hRatioToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker),
                        fillstyle=0)
     if doCompareUnc:
