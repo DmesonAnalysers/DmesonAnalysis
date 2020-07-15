@@ -291,9 +291,9 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                                                                 listEffFDUnc)):
         # efficiency
         hEffPromptVsCut[iPt].SetBinContent(iCutSet+1, effP)
-        hEffPromptVsCut[iPt].SetBinError(iCutSet+1, effPunc)
+        hEffPromptVsCut[iPt].SetBinError(iCutSet+1, 0.)
         hEffFDVsCut[iPt].SetBinContent(iCutSet+1, effF)
-        hEffFDVsCut[iPt].SetBinError(iCutSet+1, effFunc)
+        hEffFDVsCut[iPt].SetBinError(iCutSet+1, 0.)
 
         # raw yields (including prompt and non-prompt raw yields)
         hRawYieldsVsCut[iPt].SetBinContent(iCutSet+1, rawY)
