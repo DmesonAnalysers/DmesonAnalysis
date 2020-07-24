@@ -1,0 +1,115 @@
+inputs:
+    directory: ../../../Analysispp2017DplusLowPt/outputs/systematics/cutvariation
+    commonfilenames:
+        rawyield: RawYieldsDplus
+        efficiency: Efficiency_Dplus
+        crosssection: HFPtSpectrumDplus
+    cutsets: [
+              "_pp5TeV_central_pt0-1",
+              "_pp5TeV_pt0-1_outBkg_neg01",
+              "_pp5TeV_pt0-1_outBkg_neg02",
+              "_pp5TeV_pt0-1_outBkg_neg03",
+              "_pp5TeV_pt0-1_outBkg_neg04",
+              "_pp5TeV_pt0-1_outBkg_neg05",
+              "_pp5TeV_pt0-1_outBkg_neg06",
+              "_pp5TeV_pt0-1_outBkg_neg07",
+              "_pp5TeV_pt0-1_outBkg_neg08",
+              "_pp5TeV_pt0-1_outBkg_neg09",
+              "_pp5TeV_pt0-1_outBkg_neg10",
+              "_pp5TeV_pt0-1_outBkg_pos00",
+              "_pp5TeV_pt0-1_outBkg_pos01",
+              "_pp5TeV_pt0-1_outBkg_pos02",
+              "_pp5TeV_pt0-1_outBkg_pos03",
+              "_pp5TeV_pt0-1_outBkg_pos04",
+              "_pp5TeV_pt0-1_outBkg_pos05",
+              "_pp5TeV_pt0-1_outBkg_pos06",
+              "_pp5TeV_pt0-1_outBkg_pos07",
+              "_pp5TeV_pt0-1_outBkg_pos08",
+              "_pp5TeV_pt0-1_outBkg_pos09",
+              "_pp5TeV_pt0-1_outBkg_pos10",
+              "_pp5TeV_pt0-1_outPrompt_neg01",
+              "_pp5TeV_pt0-1_outPrompt_neg02",
+              "_pp5TeV_pt0-1_outPrompt_neg03",
+              "_pp5TeV_pt0-1_outPrompt_neg04",
+              "_pp5TeV_pt0-1_outPrompt_neg05",
+              "_pp5TeV_pt0-1_outPrompt_neg06",
+              "_pp5TeV_pt0-1_outPrompt_neg07",
+              "_pp5TeV_pt0-1_outPrompt_neg08",
+              "_pp5TeV_pt0-1_outPrompt_neg09",
+              "_pp5TeV_pt0-1_outPrompt_neg10",
+              "_pp5TeV_pt0-1_outPrompt_pos00",
+              "_pp5TeV_pt0-1_outPrompt_pos01",
+              "_pp5TeV_pt0-1_outPrompt_pos02",
+              "_pp5TeV_pt0-1_outPrompt_pos03",
+              "_pp5TeV_pt0-1_outPrompt_pos04",
+              "_pp5TeV_pt0-1_outPrompt_pos05",
+              "_pp5TeV_pt0-1_outPrompt_pos06",
+              "_pp5TeV_pt0-1_outPrompt_pos07",
+              "_pp5TeV_pt0-1_outPrompt_pos08",
+              "_pp5TeV_pt0-1_outPrompt_pos09",
+              "_pp5TeV_pt0-1_outPrompt_pos10",
+              "_pp5TeV_pt0-1_outPrompt_neg01_outBkg_neg01",
+              "_pp5TeV_pt0-1_outPrompt_neg01_outBkg_neg02",
+              "_pp5TeV_pt0-1_outPrompt_neg01_outBkg_neg03",
+              "_pp5TeV_pt0-1_outPrompt_neg01_outBkg_pos00",
+              "_pp5TeV_pt0-1_outPrompt_neg01_outBkg_pos01",
+              "_pp5TeV_pt0-1_outPrompt_neg01_outBkg_pos02",
+              "_pp5TeV_pt0-1_outPrompt_neg01_outBkg_pos03",
+              "_pp5TeV_pt0-1_outPrompt_neg02_outBkg_neg01",
+              "_pp5TeV_pt0-1_outPrompt_neg02_outBkg_neg02",
+              "_pp5TeV_pt0-1_outPrompt_neg02_outBkg_neg03",
+              "_pp5TeV_pt0-1_outPrompt_neg02_outBkg_pos00",
+              "_pp5TeV_pt0-1_outPrompt_neg02_outBkg_pos01",
+              "_pp5TeV_pt0-1_outPrompt_neg02_outBkg_pos02",
+              "_pp5TeV_pt0-1_outPrompt_neg02_outBkg_pos03",
+              "_pp5TeV_pt0-1_outPrompt_neg03_outBkg_neg01",
+              "_pp5TeV_pt0-1_outPrompt_neg03_outBkg_neg02",
+              "_pp5TeV_pt0-1_outPrompt_neg03_outBkg_neg03",
+              "_pp5TeV_pt0-1_outPrompt_neg03_outBkg_pos00",
+              "_pp5TeV_pt0-1_outPrompt_neg03_outBkg_pos01",
+              "_pp5TeV_pt0-1_outPrompt_neg03_outBkg_pos02",
+              "_pp5TeV_pt0-1_outPrompt_neg03_outBkg_pos03",
+              "_pp5TeV_pt0-1_outPrompt_pos00_outBkg_neg01",
+              "_pp5TeV_pt0-1_outPrompt_pos00_outBkg_neg02",
+              "_pp5TeV_pt0-1_outPrompt_pos00_outBkg_neg03",
+              "_pp5TeV_pt0-1_outPrompt_pos00_outBkg_pos00",
+              "_pp5TeV_pt0-1_outPrompt_pos00_outBkg_pos01",
+              "_pp5TeV_pt0-1_outPrompt_pos00_outBkg_pos02",
+              "_pp5TeV_pt0-1_outPrompt_pos00_outBkg_pos03",
+              "_pp5TeV_pt0-1_outPrompt_pos01_outBkg_neg01",
+              "_pp5TeV_pt0-1_outPrompt_pos01_outBkg_neg02",
+              "_pp5TeV_pt0-1_outPrompt_pos01_outBkg_neg03",
+              "_pp5TeV_pt0-1_outPrompt_pos01_outBkg_pos00",
+              "_pp5TeV_pt0-1_outPrompt_pos01_outBkg_pos01",
+              "_pp5TeV_pt0-1_outPrompt_pos01_outBkg_pos02",
+              "_pp5TeV_pt0-1_outPrompt_pos01_outBkg_pos03",
+              "_pp5TeV_pt0-1_outPrompt_pos02_outBkg_neg01",
+              "_pp5TeV_pt0-1_outPrompt_pos02_outBkg_neg02",
+              "_pp5TeV_pt0-1_outPrompt_pos02_outBkg_neg03",
+              "_pp5TeV_pt0-1_outPrompt_pos02_outBkg_pos00",
+              "_pp5TeV_pt0-1_outPrompt_pos02_outBkg_pos01",
+              "_pp5TeV_pt0-1_outPrompt_pos02_outBkg_pos02",
+              "_pp5TeV_pt0-1_outPrompt_pos02_outBkg_pos03",
+              "_pp5TeV_pt0-1_outPrompt_pos03_outBkg_neg01",
+              "_pp5TeV_pt0-1_outPrompt_pos03_outBkg_neg02",
+              "_pp5TeV_pt0-1_outPrompt_pos03_outBkg_neg03",
+              "_pp5TeV_pt0-1_outPrompt_pos03_outBkg_pos00",
+              "_pp5TeV_pt0-1_outPrompt_pos03_outBkg_pos01",
+              "_pp5TeV_pt0-1_outPrompt_pos03_outBkg_pos02",
+              "_pp5TeV_pt0-1_outPrompt_pos03_outBkg_pos03"
+              ] # the first one must be the default
+
+outfilename: ../../../Analysispp2017DplusLowPt/outputs/systematics/cutvariation/CutVariationSystematics_Dplus_pp5TeV_Prompt_1D_pt0-1_bias.pdf
+
+quality:
+    maxchisquare: 2.
+    minsignif: 2.
+    minrelsignif: 0.5
+    minreleff: 0.3
+    maxreleff: 2.5
+    fillthrreleff: 0.005
+
+plots:
+    plotrelativevar: 1 # 0 -> false, 1 -> true
+    relassignedsyst: [ 0.10] # list of values to be plotted, null if you don't want to plot it
+  

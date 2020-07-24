@@ -5,30 +5,48 @@ pp5TeVPrompt:
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
-    PtMin: [ 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24]   
-    PtMax: [ 2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24, 36]
-    MassMin: [ 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74]    
-    MassMax: [ 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00]
-    Rebin: [ 5, 5, 5, 5, 6, 6, 6, 6, 8, 8, 10, 10]
-    InclSecPeak: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    PtMin: [ 0.0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 9.0, 10., 12., 16., 24. ]
+    PtMax: [ 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 9.0, 10., 12., 16., 24., 36. ]
+    MassMin: [ 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.70, 1.70, 1.70, 1.70, 1.70 ] 
+    MassMax: [ 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00 ]
+    Rebin: [ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 6, 8, 12 ]
+    InclSecPeak: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
     UseLikelihood: 1
-    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
-    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
+    BkgFunc: [ 'kPol3', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+
+# prompt in FD bins
+# pp5TeVPrompt:
+#     Meson: 'Dplus'
+#     FixSigma: 0
+#     SigmaFile: ''
+#     SigmaMultFactor: 1.
+#     FixMean: 0
+#     MeanFile: ''
+#     PtMin: [ 2, 3, 4, 5, 6, 8, 10, 12 ]
+#     PtMax: [ 3, 4, 5, 6, 8, 10, 12, 16 ]
+#     MassMin: [ 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74 ] 
+#     MassMax: [ 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00 ]
+#     Rebin: [ 2, 2, 2, 2, 2, 2, 4, 4 ]
+#     InclSecPeak: [0, 0, 0, 0, 0, 0, 0, 0 ]
+#     UseLikelihood: 1
+#     BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+#     SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
 
 pp5TeVFD:
     Meson: 'Dplus'
-    FixSigma: 0
-    SigmaFile: ''
+    FixSigma: 1
+    SigmaFile: '~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_prompt_central.root'
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
-    PtMin: [ 1, 2, 3, 4, 5, 6, 7, 8, 10, 12]
-    PtMax: [ 2, 3, 4, 5, 6, 7, 8, 10, 12, 16]
-    MassMin: [ 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74] 
-    MassMax: [ 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00]
-    Rebin: [ 5, 5, 5, 5, 6, 6, 6, 6, 8, 8 ]
-    InclSecPeak: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+    PtMin: [ 2, 3, 4, 5, 6, 8, 10, 12 ]
+    PtMax: [ 3, 4, 5, 6, 8, 10, 12, 16 ]
+    MassMin: [ 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74, 1.74] 
+    MassMax: [ 2.00, 2.00, 2.00, 2.00, 1.98, 1.98, 1.98, 1.98]
+    Rebin: [ 6, 6, 6, 6, 8, 8, 8, 10 ]
+    InclSecPeak: [0, 0, 0, 0, 0, 0, 0, 0 ]
     UseLikelihood: 1
-    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
-    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
 

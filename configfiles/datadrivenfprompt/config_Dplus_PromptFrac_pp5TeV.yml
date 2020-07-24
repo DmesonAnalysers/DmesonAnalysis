@@ -1,11 +1,11 @@
 rawyields:
-    inputdir: ../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields
-    inputfiles: [ RawYields_Dplus_pp5TeV_FD5.root, RawYields_Dplus_pp5TeV_FD6.root, RawYields_Dplus_pp5TeV_FD7.root, RawYields_Dplus_pp5TeV_FD8.root, RawYields_Dplus_pp5TeV_FD9.root, RawYields_Dplus_pp5TeV_FD10.root, RawYields_Dplus_pp5TeV_FD11.root, RawYields_Dplus_pp5TeV_FD12.root, RawYields_Dplus_pp5TeV_FD13.root, RawYields_Dplus_pp5TeV_FD14.root, RawYields_Dplus_pp5TeV_FD15.root, RawYields_Dplus_pp5TeV_FD16.root, RawYields_Dplus_pp5TeV_FD17.root, RawYields_Dplus_pp5TeV_FD18.root, RawYields_Dplus_pp5TeV_FD19.root, RawYields_Dplus_pp5TeV_FD20.root, RawYields_Dplus_pp5TeV_FD21.root, RawYields_Dplus_pp5TeV_FD22.root, RawYields_Dplus_pp5TeV_FD23.root, RawYields_Dplus_pp5TeV_FD24.root, RawYields_Dplus_pp5TeV_FD25.root ] #, RawYields_Dplus_pp5TeV_FD26.root
+    inputdir: ../AnalysisNonPromptDpp2017/Dplus/outputs/fraction/rawyields
+    inputfiles: [ RawYieldsDplus_pp5TeV_FD_min.root, RawYieldsDplus_pp5TeV_FD_min_pos_001.root, RawYieldsDplus_pp5TeV_FD_min_pos_002.root, RawYieldsDplus_pp5TeV_FD_min_pos_003.root, RawYieldsDplus_pp5TeV_FD_min_pos_004.root, RawYieldsDplus_pp5TeV_FD_min_pos_005.root, RawYieldsDplus_pp5TeV_FD_min_pos_006.root, RawYieldsDplus_pp5TeV_FD_min_pos_007.root, RawYieldsDplus_pp5TeV_FD_min_pos_008.root, RawYieldsDplus_pp5TeV_FD_min_pos_009.root, RawYieldsDplus_pp5TeV_FD_min_pos_010.root, RawYieldsDplus_pp5TeV_FD_min_pos_011.root, RawYieldsDplus_pp5TeV_FD_min_pos_012.root, RawYieldsDplus_pp5TeV_FD_min_pos_013.root, RawYieldsDplus_pp5TeV_FD_min_pos_014.root, RawYieldsDplus_pp5TeV_FD_min_pos_015.root, RawYieldsDplus_pp5TeV_FD_min_pos_016.root, RawYieldsDplus_pp5TeV_FD_min_pos_017.root, RawYieldsDplus_pp5TeV_FD_min_pos_018.root, RawYieldsDplus_pp5TeV_FD_min_pos_019.root, RawYieldsDplus_pp5TeV_FD_min_pos_020.root ] 
     histoname: hRawYields
 
 efficiencies:
-    inputdir: ../AnalysisNonPromptDpp2017/Dplus/outputs/efficiency
-    inputfiles: [ EffAcc_Dplus_pp5TeV_FD5.root, EffAcc_Dplus_pp5TeV_FD6.root, EffAcc_Dplus_pp5TeV_FD7.root, EffAcc_Dplus_pp5TeV_FD8.root, EffAcc_Dplus_pp5TeV_FD9.root, EffAcc_Dplus_pp5TeV_FD10.root, EffAcc_Dplus_pp5TeV_FD11.root, EffAcc_Dplus_pp5TeV_FD12.root, EffAcc_Dplus_pp5TeV_FD13.root, EffAcc_Dplus_pp5TeV_FD14.root, EffAcc_Dplus_pp5TeV_FD15.root, EffAcc_Dplus_pp5TeV_FD16.root, EffAcc_Dplus_pp5TeV_FD17.root, EffAcc_Dplus_pp5TeV_FD18.root, EffAcc_Dplus_pp5TeV_FD19.root, EffAcc_Dplus_pp5TeV_FD20.root, EffAcc_Dplus_pp5TeV_FD21.root, EffAcc_Dplus_pp5TeV_FD22.root, EffAcc_Dplus_pp5TeV_FD23.root, EffAcc_Dplus_pp5TeV_FD24.root, EffAcc_Dplus_pp5TeV_FD25.root ] #, EffAcc_Dplus_pp5TeV_FD26.root
+    inputdir: ../AnalysisNonPromptDpp2017/Dplus/outputs/fraction/efficiencies
+    inputfiles: [ Eff_times_Acc_Dplus_pp5TeV_FD_min.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_001.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_002.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_003.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_004.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_005.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_006.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_007.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_008.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_009.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_010.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_011.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_012.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_013.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_014.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_015.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_016.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_017.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_018.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_019.root, Eff_times_Acc_Dplus_pp5TeV_FD_min_pos_020.root ]
     histonames:
         prompt: hAccEffPrompt
         feeddown: hAccEffFD
@@ -21,17 +21,16 @@ minimisation:
         feeddown: true 
 
 theorydriven:
-    enableFc: true
-    enableNb: true
+    enableFc: false
+    enableNb: false
     predictions:
         crosssec: 
             inputfile: models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root
             histonames: 
                 prompt: hDpluskpipipred
                 feeddown: hDpluskpipifromBpred
-        Raa:
+        Raa: 
             prompt: 1.
-            feeddown: 1.
-            model: null
+            feeddown: 1.  
     # below only needed for Nb
     sigmaMB: 50.87e+9

@@ -1,0 +1,25 @@
+cutvars:
+  InvMass:
+    axisnum: null
+    name: inv_mass
+  ML_output_Bkg:
+    axisnum: null
+    max:
+    - 0.038
+    min:
+    - 0.0
+    name: ML_output_Bkg
+  ML_output_Prompt:
+    axisnum: null
+    max:
+    - 1.0
+    min:
+    - 0.05
+    name: ML_output_Prompt
+  Pt:
+    axisnum: null
+    max:
+    - 1.0
+    min:
+    - 0.0
+    name: pt_cand
