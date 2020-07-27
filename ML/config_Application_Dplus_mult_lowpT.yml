@@ -1,0 +1,52 @@
+input: # files to use
+    prompt: ../../Analysispp2017DplusLowPt/inputs/MC/Prompt_Dpluspp5TeV_pt0_1_LHC20a7_pT_0_1.parquet.gzip
+    FD: ../../Analysispp2017DplusLowPt/inputs/MC/FD_Dpluspp5TeV_pt0_1_LHC20a7_pT_0_1.parquet.gzip
+    data: ../../Analysispp2017DplusLowPt/inputs/data/Data_Dpluspp5TeV_pt0_1_LHC17pq_pT_0_1.parquet.gzip
+
+output:
+    leg_labels: ['Background', 'Prompt D$^+$', 'FD D$^+$'] # legend labels
+    out_labels: ['Bkg', 'Prompt', 'FD'] # output labels
+    dir: '../../Analysispp2017DplusLowPt/outputs/ML/MissingValuesTOF/PIDTOFTPC' # output dir
+
+pt_ranges: # ranges in pt to split the data in the ml training and testing
+    min: [ 0 ] # list
+    max: [ 1 ] # list
+
+data_prep:
+    filt_bkg_mass: inv_mass < 1.82 or 1.92 < inv_mass < 2.00 # pandas query to select bkg candidates
+    dataset_opt: max_signal  # change how the dataset is built, options available: 'equal', 'max_signal'
+                        # 'equal' -> same number of prompt/FD/bkg (not using all the signal available)
+                        # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = 2 * (n_prompt + n_FD)
+    bkg_mult: [3.] #, 3., 3., 3., 3., 3., 3., 3., 3., 3., 3.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    seed_split: 42 # seed used for train_test_split(...)
+    test_fraction: 1. # fraction of data used for test set and efficiencies     
+
+ml:
+    raw_output: False # use raw_output (True) of probability (False) as output of the model
+    roc_auc_average: 'macro' # 'macro' or 'weighted'
+    roc_auc_approach: 'ovo'  # 'ovo' or 'ovr'
+    training_columns: [d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, sig_vert, max_norm_d0d0exp, nsigTPC_Pi_0, nsigTPC_K_0, nsigTPC_Pi_1, nsigTPC_K_1, nsigTPC_Pi_2, nsigTPC_K_2, nsigTOF_Pi_0, nsigTOF_K_0, nsigTOF_Pi_1, nsigTOF_K_1, nsigTOF_Pi_2, nsigTOF_K_2] 
+                       # list of training variables
+
+    hyper_par: [{'max_depth': 3, 'learning_rate': 0.15918, 'n_estimators': 1010, 'min_child_weight': 5.6281, 'subsample': 0.8093, 'colsample_bytree': 0.8912, 'n_jobs': 4, 'tree_method': hist}]
+                # list of dicts of hyperparameters (one for each pT bin)
+
+    hyper_par_opt:
+      do_hyp_opt: False # whether to do the parameter optimization
+      njobs: -1 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
+      nfolds: 5 # number of folds used in cross validation
+      initpoints: 10 # steps of random exploration you want to perform
+      niter: 15 # steps for bayesian optimization
+      bayes_opt_config: {}
+                        # configuration dictionary for optimize_params_bayes()
+    
+    saved_models: [../../Analysispp2017DplusLowPt/outputs/ML/MissingValuesTOF/PIDTOFTPC/pt0_1/ModelHandler_pT_0_1.pickle]
+                  # list of saved ModelHandler (path+file), compatible with the pt bins
+
+plots:
+    plotting_columns: [inv_mass, pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, max_norm_d0d0exp, imp_par_xy, sig_vert, nsigTPC_Pi_0, nsigTPC_K_0, nsigTPC_Pi_1, nsigTPC_K_1, nsigTPC_Pi_2, nsigTPC_K_2, nsigTOF_Pi_0, nsigTOF_K_0, nsigTOF_Pi_1, nsigTOF_K_1, nsigTOF_Pi_2, nsigTOF_K_2] 
+                       # list of variables to plot
+    train_test_log: True # use log scale for plots of train and test distributions
+  
+df_column_to_save_opt: 
+    df_column_to_save_list: ['inv_mass', 'pt_cand', 'pt_B'] # list of variables saved in the dataframes with the applied models
