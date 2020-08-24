@@ -19,6 +19,8 @@
 #include "AliPhysicsSelectionTask.h"
 #include "AliMultSelectionTask.h"
 #include "AliAnalysisTaskPIDResponse.h"
+#include "AliAnalysisTaskSEImproveITSCVMFS.h"
+#include "AliAnalysisTaskSEImproveITS3.h"
 #include "AliAnalysisTaskSECleanupVertexingHF.h"
 
 #include "AliAnalysisTaskSEHFTreeCreator.h"
@@ -84,8 +86,30 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
             gridTest = true;
     }
 
-    bool useImprover = static_cast<bool>(config["improver"]["enable"].as<int>());
-    string improverPeriod = config["improver"]["period"].as<string>();
+    //improver options
+    int useImprover = kNoImprover;
+    string improverPeriod = "";
+    string improverFileCurrent = "";
+    string improverFileUpgrade = "";
+    if(config["improver"]["current"]["enable"].as<int>())
+    {
+        useImprover = kCurrentImprover;
+        improverPeriod = config["improver"]["current"]["period"].as<string>();
+    }
+    if(config["improver"]["upgrade"]["enable"].as<int>())
+    {
+        if(useImprover == kCurrentImprover)
+        {
+            cerr << "ERROR: you cannot use the improver for the current ITS and for the upgraded one! Check your config file. Exit" << endl;
+            return;
+        }
+        else
+        {
+            useImprover = kUpgradeImprover;
+            improverFileCurrent = config["improver"]["upgrade"]["currentresolfile"].as<string>();
+            improverFileUpgrade = config["improver"]["upgrade"]["upgraderesolfile"].as<string>();
+        }
+    }
 
     string wagonName = config["task"]["wagonname"].as<string>();
     string cutFileName = config["task"]["cuts"]["infile"].as<string>();
@@ -119,6 +143,19 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
     taskTreeCr->EnableEventDownsampling(0.1, 0);
     if (system == AliAnalysisTaskSEDplus::kPbPb || system == AliAnalysisTaskSEDs::kPbPb)
         taskTreeCr->SetNsigmaTPCDataDrivenCorrection(0);
+
+    //improver task (if MC)
+    if (isRunOnMC)
+    {
+        if(useImprover==kCurrentImprover && improverPeriod != "")
+        {    
+            AliAnalysisTaskSEImproveITSCVMFS *taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITSCVMFS *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskImproveITSCVMFS.C"), false,"","",0)));
+        }
+        else if(useImprover==kUpgradeImprover && improverFileCurrent != "" && improverFileUpgrade != "")
+        {
+            AliAnalysisTaskSEImproveITS3* taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITS3 *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/upgrade/AddTaskImproverUpgrade.C"), false, improverFileCurrent.data() ,improverFileUpgrade.data(), 0)));
+        }
+    }
 
     //D+ or Ds tasks
     if (meson == "Dplus")
