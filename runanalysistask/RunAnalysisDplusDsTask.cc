@@ -19,7 +19,7 @@
 #include "AliPhysicsSelectionTask.h"
 #include "AliAnalysisTaskPIDResponse.h"
 #include "AliMultSelectionTask.h"
-#include "AliAnalysisTaskSEImproveITS.h"
+#include "AliAnalysisTaskSEImproveITSCVMFS.h"
 #include "AliAnalysisTaskSEImproveITS3.h"
 #include "AliAnalysisTaskSECleanupVertexingHF.h"
 #include "AliAnalysisTaskSEDplus.h"
@@ -163,7 +163,7 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     //physics selection task
     AliPhysicsSelectionTask *physseltask = nullptr;
     if (runMode != "terminate")
-        physseltask = reinterpret_cast<AliPhysicsSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s(%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"), isRunOnMC)));
+        physseltask = reinterpret_cast<AliPhysicsSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s(%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/macros/AddTaskPhysicsSelection.C"), isRunOnMC, true)));
 
     //pid response task
     AliAnalysisTaskPIDResponse *pidResp = reinterpret_cast<AliAnalysisTaskPIDResponse *>(gInterpreter->ProcessLine(Form(".x %s(%d)", gSystem->ExpandPathName("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"), isRunOnMC)));
@@ -171,7 +171,6 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     //mult sel task
     if(system == AliAnalysisTaskSEDplus::kPbPb || system == AliAnalysisTaskSEDs::kPbPb) {
         AliMultSelectionTask *multSel = reinterpret_cast<AliMultSelectionTask *>(gInterpreter->ProcessLine(Form(".x %s", gSystem->ExpandPathName("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/macros/AddTaskMultSelection.C"))));
-
         if(strstr(gridDataDir.c_str(),"LHC15o") || strstr(gridDataDir.c_str(),"LHC16i2")) multSel->SetAlternateOADBforEstimators("LHC15o-DefaultMC-HIJING");
         else if((strstr(gridDataDir.c_str(),"LHC18q") || strstr(gridDataDir.c_str(),"LHC18r") || strstr(gridDataDir.c_str(),"LHC19c")) && isRunOnMC) multSel->SetAlternateOADBFullManualBypassMC("$ALICE_PHYSICS/OADB/COMMON/MULTIPLICITY/data/OADB-LHC18q-DefaultMC-HIJING.root");
     }
@@ -181,7 +180,7 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     {
         if(useImprover==kCurrentImprover && improverPeriod != "")
         {    
-            AliAnalysisTaskSEImproveITS *taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITS *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskImproveITS.C"), false, improverPeriod.data())));
+            AliAnalysisTaskSEImproveITSCVMFS *taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITSCVMFS *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskImproveITSCVMFS.C"), false,"","",0)));
         }
         else if(useImprover==kUpgradeImprover && improverFileCurrent != "" && improverFileUpgrade != "")
         {
