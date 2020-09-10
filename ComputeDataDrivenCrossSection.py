@@ -56,10 +56,8 @@ if args.Dplus and args.Ds:
     print('ERROR: not possible to select more than one meson at the same time! Exit')
     sys.exit()
 elif args.Dplus:
-    BR = 0.0898
     systErr.Init(2)
 elif args.Ds:
-    BR = 0.0227
     systErr.Init(4)
 else:
     print('ERROR: Dplus or Ds must be specified! Exit')
@@ -164,7 +162,7 @@ for iPt in range(hCrossSection.GetNbinsX()):
         uncFrac = fFDUnc
 
     crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
-                                                ptMax - ptMin, 1., sigmaMB, nEv, BR)
+                                                ptMax - ptMin, 1., sigmaMB, nEv, 1.)
     hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6)  # convert from pb to mub
     hCrossSection.SetBinError(iPt+1, crossSecUnc * 1.e-6) # convert from pb to mub
 
