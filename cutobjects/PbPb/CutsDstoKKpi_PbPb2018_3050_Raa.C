@@ -1200,7 +1200,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018_Pass3(bool fUseStrongPID 
     TString pidname = "";
     if(fUseStrongPID) pidname = Form("_strongPIDpt%0.f", maxPtstrongPID);
 
-    TFile* fout=new TFile(Form("DstoKKpiCuts2018_3050_central%s_Raa_%s%s_pt%0.f_%0.f.root", pidname.Data(), triggername.Data(), trackCutName.Data(), ptmin, ptmax),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_central%s_Raa_%s%s_pt%0.f_%0.f_2018pass3.root", pidname.Data(), triggername.Data(), trackCutName.Data(), ptmin, ptmax),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
@@ -1314,7 +1314,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Filt2018_Pass3(bool fIsMC=false, doub
     TString triggername = "kINT7_kSemiCentral";
     if(fIsMC) triggername = "kMB";
 
-    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_filttreecreatorQM_Raa_%s_pt%0.f_%0.f.root",triggername.Data(),ptmin,ptmax),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_filt_Raa_%s_pt%0.f_%0.f_2018pass3.root",triggername.Data(),ptmin,ptmax),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();

@@ -455,7 +455,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDsVn3050_Central_Pass3(bool fUseStrongPID = 
     if(fUseStrongPID)
         pidname = Form("_strongPIDpt%0.f", maxPtstrongPID);
 
-    TFile* fout=new TFile(Form("DstoKKpiCuts2018_3050_central%s_v2_kINT7_kSemiCentral.root",pidname.Data()),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_central%s_v2_kINT7_kSemiCentral_2018pass3.root",pidname.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
