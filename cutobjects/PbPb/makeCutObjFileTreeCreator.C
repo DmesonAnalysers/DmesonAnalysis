@@ -56,8 +56,8 @@ void makeCutsTreeCreator(bool fIncludeDs=true, bool fIncludeDplus=false, int cen
             centname="3050";
             triggername="kINT7_kSemiCentral";
             if(fIncludeDs) {
-                cutsDsFilt = MakeFileForCutsDs3050_FiltTreeCreator2018QM(fIsMC, ptDsmin, ptDsmax);
-                cutsDsCent = MakeFileForCutsDs3050_Central2018(true, 8.0, fIsMC, 0, ptDsmin, ptDsmax);
+                cutsDsFilt = MakeFileForCutsDs3050_Filt2018_Pass3(fIsMC, ptDsmin, ptDsmax);
+                cutsDsCent = MakeFileForCutsDs3050_Central2018_Pass3(true, 8.0, fIsMC, 0, ptDsmin, ptDsmax);
             }
             if(fIncludeDplus) {
                 cutsDplusFilt = MakeFileForCutsDplus3050_FiltTreeCreator2018(false, -1.0, fIsMC);
