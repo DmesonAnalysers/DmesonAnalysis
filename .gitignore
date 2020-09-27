@@ -15,3 +15,4 @@ cutobjects/*.root
 cutobjects/*/*.root
 filterdata/*.root
 filterdata/*.parquet*
+RelativeSystematics.eps
