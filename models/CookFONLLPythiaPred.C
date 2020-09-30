@@ -32,13 +32,13 @@ enum { // options for re-weight
   kAccurate // correct each b-hadron contribution indipendently (modify also the pT dependence)
 };
 
-void CookFONLLPythiaPred(std::string inFileNameMin = "DfromB_FONLLminEvtGen_FFppbar_yDcut_pp502TeV.root", // min FONLL predictions
-                          std::string inFileNameCent = "DfromB_FONLLcentEvtGen_FFppbar_yDcut_pp502TeV.root", // central FONLL predictions
-                          std::string inFileNameMax = "DfromB_FONLLmaxEvtGen_FFppbar_yDcut_pp502TeV.root",  // max FONLL predictions
-                          std::string outFileName = "DmesonLcPredictions_502TeV_y05_EvtGen_FFee_BRPDGmix_SepContr.root",
-                          int brOpt = kBRPDGmix,
-                          int ffOpt = kFFee,
-                          int wOpt = kAccurate) {
+void CookFONLLPythiaPred(std::string inFileNameMin = "DfromB_FONLLminPythia8_FFppbar_yDcut_pp502TeV.root", // min FONLL predictions
+                         std::string inFileNameCent = "DfromB_FONLLcentPythia8_FFppbar_yDcut_pp502TeV.root", // central FONLL predictions
+                         std::string inFileNameMax = "DfromB_FONLLmaxPythia8_FFppbar_yDcut_pp502TeV.root",  // max FONLL predictions
+                         std::string outFileName = "DmesonLcPredictions_502TeV_y05_FFppbar_BRPDGmix_SepContr.root",
+                         int brOpt = kBROriginal,
+                         int ffOpt = kFFee,
+                         int wOpt = kAccurate) {
 
   std::array<std::string, 3> inFileNames = {inFileNameMin, inFileNameCent, inFileNameMax};
   std::array<std::string, 3> edgeNames = {"min", "central", "max"};
