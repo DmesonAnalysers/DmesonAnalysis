@@ -25,7 +25,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
     esdTrackCuts->SetMaxChi2PerClusterTPC(2.5);
-    esdTrackCuts->SetMinNCrossedRowsTPC(70);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD, AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
@@ -295,7 +294,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Loose2018(bool fUseStrongPID=f
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
     esdTrackCuts->SetMaxChi2PerClusterTPC(2.5);
-    esdTrackCuts->SetMinNCrossedRowsTPC(70);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD, AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
@@ -516,7 +514,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_FiltTreeCreator2018(bool fUseS
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
     esdTrackCuts->SetMaxChi2PerClusterTPC(2.5);
-    esdTrackCuts->SetMinNCrossedRowsTPC(70);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD, AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);

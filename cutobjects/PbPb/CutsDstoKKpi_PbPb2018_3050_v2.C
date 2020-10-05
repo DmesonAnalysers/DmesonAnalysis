@@ -246,7 +246,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDsVn3050_Central_Pass3(bool fUseStrongPID = 
     esdTrackCuts->SetRequireSigmaToVertex(false);
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
-    esdTrackCuts->SetMinNCrossedRowsTPC(70);
     esdTrackCuts->SetMaxChi2PerClusterTPC(2.5);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                            AliESDtrackCuts::kAny);
