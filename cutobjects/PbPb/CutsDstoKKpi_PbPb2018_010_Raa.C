@@ -946,7 +946,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     analysiscuts->SetPtBins(nptbins+1,ptbins);
     analysiscuts->SetCuts(nvars,nptbins,anacutsval);
     analysiscuts->AddTrackCuts(esdTrackCuts);
-    analysiscuts->SetMinNumTPCClsForPID(50);
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
 
