@@ -87,7 +87,6 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
 
     // CheckHFProd task
     AliAnalysisTaskCheckHFMCProd* taskHFMCProd = reinterpret_cast<AliAnalysisTaskCheckHFMCProd *>(gInterpreter->ProcessLine(Form(".x %s(%d, %d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddHFMCCheck.C"), system, isRunOnMC)));
-    cout << ptMin << "  " << ptMax << "  " << nPtBins << endl;
     taskHFMCProd->SetPtBins(ptMin, ptMax, nPtBins);
     taskHFMCProd->SetYBins(-2., 2., 40);
 
