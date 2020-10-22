@@ -1,6 +1,6 @@
 runtype: grid #local, test, grid
 pathtolocalAOD: '.'
-meson: Dplus
+hadron: Dplus
 system: pp
 datadir: /alice/data/2017/LHC17q/
 datapattern: pass1_FAST/AOD

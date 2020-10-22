@@ -24,6 +24,7 @@
 #include "AliAnalysisTaskSECleanupVertexingHF.h"
 #include "AliAnalysisTaskSEDplus.h"
 #include "AliAnalysisTaskSEDs.h"
+#include "AliAnalysisTaskSENonPromptLc.h"
 
 #endif
 
@@ -36,7 +37,7 @@ enum improverType {
 };
 
 //______________________________________________
-void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bool mergeviajdl = true)
+void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", bool mergeviajdl = true)
 {
 
     //_________________________________________________________________________________________________________________
@@ -48,26 +49,26 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
     string gridWorkingDir = config["gridworkdir"].as<string>();
     int splitmaxinputfilenum = config["splitmaxinputfilenum"].as<int>();
 
-    string meson = config["meson"].as<string>();
+    string hadron = config["hadron"].as<string>();
     string sSystem = config["system"].as<string>();
     int system = -1;
     if (sSystem == "pp")
     {
-        if (meson == "Dplus")
+        if (hadron == "Dplus")
             system = AliAnalysisTaskSEDplus::kpp;
-        else if (meson == "Ds")
+        else if (hadron == "Ds")
             system = AliAnalysisTaskSEDs::kpp;
     }
     else if (sSystem == "PbPb")
     {
-        if (meson == "Dplus")
+        if (hadron == "Dplus")
             system = AliAnalysisTaskSEDplus::kPbPb;
-        else if (meson == "Ds")
+        else if (hadron == "Ds")
             system = AliAnalysisTaskSEDs::kPbPb;
     }
     else if (sSystem == "Upgr")
     {
-        if (meson == "Ds")
+        if (hadron == "Ds")
             system = AliAnalysisTaskSEDs::kUpgr;
     }
     else
@@ -188,8 +189,8 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
         }
     }
 
-    //D+ or Ds tasks
-    if (meson == "Dplus")
+    //D+ or Ds or Lc tasks
+    if (hadron == "Dplus")
     {
         AliAnalysisTaskSEDplus *taskDplus = reinterpret_cast<AliAnalysisTaskSEDplus *>(gInterpreter->ProcessLine(Form(".x %s(%d,%f,%f,%d,%d,%d,%d,\"%s\",\"%s\",\"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskDplus.C"), system, 0., 100., storeTreeML, storeSparse, false, isRunOnMC, wagonName.data(), cutFileName.data(), cutObjName.data())));
         if(applyML)
@@ -205,7 +206,7 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
             taskDplus->SetFillOnlySignalInMLtree(fillOnlySignalTreeML);
         }
     }
-    else if (meson == "Ds")
+    else if (hadron == "Ds")
     {
         AliAnalysisTaskSEDs *taskDs = reinterpret_cast<AliAnalysisTaskSEDs *>(gInterpreter->ProcessLine(Form(".x %s(%d,%d,%d,%d,\"%s\",\"%s\",%d,%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskDs.C"), system, isRunOnMC, 0, storeSparse, cutFileName.data(), wagonName.data(), storeTreeML, applyML, confFileML.data(), cutObjName.data(), storeSparse)));
         if(storeSparse)
@@ -223,6 +224,22 @@ void RunAnalysisDplusDsTask(TString configfilename, TString runMode = "full", bo
             taskDs->SetMLTreePIDopt(pidTreeOpt);
             taskDs->SetMLTreeAddTrackVar(enableTrackVarsTreeML);
             taskDs->SetFillOnlySignalInMLtree(fillOnlySignalTreeML);
+        }
+    }
+    else if (hadron == "LcpKpi" || hadron == "LcpK0s" || hadron == "LcpiL")
+    {
+        int channel = AliAnalysisTaskSENonPromptLc::kLctopKpi;
+        if(hadron == "LcpK0s")
+            channel = AliAnalysisTaskSENonPromptLc::kLctopK0s;
+        else if(hadron == "LcpiL")
+            channel = AliAnalysisTaskSENonPromptLc::kLctopiL;
+        
+        AliAnalysisTaskSENonPromptLc *taskLc = reinterpret_cast<AliAnalysisTaskSENonPromptLc *>(gInterpreter->ProcessLine(Form(".x %s(%d, %d, \"%s\", \"%s\", %d, \"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskNonPromptLc.C"), channel, isRunOnMC, cutFileName.data(), wagonName.data(), storeTreeML, "AnalysisCuts")));
+        if(storeTreeML)
+        {
+            taskLc->SetMLTreePIDopt(pidTreeOpt);
+            taskLc->SetMLTreeAddTrackVar(enableTrackVarsTreeML);
+            taskLc->SetFillOnlySignalInMLtree(fillOnlySignalTreeML);
         }
     }
 

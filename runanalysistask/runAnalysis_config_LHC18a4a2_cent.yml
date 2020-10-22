@@ -1,6 +1,6 @@
-runtype: grid #local, test, grid
-pathtolocalAOD: '.'
-meson: Dplus
+runtype: local #local, test, grid
+pathtolocalAOD: 'AODfiles/LHC20g11a/'
+hadron: LcpK0s
 system: pp
 datadir: /alice/sim/2018/LHC18a4a2_cent/
 datapattern: AOD
@@ -14,7 +14,7 @@ runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 2
 
 improver:
     current:
-        enable: 1
+        enable: 0
         period: LHC17pq_G3MC_cent
     upgrade:
         enable: 0
@@ -24,7 +24,7 @@ improver:
 task:
     wagonname: Loose_kMB
     cuts:
-        infile: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonStdAnalysisPbPb/cutobjects/pp/DplustoKpipiCuts_pp_nonprompt_loose_kINT7.root
+        infile: /Users/fabrizio/cernbox/ALICE_WORK/DmesonAnalysis/cutobjects/pp/LctoV0bachelorCuts_pp_nonprompt_loose_kMB.root
         objname: AnalysisCuts
     storesparse: 1
     treeML:

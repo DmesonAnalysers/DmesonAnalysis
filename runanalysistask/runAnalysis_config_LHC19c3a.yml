@@ -1,6 +1,6 @@
 runtype: grid #local, test, grid
 pathtolocalAOD: '.'
-meson: Ds
+hadron: Ds
 system: PbPb
 datadir: /alice/sim/2019/LHC19c3a/
 datapattern: AOD
