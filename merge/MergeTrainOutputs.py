@@ -61,14 +61,13 @@ for iRun, run in enumerate(runs):
         print(f'\33[31mNo outputs for run {run}, continue\33[0m')
         runsToRemove.append(run)
         continue
-    else:
-        listOfFiles = grid.Ls(dirName.replace('alien://', ''))
-        for iFile in range(listOfFiles.GetEntries()):
-            if listOfFiles.GetFileName(iFile).isdigit():
-                inDirs[iRun].append(listOfFiles.GetFileName(iFile))
+
+    listOfFiles = grid.Ls(dirName.replace('alien://', ''))
+    for iFile in range(listOfFiles.GetEntries()):
+        if listOfFiles.GetFileName(iFile).isdigit():
+            inDirs[iRun].append(listOfFiles.GetFileName(iFile))
 
     print(f'\33[32mStart download of files for run {run}\33[0m')
-    dirNum = 1
     if not inputCfg['MergeOptions']['MergeByRun']:
         for inDir in inDirs[iRun]:
             inName = os.path.join(dirName, f'{inDir}')
@@ -124,7 +123,7 @@ if inputCfg['MergeOptions']['DoTotalMerge']:
     for run in runs:
         inRunDir = os.path.join(inputCfg['OutputPath'], f'{run}')
         for fileName in os.listdir(inRunDir):
-            if os.path.isdir(fileName):
+            if os.path.isdir(os.path.join(inRunDir, fileName)):
                 for fileNameSubdir in os.listdir(os.path.join(inRunDir, fileName)):
                     filesToMerge.append(os.path.join(inRunDir, fileName, fileNameSubdir))
             else:
@@ -164,9 +163,10 @@ if inputCfg['MergeOptions']['DoTotalMerge']:
         if os.path.isfile(fileToMerge):
             os.remove(fileToMerge)
     for run in runs:
-        for subDir in os.listdir(os.path.join(inputCfg['OutputPath'], f'{run}')):
-            if os.path.isdir(subDir):
-                os.rmdir(os.path.join(inputCfg['OutputPath'], f'{run}', subDir))                
-        os.rmdir(os.path.join(inputCfg['OutputPath'], f'{run}'))
+        inRunDir = os.path.join(inputCfg['OutputPath'], f'{run}')
+        for subDir in os.listdir(inRunDir):
+            if os.path.isdir(os.path.join(inRunDir, subDir)):
+                os.rmdir(os.path.join(inRunDir, subDir))
+        os.rmdir(os.path.join(inRunDir))
 
 gROOT.Reset()
