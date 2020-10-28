@@ -19,7 +19,7 @@ from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
 from hipe4ml.tree_handler import TreeHandler
 
-def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylint: disable=too-many-statements
+def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylint: disable=too-many-statements, too-many-branches
     '''
     function for data preparation
     '''
