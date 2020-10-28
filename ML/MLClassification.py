@@ -195,6 +195,7 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
 
     # save model handler in pickle
     ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.pickle')
+    ModelHandl.dump_original_model(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.model')
 
     #plots
     LegLabels = inputCfg['output']['leg_labels']
@@ -253,7 +254,7 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, df_column_to_save_list]
     if FDDfPtSelForEff.empty:
         out = 'Signal'
-        PromptDfPtSelForEff[f'ML_output'] = yPredPromptEff
+        PromptDfPtSelForEff['ML_output'] = yPredPromptEff
     else:
         out = 'Prompt'
         for Pred, Lab in enumerate(OutputLabels):
@@ -277,7 +278,7 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
         df_column_to_save_list_data.remove('pt_B') # only in MC
     DataDfPtSel = DataDfPtSel.loc[:, df_column_to_save_list_data]
     if FDDfPtSelForEff.empty:
-        DataDfPtSel[f'ML_output'] = yPredData
+        DataDfPtSel['ML_output'] = yPredData
     else:
         for Pred, Lab in enumerate(OutputLabels):
             DataDfPtSel[f'ML_output_{Lab}'] = yPredData[:, Pred]
@@ -285,7 +286,7 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     print('Applying ML model to data dataframe: Done!')
 
 
-def main():
+def main(): #pylint: disable=too-many-statements
     # read config file
     parser = argparse.ArgumentParser(description='Arguments to pass')
     parser.add_argument('cfgFileName', metavar='text', default='cfgFileNameML.yml', help='config file name for ml')
@@ -343,7 +344,7 @@ def main():
             ModelList = inputCfg['ml']['saved_models']
             ModelPath = ModelList[iBin]
             if not isinstance(ModelPath, str):
-                print(f'\033[91mERROR: path to model not correctly defined!\033[0m')
+                print('\033[91mERROR: path to model not correctly defined!\033[0m')
                 sys.exit()
             ModelPath = os.path.expanduser(ModelPath)
             print(f'Loaded saved model: {ModelPath}')
