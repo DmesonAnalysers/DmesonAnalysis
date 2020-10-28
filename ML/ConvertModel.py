@@ -25,5 +25,5 @@ else:
     print(f'ERROR: invalid input file {ModelHandl}, please check it! Exit')
     sys.exit()
 
-ModelHandl.dump_original_model(outFileName)
+ModelHandl.dump_original_model(outFileName, True)
 print(f'Saved model: {outFileName}')
