@@ -89,6 +89,10 @@ Taa: 0.00000002307 #pb-1
 
 expectedSignalFrom: 'feeddown' # Choice between: 'prompt' or 'feeddown'
 
+BkgCorrFactor:
+    filename: '/home/alidock/DmesonAnalysis/optimisation/BkgCorrFactor/BkgCorrFact_ITS1_AllpT.root' #keep empty if no MC bkg correction is needed
+    histonames: hBkgCorrFactorOverPt
+
 ptmin: [1, 2, 4, 6, 8] #GeV
 ptmax: [2, 4, 6, 8, 12] #GeV
 

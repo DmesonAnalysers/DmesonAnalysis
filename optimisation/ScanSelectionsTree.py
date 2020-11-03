@@ -178,8 +178,9 @@ estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'EffAccPrompt': 
             'EffAccFD': '(Acc#times#font[152]{e})_{FD}', 'fPrompt': '#it{f}_{ prompt}^{ fc}',
             'fFD': '#it{f}_{ FD}^{ fc}'}
 
-varsName4Tuple = ':'.join(cutVars) + \
-    ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:EffAccPromptError:EffAccFDError:SError:' + ':'.join(estNames.keys())
+varsName4Tuple = ':'.join(cutVars) + 
+                 ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:BError:EffAccPromptError:EffAccFDError:SError:' + 
+                 ':'.join(estNames.keys())
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = 1
@@ -325,8 +326,10 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 hMassSB.Write()
 
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
+            if inputCfg['BkgCorrFactor']['filename']:
+                expBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin((ptMax+ptMin)/2))
 
-            # S/B and significance and Signal Error
+            # S/B and significance
             expSoverB = 0.
             expSignif = 0.
             Serror = 0.
@@ -338,11 +341,17 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
             # Efficiency, Bkg and Signal Error
             BError =  np.sqrt(expBkg)
-            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 + (preselEffFDUnc/preselEffFD)**2 + (accUnc/acc)**2)*effTimesAccFD
-            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 + (preselEffPromptUnc/preselEffPrompt)**2 + (accUnc/acc)**2)*effTimesAccPrompt
+            EffAccFDError = np.sqrt((effFDUnc/effFD)**2 
+                                    + (preselEffFDUnc/preselEffFD)**2 
+                                    + (accUnc/acc)**2)*effTimesAccFD
+            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2 
+                                        + (preselEffPromptUnc/preselEffPrompt)**2 
+                                        + (accUnc/acc)**2)*effTimesAccPrompt
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, BError, EffAccPromptError, EffAccFDError, SError,
-                                       expSignif, expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, BError, 
+                                       EffAccPromptError, EffAccFDError, SError, expSignif, 
+                                       expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], 
+                                       fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))
             estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'EffAccPrompt': effTimesAccPrompt,
                          'EffAccFD': effTimesAccFD, 'fPrompt': fPrompt[0], 'fFD': fFD[0]}

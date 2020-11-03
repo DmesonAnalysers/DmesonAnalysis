@@ -12,13 +12,19 @@ efficiencies:
 
 minimisation:
     correlated: true # true --> fully correlated, false --> fully uncorrelated
-    doRawYieldSmearing: false # whether to smear the yields with a poissonian error 
+    doRawYieldSmearing: false # whether to smear the yields with a poissonian error
+    setseed: false # set the seed for Poissonian smearing
     applyEffVariation:
         enable: false
         relvariation: 0.05
         option: decreasing # available options: [upshift, downshift, decreasing, increasing]
         prompt: true
-        feeddown: true 
+        feeddown: true
+
+linearplot: 
+    enable: true #enable linear plots NpromptVsNFD
+    uncbands: true #enable upper/lower linear plots limits
+    outfileformat: ['png', 'pdf', 'jpg'] # linear plot saved in different output formats (e.g. png, pdf, etc.). Plots are already saved in the ouput TFile
 
 theorydriven:
     enableFc: false
@@ -31,6 +37,7 @@ theorydriven:
                 feeddown: hDpluskpipifromBpred
         Raa: 
             prompt: 1.
-            feeddown: 1.  
+            feeddown: 1.
+            model: tamu # avaliable models: 'phsd', 'Catania', 'tamu', 'MCatsHQ'
     # below only needed for Nb
     sigmaMB: 50.87e+9
