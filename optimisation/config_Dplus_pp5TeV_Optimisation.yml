@@ -49,6 +49,10 @@ Taa: 1.
 
 expectedSignalFrom: 'prompt' # Choice between: 'prompt' or 'feeddown'
 
+BkgCorrFactor:
+    filename: '/home/alidock/DmesonAnalysis/optimisation/BkgCorrFactor/BkgCorrFact_ITS1_AllpT.root' #keep empty if no MC bkg correction is needed
+    histonames: hBkgCorrFactorOverPt
+
 ptmin: [1]
 ptmax: [2]
 
