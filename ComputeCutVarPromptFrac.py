@@ -9,7 +9,7 @@ import os
 from itertools import product
 import numpy as np
 import yaml
-from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, gRandom  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, gRandom, TF1  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross, kOpenDiamond # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDFractionFc, GetFractionNb
@@ -34,6 +34,7 @@ with open(args.cfgFileName, 'r') as ymlCutSetFile:
 
 inputFilesRaw = cutSetCfg['rawyields']['inputfiles']
 inputFilesEff = cutSetCfg['efficiencies']['inputfiles']
+inputFilesBkg = cutSetCfg['background']['inputfiles']
 nSets = len(cutSetCfg['rawyields']['inputfiles'])
 
 doRawYieldsSmearing = cutSetCfg['minimisation']['doRawYieldSmearing']
@@ -48,7 +49,7 @@ if nSets != len(cutSetCfg['efficiencies']['inputfiles']):
     print('ERROR: number or raw yield files and efficiency files not consistent! Please check your config file. Exit')
     sys.exit()
 
-hRawYields, hEffPrompt, hEffFD, hEv = [], [], [], []
+hRawYields, hEffPrompt, hEffFD, hEv, hBkg = [], [], [], [], []
 
 # load RAA
 RaaPrompt_config = cutSetCfg['theorydriven']['predictions']['Raa']['prompt']
@@ -100,7 +101,7 @@ compareToFc = cutSetCfg['theorydriven']['enableFc']
 compareToNb = cutSetCfg['theorydriven']['enableNb']
 hCrossSecPrompt, hCrossSecFD = [], []
 
-for inFileNameRawYield, inFileNameEff in zip(inputFilesRaw, inputFilesEff):
+for inFileNameRawYield, inFileNameEff, inFileNameBkg in zip(inputFilesRaw, inputFilesEff, inputFilesBkg):
     inFileNameRawYield = os.path.join(cutSetCfg['rawyields']['inputdir'], inFileNameRawYield)
     inFileRawYield = TFile.Open(inFileNameRawYield)
     hRawYields.append(inFileRawYield.Get(cutSetCfg['rawyields']['histoname']))
@@ -114,6 +115,10 @@ for inFileNameRawYield, inFileNameEff in zip(inputFilesRaw, inputFilesEff):
     hEffFD.append(inFileEff.Get(cutSetCfg['efficiencies']['histonames']['feeddown']))
     hEffPrompt[-1].SetDirectory(0)
     hEffFD[-1].SetDirectory(0)
+    inFileNameBkg = os.path.join(cutSetCfg['background']['inputdir'], inFileNameBkg)
+    inFileBkg = TFile.Open(inFileNameBkg)
+    hBkg.append(inFileBkg.Get(cutSetCfg['background']['histonames']))
+    hBkg[-1].SetDirectory(0)
 
 
 if compareToFc or compareToNb:
@@ -181,6 +186,14 @@ hPromptFracVsCut, hFDFracVsCut, gPromptFracFcVsCut, gFDFracFcVsCut, gPromptFracN
     gFDFracNbVsCut, cFrac = [], [], [], [], [], [], []
 hCorrMatrixCutSets, cCorrMatrix = [], []
 
+if cutSetCfg['linearplot']['enable']:
+    fNfdNprompt = []
+    cLinearPlot = []
+    legendLinearPlot = []
+    if cutSetCfg['linearplot']['uncbands']:
+        fNfdNpromptUpper = []
+        fNfdNpromptLower = []
+
 for iPt in range(hRawYields[0].GetNbinsX()):
     ptMin = hRawYields[0].GetBinLowEdge(iPt+1)
     ptMax = ptMin + hRawYields[0].GetBinWidth(iPt+1)
@@ -191,24 +204,45 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     listEffPromptUnc = [hEffP.GetBinError(iPt+1) for hEffP in hEffPrompt]
     listEffFD = [hEffF.GetBinContent(iPt+1) for hEffF in hEffFD]
     listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD]
+    listBkg = [hbkg.GetBinContent(iPt+1) for hbkg in hBkg]
+    listBkgUnc = [hbkg.GetBinError(iPt+1) for hbkg in hBkg]
+
+    if cutSetCfg['linearplot']['enable']:
+        fNfdNprompt.append([])
+        cLinearPlot.append(TCanvas(f'LinearPlot_Pt{iPt+1}-{iPt+2}', '', 800, 800))
+        cLinearPlot[iPt].SetTitle(f'LinearPlot_Pt{iPt+1}-{iPt+2}')
+        legendLinearPlot.append(TLegend(0.6, 0.6, 0.9, 0.9))
+        legendLinearPlot[iPt].SetNColumns(3)
+        if cutSetCfg['linearplot']['uncbands']:
+            fNfdNpromptUpper.append([])
+            fNfdNpromptLower.append([])
 
     # apply smearing to raw yields
     if doRawYieldsSmearing:
         listRawYield.reverse()
         listRawYieldSmeared = []
+        listBkg.reverse() 
         listDelta = []
         listDeltaSmeared = []
+        listDeltaBkg = []
+        listDeltaSmearedBkg = []
+        if cutSetCfg['minimisation']['setseed']: 
+            gRandom.SetSeed(10)
         for iRawYeld, _ in enumerate(listRawYield):
             if iRawYeld == 0:
                 listDelta.append(0.)
+                listDeltaBkg.append(0.)
             else:
                 listDelta.append(listRawYield[iRawYeld] - listRawYield[iRawYeld-1])
-            listDeltaSmeared.append(gRandom.PoissonD(listDelta[iRawYeld]))
+                listDeltaBkg.append(listBkg[iRawYeld] - listBkg[iRawYeld-1])
+            listDeltaSmeared.append(gRandom.PoissonD(listDelta[iRawYeld] + listDeltaBkg[iRawYeld]))
             if cutSetCfg['minimisation']['correlated']:
                 if iRawYeld == 0:
-                    listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld]))
+                    listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld] + listBkg[iRawYeld]) 
+                                               - listBkg[iRawYeld])
                 else:
-                    listRawYieldSmeared.append(listRawYieldSmeared[iRawYeld-1] + listDeltaSmeared[iRawYeld])
+                    listRawYieldSmeared.append(listRawYieldSmeared[iRawYeld-1] + listDeltaSmeared[iRawYeld] 
+                                               - listDeltaBkg[iRawYeld])
             else:
                 listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld]))
         listRawYieldSmeared.reverse()
@@ -304,6 +338,45 @@ for iPt in range(hRawYields[0].GetNbinsX()):
         hRawYieldFDVsCut[iPt].SetBinError(iCutSet+1, np.sqrt(covMatrixCorrYields.item(1, 1)) * effF)
         hRawYieldsVsCutReSum[iPt].SetBinContent(iCutSet+1, hRawYieldPromptVsCut[iPt].GetBinContent(iCutSet+1) +
                                                 hRawYieldFDVsCut[iPt].GetBinContent(iCutSet+1))
+
+        if cutSetCfg['linearplot']['enable']:
+            fNfdNprompt[iPt].append(TF1(f'cutset{iCutSet+1}','[1]*x + [0]',
+                                    0., max(corrYields)/2.))
+            if cutSetCfg['linearplot']['uncbands']:
+                fNfdNpromptUpper[iPt].append(TF1(f'lowerlimit cutset{iCutSet+1}','[1]*x + [0]',
+                                             0., max(corrYields)/2.))
+            fNfdNprompt[iPt][iCutSet].SetParameter(0, rawY/effP)
+            fNfdNprompt[iPt][iCutSet].SetParameter(1, -effF/effP)
+            if cutSetCfg['linearplot']['uncbands']:
+                fNfdNpromptUpper[iPt][iCutSet].SetTitle(f'Lower Limit cutset{iCutSet+1}')
+                fNfdNpromptLower[iPt][iCutSet].SetTitle(f'Upper Limit cutset{iCutSet+1}')
+                fNfdNpromptUpper[iPt][iCutSet].SetParameter(0, (rawY+rawYunc)/(effP+effPunc))
+                fNfdNpromptUpper[iPt][iCutSet].SetParameter(1, -(effF+effFunc)/(effP+effPunc))
+                fNfdNpromptLower[iPt][iCutSet].SetParameter(0, (rawY-rawYunc)/(effP-effPunc))
+                fNfdNpromptLower[iPt][iCutSet].SetParameter(1, -(effF-effFunc)/(effP-effPunc))
+            fNfdNprompt[iPt][iCutSet].GetYaxis().SetTitle('#it{N_{prompt}}')
+            fNfdNprompt[iPt][iCutSet].GetXaxis().SetTitle('#it{N_{feed-down}}')
+            fNfdNprompt[iPt][iCutSet].GetYaxis().SetRangeUser(0., 1.5*max(corrYields))
+            fNfdNprompt[iPt][iCutSet].SetTitle('')
+            fNfdNprompt[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
+            cLinearPlot[iPt].cd()
+            if iCutSet != 0: 
+                fNfdNprompt[iPt][iCutSet].Draw('same')
+                legendLinearPlot[iPt].AddEntry(fNfdNprompt[iPt][iCutSet],f'cutset{iCutSet+1}', 'l')
+            else:
+                fNfdNprompt[iPt][iCutSet].Draw()
+                legendLinearPlot[iPt].AddEntry(fNfdNprompt[iPt][iCutSet],f'cutset{iCutSet+1}', 'l')
+            if cutSetCfg['linearplot']['uncbands']:
+                fNfdNpromptUpper[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
+                fNfdNpromptLower[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
+                fNfdNpromptUpper[iPt][iCutSet].SetLineStyle(7)
+                fNfdNpromptLower[iPt][iCutSet].SetLineStyle(7)
+                fNfdNpromptUpper[iPt][iCutSet].Draw('same')
+                legendLinearPlot[iPt].AddEntry(fNfdNpromptUpper[iPt][iCutSet],f'lowerlimit cutset{iCutSet+1}')
+                fNfdNpromptLower[iPt][iCutSet].Draw('same')
+                legendLinearPlot[iPt].AddEntry(fNfdNpromptUpper[iPt][iCutSet],f'upperlimit cutset{iCutSet+1}')
+            legendLinearPlot[iPt].Draw()
+            cLinearPlot[iPt].Update()
 
         # prompt fraction
         fPrompt = effP * corrYields.item(0) / (effP * corrYields.item(0) + effF * corrYields.item(1))
@@ -437,6 +510,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     hPromptFracVsCut[iPt].Write()
     hFDFracVsCut[iPt].Write()
     hCorrMatrixCutSets[iPt].Write()
+    if cutSetCfg['linearplot']['enable']:
+        cLinearPlot[iPt].Write()
 outFile.Close()
 
 for iPt in range(hRawYields[0].GetNbinsX()):
@@ -454,5 +529,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
         cDistr[iPt].SaveAs(f'{outFileNameDistrPDF}]')
         cFrac[iPt].SaveAs(f'{outFileNameFracPDF}]')
         cCorrMatrix[iPt].SaveAs(f'{outFileNameCorrMatrixPDF}]')
-
+    if cutSetCfg['linearplot']['enable']:
+        for iformat in cutSetCfg['linearplot']['outfileformat']:
+            outFileNameLinPlot = args.outFileName.replace('.root', f'_LinearPlot{iPt+1}_{iPt+2}.{iformat}')
+            cLinearPlot[iPt].SaveAs(f'{outFileNameLinPlot}')
 input('Press enter to exit')
