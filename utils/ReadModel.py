@@ -163,29 +163,6 @@ def ReadTAMUv2(fileNameTAMUv2):
 
     return splineTAMU, dfTAMU
 
-def ReadTAMUv2(fileNameTAMUv2):
-    '''
-    Helper function to read TAMU v2 txt files
-
-    Parameters
-    -----------
-    fileNameTAMU: TAMU file name
-
-    Returns:
-    -----------
-    splineTAMU: dictionary with values of splines {yCent, yMin, yMax}
-    dfTAMU: pandas dataframe with original values
-    '''
-    dfTAMU = pd.read_csv(fileNameTAMUv2, sep=' ', comment='#')
-    if 'v2min' in dfTAMU and 'v2max' in dfTAMU:
-        dfTAMU['v2'] = (dfTAMU['v2min'] + dfTAMU['v2max']) / 2 #central value taken as average of min and max
-        splineTAMU = InterpolateModel(dfTAMU['pT'], dfTAMU['v2'],
-                                      dfTAMU['v2min'], dfTAMU['v2max'])
-    else:
-        splineTAMU = InterpolateModel(dfTAMU['pT'], dfTAMU['v2'])
-
-    return splineTAMU, dfTAMU
-
 
 def ReadPHSD(fileNamePHSD):
     '''
