@@ -221,12 +221,12 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     if doRawYieldsSmearing:
         listRawYield.reverse()
         listRawYieldSmeared = []
-        listBkg.reverse() 
+        listBkg.reverse()
         listDelta = []
         listDeltaSmeared = []
         listDeltaBkg = []
         listDeltaSmearedBkg = []
-        if cutSetCfg['minimisation']['setseed']: 
+        if cutSetCfg['minimisation']['setseed']:
             gRandom.SetSeed(10)
         for iRawYeld, _ in enumerate(listRawYield):
             if iRawYeld == 0:
@@ -238,10 +238,10 @@ for iPt in range(hRawYields[0].GetNbinsX()):
             listDeltaSmeared.append(gRandom.PoissonD(listDelta[iRawYeld] + listDeltaBkg[iRawYeld]))
             if cutSetCfg['minimisation']['correlated']:
                 if iRawYeld == 0:
-                    listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld] + listBkg[iRawYeld]) 
+                    listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld] + listBkg[iRawYeld])
                                                - listBkg[iRawYeld])
                 else:
-                    listRawYieldSmeared.append(listRawYieldSmeared[iRawYeld-1] + listDeltaSmeared[iRawYeld] 
+                    listRawYieldSmeared.append(listRawYieldSmeared[iRawYeld-1] + listDeltaSmeared[iRawYeld]
                                                - listDeltaBkg[iRawYeld])
             else:
                 listRawYieldSmeared.append(gRandom.PoissonD(listRawYield[iRawYeld]))
@@ -340,11 +340,11 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                                 hRawYieldFDVsCut[iPt].GetBinContent(iCutSet+1))
 
         if cutSetCfg['linearplot']['enable']:
-            fNfdNprompt[iPt].append(TF1(f'cutset{iCutSet+1}','[1]*x + [0]',
-                                    0., max(corrYields)/2.))
+            fNfdNprompt[iPt].append(TF1(f'cutset{iCutSet+1}', '[1]*x + [0]',
+                                        0., max(corrYields)/2.))
             if cutSetCfg['linearplot']['uncbands']:
-                fNfdNpromptUpper[iPt].append(TF1(f'lowerlimit cutset{iCutSet+1}','[1]*x + [0]',
-                                             0., max(corrYields)/2.))
+                fNfdNpromptUpper[iPt].append(TF1(f'lowerlimit cutset{iCutSet+1}', '[1]*x + [0]',
+                                                 0., max(corrYields)/2.))
             fNfdNprompt[iPt][iCutSet].SetParameter(0, rawY/effP)
             fNfdNprompt[iPt][iCutSet].SetParameter(1, -effF/effP)
             if cutSetCfg['linearplot']['uncbands']:
@@ -360,21 +360,21 @@ for iPt in range(hRawYields[0].GetNbinsX()):
             fNfdNprompt[iPt][iCutSet].SetTitle('')
             fNfdNprompt[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
             cLinearPlot[iPt].cd()
-            if iCutSet != 0: 
+            if iCutSet != 0:
                 fNfdNprompt[iPt][iCutSet].Draw('same')
-                legendLinearPlot[iPt].AddEntry(fNfdNprompt[iPt][iCutSet],f'cutset{iCutSet+1}', 'l')
+                legendLinearPlot[iPt].AddEntry(fNfdNprompt[iPt][iCutSet], f'cutset{iCutSet+1}', 'l')
             else:
                 fNfdNprompt[iPt][iCutSet].Draw()
-                legendLinearPlot[iPt].AddEntry(fNfdNprompt[iPt][iCutSet],f'cutset{iCutSet+1}', 'l')
+                legendLinearPlot[iPt].AddEntry(fNfdNprompt[iPt][iCutSet], f'cutset{iCutSet+1}', 'l')
             if cutSetCfg['linearplot']['uncbands']:
                 fNfdNpromptUpper[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
                 fNfdNpromptLower[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
                 fNfdNpromptUpper[iPt][iCutSet].SetLineStyle(7)
                 fNfdNpromptLower[iPt][iCutSet].SetLineStyle(7)
                 fNfdNpromptUpper[iPt][iCutSet].Draw('same')
-                legendLinearPlot[iPt].AddEntry(fNfdNpromptUpper[iPt][iCutSet],f'lowerlimit cutset{iCutSet+1}')
+                legendLinearPlot[iPt].AddEntry(fNfdNpromptUpper[iPt][iCutSet], f'lowerlimit cutset{iCutSet+1}')
                 fNfdNpromptLower[iPt][iCutSet].Draw('same')
-                legendLinearPlot[iPt].AddEntry(fNfdNpromptUpper[iPt][iCutSet],f'upperlimit cutset{iCutSet+1}')
+                legendLinearPlot[iPt].AddEntry(fNfdNpromptUpper[iPt][iCutSet], f'upperlimit cutset{iCutSet+1}')
             legendLinearPlot[iPt].Draw()
             cLinearPlot[iPt].Update()
 
