@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 import yaml
 sys.path.append('..')
-from utils.DfUtils import WriteTree, FilterBitDf, LoadDfFromRootOrParquet #pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.DfUtils import WriteTree, FilterBitDf, LoadDfFromRootOrParquet, GetMind0 #pylint: disable=wrong-import-position,import-error,no-name-in-module
 
 
 bitSignal = 0
@@ -22,7 +22,7 @@ bitSecPeak = 9
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('configfile', metavar='text', default='cfgFileName.yml',
                     help='input config yaml file name')
-parser.add_argument('--parquet', default=False, action='store_true',
+parser.add_argument('--parquet', default=True, action='store_true',
                     help='flag to save output files into parquet files')
 
 args = parser.parse_args()
@@ -66,6 +66,16 @@ else:
 
 if cfg['missingvalues']['enable']:
     dataFramePtCutSel = dataFramePtCutSel.replace(cfg['missingvalues']['toreplace'], value=np.nan)
+
+if cfg['singletrackvars']['addAODfiltervars']: # this assumes that we are analysing a 3 prong!
+    if set(['pt_prong0', 'pt_prong1', 'pt_prong2']).issubset(dataFramePtCutSel.columns):
+        dataFramePtCutSel['pt_prong_min'] = dataFramePtCutSel[['pt_prong0', 'pt_prong1', 'pt_prong2']].min(axis=1)
+        colsToKeep.append('pt_prong_min')
+        if set(['imp_par_prong0', 'imp_par_prong1', 'imp_par_prong2']).issubset(dataFramePtCutSel.columns):
+            dataFramePtCutSel['imp_par_min_ptgtr2'] = dataFramePtCutSel.apply(lambda x: GetMind0(
+                [x['pt_prong0'], x['pt_prong1'], x['pt_prong2']],
+                [x['imp_par_prong0'], x['imp_par_prong1'], x['imp_par_prong2']], 2), axis=1)
+            colsToKeep.append('imp_par_min_ptgtr2')
 
 if isMC:
     print('Getting bkg dataframe')
