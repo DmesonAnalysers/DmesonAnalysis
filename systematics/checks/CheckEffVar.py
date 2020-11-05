@@ -15,7 +15,7 @@ sys.path.append('../..')
 from utils.DfUtils import LoadDfFromRootOrParquet
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
-def main():
+def main(): #pylint: disable=too-many-locals,too-many-statements
     """
     Main function of the script
     """
@@ -81,6 +81,7 @@ def main():
     SetObjectStyle(hEffFDP8, color=kRed+1, marker=kFullCircle)
 
     effPromptP6, effPromptP8, effFDP6, effFDP8 = ([] for _ in range(4))
+    effPromptUncP6, effPromptUncP8, effFDUncP6, effFDUncP8 = ([] for _ in range(4))
     labelsConf = inputCfg['legend']['conf_labels']
     legPrompt = TLegend(0.25, 0.2, 0.6, 0.4)
     legPrompt.SetBorderSize(0)
@@ -106,15 +107,20 @@ def main():
         effFDP6.append(float(len(dfFDP6Sel) / len(dfFDP6)))
         effFDP8.append(float(len(dfFDP8Sel) / len(dfFDP8)))
 
+        effPromptUncP6.append(np.sqrt(effPromptP6[-1] * (1-effPromptP6[-1]) / len(dfPromptP6)))
+        effPromptUncP8.append(np.sqrt(effPromptP8[-1] * (1-effPromptP8[-1]) / len(dfPromptP8)))
+        effFDUncP6.append(np.sqrt(effFDP6[-1] * (1-effFDP6[-1]) / len(dfFDP6)))
+        effFDUncP8.append(np.sqrt(effFDP8[-1] * (1-effFDP8[-1]) / len(dfFDP8)))
+
         hEffPromptP6.SetBinContent(iBin+1, effPromptP6[-1])
         hEffPromptP8.SetBinContent(iBin+1, effPromptP8[-1])
         hEffFDP6.SetBinContent(iBin+1, effFDP6[-1])
         hEffFDP8.SetBinContent(iBin+1, effFDP8[-1])
 
-        hEffPromptP6.SetBinError(iBin+1, 1.e-20)
-        hEffPromptP8.SetBinError(iBin+1, 1.e-20)
-        hEffFDP6.SetBinError(iBin+1, 1.e-20)
-        hEffFDP8.SetBinError(iBin+1, 1.e-20)
+        hEffPromptP6.SetBinError(iBin+1, effPromptUncP6[-1])
+        hEffPromptP8.SetBinError(iBin+1, effPromptUncP8[-1])
+        hEffFDP6.SetBinError(iBin+1, effFDUncP6[-1])
+        hEffFDP8.SetBinError(iBin+1, effFDUncP8[-1])
 
     hEffPromptP6.GetXaxis().SetNdivisions(505)
     hEffFDP6.GetXaxis().SetNdivisions(505)
