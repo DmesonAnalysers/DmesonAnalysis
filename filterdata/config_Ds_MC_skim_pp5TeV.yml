@@ -17,6 +17,9 @@ skimming:
                    nsigComb_K_0 > 0 and nsigComb_K_1 > 0 and nsigComb_K_2 > 0 #null if you don't want to apply preselections
     colstokeep: [] #empty list if you want to keep everything
 
+singletrackvars:
+    addAODfiltervars: 0 # it adds min pt and mi d0 of daughters with pt < 2
+
 missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
     enable: 0
     toreplace:
