@@ -52,8 +52,8 @@ Taa: 1.
 expectedSignalFrom: 'prompt' # Choice between: 'prompt' or 'feeddown'
 
 BkgCorrFactor:
-    filename: '' #keep empty if no MC bkg correction is needed
-    histonames: 
+    filename: null # set null if no MC bkg correction is needed
+    histoname: null
 
 ptmin: [2]
 ptmax: [4]
