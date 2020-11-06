@@ -137,7 +137,7 @@ def GetMind0(ptList, d0List, ptThrs):
 
     - list of pt of daughter tracks
     - list of impact parameters of daughter tracks
-    - pt threschold (< threshold)
+    - pt threshold (selected less than threshold)
 
     Returns
     ----------

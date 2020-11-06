@@ -18,7 +18,7 @@ skimming:
     colstokeep: [] #empty list if you want to keep everything
 
 singletrackvars:
-    addAODfiltervars: 0 # it adds min pt and mi d0 of daughters with pt < 2
+    addAODfiltervars: 0 # it adds min pt and min d0 of daughters with pt < 2
 
 missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
     enable: 0
