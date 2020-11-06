@@ -238,11 +238,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018(bool fUseStrongPID = true
     float mincen=30.;
     float maxcen=50.;
 
-    if(fIsMC){
-      mincen=0.;
-      maxcen=100.;
-    }
-
     const int nptbins=9;
     float* ptbins;
     ptbins=new float[nptbins+1];
@@ -502,11 +497,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Loose2018(bool fUseStrongPID = true, 
 
     float mincen=30.;
     float maxcen=50.;
-
-    if(fIsMC){
-      mincen=0.;
-      maxcen=100.;
-    }
 
     const int nptbins=9;
     float* ptbins;
@@ -975,11 +965,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018_Pass3(bool fUseStrongPID 
 
     float mincen=30.;
     float maxcen=50.;
-
-    if(fIsMC){
-      mincen=0.;
-      maxcen=100.;
-    }
 
     const int nptbins=9;
     float* ptbins;
