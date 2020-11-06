@@ -103,7 +103,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         return *std::min_element(d0Vec.begin(), d0Vec.end());
     };
 
-    if(config["singletrackvars"]["addAODfiltervars"])
+    if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
     {
         colsToKeep.push_back("pt_prong_min");
         colsToKeep.push_back("imp_par_min_ptgtr2");
@@ -129,7 +129,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         if(*dataFramePtCutSelBkg.Count() > 0)
         {
             cout << "Saving bkg tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"])
+            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
                 dataFramePtCutSelBkg.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
                                     .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
                                     .Snapshot(outTreeName.data(), Form("%s/Bkg%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
@@ -139,7 +139,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         if(*dataFramePtCutSelPrompt.Count() > 0)
         {
             cout << "Saving prompt tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"])
+            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
                 dataFramePtCutSelPrompt.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
                                        .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
                                        .Snapshot(outTreeName.data(), Form("%s/Prompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
@@ -149,7 +149,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         if(*dataFramePtCutSelFD.Count() > 0)
         {
             cout << "Saving FD tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"])
+            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
                 dataFramePtCutSelFD.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
                                    .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
                                    .Snapshot(outTreeName.data(), Form("%s/FD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
@@ -159,7 +159,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         if(*dataFramePtCutSelPromptRefl.Count() > 0)
         {    
             cout << "Saving prompt reflected tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"])
+            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
                 dataFramePtCutSelPromptRefl.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
                                            .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
                                            .Snapshot(outTreeName.data(), Form("%s/PromptRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
@@ -179,7 +179,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         if(*dataFramePtCutSelSecPeakPrompt.Count() > 0)
         {
             cout << "Saving prompt tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"])
+            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
                 dataFramePtCutSelSecPeakPrompt.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
                                               .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
                                               .Snapshot(outTreeName.data(), Form("%s/SecPeakPrompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
@@ -189,7 +189,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         if(*dataFramePtCutSelSecPeakFD.Count() > 0)
         {
             cout << "Saving FD tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"])
+            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
                 dataFramePtCutSelSecPeakFD.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
                                           .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
                                           .Snapshot(outTreeName.data(), Form("%s/SecPeakFD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
@@ -200,7 +200,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     else
     {
         cout << "Saving data tree" << endl;
-        if(config["singletrackvars"]["addAODfiltervars"])
+        if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
             dataFramePtCutSel.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
                              .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
                              .Snapshot(outTreeName.data(), Form("%s/Data%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);

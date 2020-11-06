@@ -67,7 +67,8 @@ else:
 if cfg['missingvalues']['enable']:
     dataFramePtCutSel = dataFramePtCutSel.replace(cfg['missingvalues']['toreplace'], value=np.nan)
 
-if cfg['singletrackvars']['addAODfiltervars']: # this assumes that we are analysing a 3 prong!
+if cfg['singletrackvars'] and cfg['singletrackvars']['addAODfiltervars']:
+    # this assumes that we are analysing a 3 prong!
     if set(['pt_prong0', 'pt_prong1', 'pt_prong2']).issubset(dataFramePtCutSel.columns):
         dataFramePtCutSel['pt_prong_min'] = dataFramePtCutSel[['pt_prong0', 'pt_prong1', 'pt_prong2']].min(axis=1)
         colsToKeep.append('pt_prong_min')
