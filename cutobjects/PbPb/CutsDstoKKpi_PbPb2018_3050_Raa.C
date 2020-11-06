@@ -196,6 +196,8 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2015(bool fUseStrongPID = true
       analysiscuts->SetMaxPtStrongPid(maxPtstrongPID);
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
+    if(!fIsMC)
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb3050);
 
     analysiscuts->SetOptPileup(false);
     analysiscuts->SetMinCentrality(mincen);
@@ -952,11 +954,12 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018_Pass3(bool fUseStrongPID 
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
     esdTrackCuts->SetMaxChi2PerClusterTPC(2.5);
+    esdTrackCuts->SetMinNCrossedRowsTPC(70);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                            AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
-    esdTrackCuts->SetPtRange(0.3,1.e10);
+    esdTrackCuts->SetPtRange(0.4,1.e10);
 
     float mincen=30.;
     float maxcen=50.;
@@ -989,8 +992,8 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018_Pass3(bool fUseStrongPID 
     for(int ipt=0;ipt<nptbins;ipt++){
 
         anacutsval[0][ipt]=0.2;
-        anacutsval[1][ipt]=0.3;
-        anacutsval[2][ipt]=0.3;
+        anacutsval[1][ipt]=0.4;
+        anacutsval[2][ipt]=0.4;
         anacutsval[3][ipt]=0.;
         anacutsval[4][ipt]=0.;
         anacutsval[5][ipt]=0.005;
@@ -1154,6 +1157,8 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018_Pass3(bool fUseStrongPID 
     }
     else
       analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
+    if(!fIsMC)
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb3050);
     analysiscuts->SetOptPileup(false);
     analysiscuts->SetMinCentrality(mincen);
     analysiscuts->SetMaxCentrality(maxcen);
@@ -1211,9 +1216,10 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Filt2018_Pass3(bool fIsMC=false, doub
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
     esdTrackCuts->SetMaxChi2PerClusterTPC(2.5);
+    esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
+    esdTrackCuts->SetMinNCrossedRowsTPC(70);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                            AliESDtrackCuts::kAny);
-    esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
@@ -1290,6 +1296,8 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Filt2018_Pass3(bool fIsMC=false, doub
 
     analysiscuts->SetUsePID(true);
     analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
+    if(!fIsMC)
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb3050);
     analysiscuts->SetOptPileup(false);
     if(!fIsMC) {
       analysiscuts->SetMinCentrality(mincen);
