@@ -126,3 +126,29 @@ def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None, flat
             return pd.DataFrame()
 
     return dfOut
+
+
+def GetMind0(ptList, d0List, ptThrs):
+    '''
+    Helper method to get minimum impact parameter for given pt threshold as in AOD filtering
+
+    Arguments
+    ----------
+
+    - list of pt of daughter tracks
+    - list of impact parameters of daughter tracks
+    - pt threshold (selected less than threshold)
+
+    Returns
+    ----------
+    - minimum impact parameter for given pt threshold
+    '''
+    d0SelList = []
+    for d0, pt in zip(d0List, ptList):
+        if pt < ptThrs:
+            d0SelList.append(abs(d0))
+
+    if len(d0SelList) == 0: # no daughters with pt < pt threshold
+        return 999.
+
+    return min(d0SelList)
