@@ -22,8 +22,8 @@ bitSecPeak = 9
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('configfile', metavar='text', default='cfgFileName.yml',
                     help='input config yaml file name')
-parser.add_argument('--parquet', default=True, action='store_true',
-                    help='flag to save output files into parquet files')
+parser.add_argument('--root', default=False, action='store_true',
+                    help='flag to save output files into root files instead of parquet')
 
 args = parser.parse_args()
 print('Opening input file')
@@ -98,7 +98,7 @@ if isMC:
     dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSelSecPeakFD, 'cand_type', [bitRefl], 'not')
     del dataFramePtCutSel
 
-    if not args.parquet:
+    if args.root:
         if not dataFramePtCutSelBkg.empty:
             print('Saving bkg tree')
             WriteTree(dataFramePtCutSelBkg, colsToKeep, outTreeName,
@@ -157,7 +157,7 @@ if isMC:
             dataFramePtCutSelSecPeakFD[colsToKeep].to_parquet(\
                 f'{outDirName}/SecPeakFD{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
 else:
-    if not args.parquet:
+    if args.root:
         print('Saving data tree')
         WriteTree(dataFramePtCutSel, colsToKeep, outTreeName,
                   f'{outDirName}/Data{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
