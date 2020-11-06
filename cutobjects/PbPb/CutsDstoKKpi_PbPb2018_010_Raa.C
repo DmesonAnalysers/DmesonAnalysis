@@ -177,8 +177,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2015(bool fUseStrongPID = true,
 
    // analysiscuts->SetUseReferencePhiMass(1.0205);
 
-    TString cent="";
-
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -197,7 +195,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2015(bool fUseStrongPID = true,
     analysiscuts->SetOptPileup(false);
     analysiscuts->SetMinCentrality(mincen);
     analysiscuts->SetMaxCentrality(maxcen);
-    cent=Form("%.0f%.0f",mincen,maxcen);
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);
@@ -433,8 +430,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2018(bool fUseStrongPID = true,
         break;
     }
 
-    TString cent="";
-
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -459,7 +454,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2018(bool fUseStrongPID = true,
       analysiscuts->SetMinCentrality(0);
       analysiscuts->SetMaxCentrality(100);
     }
-    cent=Form("%.0f%.0f",mincen,maxcen);
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);
@@ -668,8 +662,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Loose2018(bool fUseStrongPID = true, d
     if(fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
 
-    TString cent="";
-
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -694,7 +686,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Loose2018(bool fUseStrongPID = true, d
       analysiscuts->SetMinCentrality(0);
       analysiscuts->SetMaxCentrality(100);
     }
-    cent=Form("%.0f%.0f",mincen,maxcen);
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);
@@ -790,8 +781,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018(bool fUseStrongPID
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
 
-    TString cent="";
-
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -816,7 +805,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018(bool fUseStrongPID
       analysiscuts->SetMinCentrality(0);
       analysiscuts->SetMaxCentrality(100);
     }
-    cent=Form("%.0f%.0f",mincen,maxcen);
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);
@@ -949,8 +937,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
 
-    TString cent="";
-
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -971,7 +957,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
       analysiscuts->SetMinCentrality(0);
       analysiscuts->SetMaxCentrality(100);
     }
-    cent=Form("%.0f%.0f",mincen,maxcen);
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);

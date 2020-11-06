@@ -433,8 +433,14 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018(bool fUseStrongPID = true
       analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb3050);
 
     analysiscuts->SetOptPileup(false);
-    analysiscuts->SetMinCentrality(mincen);
-    analysiscuts->SetMaxCentrality(maxcen);
+    if(!fIsMC) {
+      analysiscuts->SetMinCentrality(mincen);
+      analysiscuts->SetMaxCentrality(maxcen);
+    }
+    else {
+      analysiscuts->SetMinCentrality(0);
+      analysiscuts->SetMaxCentrality(100);
+    }
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);
@@ -692,8 +698,14 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Loose2018(bool fUseStrongPID = true, 
       analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb3050);
 
     analysiscuts->SetOptPileup(false);
-    analysiscuts->SetMinCentrality(mincen);
-    analysiscuts->SetMaxCentrality(maxcen);
+    if(!fIsMC) {
+      analysiscuts->SetMinCentrality(mincen);
+      analysiscuts->SetMaxCentrality(maxcen);
+    }
+    else {
+      analysiscuts->SetMinCentrality(0);
+      analysiscuts->SetMaxCentrality(100);
+    }
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);
@@ -1160,8 +1172,14 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018_Pass3(bool fUseStrongPID 
     if(!fIsMC)
       analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb3050);
     analysiscuts->SetOptPileup(false);
-    analysiscuts->SetMinCentrality(mincen);
-    analysiscuts->SetMaxCentrality(maxcen);
+    if(!fIsMC) {
+      analysiscuts->SetMinCentrality(mincen);
+      analysiscuts->SetMaxCentrality(maxcen);
+    }
+    else {
+      analysiscuts->SetMinCentrality(0);
+      analysiscuts->SetMaxCentrality(100);
+    }
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);
