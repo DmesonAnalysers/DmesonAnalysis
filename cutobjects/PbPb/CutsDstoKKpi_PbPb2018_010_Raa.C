@@ -1265,43 +1265,43 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_pass3(bool fIsMC=false, doubl
     TString preselname = "";
     switch(preselType)
     {
-        case kLooseQM:
-        {
-            preselname = "_loosepresel";
-            anacutsval[7][0]=0.02;
-            anacutsval[9][0]=0.96;
-            anacutsval[12][0]=0.015;
-            anacutsval[18][0]=3.;
-            break;
-        }
-        case kMediumQM:
-        {
-            preselname = "_mediumpresel";
-            anacutsval[7][0]=0.03;
-            anacutsval[9][0]=0.97;
-            anacutsval[12][0]=0.010;
-            anacutsval[18][0]=4.;
-            break;
-        }
-        case kTightQM:
-        {
-            preselname = "_tightpresel";
-            anacutsval[7][0]=0.05;
-            anacutsval[9][0]=0.97;
-            anacutsval[12][0]=0.010;
-            anacutsval[18][0]=5.;
-            break;
-        }
-        default:
-        {
-            std::cout << "WARNING: preselection type not implemented, setting loose QM preselections!" << std::endl;
-            preselname = "_undefinedpresel";
-            anacutsval[7][0]=0.02;
-            anacutsval[9][0]=0.96;
-            anacutsval[12][0]=0.015;
-            anacutsval[18][0]=3.;
-            break;
-        }
+      case kLooseQM:
+      {
+          preselname = "_loosepresel";
+          anacutsval[7][0]=0.02;
+          anacutsval[9][0]=0.96;
+          anacutsval[12][0]=0.015;
+          anacutsval[18][0]=3.;
+          break;
+      }
+      case kMediumQM:
+      {
+          preselname = "_mediumpresel";
+          anacutsval[7][0]=0.03;
+          anacutsval[9][0]=0.97;
+          anacutsval[12][0]=0.010;
+          anacutsval[18][0]=4.;
+          break;
+      }
+      case kTightQM:
+      {
+          preselname = "_tightpresel";
+          anacutsval[7][0]=0.05;
+          anacutsval[9][0]=0.97;
+          anacutsval[12][0]=0.010;
+          anacutsval[18][0]=5.;
+          break;
+      }
+      default:
+      {
+          std::cout << "WARNING: preselection type not implemented, setting loose QM preselections!" << std::endl;
+          preselname = "_undefinedpresel";
+          anacutsval[7][0]=0.02;
+          anacutsval[9][0]=0.96;
+          anacutsval[12][0]=0.015;
+          anacutsval[18][0]=3.;
+          break;
+      }
     }
 
     anacutsval[0][0]=0.25;
