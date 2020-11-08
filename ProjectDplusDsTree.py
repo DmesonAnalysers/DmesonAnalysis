@@ -93,6 +93,7 @@ promptDict = {'InvMass': [], 'Pt': []}
 FDDict = {'InvMass': [], 'Pt': []}
 promptGenList = []
 FDGenList = []
+# TODO: add second peak histograms for Ds
 
 outFile = TFile(args.outFileName, 'recreate')
 
@@ -251,24 +252,28 @@ if isMC:
     for iPt in range(0, len(cutVars['Pt']['min']) - 1):
         ptLowLabel = cutVars['Pt']['min'][iPt] * 10
         ptHighLabel = cutVars['Pt']['max'][iPt+1] * 10
-        hPtPromptMerged = MergeHists([promptDict['Pt'][iPt], promptDict['Pt'][iPt+1]])
-        hPtPromptMerged.SetName(f'hPromptPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        hPtPromptMerged.Write()
-        hInvMassPromptMerged = MergeHists([promptDict['InvMass'][iPt], promptDict['InvMass'][iPt+1]])
-        hInvMassPromptMerged.SetName(f'hPromptMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        hInvMassPromptMerged.Write()
-        hPtFDMerged = MergeHists([FDDict['Pt'][iPt], FDDict['Pt'][iPt+1]])
-        hPtFDMerged.SetName(f'hFDPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        hPtFDMerged.Write()
-        hInvMassFDMerged = MergeHists([FDDict['InvMass'][iPt], FDDict['InvMass'][iPt+1]])
-        hInvMassFDMerged.SetName(f'hFDMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        hInvMassFDMerged.Write()
-        hPtPromptGenMerged = MergeHists([promptGenList[iPt], promptGenList[iPt+1]])
-        hPtPromptGenMerged.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        hPtPromptGenMerged.Write()
-        hPtPromptFDMerged = MergeHists([FDGenList[iPt], FDGenList[iPt+1]])
-        hPtPromptFDMerged.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        hPtPromptFDMerged.Write()
+        for iVar in ('InvMass', 'Pt'):
+            if iVar == 'Pt':
+                varName = iVar
+            else:
+                varName = 'Mass'
+            hAllMerged = MergeHists([allDict[iVar][iPt], allDict[iVar][iPt+1]])
+            hAllMerged.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hAllMerged.Write()
+            if isMC:
+                hPromptMerged = MergeHists([promptDict[iVar][iPt], promptDict[iVar][iPt+1]])
+                hPromptMerged.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+                hPromptMerged.Write()
+                hFDMerged = MergeHists([FDDict['Pt'][iPt], FDDict['Pt'][iPt+1]])
+                hFDMerged.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+                hFDMerged.Write()
+        if isMC:
+            hPtPromptGenMerged = MergeHists([promptGenList[iPt], promptGenList[iPt+1]])
+            hPtPromptGenMerged.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hPtPromptGenMerged.Write()
+            hPtFDGenMerged = MergeHists([FDGenList[iPt], FDGenList[iPt+1]])
+            hPtFDGenMerged.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hPtFDGenMerged.Write()
 
 else:
     dataFrame = LoadDfFromRootOrParquet(inputCfg['tree']['filenameAll'], inputCfg['tree']['dirname'],
@@ -299,6 +304,32 @@ else:
         hInvMassMerged = MergeHists([allDict['InvMass'][iPt], allDict['InvMass'][iPt+1]])
         hInvMassMerged.SetName(f'hMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         hInvMassMerged.Write()
+
+# merge all pT bins
+ptLowLabel = cutVars['Pt']['min'][0] * 10
+ptHighLabel = cutVars['Pt']['max'][-1] * 10
+for iVar in ('InvMass', 'Pt'):
+    if iVar == 'Pt':
+        varName = iVar
+    else:
+        varName = 'Mass'
+    hAllMergedAllPt = MergeHists(allDict[iVar])
+    hAllMergedAllPt.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+    hAllMergedAllPt.Write()
+    if isMC:
+        hPromptMergedAllPt = MergeHists(promptDict[iVar])
+        hPromptMergedAllPt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hPromptMergedAllPt.Write()
+        hFDMergedAllPt = MergeHists(FDDict[iVar])
+        hFDMergedAllPt.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hFDMergedAllPt.Write()
+if isMC:
+    hPromptGenMergedAllPt = MergeHists(promptGenList)
+    hPromptGenMergedAllPt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+    hPromptGenMergedAllPt.Write()
+    hFDGenMergedAllPt = MergeHists(FDGenList)
+    hFDGenMergedAllPt.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+    hFDGenMergedAllPt.Write()
 
 # normalisation
 hEvForNorm = TH1F("hEvForNorm", ";;Number of events", 2, 0., 2.)

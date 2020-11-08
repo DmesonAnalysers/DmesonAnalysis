@@ -239,9 +239,9 @@ for iPt in range(0, len(cutVars['Pt']['min']) - 1):
         hVarPromptGen_merged = MergeHists([prompt_gen_list[iPt], prompt_gen_list[iPt+1]])
         hVarPromptGen_merged.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         hVarPromptGen_merged.Write()
-        hVarPromptFD_merged = MergeHists([fd_gen_list[iPt], fd_gen_list[iPt+1]])
-        hVarPromptFD_merged.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        hVarPromptFD_merged.Write()
+        hVarFDGen_merged = MergeHists([fd_gen_list[iPt], fd_gen_list[iPt+1]])
+        hVarFDGen_merged.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hVarFDGen_merged.Write()
         if enableSecPeak:
             hVarPromptGen_secpeak_merged = MergeHists([prompt_gen_list_secpeak[iPt], prompt_gen_list_secpeak[iPt+1]])
             hVarPromptGen_secpeak_merged.SetName(f'hPromptGenSecPeakPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
@@ -249,6 +249,43 @@ for iPt in range(0, len(cutVars['Pt']['min']) - 1):
             hVarFDGen_secpeak_merged = MergeHists([fd_gen_list_secpeak[iPt], fd_gen_list_secpeak[iPt+1]])
             hVarFDGen_secpeak_merged.SetName(f'hFDGenSecPeakPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             hVarFDGen_secpeak_merged.Write()
+
+# merge all pT bins
+ptLowLabel = cutVars['Pt']['min'][0] * 10
+ptHighLabel = cutVars['Pt']['max'][-1] * 10
+for iVar in ('InvMass', 'Pt'):
+    varName = cutVars[iVar]['name']
+    hVar_merged_allPt = MergeHists(all_dict[iVar])
+    hVar_merged_allPt.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+    hVar_merged_allPt.Write()
+    if isMC:
+        hVarPrompt_merged_allPt = MergeHists(prompt_dict[iVar])
+        hVarPrompt_merged_allPt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hVarPrompt_merged_allPt.Write()
+        hVarFD_merged_allPt = MergeHists(fd_dict[iVar])
+        hVarFD_merged_allPt.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hVarFD_merged_allPt.Write()
+        if enableSecPeak:
+            hVarPrompt_secpeak_merged_allPt = MergeHists(prompt_dict_secpeak[iVar])
+            hVarPrompt_secpeak_merged_allPt.SetName(f'hPromptSecPeak{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hVarPrompt_secpeak_merged_allPt.Write()
+            hVarFD_secpeak_merged_allPt = MergeHists(fd_dict_secpeak[iVar])
+            hVarFD_secpeak_merged_allPt.SetName(f'hFDSecPeak{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hVarFD_secpeak_merged_allPt.Write()
+if isMC:
+    hVarPromptGen_merged_allPt = MergeHists(prompt_gen_list)
+    hVarPromptGen_merged_allPt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+    hVarPromptGen_merged_allPt.Write()
+    hVarFDGen_merged_allPt = MergeHists(fd_gen_list)
+    hVarFDGen_merged_allPt.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+    hVarFDGen_merged_allPt.Write()
+    if enableSecPeak:
+        hVarPromptGen_secpeak_merged_allPt = MergeHists(prompt_gen_list_secpeak)
+        hVarPromptGen_secpeak_merged_allPt.SetName(f'hPromptGenSecPeakPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hVarPromptGen_secpeak_merged_allPt.Write()
+        hVarFDGen_secpeak_merged_allPt = MergeHists(fd_gen_list_secpeak)
+        hVarFDGen_secpeak_merged_allPt.SetName(f'hFDGenSecPeakPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hVarFDGen_secpeak_merged_allPt.Write()
 
 hEvForNorm = TH1F("hEvForNorm", ";;Number of events", 2, 0., 2.)
 hEvForNorm.GetXaxis().SetBinLabel(1, "norm counter")
