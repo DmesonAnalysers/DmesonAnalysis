@@ -230,6 +230,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018(bool fUseStrongPID = true
     esdTrackCuts->SetRequireTPCRefit(true);
     esdTrackCuts->SetRequireITSRefit(true);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
+    esdTrackCuts->SetMinNCrossedRowsTPC(70);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                            AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
@@ -405,6 +406,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018(bool fUseStrongPID = true
     analysiscuts->SetPtBins(nptbins+1,ptbins);
     analysiscuts->SetCuts(nvars,nptbins,anacutsval);
     analysiscuts->AddTrackCuts(esdTrackCuts);
+    analysiscuts->SetMinNumTPCClsForPID(50);
     analysiscuts->Setd0MeasMinusExpCut(nptbins,topomCuts);
     analysiscuts->Setd0Cut(nptbins,d0Cuts);
     if(!fIsMC)
@@ -475,7 +477,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018(bool fUseStrongPID = true
     TString pidname = "";
     if(fUseStrongPID) pidname = Form("_strongPIDpt%0.f", maxPtstrongPID);
 
-    TFile* fout=new TFile(Form("DstoKKpiCuts2018_3050_central%s_Raa_%s%s_pt%0.f_%0.f.root", pidname.Data(), triggername.Data(), trackCutName.Data(), ptmin, ptmax),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_3050_central%s_Raa_%s%s_pt%0.f_%0.f_pass1.root", pidname.Data(), triggername.Data(), trackCutName.Data(), ptmin, ptmax),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();
