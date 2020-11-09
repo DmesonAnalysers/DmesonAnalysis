@@ -27,6 +27,9 @@ parser.add_argument('--rebin', type=int, default=1,
                     help='rebin of spectra')
 parser.add_argument('--smooth', type=int, default=1,
                     help='smooth of pT weights')
+parser.add_argument('--suffixCF', metavar='text', default='',
+                    help='suffix for directory in CF output task')
+
 args = parser.parse_args()
 
 if not args.Dspecie:
@@ -38,18 +41,27 @@ if args.Dspecie not in ['Ds', 'Dplus', 'Dzero', 'Lc']:
 # load MC input
 infileGenPtShape = TFile.Open(args.fileNameMC)
 listGenPtShape = infileGenPtShape.Get('HFMCCheck/clistHFMCCheck')
-if args.Dspecie == 'Ds':
-    hPtYGenD = listGenPtShape.FindObject('hyptDsprompt')
-elif args.Dspecie == 'Dplus':
-    hPtYGenD = listGenPtShape.FindObject('hyptDplusprompt')    
-elif args.Dspecie == 'Dzero':
-    hPtYGenD = listGenPtShape.FindObject('hyptD0prompt')
-elif args.Dspecie == 'Dstar':
-    hPtYGenD = listGenPtShape.FindObject('hyptDstarprompt')
-elif args.Dspecie == 'Lc':
-    hPtYGenD = listGenPtShape.FindObject('hyptLcprompt')
-hPtYGenD.SetDirectory(0)
-hPtGenD = hPtYGenD.ProjectionX('hPtGenD')
+if listGenPtShape:
+    if args.Dspecie == 'Ds':
+        hPtYGenD = listGenPtShape.FindObject('hyptDsprompt')
+    elif args.Dspecie == 'Dplus':
+        hPtYGenD = listGenPtShape.FindObject('hyptDplusprompt')
+    elif args.Dspecie == 'Dzero':
+        hPtYGenD = listGenPtShape.FindObject('hyptD0prompt')
+    elif args.Dspecie == 'Dstar':
+        hPtYGenD = listGenPtShape.FindObject('hyptDstarprompt')
+    elif args.Dspecie == 'Lc':
+        hPtYGenD = listGenPtShape.FindObject('hyptLcprompt')
+    hPtYGenD.SetDirectory(0)
+    hPtGenD = hPtYGenD.ProjectionX('hPtGenD')
+elif args.suffixCF != '':
+    if args.Dspecie == 'Ds':
+        dirPtShape = infileGenPtShape.Get(f'PWG3_D2H_CFtaskDstoKKpi_CommonFramework_Phi{args.suffixCF}')
+        contPtShape = dirPtShape.Get(f'CFHFccontainer0_3ProngDstoKKpi_CommonFramework_Phi{args.suffixCF}')
+        hPtGenD = contPtShape.Project(0, 0)
+        hPtGenD.SetName('hPtGenD')
+    else:
+        print(f'ERROR: D specie {args.Bspecie} not implemented for CF outputs! Exit')
 hPtGenD.SetDirectory(0)
 hPtGenD.Sumw2()
 hPtGenD.Rebin(args.rebin)
@@ -58,16 +70,20 @@ hPtGenD.Scale(1./hPtGenD.Integral())
 if args.Bspecie:
     if args.Bspecie not in ['Bs', 'Bplus', 'Bzero', 'Lb']:
         print(f'ERROR: B specie {args.Bspecie} not supported! Only Bs, Bplus, Bzero, Lb are supported! Exit')
-    if args.Bspecie == 'Bs':
-        hYPtGenB = listGenPtShape.FindObject('hyptBsAllDecay')
-    elif args.Bspecie == 'Bplus':
-        hYPtGenB = listGenPtShape.FindObject('hyptBplusAllDecay')
-    elif args.Bspecie == 'Bzero':
-        hYPtGenB = listGenPtShape.FindObject('hyptB0AllDecay')
-    elif args.Bspecie == 'Lb':
-        hYPtGenB = listGenPtShape.FindObject('hyptLbAllDecay')
-    hYPtGenB.SetDirectory(0)
-    hPtGenB = hYPtGenB.ProjectionX('hPtGenB')
+    if listGenPtShape:
+        if args.Bspecie == 'Bs':
+            hYPtGenB = listGenPtShape.FindObject('hyptBsAllDecay')
+        elif args.Bspecie == 'Bplus':
+            hYPtGenB = listGenPtShape.FindObject('hyptBplusAllDecay')
+        elif args.Bspecie == 'Bzero':
+            hYPtGenB = listGenPtShape.FindObject('hyptB0AllDecay')
+        elif args.Bspecie == 'Lb':
+            hYPtGenB = listGenPtShape.FindObject('hyptLbAllDecay')
+        hYPtGenB.SetDirectory(0)
+        hPtGenB = hYPtGenB.ProjectionX('hPtGenB')
+        hPtGenB.SetName('hPtGenB')
+    elif args.suffixCF != '':
+        print(f'ERROR: B specie {args.Bspecie} not implemented for CF outputs! Exit')
     hPtGenB.SetDirectory(0)
     hPtGenB.Sumw2()
     hPtGenB.Rebin(args.rebin)
