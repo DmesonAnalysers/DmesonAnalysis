@@ -963,6 +963,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018_Pass3(bool fUseStrongPID 
                                            AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0025*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
     float mincen=30.;
@@ -1226,6 +1227,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Filt2018_Pass3(bool fIsMC=false, doub
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                            AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0025*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
     float mincen=30.;

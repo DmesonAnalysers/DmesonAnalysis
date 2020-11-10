@@ -978,7 +978,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_FiltTreeCreator2018QM(bool fIsMC=false
     return analysiscuts;
 }
 
-AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2018_pass3(bool fUseStrongPID = true, double maxPtstrongPID = 8.0, bool fIsMC=false, int addTrackCut = 0, double ptmin=2., double ptmax=50.) {
+AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2018_Pass3(bool fUseStrongPID = true, double maxPtstrongPID = 8.0, bool fIsMC=false, int addTrackCut = 0, double ptmin=2., double ptmax=50.) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(false);
@@ -990,6 +990,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2018_pass3(bool fUseStrongPID =
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                            AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0060*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.6,1.e10);
 
     float mincen=0.;
@@ -1240,7 +1241,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2018_pass3(bool fUseStrongPID =
     return analysiscuts;
 }
 
-AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_pass3(bool fIsMC=false, double ptmin=2., double ptmax=50., int preselType=kTightQM) {
+AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_Pass3(bool fIsMC=false, double ptmin=2., double ptmax=50., int preselType=kTightQM) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(false);
@@ -1252,6 +1253,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_pass3(bool fIsMC=false, doubl
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD,
                                            AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0060*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.6,1.e10);
 
     float mincen=0.;
@@ -1386,7 +1388,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_pass3(bool fIsMC=false, doubl
     TString triggername = "kINT7_kCentral";
     if(fIsMC) triggername = "kMB";
 
-    TFile* fout=new TFile(Form("DstoKKpiCuts_010_filt_Raa_%s_pt%0.f_%0.f%s_2018Pass3.root",triggername.Data(),ptmin,ptmax,preselname.Data()),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_010_filt_Raa_%s_pt%0.f_%0.f%s_2018pass3.root",triggername.Data(),ptmin,ptmax,preselname.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();

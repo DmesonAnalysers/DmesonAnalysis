@@ -252,6 +252,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDsVn3050_Central_Pass3(bool fUseStrongPID = 
                                            AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0025*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
     float mincen=30.;
