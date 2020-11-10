@@ -28,6 +28,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=
     esdTrackCuts->SetMaxChi2PerClusterTPC(2.5);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD, AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0060*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.6,1.e10);
 
     TString cent="";
@@ -79,8 +80,8 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=
 
     for(int ipt=0;ipt<nptbins;ipt++){
         anacutsval[0][ipt]=0.2; //minv
-        anacutsval[1][ipt]=0.4; //ptK
-        anacutsval[2][ipt]=0.4; //ptPi
+        anacutsval[1][ipt]=0.6; //ptK
+        anacutsval[2][ipt]=0.6; //ptPi
         anacutsval[3][ipt]=0.; //d0K
         anacutsval[4][ipt]=0.; //d0Pi
         anacutsval[5][ipt]=0.; //dist12
@@ -324,6 +325,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Loose2018(bool fUseStrongPID=tr
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD, AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0060*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.6,1.e10);
 
     TString cent="";
@@ -375,8 +377,8 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Loose2018(bool fUseStrongPID=tr
 
     for(int ipt=0;ipt<nptbins;ipt++){
         anacutsval[0][ipt]=0.2; //minv
-        anacutsval[1][ipt]=0.4; //ptK
-        anacutsval[2][ipt]=0.4; //ptPi
+        anacutsval[1][ipt]=0.6; //ptK
+        anacutsval[2][ipt]=0.6; //ptPi
         anacutsval[3][ipt]=0.; //d0K
         anacutsval[4][ipt]=0.; //d0Pi
         anacutsval[5][ipt]=0.; //dist12
@@ -549,6 +551,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_FiltTreeCreator2018(bool fUseSt
     esdTrackCuts->SetMinRatioCrossedRowsOverFindableClustersTPC(0.8);
     esdTrackCuts->SetClusterRequirementITS(AliESDtrackCuts::kSPD, AliESDtrackCuts::kAny);
     esdTrackCuts->SetMinDCAToVertexXY(0.);
+    esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0060*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.6,1.e10);
 
     TString cent="";
@@ -587,8 +590,8 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_FiltTreeCreator2018(bool fUseSt
 
     for(int ipt=0;ipt<nptbins;ipt++){
         anacutsval[0][ipt]=0.2; //minv
-        anacutsval[1][ipt]=0.4; //ptK
-        anacutsval[2][ipt]=0.4; //ptPi
+        anacutsval[1][ipt]=0.6; //ptK
+        anacutsval[2][ipt]=0.6; //ptPi
         anacutsval[3][ipt]=0.; //d0K
         anacutsval[4][ipt]=0.; //d0Pi
         anacutsval[5][ipt]=0.; //dist12
