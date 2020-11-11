@@ -106,7 +106,6 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
     if(config["improver"]["current"]["enable"].as<int>())
     {
         useImprover = kCurrentImprover;
-        improverPeriod = config["improver"]["current"]["period"].as<string>();
     }
     if(config["improver"]["upgrade"]["enable"].as<int>())
     {
@@ -188,9 +187,13 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
     //improver task (if MC)
     if (isRunOnMC)
     {
-        if(useImprover==kCurrentImprover && improverPeriod != "")
-        {    
-            AliAnalysisTaskSEImproveITSCVMFS *taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITSCVMFS *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskImproveITSCVMFS.C"), false,"","",0)));
+        if(useImprover==kCurrentImprover)
+        {
+            if (local) {
+                gSystem->Setenv("ALICE_DATA", "root://eospublic.cern.ch//eos/experiment/alice/analysis-data");
+                improverPeriod = config["improver"]["current"]["period"].as<string>();
+            }
+            AliAnalysisTaskSEImproveITSCVMFS *taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITSCVMFS *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskImproveITSCVMFS.C"), false,improverPeriod.data(),"",0)));
         }
         else if(useImprover==kUpgradeImprover && improverFileCurrent != "" && improverFileUpgrade != "")
         {
