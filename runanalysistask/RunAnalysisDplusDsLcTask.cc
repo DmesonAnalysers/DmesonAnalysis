@@ -151,6 +151,12 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
     int nMLbins = config["task"]["applyML"]["nbins"].as<int>();
     double MLmin = config["task"]["applyML"]["min"].as<double>();
     double MLmax = config["task"]["applyML"]["max"].as<double>();
+
+    // connect to Grid if cutfile is on alien
+    if (cutFileName.find("alien://") != string::npos) {
+        if (!gGrid)
+            TGrid::Connect("alien://");
+    }
     //_________________________________________________________________________________________________________________
 
     // if compile a class, tell root where to look for headers
