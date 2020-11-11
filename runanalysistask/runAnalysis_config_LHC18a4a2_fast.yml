@@ -15,7 +15,7 @@ runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 2
 improver:
     current:
         enable: 1
-        period: LHC17pq_G3MC_fast
+        period: LHC17pq_fast
     upgrade:
         enable: 0
         currentresolfile: ''
