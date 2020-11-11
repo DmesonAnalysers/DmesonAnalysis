@@ -191,6 +191,7 @@ AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspp5TeV_LowPtTreeML(bool fUseStrongP
         anacutsval[3][ipt]  = 0.0;   //d0K
         anacutsval[4][ipt]  = 0.0;   //d0Pi
         anacutsval[5][ipt]  = 0.0;   //dist12
+        anacutsval[7][ipt]  = 0.0;   //declen
         anacutsval[8][ipt]  = 0.0;   //pM
         anacutsval[10][ipt] = 0.0;   //sumd02
         anacutsval[11][ipt] = 1.e10; //dca
