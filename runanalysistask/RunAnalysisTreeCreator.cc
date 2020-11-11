@@ -115,6 +115,8 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
             useImprover = kUpgradeImprover;
             improverFileCurrent = config["improver"]["upgrade"]["currentresolfile"].as<string>();
             improverFileUpgrade = config["improver"]["upgrade"]["upgraderesolfile"].as<string>();
+            if (!gGrid)
+                TGrid::Connect("alien://");
         }
     }
 
