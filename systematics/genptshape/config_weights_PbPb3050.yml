@@ -1,0 +1,33 @@
+meson:
+    Dspecie: Ds
+    Bspecie: null # optional, needed for non-prompt analyses mainly
+
+inputMC:
+    filename: ptweights/DsPbPb/GenPtShape_LHC20g2b.root
+    suffixCF: _prompt_3050_strongPIDpt8_Raa # only for CF outputs otherwise null
+
+shapes:
+    D:
+        fonll: # fonll is mandatory
+            file: ../../models/fonll/FONLL_D_pp5_y05.txt
+        tamu:
+            enabled: true
+            file: ../../models/tamu/Ds_TAMU_RAA_5TeV_3050.txt
+        phsd:
+            enabled: true
+            file: ../../models/phsd/Ds_PHSD_RAA_5TeV_3050.txt
+        mc@shq:
+            enabled: true
+            file: ../../models/mcatshq/D_Gossiaux_RAA_5TeV_3050.txt
+        catania:
+            enabled: true
+            file: ../../models/catania/Ds_Catania_RAA_5TeV_3050.dat
+    B:
+        fonll: # fonll is mandatory
+            file: ../../models/fonll/FONLL_B_pp5_y05.txt
+
+options:
+    rebin: 1
+    smooth: 100
+
+outputfile: ptweights/DsPbPb/PtWeigths_LHC20g2b.root
