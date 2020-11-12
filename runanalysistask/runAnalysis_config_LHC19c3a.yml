@@ -32,7 +32,7 @@ runs: [296623, 296622, 296621, 296619, 296618, 296616, 296615, 296594, 296553, 2
 improver:
     current:
         enable: 1
-        period: 'LHC18qr'
+        period: ''
     upgrade:
         enable: 0
         currentresolfile: ''
