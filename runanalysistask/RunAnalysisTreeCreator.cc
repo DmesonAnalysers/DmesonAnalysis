@@ -163,10 +163,10 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
     {
         if(useImprover==kCurrentImprover)
         {    
-            if (local) {
+            if (local || gridTest)
                 gSystem->Setenv("ALICE_DATA", "root://eospublic.cern.ch//eos/experiment/alice/analysis-data");
+            if (local)
                 improverPeriod = config["improver"]["current"]["period"].as<string>();
-            }
             AliAnalysisTaskSEImproveITSCVMFS *taskimpr = reinterpret_cast<AliAnalysisTaskSEImproveITSCVMFS *>(gInterpreter->ProcessLine(Form(".x %s(%d,\"%s\",\"%s\",%d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskImproveITSCVMFS.C"), false,"","",0)));
         }
         else if(useImprover==kUpgradeImprover && improverFileCurrent != "" && improverFileUpgrade != "")
