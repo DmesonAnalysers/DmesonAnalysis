@@ -1,6 +1,6 @@
 # 30-50%, Ds-meson R_AA
 # two columns of R_AA encompass theoretical uncertainty from charm shadowing
-pT(GeV) R_AA_max R_AA_min
+PtCent R_AA_max R_AA_min
 0.10 1.15457 0.91707
 0.30 1.26855 1.00771
 0.50 1.35415 1.07636
