@@ -64,7 +64,7 @@ elif suffixCF != '':
         hPtGenD = contPtShape.Project(0, 0)
         hPtGenD.SetName('hPtGenD')
     else:
-        print(f'ERROR: D specie {Bspecie} not implemented for CF outputs! Exit')
+        print(f'ERROR: D specie {Dspecie} not implemented for CF outputs! Exit')
 hPtGenD.SetDirectory(0)
 hPtGenD.Sumw2()
 hPtGenD.Rebin(rebin)
@@ -99,23 +99,19 @@ isPbPb = False
 sFONLLD, _ = ReadFONLL(shapesD['fonll']['file'], True)
 if Bspecie:
     sFONLLB, _ = ReadFONLL(shapesB['fonll']['file'], True)
-for shape in shapesD:
-    if 'tamu' in shapesD and shapesD['tamu']['enabled']:
-        isPbPb = True
-        sTAMU, dfTAMU = ReadTAMU(shapesD['tamu']['file'])
-        ptMaxTAMU = max(dfTAMU['PtCent'].values)
-    if 'phsd' in shapesD and shapesD['phsd']['enabled']:
-        isPbPb = True
-        sPHSD, dfPHSD = ReadPHSD(shapesD['phsd']['file'])
-        ptMaxPHSD = max(dfPHSD['pt'].values)
-    if 'catania' in shapesD and shapesD['catania']['enabled']:
-        isPbPb = True
-        sCatania, dfCatania = ReadCatania(shapesD['catania']['file'])
-        ptMaxCatania = max(dfCatania['pt'].values)
-    if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
-        isPbPb = True
-        sGossiaux, dfGossiaux = ReadMCatsHQ(shapesD['mc@shq']['file'])
-        ptMaxGoss = max(dfGossiaux['pt'].values)
+
+if 'tamu' in shapesD and shapesD['tamu']['enabled']:
+    sTAMU, dfTAMU = ReadTAMU(shapesD['tamu']['file'])
+    ptMaxTAMU = max(dfTAMU['PtCent'].values)
+if 'phsd' in shapesD and shapesD['phsd']['enabled']:
+    sPHSD, dfPHSD = ReadPHSD(shapesD['phsd']['file'])
+    ptMaxPHSD = max(dfPHSD['pt'].values)
+if 'catania' in shapesD and shapesD['catania']['enabled']:
+    sCatania, dfCatania = ReadCatania(shapesD['catania']['file'])
+    ptMaxCatania = max(dfCatania['pt'].values)
+if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
+    sGossiaux, dfGossiaux = ReadMCatsHQ(shapesD['mc@shq']['file'])
+    ptMaxGoss = max(dfGossiaux['pt'].values)
 
 # TODO: add FONLLxRaa weights for B
 histoDNames = ['hPtFONLLDcent', 'hPtFONLLDmin', 'hPtFONLLDmax']
@@ -131,31 +127,37 @@ hPtWeightsFONLLD, hPtWeightsFONLLB, hPtWeightsFONLLtimesTAMUD, hPtWeightsFONLLti
 # D meson weights
 for histoName, pred in zip(histoDNames, modelPred):
     hPtFONLLD.append(hPtGenD.Clone(histoName))
-    if isPbPb:
+    if 'tamu' in shapesD and shapesD['tamu']['enabled']:
         hPtFONLLtimesTAMUD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesTAMU')))
+    if 'phsd' in shapesD and shapesD['phsd']['enabled']:
         hPtFONLLtimesPHSDD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesPHSD')))
+    if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
         hPtFONLLtimesGossiauxD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesGossiaux')))
+    if 'catania' in shapesD and shapesD['catania']['enabled']:
         hPtFONLLtimesCataniaD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesCatania')))
 
     for iPt in range(1, hPtFONLLD[-1].GetNbinsX()+1):
         ptCent = hPtFONLLD[-1].GetBinCenter(iPt)
         hPtFONLLD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent))
-        if isPbPb:
+        if 'tamu' in shapesD and shapesD['tamu']['enabled']:
             if ptCent < ptMaxTAMU:
                 hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptCent))
             else:
                 hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptMaxTAMU))
 
+        if 'phsd' in shapesD and shapesD['phsd']['enabled']:
             if ptCent < ptMaxPHSD:
                 hPtFONLLtimesPHSDD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sPHSD['yCent'](ptCent))
             else:
                 hPtFONLLtimesPHSDD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sPHSD['yCent'](ptMaxPHSD))
 
+        if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
             if ptCent < ptMaxGoss:
                 hPtFONLLtimesGossiauxD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sGossiaux['yCent'](ptCent))
             else:
                 hPtFONLLtimesGossiauxD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sGossiaux['yCent'](ptMaxGoss))
 
+        if 'catania' in shapesD and shapesD['catania']['enabled']:
             if ptCent < ptMaxCatania:
                 hPtFONLLtimesCataniaD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sCatania['yCent'](ptCent))
             else:
@@ -166,24 +168,26 @@ for histoName, pred in zip(histoDNames, modelPred):
     hPtWeightsFONLLD.append(hPtFONLLD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
     hPtWeightsFONLLD[-1].Divide(hPtFONLLD[-1], hPtGenD)
     hPtWeightsFONLLD[-1].Smooth(smooth)
-    if isPbPb:
+    if 'tamu' in shapesD and shapesD['tamu']['enabled']:
         hPtFONLLtimesTAMUD[-1].Scale(1./hPtFONLLtimesTAMUD[-1].Integral())
-        hPtFONLLtimesPHSDD[-1].Scale(1./hPtFONLLtimesPHSDD[-1].Integral())
-        hPtFONLLtimesGossiauxD[-1].Scale(1./hPtFONLLtimesGossiauxD[-1].Integral())
-        hPtFONLLtimesCataniaD[-1].Scale(1./hPtFONLLtimesCataniaD[-1].Integral())
-
         hPtWeightsFONLLtimesTAMUD.append(
             hPtFONLLtimesTAMUD[-1].Clone(hPtFONLLtimesTAMUD[-1].GetName().replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesTAMUD[-1].Divide(hPtFONLLtimesTAMUD[-1], hPtGenD)
         hPtWeightsFONLLtimesTAMUD[-1].Smooth(smooth)
+    if 'phsd' in shapesD and shapesD['phsd']['enabled']:
+        hPtFONLLtimesPHSDD[-1].Scale(1./hPtFONLLtimesPHSDD[-1].Integral())
         hPtWeightsFONLLtimesPHSDD.append(
             hPtFONLLtimesPHSDD[-1].Clone(hPtFONLLtimesPHSDD[-1].GetName().replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesPHSDD[-1].Divide(hPtFONLLtimesPHSDD[-1], hPtGenD)
         hPtWeightsFONLLtimesPHSDD[-1].Smooth(smooth)
+    if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
+        hPtFONLLtimesGossiauxD[-1].Scale(1./hPtFONLLtimesGossiauxD[-1].Integral())
         hPtWeightsFONLLtimesGossiauxD.append(
             hPtFONLLtimesGossiauxD[-1].Clone(hPtFONLLtimesGossiauxD[-1].GetName().replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesGossiauxD[-1].Divide(hPtFONLLtimesGossiauxD[-1], hPtGenD)
         hPtWeightsFONLLtimesGossiauxD[-1].Smooth(smooth)
+    if 'catania' in shapesD and shapesD['catania']['enabled']:
+        hPtFONLLtimesCataniaD[-1].Scale(1./hPtFONLLtimesCataniaD[-1].Integral())
         hPtWeightsFONLLtimesCataniaD.append(
             hPtFONLLtimesCataniaD[-1].Clone(hPtFONLLtimesCataniaD[-1].GetName().replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesCataniaD[-1].Divide(hPtFONLLtimesCataniaD[-1], hPtGenD)
@@ -211,14 +215,17 @@ if Bspecie:
 for iHisto, _ in enumerate(hPtFONLLD):
     hPtFONLLD[iHisto].Write()
     hPtWeightsFONLLD[iHisto].Write()
-    if isPbPb:
+    if 'tamu' in shapesD and shapesD['tamu']['enabled']:
         hPtFONLLtimesTAMUD[iHisto].Write()
-        hPtFONLLtimesPHSDD[iHisto].Write()
-        hPtFONLLtimesGossiauxD[iHisto].Write()
-        hPtFONLLtimesCataniaD[iHisto].Write()
         hPtWeightsFONLLtimesTAMUD[iHisto].Write()
+    if 'phsd' in shapesD and shapesD['phsd']['enabled']:
+        hPtFONLLtimesPHSDD[iHisto].Write()
         hPtWeightsFONLLtimesPHSDD[iHisto].Write()
+    if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
+        hPtFONLLtimesGossiauxD[iHisto].Write()
         hPtWeightsFONLLtimesGossiauxD[iHisto].Write()
+    if 'catania' in shapesD and shapesD['catania']['enabled']:
+        hPtFONLLtimesCataniaD[iHisto].Write()
         hPtWeightsFONLLtimesCataniaD[iHisto].Write()
     if Bspecie:
         hPtFONLLB[iHisto].Write()
