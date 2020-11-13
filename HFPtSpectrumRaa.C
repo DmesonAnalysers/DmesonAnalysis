@@ -100,7 +100,7 @@ Int_t FindGraphBin(TGraphAsymmErrors *gr, Double_t pt)
 //
 //
 //____________________________________________________________
-void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_5_6_8_12_16_24_36_50.root",
+void HFPtSpectrumRaa(const char *ppfile="ppreference/Ds_ppreference_pp5TeV_noyshift_pt_1_2_3_4_5_6_8_12_16_24_FONLLextrap_pt_24_36_50_ML.root",
 		     const char *ABfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/crosssec/HFPtSpectrum.root",
 		     const char *outfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DmesonCutSelection/outputs/raa/HFPtSpectrumRaa.root",
 		     Int_t decay=4,
@@ -114,7 +114,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
 		     Double_t MaxRb=6.0,
 		     Bool_t isRbHypo=false,
 		     Double_t CentralHypo = 1.0,
-             Bool_t fChangeCentralHypo = false, // true for non-strange D mesons
+         Bool_t fChangeCentralHypo = false, // true for non-strange D mesons
 		     Int_t ccestimator = kV0M,
 		     Bool_t isUseTaaForRaa=true,
 		     const char *shadRbcFile="",
@@ -395,13 +395,13 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
 	else if(cc == kpPb60100) systematicsAB->SetCentrality("60100CL1");
       }else {
 	if(!(cc == kpPb0100)) {
-	  cout <<" Error on the pPb options"<<endl;
+	  std::cout <<" Error on the pPb options"<<std::endl;
 	  return;
 	}
       }
     }
     else {
-      cout << " Systematics not yet implemented " << endl;
+      std::cout << " Systematics not yet implemented " << std::endl;
       return;
     }
     if(analysisSpeciality==kLowPt){
@@ -452,9 +452,9 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
   Bool_t isShadHypothesis = false;
   if( strcmp(shadRbcFile,"")!=0 ) {
     isShadHypothesis = true;
-    cout<<endl<<">>  Beware, using the shadowing prediction file with an "<<nSigmaShad<<"*sigma <<"<<endl<<endl;
+    std::cout<<std::endl<<">>  Beware, using the shadowing prediction file with an "<<nSigmaShad<<"*sigma <<"<<std::endl<<std::endl;
     TFile *fshad = new TFile(shadRbcFile,"read");
-    if(!fshad){ cout <<" >> Shadowing file not properly opened!!!"<<endl<<endl; return;}
+    if(!fshad){ std::cout <<" >> Shadowing file not properly opened!!!"<<std::endl<<std::endl; return;}
     // TH1D *hRbcShadCentral = (TH1D*)fshad->Get("hDfromBoverPromptD_Shadowing_central");
     // TH1D *hRbcShadMin = (TH1D*)fshad->Get("hDfromBoverPromptD_Shadowing_upper");
     // TH1D *hRbcShadMax = (TH1D*)fshad->Get("hDfromBoverPromptD_Shadowing_lower");
@@ -462,7 +462,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
     TH1D *hRbcShadMin = (TH1D*)fshad->Get("hDfromBoverDfromc_L0");
     TH1D *hRbcShadMax = (TH1D*)fshad->Get("hDfromBoverDfromc_L1");
     if(!hRbcShadCentral || !hRbcShadMin || !hRbcShadMax) {
-      cout<< endl <<">> Shadowing input histograms are not ok !! "<<endl<<endl;
+      std::cout<< std::endl <<">> Shadowing input histograms are not ok !! "<<std::endl<<std::endl;
       return;
     }
     //       nSigmaShad
@@ -476,12 +476,12 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
       Double_t arrayEl[3] = {minValue0,maxValue0, centralRbcShad[i]};
       Double_t minValue = TMath::MinElement(3,arrayEl);
       Double_t maxValue = TMath::MaxElement(3,arrayEl);
-      cout<<">> Shadowing pt="<<xpt<<"  central="<<centralRbcShad[i]<<"  min="<<minValue<<"  max="<<maxValue<<endl;
+      std::cout<<">> Shadowing pt="<<xpt<<"  central="<<centralRbcShad[i]<<"  min="<<minValue<<"  max="<<maxValue<<std::endl;
       if(minValue>centralRbcShad[i]){ minValue = centralRbcShad[i]; }
       if(maxValue<centralRbcShad[i]){ maxValue = centralRbcShad[i]; }
       minRbcShad[i] = centralRbcShad[i] - nSigmaShad*(centralRbcShad[i] - minValue);
       maxRbcShad[i] = centralRbcShad[i] + nSigmaShad*(maxValue - centralRbcShad[i]);
-      cout<<">> Shadowing hypothesis pt="<<xpt<<"  central="<<centralRbcShad[i]<<"  min="<<minRbcShad[i]<<"  max="<<maxRbcShad[i]<<endl;
+      std::cout<<">> Shadowing hypothesis pt="<<xpt<<"  central="<<centralRbcShad[i]<<"  min="<<minRbcShad[i]<<"  max="<<maxRbcShad[i]<<std::endl;
     }
   }
 
@@ -578,7 +578,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
   for(Int_t ientry=0; ientry<=entries; ientry++){
     CentralHypo = stdCentralHypo;
     nSigmaAB->GetEntry(ientry);
-    //    cout << " pt="<< pt<<" sigma-AB="<<sigmaAB<<endl;
+    //    std::cout << " pt="<< pt<<" sigma-AB="<<sigmaAB<<std::endl;
     if ( !(sigmaAB>0.) ) continue;
     //if(decay==2 && pt<2.) continue;
 
@@ -587,7 +587,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
     Int_t hABbin = hSigmaAB->FindBin( pt );
     Double_t sigmapp = hSigmaPP->GetBinContent( hppbin );
     sigmapp *= scalePPRefToMatchRapidityBin; // scale to the proper rapidity bin width
-    //    cout << " pt="<< pt<<", sigma-pp="<< sigmapp<<endl;
+    //    std::cout << " pt="<< pt<<", sigma-pp="<< sigmapp<<std::endl;
     if (isRaavsEP>0.) sigmapp = 0.5*sigmapp;
     if ( !(sigmapp>0.) ) continue;
 
@@ -621,16 +621,16 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
     // If using shadowing hypothesis, change the central hypothesis too
     if(isShadHypothesis) CentralHypo = centralRbcShad[hABbin];
 
-    //    cout <<" pt "<< pt << " Raa charm " << RaaCharm << " Raa beauty " << RaaBeauty << " eloss hypo "<< ElossHypo<<endl;
+    //    std::cout <<" pt "<< pt << " Raa charm " << RaaCharm << " Raa beauty " << RaaBeauty << " eloss hypo "<< ElossHypo<<std::endl;
     //
     // Find the bin for the central Eloss hypo
     //
     if( TMath::Abs( ElossHypo - CentralHypo ) < 0.075 ){
       Double_t DeltaIni = TMath::Abs( ElossCentral[ hABbin ] - CentralHypo );
       Double_t DeltaV = TMath::Abs( ElossHypo - CentralHypo );
-      //      cout << " pt " << pt << " ECentral " << ElossCentral[ hABbin ] << " Ehypo "<< ElossHypo ;
+      //      std::cout << " pt " << pt << " ECentral " << ElossCentral[ hABbin ] << " Ehypo "<< ElossHypo ;
       if ( DeltaV < DeltaIni ) ElossCentral[ hABbin ] = ElossHypo;
-      //      cout << " final ECentral " << ElossCentral[ hABbin ] << endl;
+      //      std::cout << " final ECentral " << ElossCentral[ hABbin ] << std::endl;
     }
   }
   //
@@ -671,7 +671,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
     istartABfd = -1;
     istartABfd = FindGraphBin(gSigmaABSystFeedDown,pt);
 
-    //      cout << " Starting bin for pp is "<< istartPPfd <<", for AA is "<<istartABfd << endl;
+    //      std::cout << " Starting bin for pp is "<< istartPPfd <<", for AA is "<<istartABfd << std::endl;
     if(isExtrapolatedBin){
       if(gReferenceFdSyst){
 	Int_t ibinfd = FindGraphBin(gReferenceFdSyst,pt);
@@ -695,7 +695,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
 
     RaaCharmFDhigh = ( sigmaABMax / sigmaABCINT1B ) / ((Tab*1e3) * (sigmapp+yPPh) *1e-12 ) ;
     RaaCharmFDlow =  ( sigmaABMin / sigmaABCINT1B ) / ((Tab*1e3) * (sigmapp-yPPl) *1e-12 ) ;
-    if(printout && TMath::Abs(ptprintout-pt)<0.1 ) cout << endl<<" pt "<< pt << " Raa " << RaaCharm <<" high "<< RaaCharmFDhigh << " low "<< RaaCharmFDlow<<endl;
+    if(printout && TMath::Abs(ptprintout-pt)<0.1 ) std::cout << std::endl<<" pt "<< pt << " Raa " << RaaCharm <<" high "<< RaaCharmFDhigh << " low "<< RaaCharmFDlow<<std::endl;
     if(!isUseTaaForRaa) {
       RaaCharmFDhigh = ( sigmaABMax ) / ( (A*B)* (sigmapp+yPPh) ) ;
       RaaCharmFDlow =  ( sigmaABMin ) / ( (A*B)* (sigmapp-yPPl) ) ;
@@ -722,7 +722,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
     hRABvsRb->Fill( pt, RaaCharm, RaaBeauty );
     hRABvsRbFDlow->Fill( pt, RaaCharmFDlow, RaaBeautyFDlow );
     hRABvsRbFDhigh->Fill( pt, RaaCharmFDhigh, RaaBeautyFDhigh );
-    if(printout && TMath::Abs(ptprintout-pt)<0.1) cout << " pt "<< pt << " Rb " << RaaBeauty <<" high "<< RaaBeautyFDhigh << " low "<< RaaBeautyFDlow <<endl;
+    if(printout && TMath::Abs(ptprintout-pt)<0.1) std::cout << " pt "<< pt << " Rb " << RaaBeauty <<" high "<< RaaBeautyFDhigh << " low "<< RaaBeautyFDlow <<std::endl;
 
     hRABCharmVsRBeautyVsPt->Fill( pt, RaaBeauty, RaaCharm );
     Int_t ptbin = hRABvsPt->FindBin( pt );
@@ -760,19 +760,19 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
 
     if(printout && TMath::Abs(ptprintout-pt)<0.1)
     if ( fdMethod==kNb && TMath::Abs(Rb -CentralHypo)< 0.05) {
-      cout << " pt "<< pt <<", at bin "<<hABbin<<endl;
-      cout<<" entries "<<entries<<", i="<<ientry<<", pt="<<pt<<", Rb="<<Rb<<", Tab="<<Tab<<", sigmaAB="<<sigmaAB<<", sigmapp="<<sigmapp<<", Raacharm="<<RaaCharm<<", RaaBeauty="<<RaaBeauty<<endl;
-      cout << "  AB  basis: mass "<< hMassAB->GetBinContent(hABbin)<<", eff "<< hDirectEffptAB->GetBinContent(hABbin)<<endl;
-      cout<<"   FD low,  err low AB "<< (sigmaAB-sigmaABMin)<<"  err low PP "<< yPPl<<" Raacharm="<<RaaCharmFDlow<<", RaaBeauty="<<RaaBeautyFDlow<<endl;
-      cout<<"   FD high, err high AB "<< (sigmaABMax-sigmaAB)<<"  err high PP "<< yPPh<<" Raacharm="<<RaaCharmFDhigh<<", RaaBeauty="<<RaaBeautyFDhigh<<endl;
+      std::cout << " pt "<< pt <<", at bin "<<hABbin<<std::endl;
+      std::cout<<" entries "<<entries<<", i="<<ientry<<", pt="<<pt<<", Rb="<<Rb<<", Tab="<<Tab<<", sigmaAB="<<sigmaAB<<", sigmapp="<<sigmapp<<", Raacharm="<<RaaCharm<<", RaaBeauty="<<RaaBeauty<<std::endl;
+      std::cout << "  AB  basis: mass "<< hMassAB->GetBinContent(hABbin)<<", eff "<< hDirectEffptAB->GetBinContent(hABbin)<<std::endl;
+      std::cout<<"   FD low,  err low AB "<< (sigmaAB-sigmaABMin)<<"  err low PP "<< yPPl<<" Raacharm="<<RaaCharmFDlow<<", RaaBeauty="<<RaaBeautyFDlow<<std::endl;
+      std::cout<<"   FD high, err high AB "<< (sigmaABMax-sigmaAB)<<"  err high PP "<< yPPh<<" Raacharm="<<RaaCharmFDhigh<<", RaaBeauty="<<RaaBeautyFDhigh<<std::endl;
     }
     if(printout && TMath::Abs(ptprintout-pt)<0.1)
     if ( fdMethod==kfc) if(TMath::Abs(Rcb -CentralHypo)< 0.05 ){
-      cout << " pt "<< pt <<", at bin "<<hABbin<<endl;
-      cout<<" entries "<<entries<<", i="<<ientry<<", pt="<<pt<<", Rcb="<<Rcb<<", Tab="<<Tab<<", sigmaAB="<<sigmaAB<<", sigmapp="<<sigmapp<<", Raacharm="<<RaaCharm<<", RaaBeauty="<<RaaBeauty<<endl;
-      cout << "  AB  basis: mass "<< hMassAB->GetBinContent(hABbin)<<", eff "<< hDirectEffptAB->GetBinContent(hABbin)<<", fc "<<histofcAB->GetBinContent(hABbin)<< endl;
-      cout<<"   FD low,  err low AB "<< (sigmaAB-sigmaABMin)<<"  err low PP "<< yPPl<<" Raacharm="<<RaaCharmFDlow<<", RaaBeauty="<<RaaBeautyFDlow<<endl;
-      cout<<"   FD high, err high AB "<< (sigmaABMax-sigmaAB)<<"  err high PP "<< yPPh<<" Raacharm="<<RaaCharmFDhigh<<", RaaBeauty="<<RaaBeautyFDhigh<<endl;
+      std::cout << " pt "<< pt <<", at bin "<<hABbin<<std::endl;
+      std::cout<<" entries "<<entries<<", i="<<ientry<<", pt="<<pt<<", Rcb="<<Rcb<<", Tab="<<Tab<<", sigmaAB="<<sigmaAB<<", sigmapp="<<sigmapp<<", Raacharm="<<RaaCharm<<", RaaBeauty="<<RaaBeauty<<std::endl;
+      std::cout << "  AB  basis: mass "<< hMassAB->GetBinContent(hABbin)<<", eff "<< hDirectEffptAB->GetBinContent(hABbin)<<", fc "<<histofcAB->GetBinContent(hABbin)<< std::endl;
+      std::cout<<"   FD low,  err low AB "<< (sigmaAB-sigmaABMin)<<"  err low PP "<< yPPl<<" Raacharm="<<RaaCharmFDlow<<", RaaBeauty="<<RaaBeautyFDlow<<std::endl;
+      std::cout<<"   FD high, err high AB "<< (sigmaABMax-sigmaAB)<<"  err high PP "<< yPPh<<" Raacharm="<<RaaCharmFDhigh<<", RaaBeauty="<<RaaBeautyFDhigh<<std::endl;
     }
 
 
@@ -801,8 +801,8 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
       MaxHypo = 2.0;
       printf("********* changed min and max hypothesis for pt>=24 (%f): %f, minHypo=%f, maxHypo=%f \n",pt,CentralHypo,MinHypo,MaxHypo);
     }
-    //    cout <<" pt "<< pt << " Raa charm " << RaaCharm << " Raa beauty " << RaaBeauty << " eloss hypo "<< ElossHypo
-    if(ientry==0) cout<<" pt"<< pt<< " ElossCentral "<< ElossCentral[hABbin] << " min-hypo "<<MinHypo << " max-hypo "<<MaxHypo<<endl;
+    //    std::cout <<" pt "<< pt << " Raa charm " << RaaCharm << " Raa beauty " << RaaBeauty << " eloss hypo "<< ElossHypo
+    if(ientry==0) std::cout<<" pt"<< pt<< " ElossCentral "<< ElossCentral[hABbin] << " min-hypo "<<MinHypo << " max-hypo "<<MaxHypo<<std::endl;
 
     //
     // Fill in histos charm (null Eloss hypothesis)
@@ -826,11 +826,11 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
 	hYieldABvsPt->SetBinContent( hRABbin, sigmaAB/sigmaABCINT1B );
 	hYieldABvsPt->SetBinError( hRABbin, statUncSigmaAB/sigmaABCINT1B );
 
-	cout << "pt="<< pt<< " Raa " << RaaCharm << " stat unc. "<< stat <<
-	  " sigma-pp "<< sigmapp <<" sigma-AB "<< sigmaAB<<endl;
+	std::cout << "pt="<< pt<< " Raa " << RaaCharm << " stat unc. "<< stat <<
+	  " sigma-pp "<< sigmapp <<" sigma-AB "<< sigmaAB<<std::endl;
 	if(printout && TMath::Abs(ptprintout-pt)<0.1) {
-	  cout << " Raa " << RaaCharm << " stat unc. "<< stat << " is "<< stat/RaaCharm * 100. <<
-	    "%, stat-pp "<< sigmappStat/sigmapp*100. <<"% stat-AB "<< statUncSigmaAB/sigmaAB*100.<<"%"<<endl;
+	  std::cout << " Raa " << RaaCharm << " stat unc. "<< stat << " is "<< stat/RaaCharm * 100. <<
+	    "%, stat-pp "<< sigmappStat/sigmapp*100. <<"% stat-AB "<< statUncSigmaAB/sigmaAB*100.<<"%"<<std::endl;
 	}
 
 	Double_t errstatEff = fhStatUncEffcSigmaAB->GetBinError( hRABbin );
@@ -883,12 +883,12 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
 
 
       if(printout && TMath::Abs(ptprintout-pt)<0.1) {
-	cout << " pt : "<< pt<<" Syst-pp-data "<< dataPPUp/sigmapp << "%, ";
+	std::cout << " pt : "<< pt<<" Syst-pp-data "<< dataPPUp/sigmapp << "%, ";
 	if(!isExtrapolatedBin){
-	  if (isRaavsEP>0.) cout <<" extr unc + "<< 0.5*gSigmaPPSystTheory->GetErrorYhigh(istartPPextr)/sigmapp <<" - "<< 0.5*gSigmaPPSystTheory->GetErrorYlow(istartPPextr)/sigmapp <<" %";
-	  else cout <<" extr unc + "<< (gSigmaPPSystTheory->GetErrorYhigh(istartPPextr)*scalePPRefToMatchRapidityBin)/sigmapp <<" - "<< (gSigmaPPSystTheory->GetErrorYlow(istartPPextr)*scalePPRefToMatchRapidityBin)/sigmapp <<" %";
+	  if (isRaavsEP>0.) std::cout <<" extr unc + "<< 0.5*gSigmaPPSystTheory->GetErrorYhigh(istartPPextr)/sigmapp <<" - "<< 0.5*gSigmaPPSystTheory->GetErrorYlow(istartPPextr)/sigmapp <<" %";
+	  else std::cout <<" extr unc + "<< (gSigmaPPSystTheory->GetErrorYhigh(istartPPextr)*scalePPRefToMatchRapidityBin)/sigmapp <<" - "<< (gSigmaPPSystTheory->GetErrorYlow(istartPPextr)*scalePPRefToMatchRapidityBin)/sigmapp <<" %";
 	}
-	cout << endl;
+	std::cout << std::endl;
       }
 
       //
@@ -896,7 +896,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
       //
       Double_t dataSystUp=0., dataSystDown=0.;
       Bool_t PbPbDataSystOk = PbPbDataSyst(systematicsAB,pt,cc,dataSystUp,dataSystDown);
-      if (!PbPbDataSystOk) { cout <<" There is some issue with the PbPb data systematics, please check and rerun"<<endl; return; }
+      if (!PbPbDataSystOk) { std::cout <<" There is some issue with the PbPb data systematics, please check and rerun"<<std::endl; return; }
       systABUp = sigmaAB * TMath::Sqrt( dataSystUp*dataSystUp +
 					(hDirectEffptAB->GetBinError(hABbin)/hDirectEffptAB->GetBinContent(hABbin))*(hDirectEffptAB->GetBinError(hABbin)/hDirectEffptAB->GetBinContent(hABbin)) );
 
@@ -915,7 +915,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
       if ( RaaCharm==0 ) { systPPUp =0.; systPPLow =0.; }
 
       //      if(printout)
-	cout << " Syst-pp-up "<< systPPUp/sigmapp <<"%, syst-pp-low "<< systPPLow/sigmapp <<"%, syst-AB-up "<<systABUp/sigmaAB<<"%, syst-AB-low "<<systABLow/sigmaAB<<"%, tot-syst-up "<<systUp/RaaCharm<<"%, tot-syst-low "<<systLow/RaaCharm<<"%"<<endl;
+	std::cout << " Syst-pp-up "<< systPPUp/sigmapp <<"%, syst-pp-low "<< systPPLow/sigmapp <<"%, syst-AB-up "<<systABUp/sigmaAB<<"%, syst-AB-low "<<systABLow/sigmaAB<<"%, tot-syst-up "<<systUp/RaaCharm<<"%, tot-syst-low "<<systLow/RaaCharm<<"%"<<std::endl;
 
       if ( RaaCharm>0 ) {
 	hRABvsPt_DataSystematics->SetBinContent( hRABbin, RaaCharm );
@@ -939,7 +939,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
 	FDL = RaaCharmFDhigh; FDH = RaaCharmFDlow;
       }
 
-      if(printout && TMath::Abs(ptprintout-pt)<0.1) cout<<" Raa "<<RaaCharm<<", Raa-fd-low "<<RaaCharmFDlow <<", Raa-fd-high "<<RaaCharmFDhigh <<endl;
+      if(printout && TMath::Abs(ptprintout-pt)<0.1) std::cout<<" Raa "<<RaaCharm<<", Raa-fd-low "<<RaaCharmFDlow <<", Raa-fd-high "<<RaaCharmFDhigh <<std::endl;
       maxFdSyst = TMath::Abs(FDH - RaaCharm);
       minFdSyst = TMath::Abs(RaaCharm - FDL);
       if ( RaaCharm>0 ) {
@@ -950,8 +950,8 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
       }
 
       //      if(printout) {
-	cout<<" FD syst  +"<< maxFdSyst/RaaCharm <<" - "<<minFdSyst/RaaCharm<<endl;
-	cout<<"  fc = "<<fcAB<<", ("<< sigmaABMax/sigmaAB * fcAB <<","<< sigmaABMin/sigmaAB * fcAB <<")"<<endl;
+	std::cout<<" FD syst  +"<< maxFdSyst/RaaCharm <<" - "<<minFdSyst/RaaCharm<<std::endl;
+	std::cout<<"  fc = "<<fcAB<<", ("<< sigmaABMax/sigmaAB * fcAB <<","<< sigmaABMin/sigmaAB * fcAB <<")"<<std::endl;
 	//      }
 
       //
@@ -982,8 +982,8 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
       if ( RaaCharm > Ehigh ) ElossMax[ hABbin ] = RaaCharm ;
       if ( RaaCharm < Elow ) ElossMin[ hABbin ] = RaaCharm ;
       if(printout && TMath::Abs(ptprintout-pt)<0.1) {
-	cout<<" Hypothesis " << ElossHypo << " sigma-AB "<< sigmaAB <<", Raa "<< RaaCharm <<", Raa Eloss max "<< ElossMax[hABbin] <<" Raa Eloss min "<< ElossMin[hABbin] << " Rb="<< RaaBeauty <<endl;
-	cout<<"  Rb="<< RaaBeauty <<" max "<< RaaBeautyFDhigh <<" min "<< RaaBeautyFDlow <<endl;
+	std::cout<<" Hypothesis " << ElossHypo << " sigma-AB "<< sigmaAB <<", Raa "<< RaaCharm <<", Raa Eloss max "<< ElossMax[hABbin] <<" Raa Eloss min "<< ElossMin[hABbin] << " Rb="<< RaaBeauty <<std::endl;
+	std::cout<<"  Rb="<< RaaBeauty <<" max "<< RaaBeautyFDhigh <<" min "<< RaaBeautyFDlow <<std::endl;
       }
       Double_t fcEhigh =  fcElossMax[ hABbin ] ;
       Double_t fcElow =  fcElossMin[ hABbin ] ;
@@ -996,7 +996,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
       if ( RFDhigh > FDEhigh ) FDElossMax[ hABbin ] = RFDhigh ;
       if ( RFDlow < FDEmin ) FDElossMin[ hABbin ] = RFDlow ;
       if(printout && TMath::Abs(ptprintout-pt)<0.1)
-	cout<<" Hypothesis " << ElossHypo << " sigma-AB "<< sigmaAB <<", Raa FD-max Eloss max "<< FDElossMax[hABbin] <<" Raa FD-min Eloss min "<< FDElossMin[hABbin] <<endl;
+	std::cout<<" Hypothesis " << ElossHypo << " sigma-AB "<< sigmaAB <<", Raa FD-max Eloss max "<< FDElossMax[hABbin] <<" Raa FD-min Eloss min "<< FDElossMin[hABbin] <<std::endl;
     }
 
 
@@ -1016,9 +1016,9 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
     gRAB_ElossHypothesis->SetPointEYlow(ibin, elossYlow );
     gRAB_ElossHypothesis->SetPointEXhigh(ibin, 0.2);
     gRAB_ElossHypothesis->SetPointEXlow(ibin, 0.2);
-    cout << " pt "<< ipt << " Raa "<< value <<" max "<< ElossMax[ibin] << " min " <<ElossMin[ibin] <<endl;
-    cout<<" Eloss syst  +"<< elossYhigh <<" - "<< elossYlow <<endl;
-    //    cout << " fc max "<< fcElossMax[ibin] << " fc min " <<fcElossMin[ibin] <<endl;
+    std::cout << " pt "<< ipt << " Raa "<< value <<" max "<< ElossMax[ibin] << " min " <<ElossMin[ibin] <<std::endl;
+    std::cout<<" Eloss syst  +"<< elossYhigh <<" - "<< elossYlow <<std::endl;
+    //    std::cout << " fc max "<< fcElossMax[ibin] << " fc min " <<fcElossMin[ibin] <<std::endl;
     //
     // Uncertainty on Raa due to the FD unc & Eloss hypothesis
     Double_t fdElossEYhigh = TMath::Abs( FDElossMax[ibin] - value );
@@ -1033,8 +1033,8 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
     gRAB_FeedDownSystematicsElossHypothesis->SetPointEYlow(ibin, fdElossEYlow );
     gRAB_FeedDownSystematicsElossHypothesis->SetPointEXhigh(ibin, 0.25);
     gRAB_FeedDownSystematicsElossHypothesis->SetPointEXlow(ibin, 0.25);
-    cout<<" FD & Eloss syst  +"<< fdElossEYhigh <<" - "<< fdElossEYlow
-	<<" = + "<< fdElossEYhigh/value <<" - "<< fdElossEYlow/value <<" %" <<endl;
+    std::cout<<" FD & Eloss syst  +"<< fdElossEYhigh <<" - "<< fdElossEYlow
+	<<" = + "<< fdElossEYhigh/value <<" - "<< fdElossEYlow/value <<" %" <<std::endl;
     //
     // All uncertainty on Raa (FD unc & Eloss + data)
     Double_t systdatal = gRAB_DataSystematics->GetErrorYlow(ibin);
@@ -1043,12 +1043,12 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
     Double_t systgblUnc = TMath::Sqrt( systdatal*systdatal + fdElossEYlow*fdElossEYlow );
     gRAB_GlobalSystematics->SetPointEYhigh(ibin,systgbhUnc);
     gRAB_GlobalSystematics->SetPointEYlow(ibin,systgblUnc);
-    cout<<" Data syst  +"<< systdatah <<" - "<<  systdatal <<" = + "<< systdatah/value <<" - " <<  systdatal/value << " % "<<endl;
-    cout<<" Global syst  +"<< systgbhUnc <<" - "<<  systgblUnc << " = + "<< systgbhUnc/value <<" - "<<  systgblUnc/value << " %" <<endl;
+    std::cout<<" Data syst  +"<< systdatah <<" - "<<  systdatal <<" = + "<< systdatah/value <<" - " <<  systdatal/value << " % "<<std::endl;
+    std::cout<<" Global syst  +"<< systgbhUnc <<" - "<<  systgblUnc << " = + "<< systgbhUnc/value <<" - "<<  systgblUnc/value << " %" <<std::endl;
     //
   }
 
-  cout<<endl<<"  Calculation finished, now drawing"<<endl<<endl;
+  std::cout<<std::endl<<"  Calculation finished, now drawing"<<std::endl<<std::endl;
 
 
   gROOT->SetStyle("Plain");
@@ -1065,7 +1065,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
 //  cRABvsRbvsPt->Update();
 
 
-  cout<< "    Drawing feed-down contribution"<<endl;
+  std::cout<< "    Drawing feed-down contribution"<<std::endl;
   TCanvas *cRABvsRbFDl = new TCanvas("RABvsRbFDl","RAB vs Rb (FD low)");
   hRABvsRbFDlow->Draw("cont4z");
   cRABvsRbFDl->Update();
@@ -1180,7 +1180,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
   cRABptEloss->Update();
 
 
-  cout<< "    Drawing summary results"<<endl;
+  std::cout<< "    Drawing summary results"<<std::endl;
   TCanvas * cRABpt = new TCanvas("cRABpt","RAB vs pt, no hypothesis");
   hRABEloss10->Draw("");
   cRABpt->Update();
@@ -1385,7 +1385,7 @@ void HFPtSpectrumRaa(const char *ppfile="$HOME/cernbox/ALICE_WORK/AnalysisPbPb20
   //
   // Write the information to a file
   //
-  cout<<endl<< "  Save results in the output file"<<endl<<endl;
+  std::cout<<std::endl<< "  Save results in the output file"<<std::endl<<std::endl;
   TFile * out = new TFile(outfile,"recreate");
 
   ntupleRAB->Write();
