@@ -6,6 +6,7 @@ datadir: /alice/data/2018/LHC18q/
 datapattern: /AOD
 gridworkdir: DsPbPb
 splitmaxinputfilenum: 20
+nmasterjobs: 10
 AliPhysicVersion: vAN-20191130_ROOT6-1
 runs: [296623, 296622, 296621, 296619, 296618, 296616, 296615, 296594, 296553, 296552, 296551, 
        296550, 296549, 296548, 296547, 296516, 296512, 296511, 296510, 296509, 296472, 296433, 
@@ -40,6 +41,14 @@ task:
         fillonlysignal: 0
         enabletrackvars: 0
         PIDoption: kNsigmaDetAndCombPID
+        downsampling:
+            cand:
+                enable: 0
+                frac: 0.1
+                ptmax: 5.
+            evt:
+                enable: 0
+                frac: 0.1
     applyML:
         doapplyML: 1
         configfile: ''

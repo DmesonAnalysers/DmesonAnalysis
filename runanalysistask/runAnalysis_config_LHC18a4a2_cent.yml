@@ -6,6 +6,7 @@ datadir: /alice/sim/2018/LHC18a4a2_cent/
 datapattern: AOD
 gridworkdir: NonPromptDplusMC
 splitmaxinputfilenum: 20
+nmasterjobs: 10
 AliPhysicVersion: vAN-20191130_ROOT6-1
 runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 282306, 282305, 
        282304, 282303, 282302, 282247, 282230, 282229, 282227, 282224, 282206, 282189, 282147, 
@@ -32,6 +33,14 @@ task:
         fillonlysignal: 1
         enabletrackvars: 0
         PIDoption: kNsigmaDetAndCombPID
+        downsampling:
+            cand:
+                enable: 0
+                frac: 0.1
+                ptmax: 5.
+            evt:
+                enable: 0
+                frac: 0.1
     applyML:
         doapplyML: 0
         configfile: ''
