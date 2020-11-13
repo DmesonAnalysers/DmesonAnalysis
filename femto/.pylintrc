@@ -1,0 +1,23 @@
+[FORMAT]
+indent-string='    '
+max-line-length=120
+
+[BASIC]
+variable-rgx=(?:(?P<snake>[a-z_]+))
+module-naming-style=PascalCase
+function-naming-style=PascalCase
+argument-naming-style=camelCase
+variable-naming-style=camelCase
+method-naming-style=PascalCase
+attr-naming-style=camelCase
+inlinevar-naming-style=camelCase
+
+[TYPECHECK]
+generated-members=RdBu
+
+[DESIGN]
+max-args=10
+max-locals=40
+
+[MESSAGES CONTROL]
+disable=missing-docstring,invalid-name
