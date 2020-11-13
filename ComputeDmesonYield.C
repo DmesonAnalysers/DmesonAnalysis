@@ -34,7 +34,7 @@ void ComputeDmesonYield(Int_t mesonSpecie=kDs,
                         Int_t Cent=k010,
                         Int_t method=2,
                         Int_t optErrFD=1,
-                        TString filnamPPref="$HOME/cernbox/ALICE_WORK/AnalysisPbPb2018/DsRAA/ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_5_6_8_12_16_24_36_50.root",
+                        TString filnamPPref="ppreference/Ds_ppreference_pp5TeV_noyshift_pt_1_2_3_4_5_6_8_12_16_24_FONLLextrap_pt_24_36_50_ML.root",
                         TString filnamSpectrumNb="outputs/crosssec/HFPtSpectrum_Ds_centralcuts_LHC18qr.root",
                         TString filnamSpectrumFc="",
                         TString filnamRaaNb="outputs/raa/HFPtSpectrumRaa_Ds_centralcuts_LHC18qr.root",
@@ -80,7 +80,7 @@ void ComputeDmesonYield(Int_t mesonSpecie=kDs,
   }
 
   TString centrality = "";
-  cout << Cent << endl;
+  std::cout << Cent << std::endl;
   switch(Cent)
   {
       case k010:

@@ -50,7 +50,7 @@ enum rapidity{ kdefault, k08to04, k07to04, k04to01, k01to01, k01to04, k04to07, k
 enum particularity{ kTopological, kLowPt, kPP7TeVPass4, kBDT };
 
 void HFPtSpectrum (Int_t decayChan=kDsKKpi,
-		    const char *mcfilename="models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root",
+		    const char *mcfilename="models/DmesonLcPredictions_502TeV_y05_FFee_BRpythia8_SepContr.root",
 		    const char *efffilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/eff/EffAcc_Ds_norm_pt1_24.root",
 		    const char *recofilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt1_24.root",
 		    const char *recohistoname="hRawYields",
