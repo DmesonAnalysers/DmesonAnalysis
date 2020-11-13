@@ -1,0 +1,18 @@
+runtype: local #local, test, grid
+pathtolocalAOD: 'AODfiles/LHC17p'
+datadir: /alice/data/2017/LHC17p/
+datapattern: pass1_CENT_wSDD/AOD
+gridworkdir: DplusFemto
+splitmaxinputfilenum: 20
+nmasterjobs: 10
+AliPhysicVersion: vAN-20201102_ROOT6-1
+runs: [282343]
+
+task:
+    cuts:
+        infile: alien:///alice/cern.ch/user/f/fgrosa/CutObjects/pp2017/DplustoKpipiCuts_pp_nonprompt_loose_kINT7.root
+        objname: AnalysisCuts
+    applyML:
+        doapplyML: 1
+        configfile: config_DplusFemto_ML_test.yml
+# alien:///alice/cern.ch/user/f/fgrosa/MLModels/Dpluspp5TeV/
