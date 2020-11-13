@@ -48,6 +48,7 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
     string gridDataPattern = config["datapattern"].as<string>();
     string gridWorkingDir = config["gridworkdir"].as<string>();
     int splitmaxinputfilenum = config["splitmaxinputfilenum"].as<int>();
+    int nmasterjobs = config["nmasterjobs"].as<int>();
 
     string hadron = config["hadron"].as<string>();
     string sSystem = config["system"].as<string>();
@@ -147,6 +148,19 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
         pidTreeOpt = AliHFMLVarHandler::kNsigmaDetAndCombPID;
     else if(sPidTreeOpt == "kRawAndNsigmaPID")
         pidTreeOpt = AliHFMLVarHandler::kRawAndNsigmaPID;
+    bool enableCandSampling = static_cast<bool>(config["task"]["treeML"]["downsampling"]["cand"]["enable"].as<int>());
+    bool enableEvtSampling = static_cast<bool>(config["task"]["treeML"]["downsampling"]["evt"]["enable"].as<int>());
+    float fracToKeep = -1.;
+    float ptMaxSampl = -1.;
+    if(enableCandSampling && enableEvtSampling)
+        cerr << "ERROR: downsampling candidate and event based cannot be enabled simultaneously! Check your config file. Exit" << endl;
+    else if(enableCandSampling)
+    {
+        fracToKeep = config["task"]["treeML"]["downsampling"]["cand"]["frac"].as<float>();
+        ptMaxSampl = config["task"]["treeML"]["downsampling"]["cand"]["ptmax"].as<float>();
+    }
+    else if(enableEvtSampling)
+        fracToKeep = config["task"]["treeML"]["downsampling"]["evt"]["frac"].as<float>();
     bool applyML = static_cast<bool>(config["task"]["applyML"]["doapplyML"].as<int>());
     string confFileML = config["task"]["applyML"]["configfile"].as<string>();
     int nMLbins = config["task"]["applyML"]["nbins"].as<int>();
@@ -216,6 +230,10 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
             taskDplus->SetMLTreePIDopt(pidTreeOpt);
             taskDplus->SetMLTreeAddTrackVar(enableTrackVarsTreeML);
             taskDplus->SetFillOnlySignalInMLtree(fillOnlySignalTreeML);
+            if(enableCandSampling)
+                taskDplus->EnableMLTreeCandSampling(fracToKeep, ptMaxSampl);
+            else if(enableEvtSampling)
+                taskDplus->EnableMLTreeEvtSampling(fracToKeep, 42);
         }
     }
     else if (hadron == "Ds")
@@ -236,6 +254,10 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
             taskDs->SetMLTreePIDopt(pidTreeOpt);
             taskDs->SetMLTreeAddTrackVar(enableTrackVarsTreeML);
             taskDs->SetFillOnlySignalInMLtree(fillOnlySignalTreeML);
+            if(enableCandSampling)
+                taskDs->EnableMLTreeCandSampling(fracToKeep, ptMaxSampl);
+            else if(enableEvtSampling)
+                taskDs->EnableMLTreeEvtSampling(fracToKeep, 42);
         }
     }
     else if (hadron == "LcpKpi" || hadron == "LcpK0s" || hadron == "LcpiL")
@@ -252,6 +274,10 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
             taskLc->SetMLTreePIDopt(pidTreeOpt);
             taskLc->SetMLTreeAddTrackVar(enableTrackVarsTreeML);
             taskLc->SetFillOnlySignalInMLtree(fillOnlySignalTreeML);
+            if(enableCandSampling)
+                taskLc->EnableMLTreeCandSampling(fracToKeep, ptMaxSampl);
+            else if(enableEvtSampling)
+                taskLc->EnableMLTreeEvtSampling(fracToKeep, 42);
         }
     }
 
@@ -311,7 +337,7 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
 
         for (int iRun = 0; iRun < nruns; iRun++)
             alienHandler->AddRunNumber(runlist[iRun]);
-        alienHandler->SetNrunsPerMaster(1);
+        alienHandler->SetNrunsPerMaster(nruns/nmasterjobs);
 
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(splitmaxinputfilenum);

@@ -6,6 +6,7 @@ datadir: /alice/data/2017/LHC17q/
 datapattern: /pass1_CENT_wSDD/AOD
 gridworkdir: NonPromptDplus
 splitmaxinputfilenum: 20
+nmasterjobs: 10
 AliPhysicVersion: vAN-20191202_ROOT6-1
 runs: [282367, 282366, 282365]
 
@@ -29,6 +30,14 @@ task:
         fillonlysignal: 0
         enabletrackvars: 0
         PIDoption: kNsigmaDetAndCombPID
+        downsampling:
+            cand:
+                enable: 0
+                frac: 0.1
+                ptmax: 5.
+            evt:
+                enable: 0
+                frac: 0.1
     applyML:
         doapplyML: 0
         configfile: ''

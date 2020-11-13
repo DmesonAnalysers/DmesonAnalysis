@@ -36,6 +36,7 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
     string gridDataPattern = config["datapattern"].as<string>();
     string gridWorkingDir = config["gridworkdir"].as<string>();
     int splitmaxinputfilenum = config["splitmaxinputfilenum"].as<int>();
+    int nmasterjobs = config["nmasterjobs"].as<int>();
 
     string sSystem = config["system"].as<string>();
     int system = -1;
@@ -135,7 +136,7 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
 
         for (int iRun = 0; iRun < nruns; iRun++)
             alienHandler->AddRunNumber(runlist[iRun]);
-        alienHandler->SetNrunsPerMaster(1);
+        alienHandler->SetNrunsPerMaster(nruns/nmasterjobs);
 
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(splitmaxinputfilenum);

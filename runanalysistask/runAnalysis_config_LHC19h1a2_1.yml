@@ -6,6 +6,7 @@ datadir: /alice/sim/2019/LHC19h1a2_1
 datapattern: AOD
 gridworkdir: DsITS3
 splitmaxinputfilenum: 2
+nmasterjobs: 10
 AliPhysicVersion: vAN-20200122_ROOT6-1
 runs: [246392]
 
@@ -29,6 +30,14 @@ task:
         fillonlysignal: 0
         enabletrackvars: 0
         PIDoption: kNsigmaDetAndCombPID
+        downsampling:
+            cand:
+                enable: 0
+                frac: 0.1
+                ptmax: 5.
+            evt:
+                enable: 0
+                frac: 0.1
     applyML:
         doapplyML: 0
         configfile: ''

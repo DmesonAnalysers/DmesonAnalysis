@@ -48,6 +48,7 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
     string gridDataPattern = config["datapattern"].as<string>();
     string gridWorkingDir = config["gridworkdir"].as<string>();
     int splitmaxinputfilenum = config["splitmaxinputfilenum"].as<int>();
+    int nmasterjobs = config["nmasterjobs"].as<int>();
 
     string meson = config["meson"].as<string>();
     string sSystem = config["system"].as<string>();
@@ -241,7 +242,7 @@ void RunAnalysisTreeCreator(TString configfilename, TString runMode = "full", bo
 
         for (int k = 0; k < nruns; k++)
             alienHandler->AddRunNumber(runlist[k]);
-        alienHandler->SetNrunsPerMaster(nruns);
+        alienHandler->SetNrunsPerMaster(nruns/nmasterjobs);
 
         // number of files per subjob
         alienHandler->SetSplitMaxInputFileNumber(splitmaxinputfilenum);
