@@ -17,6 +17,8 @@ infiles:
             filename: null
             dirname: null
             treename: null
+        mean: 0 # fixed values of mean and sigma if > 0 overwrite the use of the histogram
+        sigma: 0
     background:
         filename: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip]
         dirname: null

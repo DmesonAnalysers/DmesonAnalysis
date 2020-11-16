@@ -174,12 +174,12 @@ outDirPlots = TDirectoryFile('plots', 'plots')
 outDirPlots.Write()
 outDirPlotsPt = []
 
-estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'EffAccPrompt': '(Acc#times#font[152]{e})_{prompt}',
-            'EffAccFD': '(Acc#times#font[152]{e})_{FD}', 'fPrompt': '#it{f}_{ prompt}^{ fc}',
-            'fFD': '#it{f}_{ FD}^{ fc}'}
+estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'S': 'expected signal', 'B': 'expected background',
+            'EffAccPrompt': '(Acc#times#font[152]{e})_{prompt}', 'EffAccFD': '(Acc#times#font[152]{e})_{FD}',
+            'fPrompt': '#it{f}_{ prompt}^{ fc}', 'fFD': '#it{f}_{ FD}^{ fc}'}
 
 varsName4Tuple = ':'.join(cutVars) + \
-                 ':PtMin:PtMax:ParCutMin:ParCutMax:S:B:BError:EffAccPromptError:EffAccFDError:SError:' + \
+                 ':PtMin:PtMax:ParCutMin:ParCutMax:BError:EffAccPromptError:EffAccFDError:SError:' + \
                  ':'.join(estNames.keys())
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
@@ -188,8 +188,8 @@ for cutRange in cutRanges:
     totSets *= len(cutRange)
 print(f'Total number of sets per pT bin: {totSets}')
 
-SetGlobalStyle(padleftmargin=0.2, padrightmargin=0.2, padbottommargin=0.15,
-               titleoffset=1.4, titleoffsety=1.8, palette=kRainBow)
+SetGlobalStyle(padleftmargin=0.12, padrightmargin=0.2, padbottommargin=0.15, padtopmargin=0.075,
+               titleoffset=1., palette=kRainBow, titlesize=0.06, labelsize=0.055, maxdigits=4)
 
 cSignifVsRest, hSignifVsRest, cEstimVsCut, hEstimVsCut = [], [], [], []
 counter = 0
@@ -351,13 +351,13 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                         + (preselEffPromptUnc/preselEffPrompt)**2
                                         + (accUnc/acc)**2)*effTimesAccPrompt
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, expSignal, expBkg, BError, 
-                                       EffAccPromptError, EffAccFDError, SError, expSignif, 
-                                       expSoverB, effTimesAccPrompt, effTimesAccFD, fPrompt[0], 
-                                       fFD[0])
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, BError, EffAccPromptError,
+                                       EffAccFDError, SError, expSignif, expSoverB, expSignal, expBkg,
+                                       effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))
-            estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'EffAccPrompt': effTimesAccPrompt,
-                         'EffAccFD': effTimesAccFD, 'fPrompt': fPrompt[0], 'fFD': fFD[0]}
+            estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'S': expSignal, 'B': expBkg,
+                         'EffAccPrompt': effTimesAccPrompt, 'EffAccFD': effTimesAccFD,
+                         'fPrompt': fPrompt[0], 'fFD': fFD[0]}
             if len(varNames) == 1:
                 binVar = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
                 for est in estValues:
@@ -376,8 +376,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         # plots
         outDirPlotsPt[iPt].mkdir(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
         cSignifVsRest.append(TCanvas(f'cSignifVsRest_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
-                                     '', 1920, 1080))
-        cSignifVsRest[counter].Divide(3, 2)
+                                     '', 800, 1000))
+        cSignifVsRest[counter].Divide(2, 4)
         for iPad, est in enumerate(estNames):
             if est != 'Signif':
                 hFrame = cSignifVsRest[counter].cd(iPad).DrawFrame(tSignif.GetMinimum(est)*0.8,
@@ -402,8 +402,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         if 1 <= len(varNames) <= 2:
             if len(varNames) == 1:
                 cEstimVsCut.append(TCanvas(
-                    f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', '', 1920, 1080))
-                cEstimVsCut[counter].Divide(3, 2)
+                    f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', '', 800, 1000))
+                cEstimVsCut[counter].Divide(2, 4)
                 for iPad, est in enumerate(hEstimVsCut[iPt]):
                     hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8,
                                                                        maxVar, tSignif.GetMaximum(est)*1.2,
@@ -419,8 +419,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                     hEstimVsCut[iPt][est].Write()
             elif len(varNames) == 2:
                 cEstimVsCut.append(TCanvas(f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
-                                           '', 1920, 1080))
-                cEstimVsCut[counter].Divide(3, 2)
+                                           '', 800, 1000))
+                cEstimVsCut[counter].Divide(2, 4)
                 for iPad, est in enumerate(hEstimVsCut[iPt]):
                     minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
                     minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[1]]['step'] / 2
