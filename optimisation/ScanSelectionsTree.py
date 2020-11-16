@@ -327,9 +327,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
 
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
 
-            if inputCfg['BkgCorrFactor']['filename']:
-                inFile = TFile.Open(inputCfg['BkgCorrFactor']['filename'])
-                hBkgCorrFactor = inFile.Get(inputCfg['BkgCorrFactor']['histoname'])
+            if inputCfg['infiles']['background']['corrfactor']['filename']:
+                inFile = TFile.Open(inputCfg['infiles']['background']['corrfactor']['filename'])
+                hBkgCorrFactor = inFile.Get(inputCfg['infiles']['background']['corrfactor']['histoname'])
                 expBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
 
             # S/B and significance
