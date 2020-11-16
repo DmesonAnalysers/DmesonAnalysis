@@ -24,6 +24,11 @@ infiles:
         nEvents: 950000000 # number of events for bkg in dataframe
         fractiontokeep: 0.2
         isMC: false # if false bkg from SB
+        fitFunc: expo # fit function for bkg from SB, e.g. pol1, pol2, expo
+        nSigma: 4 # number of sigma from signal region, used to select SB
+        corrfactor:
+            filename: null # set null if no MC bkg correction is needed
+            histoname: null
 
     preseleff: 
         filename: ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/efficiency/Eff_Dplus_pp5TeV_presel_finebins.root
@@ -42,16 +47,13 @@ predictions:
     Raa: 
         prompt: 1. # can either be a fixed value or a text file
         feeddown: 1. # can either be a fixed value or a text file
+        model: null
 
 nExpectedEvents: 950000000
 sigmaMB: 50.87e+9 #pb
 Taa: 1.
 
 expectedSignalFrom: 'prompt' # Choice between: 'prompt' or 'feeddown'
-
-BkgCorrFactor:
-    filename: null # set null if no MC bkg correction is needed
-    histoname: null
 
 ptmin: [1]
 ptmax: [2]

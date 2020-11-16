@@ -60,6 +60,11 @@ infiles:
         nEvents: 635624 # number of events for bkg in dataframe   
         fractiontokeep: 1 
         isMC: True # if false bkg from SB
+        fitFunc: expo # fit function for bkg from SB, e.g. pol1, pol2, expo
+        nSigma: 4 # number of sigma from signal region, used to select SB
+        corrfactor:
+            filename: /home/alidock/DmesonAnalysis/optimisation/BkgCorrFactor/BkgCorrFact_ITS1_AllpT.root # set null if no MC bkg correction is needed
+            histoname: hBkgCorrFactorOverPt
 
     preseleff: 
         filename: /home/alidock/DmesonAnalysis/outEff_AllTest.root
@@ -78,8 +83,7 @@ predictions:
     Raa: 
         prompt: /home/alidock/DmesonAnalysis/models/tamu/Ds_TAMU_RAA_5TeV_010.txt # can either be a fixed value or the path to a text file
         feeddown: /home/alidock/DmesonAnalysis/models/tamu/NonPromptDs_TAMU_RAA_5TeV_010.txt # can either be a fixed value or a text file
-        model: tamu # avaliable models: 'phsd', 'Catania', 'tamu', 'MCatsHQ'
-        
+        model: tamu # avaliable models: 'phsd', 'Catania', 'tamu', 'MCatsHQ'        
 
 nExpectedEvents: 7700000000
 BR: 0.0227
@@ -88,10 +92,6 @@ sigmaMB: 1 #pb
 Taa: 0.00000002307 #pb-1
 
 expectedSignalFrom: 'feeddown' # Choice between: 'prompt' or 'feeddown'
-
-BkgCorrFactor:
-    filename: '/home/alidock/DmesonAnalysis/optimisation/BkgCorrFactor/BkgCorrFact_ITS1_AllpT.root' # set null if no MC bkg correction is needed
-    histoname: hBkgCorrFactorOverPt
 
 ptmin: [1, 2, 4, 6, 8] #GeV
 ptmax: [2, 4, 6, 8, 12] #GeV
