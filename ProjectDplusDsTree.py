@@ -35,7 +35,7 @@ parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=F
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
                     help='First path of the pT weights file, second name of the pT weights histogram')
-parser.add_argument('--std', help='adapt to std. analysis cuts', action='store_true')          
+parser.add_argument('--std', help='adapt to std. analysis cuts', action='store_true')
 args = parser.parse_args()
 
 #config with input file details
@@ -257,23 +257,18 @@ if isMC:
                 varName = iVar
             else:
                 varName = 'Mass'
-            hAllMerged = MergeHists([allDict[iVar][iPt], allDict[iVar][iPt+1]])
-            hAllMerged.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-            hAllMerged.Write()
-            if isMC:
-                hPromptMerged = MergeHists([promptDict[iVar][iPt], promptDict[iVar][iPt+1]])
-                hPromptMerged.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-                hPromptMerged.Write()
-                hFDMerged = MergeHists([FDDict['Pt'][iPt], FDDict['Pt'][iPt+1]])
-                hFDMerged.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-                hFDMerged.Write()
-        if isMC:
-            hPtPromptGenMerged = MergeHists([promptGenList[iPt], promptGenList[iPt+1]])
-            hPtPromptGenMerged.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-            hPtPromptGenMerged.Write()
-            hPtFDGenMerged = MergeHists([FDGenList[iPt], FDGenList[iPt+1]])
-            hPtFDGenMerged.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-            hPtFDGenMerged.Write()
+            hPromptMerged = MergeHists([promptDict[iVar][iPt], promptDict[iVar][iPt+1]])
+            hPromptMerged.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hPromptMerged.Write()
+            hFDMerged = MergeHists([FDDict['Pt'][iPt], FDDict['Pt'][iPt+1]])
+            hFDMerged.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hFDMerged.Write()
+        hPtPromptGenMerged = MergeHists([promptGenList[iPt], promptGenList[iPt+1]])
+        hPtPromptGenMerged.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hPtPromptGenMerged.Write()
+        hPtFDGenMerged = MergeHists([FDGenList[iPt], FDGenList[iPt+1]])
+        hPtFDGenMerged.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hPtFDGenMerged.Write()
 
 else:
     dataFrame = LoadDfFromRootOrParquet(inputCfg['tree']['filenameAll'], inputCfg['tree']['dirname'],
@@ -313,10 +308,11 @@ for iVar in ('InvMass', 'Pt'):
         varName = iVar
     else:
         varName = 'Mass'
-    hAllMergedAllPt = MergeHists(allDict[iVar])
-    hAllMergedAllPt.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-    hAllMergedAllPt.Write()
-    if isMC:
+    if not isMC:
+        hAllMergedAllPt = MergeHists(allDict[iVar])
+        hAllMergedAllPt.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hAllMergedAllPt.Write()
+    else:
         hPromptMergedAllPt = MergeHists(promptDict[iVar])
         hPromptMergedAllPt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         hPromptMergedAllPt.Write()
