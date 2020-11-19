@@ -27,7 +27,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplusVn3050_Central(bool fUseStrongPID =
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
-    TString cent="";
     //centrality selection (Pb-Pb)
     float minc=30.,maxc=50;
     const int nptbins=15;
@@ -196,7 +195,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplusVn3050_Central(bool fUseStrongPID =
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
 
-    cout<<"************** checking old PID (it should be FALSE by default - July 10)--> "<<analysiscuts->GetPidHF()->GetOldPid()<<endl;
+    std::cout<<"************** checking old PID (it should be FALSE by default - July 10)--> "<<analysiscuts->GetPidHF()->GetOldPid()<<std::endl;
 
     analysiscuts->SetUsePID(true);
     AliAODPidHF* PidHF = NULL;
@@ -217,7 +216,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplusVn3050_Central(bool fUseStrongPID =
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -229,7 +227,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplusVn3050_Central(bool fUseStrongPID =
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     analysiscuts->PrintAll();
     analysiscuts->PrintTrigger();
