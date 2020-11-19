@@ -31,7 +31,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=
     esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0060*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.6,1.e10);
 
-    TString cent="";
     float minc=0.,maxc=10.;
     const int nptbins=15;
     float* ptbins;
@@ -220,7 +219,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -296,7 +294,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Central2018(bool fUseStrongPID=
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     TString triggername="kINT7_kCentral";
     if(fIsMC) triggername="kMB";
@@ -328,7 +326,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Loose2018(bool fUseStrongPID=tr
     esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0060*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.6,1.e10);
 
-    TString cent="";
     float minc=0.,maxc=10.;
     const int nptbins=15;
     float* ptbins;
@@ -507,7 +504,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Loose2018(bool fUseStrongPID=tr
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -522,7 +518,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_Loose2018(bool fUseStrongPID=tr
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     TString triggername="kINT7_kCentral";
     if(fIsMC) triggername="kMB";
@@ -554,7 +550,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_FiltTreeCreator2018(bool fUseSt
     esdTrackCuts->SetMinDCAToVertexXYPtDep("0.0060*TMath::Max(0.,(1-TMath::Floor(TMath::Abs(pt)/2.)))");
     esdTrackCuts->SetPtRange(0.6,1.e10);
 
-    TString cent="";
     float minc=0.,maxc=10.;
     const int nptbins=2;
     float* ptbins;
@@ -606,11 +601,11 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_FiltTreeCreator2018(bool fUseSt
     anacutsval[12][0]=5.;
     anacutsval[13][0]=0.99;
 
-    anacutsval[6][0]=0.06;
-    anacutsval[7][0]=0.08;
-    anacutsval[9][0]=0.97;
-    anacutsval[12][0]=3.;
-    anacutsval[13][0]=0.97;
+    anacutsval[6][1]=0.06;
+    anacutsval[7][1]=0.08;
+    anacutsval[9][1]=0.97;
+    anacutsval[12][1]=3.;
+    anacutsval[13][1]=0.97;
 
     AliRDHFCutsDplustoKpipi* analysiscuts=new AliRDHFCutsDplustoKpipi();
     analysiscuts->SetName("AnalysisCuts");
@@ -641,7 +636,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_FiltTreeCreator2018(bool fUseSt
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -656,7 +650,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus010_FiltTreeCreator2018(bool fUseSt
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     TString triggername="kINT7_kCentral";
     if(fIsMC) triggername="kMB";

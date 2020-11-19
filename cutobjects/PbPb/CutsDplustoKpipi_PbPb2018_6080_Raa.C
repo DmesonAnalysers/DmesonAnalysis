@@ -31,7 +31,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
-    TString cent="";
     float minc=60.,maxc=80.;
     const int nptbins=15;
     float* ptbins;
@@ -227,7 +226,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -237,7 +235,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
     if(!fIsMC)
-      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb6080);
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb5080);
 
     TString trackCutName= "";
     switch (addTrackCut) {
@@ -268,7 +266,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018(bool fUseStrongPID
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     TString triggername="kINT7";
     if(fIsMC) triggername="kMB";
@@ -298,7 +296,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Loose2018(bool fUseStrongPID=f
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
-    TString cent="";
     float minc=60.,maxc=80.;
     const int nptbins=15;
     float* ptbins;
@@ -471,7 +468,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Loose2018(bool fUseStrongPID=f
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -481,12 +477,12 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Loose2018(bool fUseStrongPID=f
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
     if(!fIsMC)
-      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb6080);
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb5080);
 
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     TString triggername="kINT7";
     if(fIsMC) triggername="kMB";
@@ -516,7 +512,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_FiltTreeCreator2018(bool fUseS
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
-    TString cent="";
     float minc=60.,maxc=80.;
     const int nptbins=2;
     float* ptbins;
@@ -568,11 +563,11 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_FiltTreeCreator2018(bool fUseS
     anacutsval[12][0]=3.;
     anacutsval[13][0]=0.98;
 
-    anacutsval[6][0]=0.03;
-    anacutsval[7][0]=0.08;
-    anacutsval[9][0]=0.95;
-    anacutsval[12][0]=2.;
-    anacutsval[13][0]=0.95;
+    anacutsval[6][1]=0.03;
+    anacutsval[7][1]=0.08;
+    anacutsval[9][1]=0.95;
+    anacutsval[12][1]=2.;
+    anacutsval[13][1]=0.95;
 
     AliRDHFCutsDplustoKpipi* analysiscuts=new AliRDHFCutsDplustoKpipi();
     analysiscuts->SetName("AnalysisCuts");
@@ -602,7 +597,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_FiltTreeCreator2018(bool fUseS
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -612,12 +606,12 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_FiltTreeCreator2018(bool fUseS
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
     if(!fIsMC)
-      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb6080);
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb5080);
 
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     TString triggername="kINT7";
     if(fIsMC) triggername="kMB";
@@ -648,7 +642,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018_pass3(bool fUseStr
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
-    TString cent="";
     float minc=60.,maxc=80.;
     const int nptbins=15;
     float* ptbins;
@@ -845,7 +838,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018_pass3(bool fUseStr
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -886,7 +878,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Central2018_pass3(bool fUseStr
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     TString triggername="kINT7";
     if(fIsMC) triggername="kMB";
@@ -917,7 +909,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Filt2018_pass3(bool fUseStrong
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.4,1.e10);
 
-    TString cent="";
     float minc=60.,maxc=80.;
     const int nptbins=2;
     float* ptbins;
@@ -969,11 +960,11 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Filt2018_pass3(bool fUseStrong
     anacutsval[12][0]=3.;
     anacutsval[13][0]=0.98;
 
-    anacutsval[6][0]=0.03;
-    anacutsval[7][0]=0.08;
-    anacutsval[9][0]=0.95;
-    anacutsval[12][0]=2.;
-    anacutsval[13][0]=0.95;
+    anacutsval[6][1]=0.03;
+    anacutsval[7][1]=0.08;
+    anacutsval[9][1]=0.95;
+    anacutsval[12][1]=2.;
+    anacutsval[13][1]=0.95;
 
     AliRDHFCutsDplustoKpipi* analysiscuts=new AliRDHFCutsDplustoKpipi();
     analysiscuts->SetName("AnalysisCuts");
@@ -1004,7 +995,6 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Filt2018_pass3(bool fUseStrong
     analysiscuts->SetRemoveTrackletOutliers(true);//added on June 28
     analysiscuts->SetCutOnzVertexSPD(3);//needed for Pb-Pb 2015
 
-    cent=Form("%.0f%.0f",minc,maxc);
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -1019,7 +1009,7 @@ AliRDHFCutsDplustoKpipi* MakeFileForCutsDplus6080_Filt2018_pass3(bool fUseStrong
     analysiscuts->SetMinPtCandidate(2.);
     analysiscuts->SetMaxPtCandidate(50.);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     TString triggername="kINT7";
     if(fIsMC) triggername="kMB";
