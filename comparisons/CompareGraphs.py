@@ -33,6 +33,10 @@ objTypes = inputCfg['options']['ROOTobject']
 scales = inputCfg['options']['scale']
 colors = inputCfg['options']['colors']
 markers = inputCfg['options']['markers']
+markersizes = inputCfg['options']['markersize']
+linewidths = inputCfg['options']['linewidth']
+fillstyles = inputCfg['options']['fillstyle']
+fillalphas = inputCfg['options']['fillalpha']
 drawOptions = inputCfg['options']['drawopt']
 
 doRatio = inputCfg['options']['ratio']['enable']
@@ -75,8 +79,10 @@ leg.SetTextSize(legTextSize)
 leg.SetNColumns(ncolumns)
 
 hToCompare, hRatioToCompare, hUncToCompare = [], [], []
-for iFile, (inFileName, objName, objType, scale, color, marker) in \
-    enumerate(zip(inFileNames, objNames, objTypes, scales, colors, markers)):
+for iFile, (inFileName, objName, objType, scale, color, marker,
+            markersize, linewidth, fillstyle, fillalpha) in \
+    enumerate(zip(inFileNames, objNames, objTypes, scales, colors, markers,
+                  markersizes, linewidths, fillstyles, fillalphas)):
     if inDirName:
         inFileName = join(inDirName, inFileName)
     inFile = TFile.Open(inFileName)
@@ -89,10 +95,10 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
     SetObjectStyle(hToCompare[iFile],
                    color=GetROOTColor(color),
                    markerstyle=GetROOTMarker(marker),
-                   markersize=inputCfg['options']['markersize'],
-                   linewidth=inputCfg['options']['linewidth'],
-                   fillstyle=inputCfg['options']['fillstyle'][iFile], 
-                   fillalpha=inputCfg['options']['fillalpha'][iFile])
+                   markersize=markersize,
+                   linewidth=linewidth,
+                   fillstyle=fillstyle[iFile],
+                   fillalpha=fillalpha[iFile])
     if 'TH' in objType:
         hToCompare[iFile].SetDirectory(0)
         hToCompare[iFile].SetStats(0)
@@ -129,10 +135,10 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
         SetObjectStyle(hRatioToCompare[iFile],
                        color=GetROOTColor(color),
                        markerstyle=GetROOTMarker(marker),
-                       markersize=inputCfg['options']['markersize'],
-                       linewidth=inputCfg['options']['linewidth'],
-                       fillstyle=inputCfg['options']['fillstyle'][iFile],
-                       fillalpha=inputCfg['options']['fillalpha'][iFile])
+                       markersize=markersize,
+                       linewidth=linewidth,
+                       fillstyle=fillstyle[iFile],
+                       fillalpha=fillalpha[iFile])
     if doCompareUnc:
         if 'TH' in objType:
             hUncToCompare.append(hToCompare[iFile].Clone(f'hUncToCompare{iFile}'))
@@ -148,10 +154,10 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
             SetObjectStyle(hUncToCompare[iFile],
                            color=GetROOTColor(color),
                            markerstyle=GetROOTMarker(marker),
-                           markersize=inputCfg['options']['markersize'],
-                           linewidth=inputCfg['options']['linewidth'],
-                           fillstyle=inputCfg['options']['fillstyle'][iFile],
-                           fillalpha=inputCfg['options']['fillalpha'][iFile])
+                           markersize=markersize,
+                           linewidth=linewidth,
+                           fillstyle=fillstyle[iFile],
+                           fillalpha=fillalpha[iFile])
         else:
             #TODO: add uncertainty comparison for TGraphs
             print('WARNING: uncertainty comparison for TGraphs not implemented. Switching off')
