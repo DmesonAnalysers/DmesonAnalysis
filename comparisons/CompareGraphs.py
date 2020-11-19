@@ -58,11 +58,13 @@ ratioLogY = inputCfg['options']['canvas']['ratio']['logy']
 uncCompLogX = inputCfg['options']['canvas']['errcomp']['logx']
 uncCompLogY = inputCfg['options']['canvas']['errcomp']['logy']
 
+avoidLeg = inputCfg['options']['legend']['avoid']
 xLegLimits = inputCfg['options']['legend']['xlimits']
 yLegLimits = inputCfg['options']['legend']['ylimits']
 legNames = inputCfg['options']['legend']['titles']
 legOpt = inputCfg['options']['legend']['options']
 legTextSize = inputCfg['options']['legend']['textsize']
+ncolumns = inputCfg['options']['legend']['ncolumns']
 
 # set global style
 SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14, titleoffsety=1.5)
@@ -70,6 +72,7 @@ SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14, titleoffsety=1.5)
 leg = TLegend(xLegLimits[0], yLegLimits[0], xLegLimits[1], yLegLimits[1])
 leg.SetFillStyle(0)
 leg.SetTextSize(legTextSize)
+leg.SetNColumns(ncolumns)
 
 hToCompare, hRatioToCompare, hUncToCompare = [], [], []
 for iFile, (inFileName, objName, objType, scale, color, marker) in \
@@ -83,7 +86,13 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
         hToCompare[iFile].SetStats(0)
     else:
         hToCompare[iFile].SetName(f'g{iFile}')
-    SetObjectStyle(hToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker), fillstyle=0)
+    SetObjectStyle(hToCompare[iFile],
+                   color=GetROOTColor(color),
+                   markerstyle=GetROOTMarker(marker),
+                   markersize=inputCfg['options']['markersize'],
+                   linewidth=inputCfg['options']['linewidth'],
+                   fillstyle=inputCfg['options']['fillstyle'][iFile], 
+                   fillalpha=inputCfg['options']['fillalpha'][iFile])
     if 'TH' in objType:
         hToCompare[iFile].SetDirectory(0)
         hToCompare[iFile].SetStats(0)
@@ -117,8 +126,13 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
                     hRatioToCompare[iFile].SetPointEYhigh(iBin, 1.e-20)
         #TODO: add case to manage ratio between graph and histo (utility function already available in AnalysisUtils)
         hRatioToCompare[iFile].SetName(f'hRatio{iFile}')
-        SetObjectStyle(hRatioToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker),
-                       fillstyle=0)
+        SetObjectStyle(hRatioToCompare[iFile],
+                       color=GetROOTColor(color),
+                       markerstyle=GetROOTMarker(marker),
+                       markersize=inputCfg['options']['markersize'],
+                       linewidth=inputCfg['options']['linewidth'],
+                       fillstyle=inputCfg['options']['fillstyle'][iFile],
+                       fillalpha=inputCfg['options']['fillalpha'][iFile])
     if doCompareUnc:
         if 'TH' in objType:
             hUncToCompare.append(hToCompare[iFile].Clone(f'hUncToCompare{iFile}'))
@@ -131,8 +145,13 @@ for iFile, (inFileName, objName, objType, scale, color, marker) in \
                     hUncToCompare[iFile].SetBinContent(iBin, unc)
                 hUncToCompare[iFile].SetBinError(iBin, 1.e-20)
             hUncToCompare[iFile].SetDirectory(0)
-            SetObjectStyle(hUncToCompare[iFile], color=GetROOTColor(color), markerstyle=GetROOTMarker(marker),
-                           fillstyle=0)
+            SetObjectStyle(hUncToCompare[iFile],
+                           color=GetROOTColor(color),
+                           markerstyle=GetROOTMarker(marker),
+                           markersize=inputCfg['options']['markersize'],
+                           linewidth=inputCfg['options']['linewidth'],
+                           fillstyle=inputCfg['options']['fillstyle'][iFile],
+                           fillalpha=inputCfg['options']['fillalpha'][iFile])
         else:
             #TODO: add uncertainty comparison for TGraphs
             print('WARNING: uncertainty comparison for TGraphs not implemented. Switching off')
@@ -186,7 +205,8 @@ for histo, objType, drawOpt in zip(hToCompare, objTypes, drawOptions):
         histo.DrawCopy(f'{drawOpt}same')
     else:
         histo.Draw(drawOpt)
-leg.Draw()
+if  not avoidLeg:
+    leg.Draw()
 
 if doRatio:
     hFrameRatio = cOut.cd(ratioPad).DrawFrame(xLimits[0], yLimitsRatio[0], xLimits[1], yLimitsRatio[1],
