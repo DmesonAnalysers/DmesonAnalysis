@@ -33,8 +33,8 @@ objTypes = inputCfg['options']['ROOTobject']
 scales = inputCfg['options']['scale']
 colors = inputCfg['options']['colors']
 markers = inputCfg['options']['markers']
-markersizes = inputCfg['options']['markersize']
-linewidths = inputCfg['options']['linewidth']
+markersize = inputCfg['options']['markersize']
+linewidth = inputCfg['options']['linewidth']
 fillstyles = inputCfg['options']['fillstyle']
 fillalphas = inputCfg['options']['fillalpha']
 drawOptions = inputCfg['options']['drawopt']
@@ -79,10 +79,8 @@ leg.SetTextSize(legTextSize)
 leg.SetNColumns(ncolumns)
 
 hToCompare, hRatioToCompare, hUncToCompare = [], [], []
-for iFile, (inFileName, objName, objType, scale, color, marker,
-            markersize, linewidth, fillstyle, fillalpha) in \
-    enumerate(zip(inFileNames, objNames, objTypes, scales, colors, markers,
-                  markersizes, linewidths, fillstyles, fillalphas)):
+for iFile, (inFileName, objName, objType, scale, color, marker, fillstyle, fillalpha) in \
+    enumerate(zip(inFileNames, objNames, objTypes, scales, colors, markers, fillstyles, fillalphas)):
     if inDirName:
         inFileName = join(inDirName, inFileName)
     inFile = TFile.Open(inFileName)
