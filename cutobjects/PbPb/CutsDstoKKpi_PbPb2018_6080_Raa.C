@@ -227,7 +227,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_Central2018(bool fUseStrongPID = true
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
     if(!fIsMC)
-      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb6080);
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb5080);
 
     analysiscuts->SetOptPileup(false);
     analysiscuts->SetMinCentrality(mincen);
@@ -489,7 +489,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_Loose2018(bool fUseStrongPID = true, 
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
     if(!fIsMC)
-      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb6080);
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb5080);
 
     analysiscuts->SetOptPileup(false);
     analysiscuts->SetMinCentrality(mincen);
@@ -593,8 +593,6 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_FiltTreeCreator2018(bool fUseStrongPI
     if(!fIsMC)
         analysiscuts->SetUseTimeRangeCutForPbPb2018(true);
 
-    TString cent="";
-
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentV0M); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");//dont use for ppMB/ppMB_MC
     analysiscuts->ResetMaskAndEnableMBTrigger();//dont use for ppMB/ppMB_MC
@@ -608,7 +606,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_FiltTreeCreator2018(bool fUseStrongPI
     }
     else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
     if(!fIsMC)
-      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb6080);
+      analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb5080);
 
     analysiscuts->SetOptPileup(false);
     if(!fIsMC) {
@@ -619,13 +617,12 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs6080_FiltTreeCreator2018(bool fUseStrongPI
       analysiscuts->SetMinCentrality(0);
       analysiscuts->SetMaxCentrality(100);
     }
-    cent=Form("%.0f%.0f",mincen,maxcen);
 
     analysiscuts->SetMinPtCandidate(ptmin);
     analysiscuts->SetMaxPtCandidate(ptmax);
     analysiscuts->SetRemoveDaughtersFromPrim(false);
 
-    cout<<"This is the object I'm going to save:"<<nptbins<<endl;
+    std::cout<<"This is the object I'm going to save:"<<nptbins<<std::endl;
 
     analysiscuts->PrintAll();
     TString triggername = "kINT7";
