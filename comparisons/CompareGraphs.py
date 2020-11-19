@@ -97,8 +97,8 @@ for iFile, (inFileName, objName, objType, scale, color, marker,
                    markerstyle=GetROOTMarker(marker),
                    markersize=markersize,
                    linewidth=linewidth,
-                   fillstyle=fillstyle[iFile],
-                   fillalpha=fillalpha[iFile])
+                   fillstyle=fillstyle,
+                   fillalpha=fillalpha)
     if 'TH' in objType:
         hToCompare[iFile].SetDirectory(0)
         hToCompare[iFile].SetStats(0)
@@ -137,8 +137,8 @@ for iFile, (inFileName, objName, objType, scale, color, marker,
                        markerstyle=GetROOTMarker(marker),
                        markersize=markersize,
                        linewidth=linewidth,
-                       fillstyle=fillstyle[iFile],
-                       fillalpha=fillalpha[iFile])
+                       fillstyle=fillstyle,
+                       fillalpha=fillalpha)
     if doCompareUnc:
         if 'TH' in objType:
             hUncToCompare.append(hToCompare[iFile].Clone(f'hUncToCompare{iFile}'))
@@ -156,8 +156,8 @@ for iFile, (inFileName, objName, objType, scale, color, marker,
                            markerstyle=GetROOTMarker(marker),
                            markersize=markersize,
                            linewidth=linewidth,
-                           fillstyle=fillstyle[iFile],
-                           fillalpha=fillalpha[iFile])
+                           fillstyle=fillstyle,
+                           fillalpha=fillalpha)
         else:
             #TODO: add uncertainty comparison for TGraphs
             print('WARNING: uncertainty comparison for TGraphs not implemented. Switching off')
