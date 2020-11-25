@@ -20,6 +20,7 @@
 #include "AliAnalysisTaskPIDResponse.h"
 #include "AliMultSelectionTask.h"
 #include "AliAnalysisTaskCharmingFemto.h"
+#include "AliAnalysisTaskSECharmHadronMLSelector.h"
 
 #endif
 
@@ -62,8 +63,15 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
     //task options
     string cutFileName = config["task"]["cuts"]["infile"].as<string>();
     string cutObjName = config["task"]["cuts"]["objname"].as<string>();
+    string triggerMask = config["task"]["triggermask"].as<string>();
     bool applyML = static_cast<bool>(config["task"]["applyML"]["doapplyML"].as<int>());
     string confFileML = config["task"]["applyML"]["configfile"].as<string>();
+
+    bool useMLselectorTask = static_cast<bool>(config["task"]["applyML"]["MLselector"]["enable"].as<int>());
+    string MLSelcutFileName = config["task"]["applyML"]["MLselector"]["infile"].as<string>();
+    string MLSelcutObjName = config["task"]["applyML"]["MLselector"]["objname"].as<string>();
+    string MLSelconfFileML = config["task"]["applyML"]["MLselector"]["configfile"].as<string>();
+
     //_________________________________________________________________________________________________________________
 
     // if compile a class, tell root where to look for headers
@@ -86,7 +94,15 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
     //pid response task
     AliAnalysisTaskPIDResponse *pidResp = reinterpret_cast<AliAnalysisTaskPIDResponse *>(gInterpreter->ProcessLine(Form(".x %s(%d)", gSystem->ExpandPathName("$ALICE_ROOT/ANALYSIS/macros/AddTaskPIDResponse.C"), isRunOnMC)));
 
-    AliAnalysisTaskCharmingFemto *task = reinterpret_cast<AliAnalysisTaskCharmingFemto*>(gInterpreter->ProcessLine(Form(".x %s(%d, false, \"kINT7\", 0, \"%s\", \"%s\", %d, \"%s\", 0)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGCF/FEMTOSCOPY/macros/AddTaskCharmingFemto.C"), isRunOnMC, cutFileName.data(), cutObjName.data(), applyML, confFileML.data())));
+    AliAnalysisTaskSECharmHadronMLSelector *taskMLSel = nullptr;
+    if(useMLselectorTask)
+    {
+        taskMLSel = reinterpret_cast<AliAnalysisTaskSECharmHadronMLSelector*>(gInterpreter->ProcessLine(Form(".x %s(\"%s\", \"%s\", AliAnalysisTaskSECharmHadronMLSelector::kDplustoKpipi, \"%s\", \"""\", %s)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskCharmHadronMLSelector.C"), MLSelcutFileName.data(), MLSelconfFileML.data(), MLSelcutObjName.data(), triggerMask.data())));
+    }
+
+    AliAnalysisTaskCharmingFemto *task = reinterpret_cast<AliAnalysisTaskCharmingFemto*>(gInterpreter->ProcessLine(Form(".x %s(%d, false, \"%s\", 0, \"%s\", \"%s\", %d, \"%s\", 0)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGCF/FEMTOSCOPY/macros/AddTaskCharmingFemto.C"), isRunOnMC, triggerMask.data(), cutFileName.data(), cutObjName.data(), applyML, confFileML.data())));
+    if(useMLselectorTask)
+        task->SetIsDependentOnMLSelector();
 
     if (!mgr->InitAnalysis())
         return;

@@ -1,0 +1,23 @@
+runtype: local #local, test, grid
+pathtolocalAOD: '../AODfiles/LHC18l'
+datadir: /alice/data/2018/LHC18l/
+datapattern: pass1/AOD234
+gridworkdir: DplusFemto
+splitmaxinputfilenum: 20
+nmasterjobs: 10
+AliPhysicVersion: vAN-20201124_ROOT6-1
+runs: [289240]
+
+task:
+    cuts:
+        infile: alien:///alice/cern.ch/user/f/fgrosa/CutObjects/pp13TeVHM/DplustoKpipiCuts_pp_femto_loose_kHighMultV0.root
+        objname: AnalysisCuts
+    triggermask: AliVEvent::kINT7
+    applyML:
+        doapplyML: 1
+        configfile: config_DplusFemto_applyML_test2.yml
+        MLselector:
+            enable: 1
+            infile: alien:///alice/cern.ch/user/f/fgrosa/CutObjects/pp13TeVHM/DplustoKpipiCuts_pp_femto_loose_kHighMultV0.root
+            objname: AnalysisCuts
+            configfile: config_DplusFemto_applyML_test.yml
