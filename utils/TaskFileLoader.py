@@ -2,6 +2,7 @@
 python script with helper functions to load objects from task
 '''
 
+import sys
 from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
 
 
@@ -16,15 +17,23 @@ def LoadSparseFromTask(infilename, inputCfg):
 
     Returns
     ----------
-    - list of sparses with reconstructed quantities for all candidates, and prompt, FD D mesons and bkg candidates (only if MC)
+    - list of sparses with reconstructed quantities for all candidates,
+      and prompt, FD D mesons and bkg candidates (only if MC)
     - list of sparses with generated quantities for prompt and FD D mesons (only if MC)
     '''
     print('Loading THnSparses from file', infilename)
     infileData = TFile(infilename)
     indirData = infileData.Get(inputCfg['dirname'])
     inlistData = indirData.Get(inputCfg['listname'])
+
+    if inputCfg['sparsenameAll'] == inputCfg['sparsenamePrompt'] or \
+        inputCfg['sparsenameAll'] == inputCfg['sparsenameFD']:
+        print('ERROR: do not use the same object for different spareses, this gives an error when merged! Exit')
+        sys.exit()
+
     sparses, sparsesGen = {}, {}
-    sparses['RecoAll'] = inlistData.FindObject(inputCfg['sparsenameAll'])
+    if inputCfg['sparsenameAll'] and inlistData.FindObject(inputCfg['sparsenameAll']):
+        sparses['RecoAll'] = inlistData.FindObject(inputCfg['sparsenameAll']) # not mandatory for MC
     if inputCfg['isMC']:
         sparses['RecoPrompt'] = inlistData.FindObject(
             inputCfg['sparsenamePrompt'])
@@ -42,6 +51,7 @@ def LoadSparseFromTask(infilename, inputCfg):
                 inputCfg['sparsenameGenPromptSecPeak'])
             sparsesGen['GenSecPeakFD'] = inlistData.FindObject(
                 inputCfg['sparsenameGenFDSecPeak'])
+    infileData.Close()
 
     return sparses, sparsesGen
 
