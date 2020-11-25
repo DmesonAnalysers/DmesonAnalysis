@@ -115,7 +115,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['min'][iPt] * 1.0001)
         binMax = sparseReco[refSparse].GetAxis(
             cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['max'][iPt] * 0.9999)
-        sparseReco[refSparse].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
+        if 'RecoAll' in sparseReco:
+            sparseReco['RecoAll'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
         if isMC:
             sparseReco['RecoPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
             sparseReco['RecoFD'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
@@ -125,11 +126,12 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
 
     for iVar in ('InvMass', 'Pt'):
         varName = cutVars[iVar]['name']
-        hVar = sparseReco[refSparse].Projection(cutVars[iVar]['axisnum'])
-        hVar.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        outfile.cd()
-        all_dict[iVar].append(hVar)
-        hVar.Write()
+        if 'RecoAll' in sparseReco:
+            hVar = sparseReco['RecoAll'].Projection(cutVars[iVar]['axisnum'])
+            hVar.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            outfile.cd()
+            all_dict[iVar].append(hVar)
+            hVar.Write()
         if isMC:
             hVarPrompt = sparseReco['RecoPrompt'].Projection(cutVars[iVar]['axisnum'])
             # apply pt weights
@@ -206,8 +208,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hGenPtFDSecPeak.Write()
 
     for iVar in cutVars:
-        sparseReco[refSparse].GetAxis(
-            cutVars[iVar]['axisnum']).SetRange(-1, -1)
+        if 'RecoAll' in sparseReco:
+            sparseReco['RecoAll'].GetAxis(
+                cutVars[iVar]['axisnum']).SetRange(-1, -1)
         if isMC:
             sparseReco['RecoPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
             sparseReco['RecoFD'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
@@ -220,9 +223,10 @@ for iPt in range(0, len(cutVars['Pt']['min']) - 1):
     ptHighLabel = cutVars['Pt']['max'][iPt+1] * 10
     for iVar in ('InvMass', 'Pt'):
         varName = cutVars[iVar]['name']
-        hVar_merged = MergeHists([all_dict[iVar][iPt], all_dict[iVar][iPt+1]])
-        hVar_merged.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        hVar_merged.Write()
+        if 'RecoAll' in sparseReco:
+            hVar_merged = MergeHists([all_dict[iVar][iPt], all_dict[iVar][iPt+1]])
+            hVar_merged.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hVar_merged.Write()
         if isMC:
             hVarPrompt_merged = MergeHists([prompt_dict[iVar][iPt], prompt_dict[iVar][iPt+1]])
             hVarPrompt_merged.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
@@ -259,9 +263,10 @@ ptLowLabel = cutVars['Pt']['min'][0] * 10
 ptHighLabel = cutVars['Pt']['max'][-1] * 10
 for iVar in ('InvMass', 'Pt'):
     varName = cutVars[iVar]['name']
-    hVar_merged_allPt = MergeHists(all_dict[iVar])
-    hVar_merged_allPt.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-    hVar_merged_allPt.Write()
+    if 'RecoAll' in sparseReco:
+        hVar_merged_allPt = MergeHists(all_dict[iVar])
+        hVar_merged_allPt.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        hVar_merged_allPt.Write()
     if isMC:
         hVarPrompt_merged_allPt = MergeHists(prompt_dict[iVar])
         hVarPrompt_merged_allPt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
