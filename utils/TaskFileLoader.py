@@ -29,7 +29,7 @@ def LoadSparseFromTask(infilename, inputCfg): # pylint: disable=too-many-branche
         return None, None
     inlistData = indirData.Get(inputCfg['listname'])
     if not inlistData:
-        print(f'List {inputCfg["dirname"]} not found!')
+        print(f'List {inputCfg["listname"]} not found!')
         return None, None
 
     if inputCfg['sparsenameAll'] == inputCfg['sparsenamePrompt'] or \
@@ -45,36 +45,36 @@ def LoadSparseFromTask(infilename, inputCfg): # pylint: disable=too-many-branche
             return None, None
     if inputCfg['isMC']:
         sparses['RecoPrompt'] = inlistData.FindObject(inputCfg['sparsenamePrompt'])
-        if not sparses['RecoAll']:
+        if not sparses['RecoPrompt']:
             print(f'ERROR: sparse {inputCfg["sparsenamePrompt"]} not found!')
             return None, None
         sparses['RecoFD'] = inlistData.FindObject(inputCfg['sparsenameFD'])
-        if not sparses['RecoAll']:
+        if not sparses['RecoFD']:
             print(f'ERROR: sparse {inputCfg["sparsenameFD"]} not found!')
             return None, None
         sparsesGen['GenPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPrompt'])
-        if not sparses['RecoAll']:
+        if not sparses['GenPrompt']:
             print(f'ERROR: sparse {inputCfg["sparsenameGenPrompt"]} not found!')
             return None, None
         sparsesGen['GenFD'] = inlistData.FindObject(inputCfg['sparsenameGenFD'])
-        if not sparses['RecoAll']:
+        if not sparses['GenFD']:
             print(f'ERROR: sparse {inputCfg["sparsenameGenFD"]} not found!')
             return None, None
         if inputCfg['enableSecPeak']:
             sparses['RecoSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenamePromptSecPeak'])
-            if not sparses['RecoAll']:
+            if not sparses['RecoSecPeakPrompt']:
                 print(f'ERROR: sparse {inputCfg["sparsenamePromptSecPeak"]} not found!')
                 return None, None
             sparses['RecoSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameFDSecPeak'])
-            if not sparses['RecoAll']:
+            if not sparses['RecoSecPeakFD']:
                 print(f'ERROR: sparse {inputCfg["sparsenameFDSecPeak"]} not found!')
                 return None, None
             sparsesGen['GenSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPromptSecPeak'])
-            if not sparses['RecoAll']:
+            if not sparses['GenSecPeakPrompt']:
                 print(f'ERROR: sparse {inputCfg["sparsenameGenPromptSecPeak"]} not found!')
                 return None, None
             sparsesGen['GenSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameGenFDSecPeak'])
-            if not sparses['RecoAll']:
+            if not sparses['GenSecPeakFD']:
                 print(f'ERROR: sparse {inputCfg["sparsenameGenFDSecPeak"]} not found!')
                 return None, None
     infileData.Close()
@@ -104,7 +104,7 @@ def LoadSingleSparseFromTask(infilename, inputCfg, sparsetype='sparsenameBkg'):
         return None
     inlistData = indirData.Get(inputCfg['listname'])
     if not inlistData:
-        print(f'List {inputCfg["dirname"]} not found!')
+        print(f'List {inputCfg["listname"]} not found!')
         return None
     sparse = inlistData.FindObject(inputCfg[sparsetype])
     if not sparse:
@@ -135,7 +135,7 @@ def LoadNormObjFromTask(infilename, inputCfg):
         return None, None
     inlistData = indirData.Get(inputCfg['listname'])
     if not inlistData:
-        print(f'List {inputCfg["dirname"]} not found!')
+        print(f'List {inputCfg["listname"]} not found!')
         return None, None
     normCounter = indirData.Get(inputCfg['normname'])
     if not normCounter:
@@ -170,7 +170,7 @@ def LoadListFromTask(infilename, inputCfg):
         return None
     inlistData = indirData.Get(inputCfg['listname'])
     if not inlistData:
-        print(f'List {inputCfg["dirname"]} not found!')
+        print(f'List {inputCfg["listname"]} not found!')
         return None
 
     return inlistData
@@ -228,7 +228,7 @@ def LoadPIDSparses(infilename, inputCfg):
         return None, None, None
     inlistData = indirData.Get(inputCfg['listname'])
     if not inlistData:
-        print(f'List {inputCfg["dirname"]} not found!')
+        print(f'List {inputCfg["listname"]} not found!')
         return None, None, None
     sparsePIDNsigma = inlistData.FindObject('fnSparsePID')
     if not sparsePIDNsigma:
@@ -301,7 +301,7 @@ def LoadListFromTaskV2(infilename, dirname, listname):
     indirData = infileData.Get(dirname)
     if not indirData:
         print(f'Directory {dirname} not found!')
-        return None, None
+        return None
     inlistData = indirData.Get(listname)
     if not inlistData:
         print(f'List {listname} not found!')
