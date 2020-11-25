@@ -1,0 +1,31 @@
+infile:
+    isMC: 0
+    filename: [~/cernbox/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/data/010/forML/AnalysisResults_Ds_010_MLtree_LHC18qr_pass3_Tot.root]
+    dirname: PWGHF_D2H_InvMassDs_Ds_Filt_MediumPre_kCentral
+    treename: treeMLDs
+
+outfile:
+    dirpath: ~/cernbox/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/data/010/ml/
+    suffix: _DsPbPb5TeV010NoOutlier
+    treename: treeMLDs
+    
+skimming:
+    pt:
+        min: 2
+        max: 50
+    preselections: nsigComb_Pi_0 > 0 and nsigComb_Pi_1 > 0 and nsigComb_Pi_2 > 0 and 
+                   nsigComb_K_0 > 0 and nsigComb_K_1 > 0 and nsigComb_K_2 > 0 #null if you don't want to apply preselections
+    colstokeep: [] #empty list if you want to keep everything
+
+singletrackvars:
+    addAODfiltervars: 0 # it adds min pt and min d0 of daughters with pt < 2
+
+missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
+    enable: 0
+    toreplace:
+        nsigTOF_Pi_0: -999.
+        nsigTOF_K_0: -999.
+        nsigTOF_Pi_1: -999.
+        nsigTOF_K_1: -999.
+        nsigTOF_Pi_2: -999.
+        nsigTOF_K_2: -999.
