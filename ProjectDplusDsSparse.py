@@ -133,7 +133,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 for iBin in range(1, hVarPrompt.GetNbinsX()+1):
                     if hVarPrompt.GetBinContent(iBin) > 0.:
                         relStatUnc = hVarPrompt.GetBinError(iBin) / hVarPrompt.GetBinContent(iBin)
-                        ptCent = hVarPrompt.GetBinWidth(iBin)
+                        ptCent = hVarPrompt.GetBinCenter(iBin)
                         hVarPrompt.SetBinContent(iBin, hVarPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
                         hVarPrompt.SetBinError(iBin, hVarPrompt.GetBinContent(iBin) * relStatUnc)
             hVarPrompt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
@@ -145,7 +145,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 for iBin in range(1, hVarFD.GetNbinsX()+1):
                     if hVarFD.GetBinContent(iBin) > 0.:
                         relStatUnc = hVarFD.GetBinError(iBin) / hVarFD.GetBinContent(iBin)
-                        ptCent = hVarFD.GetBinWidth(iBin)
+                        ptCent = hVarFD.GetBinCenter(iBin)
                         hVarFD.SetBinContent(iBin, hVarFD.GetBinContent(iBin) * sPtWeightsRecoDfromB(ptCent))
                         hVarFD.SetBinError(iBin, hVarFD.GetBinContent(iBin) * relStatUnc)
             hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
@@ -171,7 +171,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             for iBin in range(1, hGenPtPrompt.GetNbinsX()+1):
                 if hGenPtPrompt.GetBinContent(iPt) > 0:
                     relStatUnc = hGenPtPrompt.GetBinError(iBin) / hGenPtPrompt.GetBinContent(iBin)
-                    ptCent = hGenPtPrompt.GetBinWidth(iBin)
+                    ptCent = hGenPtPrompt.GetBinCenter(iBin)
                     hGenPtPrompt.SetBinContent(iBin, hGenPtPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
                     hGenPtPrompt.SetBinError(iBin, hGenPtPrompt.GetBinContent(iBin) * relStatUnc)
         hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
@@ -183,7 +183,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             for iBin in range(1, hGenPtFD.GetNbinsX()+1):
                 if hGenPtFD.GetBinContent(iPt) > 0:
                     relStatUnc = hGenPtFD.GetBinError(iBin) / hGenPtFD.GetBinContent(iBin)
-                    ptCent = hGenPtFD.GetBinWidth(iBin)
+                    ptCent = hGenPtFD.GetBinCenter(iBin)
                     hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeightsRecoDfromB(ptCent))
                     hGenPtFD.SetBinError(iBin, hGenPtFD.GetBinContent(iBin) * relStatUnc)
         hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
