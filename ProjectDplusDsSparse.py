@@ -51,19 +51,15 @@ for iFile, infilename in enumerate(infilenames):
     if iFile == 0:
         sparseReco, sparseGen = LoadSparseFromTask(infilename, inputCfg)
         hEv, normCounter = LoadNormObjFromTask(infilename, inputCfg)
-        print(sparseReco['RecoPrompt'].GetEntries())
     else:
         sparseRecoPart, sparseGenPart = LoadSparseFromTask(infilename, inputCfg)
         hEvPart, normCounterPart = LoadNormObjFromTask(infilename, inputCfg)
         for sparsetype in sparseRecoPart:
             sparseReco[sparsetype].Add(sparseRecoPart[sparsetype])
-        print(sparseReco['RecoPrompt'].GetEntries(), sparseRecoPart['RecoPrompt'].GetEntries())
         for sparsetype in sparseGenPart:
             sparseGen[sparsetype].Add(sparseGenPart[sparsetype])
         hEv.Add(hEvPart)
         normCounter.Add(normCounterPart)
-
-print(sparseReco['RecoPrompt'].GetEntries())
 
 refSparse = 'RecoAll'
 if isMC:
