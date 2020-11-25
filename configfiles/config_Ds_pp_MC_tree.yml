@@ -2,7 +2,7 @@ isMC: yes
 filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/LHC20a7/AnalysisResultsDsMC_LHC20a7_Tot.root
 dirname: PWGHF_D2H_InvMassDs_Ds_Loose_kMB
 listname: coutputDs_Ds_Loose_kMB
-sparsenameAll: fnSparseReco_fromC
+sparsenameAll: null
 sparsenamePrompt: fnSparseReco_fromC
 sparsenameFD: fnSparseReco_fromB
 sparsenameGenPrompt: fnSparseAcc_fromC
