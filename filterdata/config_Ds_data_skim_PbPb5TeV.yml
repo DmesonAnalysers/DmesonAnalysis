@@ -1,12 +1,12 @@
 infile:
     isMC: 0
-    filename: [~/cernbox/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/data/010/forML/AnalysisResults_Ds_010_MLtree_LHC18qr_pass3_Tot.root]
-    dirname: PWGHF_D2H_InvMassDs_Ds_Filt_MediumPre_kCentral
+    filename: [~/DsPbPb_paper/input/AnalysisResults_Ds_3050_MLtree_LHC18qr_pass3_Tot.root]
+    dirname: PWGHF_D2H_InvMassDs_Ds_Filt_kSemiCentral
     treename: treeMLDs
 
 outfile:
-    dirpath: ~/cernbox/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/data/010/ml/
-    suffix: _DsPbPb5TeV010NoOutlier
+    dirpath: ~/DsPbPb_paper/input/ml/
+    suffix: _DsPbPb5TeV3050NoOutlier
     treename: treeMLDs
     
 skimming:
