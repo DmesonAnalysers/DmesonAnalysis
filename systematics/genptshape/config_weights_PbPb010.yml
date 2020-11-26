@@ -12,10 +12,10 @@ shapes:
             file: ../../models/fonll/FONLL_D_pp5_y05.txt
         tamu:
             enabled: true
-            file: ../../models/tamu/Ds_TAMU_RAA_5TeV_010.txt
+            file: ../../models/tamu/PromptDs_TAMU_RAA_5TeV_010_ImprovedCoalescence.txt
         phsd:
             enabled: true
-            file: ../../models/phsd/Ds_PHSD_RAA_5TeV_010.txt
+            file: ../../models/phsd/Ds_PHSD_RAA_5TeV_010_new.txt
         mc@shq:
             enabled: true
             file: ../../models/mcatshq/D_Gossiaux_RAA_5TeV_010.txt
@@ -30,4 +30,4 @@ options:
     rebin: 1
     smooth: 100
 
-outputfile: ptweights/DsPbPb/PtWeigths_LHC20g2a.root
+outputfile: ptweights/DsPbPb/PtWeigths_LHC20g2a_new_PHSD_TAMU.root
