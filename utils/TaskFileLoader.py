@@ -53,11 +53,11 @@ def LoadSparseFromTask(infilename, inputCfg): # pylint: disable=too-many-branche
             print(f'ERROR: sparse {inputCfg["sparsenameFD"]} not found!')
             return None, None
         sparsesGen['GenPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPrompt'])
-        if not sparses['GenPrompt']:
+        if not sparsesGen['GenPrompt']:
             print(f'ERROR: sparse {inputCfg["sparsenameGenPrompt"]} not found!')
             return None, None
         sparsesGen['GenFD'] = inlistData.FindObject(inputCfg['sparsenameGenFD'])
-        if not sparses['GenFD']:
+        if not sparsesGen['GenFD']:
             print(f'ERROR: sparse {inputCfg["sparsenameGenFD"]} not found!')
             return None, None
         if inputCfg['enableSecPeak']:
@@ -70,11 +70,11 @@ def LoadSparseFromTask(infilename, inputCfg): # pylint: disable=too-many-branche
                 print(f'ERROR: sparse {inputCfg["sparsenameFDSecPeak"]} not found!')
                 return None, None
             sparsesGen['GenSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPromptSecPeak'])
-            if not sparses['GenSecPeakPrompt']:
+            if not sparsesGen['GenSecPeakPrompt']:
                 print(f'ERROR: sparse {inputCfg["sparsenameGenPromptSecPeak"]} not found!')
                 return None, None
             sparsesGen['GenSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameGenFDSecPeak'])
-            if not sparses['GenSecPeakFD']:
+            if not sparsesGen['GenSecPeakFD']:
                 print(f'ERROR: sparse {inputCfg["sparsenameGenFDSecPeak"]} not found!')
                 return None, None
     infileData.Close()
