@@ -175,7 +175,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         # apply pt weights
         if args.ptweights:
             for iBin in range(1, hGenPtPrompt.GetNbinsX()+1):
-                if hGenPtPrompt.GetBinContent(iPt) > 0:
+                if hGenPtPrompt.GetBinContent(iBin) > 0:
                     relStatUnc = hGenPtPrompt.GetBinError(iBin) / hGenPtPrompt.GetBinContent(iBin)
                     ptCent = hGenPtPrompt.GetBinCenter(iBin)
                     hGenPtPrompt.SetBinContent(iBin, hGenPtPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
@@ -187,7 +187,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         # apply pt weights
         if args.ptweightsB or args.ptweights:
             for iBin in range(1, hGenPtFD.GetNbinsX()+1):
-                if hGenPtFD.GetBinContent(iPt) > 0:
+                if hGenPtFD.GetBinContent(iBin) > 0:
                     relStatUnc = hGenPtFD.GetBinError(iBin) / hGenPtFD.GetBinContent(iBin)
                     ptCent = hGenPtFD.GetBinCenter(iBin)
                     hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeightsRecoDfromB(ptCent))
