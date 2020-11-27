@@ -195,7 +195,7 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
 
     # save model handler in pickle
     ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.pickle')
-    ModelHandl.dump_original_model(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.model', True)
+    ModelHandl.dump_original_model(f'{OutPutDirPt}/XGBoostModel_pT_{PtBin[0]}_{PtBin[1]}.model', True)
 
     #plots
     LegLabels = inputCfg['output']['leg_labels']
