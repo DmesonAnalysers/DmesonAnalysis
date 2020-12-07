@@ -50,7 +50,10 @@ ml:
                         'colsample_bytree': !!python/tuple [0.8, 1.]}
                         # configuration dictionary for optimize_params_bayes()
 
-    saved_models: [
+    saved_models: [~/DsPbPb_paper/training/final_3050/pt2_4/ModelHandler_pT_2_4.pickle,
+                   ~/DsPbPb_paper/training/final_3050/pt4_6/ModelHandler_pT_4_6.pickle,
+                   ~/DsPbPb_paper/training/final_3050/pt6_12/ModelHandler_pT_6_12.pickle,
+                   ~/DsPbPb_paper/training/final_3050/pt12_36/ModelHandler_pT_12_36.pickle
                   ] 
                    # list of saved ModelHandler (path+file), compatible with the pt bins
 
@@ -60,5 +63,11 @@ plots:
                        # list of variables to plot
     train_test_log: True # use log scale for plots of train and test distributions
 
-df_column_to_save_opt: 
-    df_column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
+appl: 
+    column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
+
+standalone_appl:
+    inputs: [~/DsPbPb_paper/input/ml/MC/Prompt_DsPbPb5TeV3050NoOutlier_D2H_pT_2_50.parquet.gzip, 
+             ~/DsPbPb_paper/input/ml/MC/FD_DsPbPb5TeV3050NoOutlier_D2H_pT_2_50.parquet.gzip] # list of parquet files for the model application
+    output_names: ['Prompt_D2H', 'FD_D2H'] # names for the outputs (one for each file)
+    output_dir: '~/DsPbPb_paper/training/final_3050' # output directory

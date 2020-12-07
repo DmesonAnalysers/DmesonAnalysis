@@ -243,7 +243,7 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     OutputLabels = inputCfg['output']['out_labels']
     print('Applying ML model to prompt dataframe: ...', end='\r')
     yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff, inputCfg['ml']['raw_output'])
-    df_column_to_save_list = inputCfg['df_column_to_save_opt']['df_column_to_save_list']
+    df_column_to_save_list = inputCfg['appl']['column_to_save_list']
     if not isinstance(df_column_to_save_list, list):
         print('\033[91mERROR: df_column_to_save_list must be defined!\033[0m')
         sys.exit()
@@ -323,7 +323,8 @@ def main(): #pylint: disable=too-many-statements
 
         OutPutDirPt = os.path.join(os.path.expanduser(inputCfg['output']['dir']), f'pt{PtBin[0]}_{PtBin[1]}')
         if os.path.isdir(OutPutDirPt):
-            print('\033[93mWARNING: Output directory already exists, overwrites possibly ongoing!\033[0m')
+            print((f'\033[93mWARNING: Output directory \'{OutPutDirPt}\' already exists,'
+                   ' overwrites possibly ongoing!\033[0m'))
         else:
             os.makedirs(OutPutDirPt)
 
