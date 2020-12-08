@@ -12,8 +12,6 @@ def InterpolateModel(ptCent, yCent, yMin=None, yMax=None):
 
     Parameters
     -----------
-    ptRange: list with min and max pt values for interpolation
-    ptStep: pt step for interpolation
     ptCent: list of pT centres to interpolate
     yCent: list of central values to interpolate
     yMin: list of min values to interpolate

@@ -14,8 +14,8 @@ from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile  # pylint: 
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 # pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands, \
-    GetExpectedBkgFromMC, GetExpectedSignal
+from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands
+from utils.AnalysisUtils import GetExpectedBkgFromMC, GetExpectedSignal
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.DfUtils import LoadDfFromRootOrParquet
 from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
@@ -125,7 +125,7 @@ if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, 
             elif Raa_model_name == 'Catania':
                 RaaPromptSpline, _ = ReadCatania(RaaPrompt_config)
             elif Raa_model_name == 'MCatsHQ':
-                RaaFDSpline, _ = ReadMCatsHQ(RaaPrompt_config)
+                RaaPromptSpline, _ = ReadMCatsHQ(RaaPrompt_config)
             elif Raa_model_name == 'tamu':
                 RaaPromptSpline, _ = ReadTAMU(RaaPrompt_config)
 else:
@@ -178,9 +178,8 @@ estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'S': 'expected s
             'EffAccPrompt': '(Acc#times#font[152]{e})_{prompt}', 'EffAccFD': '(Acc#times#font[152]{e})_{FD}',
             'fPrompt': '#it{f}_{ prompt}^{ fc}', 'fFD': '#it{f}_{ FD}^{ fc}'}
 
-varsName4Tuple = ':'.join(cutVars) + \
-                 ':PtMin:PtMax:ParCutMin:ParCutMax:BError:EffAccPromptError:EffAccFDError:SError:' + \
-                 ':'.join(estNames.keys())
+varsName4Tuple = (':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:BError:EffAccPromptError:EffAccFDError:SError:'
+                  + ':'.join(estNames.keys()))
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = 1
