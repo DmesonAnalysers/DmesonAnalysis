@@ -307,42 +307,45 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             # expected background
             bkgConfig = inputCfg['infiles']['background']
             outDirFitSBPt[iPt].cd()
+            expBkg = 0.
+            errExpBkg = 0.
             if bkgConfig['isMC']:
-                expBkg = GetExpectedBkgFromMC(hMassBkg, hMassSignal)
+                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromMC(hMassBkg, hMassSignal)
                 hMassBkg.Write()
             else:
                 meanSec = inputCfg['infiles']['secpeak']['mean']
                 sigmaSec = inputCfg['infiles']['secpeak']['sigma']
                 if hMassSecPeak:
-                    expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
-                                                                  hMassSignal, -1., -1., hMassSecPeak)
+                    expBkg, errExpBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
+                                                                             bkgConfig['nSigma'], hMassSignal,
+                                                                             -1., -1., hMassSecPeak)
                 elif meanSec > 0 and sigmaSec > 0:
-                    expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
-                                                                  hMassSignal, -1., -1., None, meanSec, sigmaSec)
+                    expBkg, errExpBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
+                                                                             bkgConfig['nSigma'], hMassSignal,
+                                                                             -1., -1., None, meanSec, sigmaSec)
                 else:
-                    expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
-                                                                  hMassSignal)
+                    expBkg, errExpBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
+                                                                             bkgConfig['nSigma'], hMassSignal)
                 hMassSB.Write()
-
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
+            errExpBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
 
             if inputCfg['infiles']['background']['corrfactor']['filename']:
                 inFile = TFile.Open(inputCfg['infiles']['background']['corrfactor']['filename'])
                 hBkgCorrFactor = inFile.Get(inputCfg['infiles']['background']['corrfactor']['histoname'])
                 expBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
+                errExpBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent)) 
 
             # S/B and significance
             expSoverB = 0.
             expSignif = 0.
-            Serror = 0.
+            SError = 0. # TODO: think how to define a meaningful error on the estimated signal
             if expBkg > 0:
                 expSoverB = expSignal / expBkg
             if expSignal + expBkg > 0:
                 expSignif = expSignal / np.sqrt(expSignal + expBkg)
-                SError = expSignal / expSignif
 
-            # Efficiency, Bkg and Signal Error
-            BError = np.sqrt(expBkg)
+            # Efficiency
             EffAccFDError = np.sqrt((effFDUnc/effFD)**2
                                     + (preselEffFDUnc/preselEffFD)**2
                                     + (accUnc/acc)**2)*effTimesAccFD
@@ -350,7 +353,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                         + (preselEffPromptUnc/preselEffPrompt)**2
                                         + (accUnc/acc)**2)*effTimesAccPrompt
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, BError, EffAccPromptError,
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, errExpBkg, EffAccPromptError,
                                        EffAccFDError, SError, expSignif, expSoverB, expSignal, expBkg,
                                        effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))

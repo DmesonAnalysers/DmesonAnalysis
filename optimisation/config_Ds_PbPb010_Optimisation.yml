@@ -1,11 +1,11 @@
 infiles:
     signal:
         prompt:
-            filename: ~/DsPbPb_paper/training/final_010/pt12_50/Prompt_D2H_pT_12_50_ModelApplied.parquet.gzip
+            filename: ~/DsPbPb_paper/training/final_010/pt2_4/Prompt_D2H_pT_2_4_ModelApplied.parquet.gzip
             dirname: null
             treename: null
         feeddown:
-            filename: ~/DsPbPb_paper/training/final_010/pt12_50/FD_D2H_pT_12_50_ModelApplied.parquet.gzip
+            filename: ~/DsPbPb_paper/training/final_010/pt2_4/FD_D2H_pT_2_4_ModelApplied.parquet.gzip
             dirname: null
             treename: null
     secpeak: # only for Ds
@@ -20,11 +20,11 @@ infiles:
         mean: 1.87 # fixed values of mean and sigma if > 0 overwrite the use of the histogram
         sigma: 0.008
     background:
-        filename: ~/DsPbPb_paper/training/final_010/pt12_50/Data_pT_12_50_ModelApplied.parquet.gzip
+        filename: ~/DsPbPb_paper/training/final_010/pt2_4/Data_pT_2_4_ModelApplied.parquet.gzip
         dirname: null
         treename: null
-        nEvents: 98000000 # number of events for bkg in dataframe (~98M divided by rejection factor)
-        fractiontokeep: 0.2
+        nEvents: 98000 # number of events for bkg in dataframe (~98M divided by rejection factor: 1000)
+        fractiontokeep: 0.9
         isMC: false # if false bkg from SB
         fitFunc: expo # fit function for bkg from SB, e.g. pol1, pol2, expo
         nSigma: 4 # number of sigma from signal region, used to select SB
@@ -45,8 +45,8 @@ predictions:
             prompt: hDsPhipitoKkpipred_max
             feeddown: hDsPhipitoKkpifromBpred_central_corr
     Raa:
-        prompt: ~/DmesonAnalysis/models/tamu/PromptDs_TAMU_RAA_5TeV_010_ImprovedCoalescence.txt # can either be a fixed value or a text file
-        feeddown: 1. # can either be a fixed value or a text file
+        prompt: ~/DmesonAnalysis/models/tamu/PromptDs_TAMU_RAA_5TeV_010_ImprovedCoalescence_forOpt.txt # can either be a fixed value or a text file
+        feeddown: ~/DmesonAnalysis/models/tamu/NonPromptDs_TAMU_RAA_5TeV_010_forOpt.txt # can either be a fixed value or a text file
         model: 'tamu'
 
 nExpectedEvents: 98000000
@@ -59,8 +59,8 @@ BkgCorrFactor:
     filename: null # set null if no MC bkg correction is needed
     histoname: null
 
-ptmin: [12, 16, 24, 36]
-ptmax: [16, 24, 36, 50]
+ptmin: [2, 3]
+ptmax: [3, 4]
 
 dfparametercuts:
     name: null 
@@ -70,7 +70,7 @@ dfparametercuts:
 
 cutvars:
     ML_output:
-        min: 0.9
-        max: 0.995
-        step: 0.0005
+        min: 0.98
+        max: 0.9995
+        step: 0.00005
         upperlowercut: Lower

@@ -418,7 +418,8 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
     ----------
 
     - expBkg3s: expected background within 3 sigma from signal peak mean
-    - hMassData: SB histogram with fit function
+    - errExpBkg3s: error on the expected background
+    - hMassData: SB histogram with fit function (if fit occurred)
     '''
     if hMassSignal:
         funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
@@ -447,10 +448,15 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
                 hMassData.SetBinContent(iMassBin, 0.)
                 hMassData.SetBinError(iMassBin, 0.)
 
+    if hMassData.GetEntries() <= 5:
+        return 0., 0., hMassData
     funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
-    hMassData.Fit(funcBkg, 'Q')
-    expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
-    return expBkg3s, hMassData
+    fit = hMassData.Fit(funcBkg, 'Q')
+    expBkg3s, errExpBkg3s = 0., 0.
+    if int(fit) == 0:
+        expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+        errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+    return expBkg3s, errExpBkg3s, hMassData
 
 
 def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=True, bkgFunc='pol3'):
@@ -474,6 +480,8 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=
     ----------
 
     - expBkg3s: expected background within 3 sigma from signal peak mean
+    - errExpBkg3s: error on the expected background
+    - hMassBkg: bkg histogram with fit function (if fit occurred)
     '''
     if hMassSignal:
         funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
@@ -483,17 +491,23 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=
         mean = funcSignal.GetParameter(1)
         sigma = funcSignal.GetParameter(2)
 
+    expBkg3s, errExpBkg3s = 0., 0.
     if doFit:
+        if hMassBkg.GetEntries() <= 5:
+            return 0., 0., hMassBkg
         funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
-        hMassBkg.Fit(funcBkg, 'Q')
-        hMassBkg.Write()
-        expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
+        fit = hMassBkg.Fit(funcBkg, 'Q')
+        if int(fit) == 0:
+            expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
+            errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
     else:
         massBinMin = hMassBkg.GetXaxis().FindBin(mean - 3 * sigma)
         massBinMax = hMassBkg.GetXaxis().FindBin(mean + 3 * sigma)
-        expBkg3s = hMassBkg.Integral(massBinMin, massBinMax)
+        tmpErr = ctypes.c_double()
+        expBkg3s = hMassBkg.IntegralAndError(massBinMin, massBinMax, tmpErr)
+        errExpBkg3s = tmpErr.value
 
-    return expBkg3s
+    return expBkg3s, errExpBkg3s, hMassBkg
 
 
 def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD, nEv, sigmaMB=1, TAA=1, RAA=1):
@@ -866,7 +880,7 @@ def ApplyVariationToList(listToVary, relVar, option='decreasing'):
     '''
 
     if option not in ['upshift', 'downshift', 'decreasing', 'increasing']:
-        print(f'ERROR: option for variation of list not valid! Returning None')
+        print('ERROR: option for variation of list not valid! Returning None')
         return None
 
     if option == 'upshift':
