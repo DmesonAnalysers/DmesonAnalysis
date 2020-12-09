@@ -5,7 +5,8 @@ Script with miscellanea utils methods for the analysis
 import ctypes
 import numpy as np
 import pandas as pd
-from ROOT import TH1F, TF1, TMath, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from ROOT import TH1F, TF1, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from .FitUtils import SingleGaus
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -136,6 +137,7 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     return mCorrYield, mCovariance, float(redChiSquare), dicOfMatrices
 
 
+# pylint: disable=too-many-branches
 def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt=1., raaFD=1.):
     '''
     Method to get fraction of prompt / FD fraction with fc method
@@ -172,21 +174,21 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
         fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
         fracFD = [fracFDCent, fracFDCent, fracFDCent]
         return fracPrompt, fracFD
-    elif accEffFD == 0:
+    if accEffFD == 0:
         fracFDCent = 0.
         fracPromptCent = 1.
         fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
         fracFD = [fracFDCent, fracFDCent, fracFDCent]
         return fracPrompt, fracFD
-    else:
-        for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
-            for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
-                if iSigma == 0 and iRaa == 0:
-                    fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
-                    fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
-                else:
-                    fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
-                    fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
+
+    for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
+        for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
+            if iSigma == 0 and iRaa == 0:
+                fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
+                fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
+            else:
+                fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
+                fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
 
     if fracPrompt and fracFD:
         fracPrompt.sort()
@@ -271,123 +273,6 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
         frac = [fracCent, fracCent, fracCent]
 
     return frac
-
-
-def SingleGaus(x, par):
-    '''
-    Gaussian function
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation
-        par[1]: mean
-        par[2]: sigma
-    '''
-    return par[0]*TMath.Gaus(x[0], par[1], par[2], True)
-
-
-def DoubleGaus(x, par):
-    '''
-    Sum of two Gaussian functions with same mean and different sigma
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation
-        par[1]: mean
-        par[2]: first sigma
-        par[3]: second sigma
-        par[4]: fraction of integral in second Gaussian
-    '''
-    firstGaus = TMath.Gaus(x[0], par[1], par[2], True)
-    secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
-    return par[0] * ((1-par[4])*firstGaus + par[4]*secondGaus)
-
-
-def DoublePeakSingleGaus(x, par):
-    '''
-    Sum of two Gaussian functions with different mean and sigma
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation first peak
-        par[1]: mean first peak
-        par[2]: sigma first peak
-        par[3]: normalisation second peak
-        par[4]: mean second peak
-        par[5]: sigma second peak
-    '''
-    firstGaus = par[0]*TMath.Gaus(x[0], par[1], par[2], True)
-    secondGaus = par[3]*TMath.Gaus(x[0], par[4], par[5], True)
-    return firstGaus + secondGaus
-
-
-def DoublePeakDoubleGaus(x, par):
-    '''
-    Sum of a double Gaussian function and a single Gaussian function
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation first peak
-        par[1]: mean first peak
-        par[2]: first sigma first peak
-        par[3]: second sigma first peak
-        par[4]: fraction of integral in second Gaussian first peak
-        par[5]: normalisation second peak
-        par[6]: mean second peak
-        par[7]: sigma second peak
-    '''
-    firstGaus = TMath.Gaus(x[0], par[1], par[2], True)
-    secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
-    thirdGaus = par[5]*TMath.Gaus(x[0], par[6], par[7], True)
-    return par[0] * ((1-par[4])*firstGaus + par[4]*secondGaus) + thirdGaus
-
-
-def VoigtFunc(x, par):
-    '''
-    Voigtian function
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation
-        par[1]: mean
-        par[2]: sigma
-        par[3]: gamma
-    '''
-
-    return par[0] * TMath.Voigt(x[0]-par[1], par[2], par[3])
-
-
-def ExpoPowLaw(x, par):
-    '''
-    Exponential times power law function
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation
-        par[1]: mass (lowest possible value)
-        par[2]: expo slope
-    '''
-
-    return par[0] * np.sqrt(x[0] - par[1]) * np.exp(-1. * par[2] * (x[0] - par[1]))
-
 
 
 def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassSignal=None, mean=-1., sigma=-1.,

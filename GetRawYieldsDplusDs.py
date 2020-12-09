@@ -9,8 +9,8 @@ import numpy as np
 import yaml
 from ROOT import TFile, TCanvas, TH1D, TH1F, TF1, TDatabasePDG, AliHFInvMassFitter, AliVertexingHFUtils  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, kBlack, kRed, kFullCircle, kFullSquare  # pylint: disable=import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
-from utils.AnalysisUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
+from .utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
+from .utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
 
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('fitConfigFileName', metavar='text', default='config_Ds_Fit.yml')
