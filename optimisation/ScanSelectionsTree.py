@@ -232,6 +232,17 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     ptBinCrossSecMax = hCrossSecPrompt.GetXaxis().FindBin(ptMax*0.9999)
     crossSecPrompt = hCrossSecPrompt.Integral(ptBinCrossSecMin, ptBinCrossSecMax, 'width') / (ptMax - ptMin)
     crossSecFD = hCrossSecFD.Integral(ptBinCrossSecMin, ptBinCrossSecMax, 'width') / (ptMax - ptMin)
+    # signal histograms
+    hMassSignal = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}', ';#it{M} (GeV/#it{c});Counts', 400,
+                       min(dfPromptPt['inv_mass']), max(dfPromptPt['inv_mass']))
+    fill_hist(hMassSignal, np.concatenate((dfPromptPt['inv_mass'].values, dfFDPt['inv_mass'].values)))
+    # SecPeak
+    if dfSecPeakPrompt and dfSecPeakFD:
+        hMassSeaPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}', ';#it{M} (GeV/#it{c});Counts', 400,
+                            min(dfSecPeakPrompt['inv_mass']), max(dfSecPeakPrompt['inv_mass']))
+        fill_hist(hMassSecPeak, np.concatenate((dfSecPeakPrompt['inv_mass'].values, dfSecPeakFD['inv_mass'].values)))
+    else:
+        hMassSecPeak = None
     # output histos
     hSignifVsRest.append(dict())
     hEstimVsCut.append(dict())
@@ -278,23 +289,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             effTimesAccFD = effFD * preselEffFD * acc
             fPrompt, fFD = GetPromptFDFractionFc(effTimesAccPrompt, effTimesAccFD,
                                                  crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
-            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400,
+            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 100,
                             min(dfBkgPtSel['inv_mass']), max(dfBkgPtSel['inv_mass']))
-            hMassSignal = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400,
-                               min(dfPromptPtSel['inv_mass']), max(dfPromptPtSel['inv_mass']))
-
             fill_hist(hMassBkg, dfBkgPtSel['inv_mass'].values)
-            fill_hist(hMassSignal, np.concatenate((dfPromptPtSel['inv_mass'].values, dfFDPtSel['inv_mass'].values)))
-
-            # SecPeak
-            if dfSecPeakPrompt and dfSecPeakFD:
-                hMassSeaPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts',
-                                    400, min(dfSecPeakPrompt['inv_mass']), max(dfSecPeakPrompt['inv_mass']))
-                fill_hist(hMassSecPeak,
-                          np.concatenate((dfSecPeakPrompt['inv_mass'].values, dfSecPeakFD['inv_mass'].values)))
-
-            else:
-                hMassSecPeak = None
 
             # expected signal, BR already included in cross section
             if inputCfg['expectedSignalFrom'] == 'prompt':
