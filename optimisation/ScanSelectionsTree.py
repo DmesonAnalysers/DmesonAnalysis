@@ -342,7 +342,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             SError = 0. # TODO: think how to define a meaningful error on the estimated signal
             if expBkg > 0:
                 expSoverB = expSignal / expBkg
-            if expSignal + expBkg > 0:
                 expSignif = expSignal / np.sqrt(expSignal + expBkg)
 
             # Efficiency
