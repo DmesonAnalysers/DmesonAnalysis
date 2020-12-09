@@ -448,7 +448,7 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
                 hMassData.SetBinContent(iMassBin, 0.)
                 hMassData.SetBinError(iMassBin, 0.)
 
-    if hMassData.GetEntries() <= 5:
+    if hMassData.Integral() <= 5: # check to have some entries in the histogram before fitting
         return 0., 0., hMassData
     funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
     fit = hMassData.Fit(funcBkg, 'Q')
@@ -493,7 +493,7 @@ def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=
 
     expBkg3s, errExpBkg3s = 0., 0.
     if doFit:
-        if hMassBkg.GetEntries() <= 5:
+        if hMassBkg.Integral() <= 5: # check to have some entries in the histogram before fitting
             return 0., 0., hMassBkg
         funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
         fit = hMassBkg.Fit(funcBkg, 'Q')
