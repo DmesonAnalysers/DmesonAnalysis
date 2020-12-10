@@ -6,7 +6,7 @@ import ctypes
 import numpy as np
 import pandas as pd
 from ROOT import TH1F, TF1, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from utils.FitUtils import SingleGaus
+from .FitUtils import SingleGaus, BkgFuncCreator
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -339,6 +339,73 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
     fit = hMassData.Fit(funcBkg, 'Q')
     expBkg3s, errExpBkg3s = 0., 0.
     if int(fit) == 0:
+        expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+        errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+    return expBkg3s, errExpBkg3s, hMassData
+
+def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='expo', nSigmaForSB=4, hMassSignal=None, mean=-1., sigma=-1.,
+                                   hMassSecPeak=None, meanSecPeak=-1., sigmaSecPeak=-1.):
+    '''
+    Helper method to get the expected bkg from side-bands, improved
+
+    Parameters
+    ----------
+
+    - hMassData: invariant-mass histogram from which extract the estimated bkg
+    - bkgFunc: expression for bkg fit function
+    - nSigmaForSB: number of sigmas away from the invariant-mass peak to define SB windows
+    - hMassSignal: invariant-mass histogram for the signal used to get mean and sigma
+                   not needed in case of passed mean and sigma parameters
+    - mean: mean of invariant-mass peak of the signal
+                   not needed in case of passed hMassSignal
+    - sigma: width of invariant-mass peak of the signal
+                   not needed in case of passed hMassSignal
+    - hMassSecPeak: invariant-mass histogram for the second peak (only Ds) used to get meanSecPeak and sigmaSecPeak
+                   not needed in case of passed meanSecPeak and sigmaSecPeak parameters
+    - meanSecPeak: mean of invariant-mass peak of the second peak (only Ds)
+                   not needed in case of passed hMassSecPeak
+    - sigmaSecPeak: width of invariant-mass peak of the second peak (only Ds)
+                   not needed in case of passed hMassSecPeak
+
+    Returns
+    ----------
+
+    - expBkg3s: expected background within 3 sigma from signal peak mean
+    - errExpBkg3s: error on the expected background
+    - hMassData: SB histogram with fit function (if fit occurred)
+    '''
+    if hMassSignal:
+        funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
+        funcSignal.SetParameters(hMassSignal.Integral('width'), hMassSignal.GetMean(), hMassSignal.GetRMS())
+        hMassSignal.Fit('funcSignal', 'Q0')
+        mean = funcSignal.GetParameter(1)
+        sigma = funcSignal.GetParameter(2)
+    if hMassSecPeak:
+        funcSignal.SetParameters(hMassSecPeak.Integral('width'), hMassSecPeak.GetMean(), hMassSecPeak.GetRMS())
+        hMassSecPeak.Fit('funcSignal', 'Q0')
+        meanSecPeak = funcSignal.GetParameter(1)
+        sigmaSecPeak = funcSignal.GetParameter(2)
+
+    numEntriesSB = hMassData.Integral(1, hMassData.FindBin(mean - nSigmaForSB * sigma))
+    numEntriesSB += hMassData.Integral(hMassData.FindBin(mean + nSigmaForSB * sigma), hMassData.GetNbinsX())
+    if meanSecPeak > 0 and sigmaSecPeak > 0:
+        numEntriesSB -= hMassData.Integral(hMassData.FindBin(meanSecPeak - nSigmaForSB * sigmaSecPeak),
+                                           hMassData.FindBin(meanSecPeak + nSigmaForSB * sigmaSecPeak))
+
+    if numEntriesSB <= 5: # check to have some entries in the histogram before fitting
+        return 0., 0., hMassData
+
+    minMass = hMassData.GetBinLowEdge(1)
+    maxMass = hMassData.GetBinLowEdge(hMassData.GetNbinsX()) + hMassData.GetBinWidth(1)
+    bkgFuncCreator = BkgFuncCreator('expo', minMass, maxMass, nSigmaForSB, mean, sigma, meanSecPeak, sigmaSecPeak)
+    integral = hMassData.Integral('width')
+    funcBkgSB = bkgFuncCreator.GetBkgSideBandsFunc(integral)
+    fit = hMassData.Fit(funcBkgSB, 'LRQ+')
+    expBkg3s, errExpBkg3s = 0., 0.
+    if int(fit) == 0:
+        funcBkg = bkgFuncCreator.GetBkgFullRangeFunc(integral)
+        funcBkg.SetParameter(0, funcBkgSB.GetParameter(0))
+        funcBkg.SetParameter(1, funcBkgSB.GetParameter(1))
         expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
         errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
     return expBkg3s, errExpBkg3s, hMassData
