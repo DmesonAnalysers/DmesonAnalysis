@@ -288,7 +288,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             effTimesAccFD = effFD * preselEffFD * acc
             fPrompt, fFD = GetPromptFDFractionFc(effTimesAccPrompt, effTimesAccFD,
                                                  crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
-            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 100,
+            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 200,
                             min(dfBkgPtSel['inv_mass']), max(dfBkgPtSel['inv_mass']))
             fill_hist(hMassBkg, dfBkgPtSel['inv_mass'].values)
 
