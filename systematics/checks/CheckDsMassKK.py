@@ -14,9 +14,8 @@ from ROOT import TFile, TCanvas, TH1F, TF1, TVirtualFitter, TDatabasePDG, TLegen
 from ROOT import kGreen, kAzure, kRed, kRainBow, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCross, kOpenCircle, kOpenSquare, kOpenDiamond, kOpenCross  # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-# pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle, DivideCanvas
-from utils.AnalysisUtils import VoigtFunc, ExpoPowLaw
+from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle, DivideCanvas  #pylint: disable=wrong-import-position,import-error
+from utils.FitUtils import VoigtFunc, ExpoPowLaw  #pylint: disable=wrong-import-position,import-error
 
 # set global style
 SetGlobalStyle(padrightmargin=0.1, padleftmargin=0.18, padbottommargin=0.14, padtopmargin=0.075,
@@ -443,8 +442,9 @@ cMassKKBkgSub.Update()
 cMassKKFunc = TCanvas('cMassKKFunc', '', 1920, 1080)
 DivideCanvas(cMassKKFunc, nPads)
 for iPt in range(nPads):
-    hFrame = cMassKKFunc.cd(iPt+1).DrawFrame(1., 0., 1.04, 0.15,
-                                             f'{ptLims[iPt]:.0f} < #it{{p}}_{{T}} < {ptLims[iPt+1]:.0f} GeV/#it{{c}};#it{{M}}(KK) (GeV/#it{{c}}^{{2}}); a.u.')
+    utilStr = (f'{ptLims[iPt]:.0f} < #it{{p}}_{{T}} < {ptLims[iPt+1]:.0f} '
+               'GeV/#it{{c}};#it{{M}}(KK) (GeV/#it{{c}}^{{2}}); a.u.')
+    hFrame = cMassKKFunc.cd(iPt+1).DrawFrame(1., 0., 1.04, 0.15, utilStr)
     hFrame.GetXaxis().SetNdivisions(505)
     hFrame.GetYaxis().SetDecimals()
     hConfIntMassKKMC[iPt].DrawCopy('e3same')
@@ -497,8 +497,9 @@ cPtInt.cd(3)
 hMassKKBkgSubMC[-1].DrawCopy('E')
 hMassKKBkgSubData[-1].DrawCopy('Esame')
 legMassKKsub.Draw()
-cPtInt.cd(4).DrawFrame(1., 0., 1.04, 0.15,
-                       f'{ptLims[0]:.0f} < #it{{p}}_{{T}} < {ptLims[-1]:.0f} GeV/#it{{c}};#it{{M}}(KK) (GeV/#it{{c}}^{{2}}); a.u.')
+utilStr = (f'{ptLims[0]:.0f} < #it{{p}}_{{T}} < {ptLims[-1]:.0f} '
+           'GeV/#it{{c}};#it{{M}}(KK) (GeV/#it{{c}}^{{2}}); a.u.')
+cPtInt.cd(4).DrawFrame(1., 0., 1.04, 0.15, utilStr)
 hConfIntMassKKMC[-1].DrawCopy('e3same')
 fMassKKMC[-1].Draw('same')
 hConfIntMassKKData[-1].DrawCopy('e3same')
@@ -533,8 +534,8 @@ cMassKKData.SaveAs(os.path.join(args.outputPath, 'DistrMassKK_vs_pt_Data.pdf'))
 cMassKKBkgSub.SaveAs(os.path.join(args.outputPath, f'DistrMassKK_{subLabel}sub_vs_pt.pdf'))
 cMassKKFunc.SaveAs(os.path.join(args.outputPath, f'DistrMassKK_{subLabel}sub_fit_vs_pt.pdf'))
 cMeanSigma.SaveAs(os.path.join(args.outputPath, f'MassKK_{subLabel}sub_fitpars_vs_pt.pdf'))
-cEfficiency.SaveAs(os.path.join(args.outputPath, f'MassKK_selection_efficiency_vs_pt.pdf'))
+cEfficiency.SaveAs(os.path.join(args.outputPath, 'MassKK_selection_efficiency_vs_pt.pdf'))
 cPtInt.SaveAs(os.path.join(args.outputPath, f'DistrMassKK_ptint_{subLabel}sub_MC_data.pdf'))
-cEfficiencyVsCut.SaveAs(os.path.join(args.outputPath, f'MassKK_selection_efficiency_vs_cut.pdf'))
+cEfficiencyVsCut.SaveAs(os.path.join(args.outputPath, 'MassKK_selection_efficiency_vs_cut.pdf'))
 
 input('Press Enter to exit')

@@ -13,12 +13,11 @@ from root_numpy import fill_hist
 from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-# pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands
-from utils.AnalysisUtils import GetExpectedBkgFromMC, GetExpectedSignal
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-from utils.DfUtils import LoadDfFromRootOrParquet
-from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
+from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands  #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import GetExpectedBkgFromMC, GetExpectedSignal  #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
+from utils.DfUtils import LoadDfFromRootOrParquet  #pylint: disable=wrong-import-position,import-error
+from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania  #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -331,7 +330,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 inFile = TFile.Open(inputCfg['infiles']['background']['corrfactor']['filename'])
                 hBkgCorrFactor = inFile.Get(inputCfg['infiles']['background']['corrfactor']['histoname'])
                 expBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
-                errExpBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent)) 
+                errExpBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
 
             # S/B and significance
             expSoverB = 0.
@@ -385,7 +384,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                                                    f";{estNames[est]};{estNames['Signif']}")
                 hFrame.GetXaxis().SetDecimals()
                 hFrame.GetYaxis().SetDecimals()
-                hSignifVsRest[iPt][est] = (TH2F(f'hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                hSignifVsRest[iPt][est] = (TH2F((f'hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}'
+                                                 f'{ParCutMin}-{ParCutMax}'),
                                                 f";{estNames[est]};{estNames['Signif']}", 50,
                                                 tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50,
                                                 tSignif.GetMinimum('Signif')*0.8, tSignif.GetMaximum('Signif')*1.))

@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 import yaml
 sys.path.append('..')
-from utils.DfUtils import WriteTree, FilterBitDf, LoadDfFromRootOrParquet, GetMind0 #pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.DfUtils import WriteTree, FilterBitDf, LoadDfFromRootOrParquet, GetMind0 #pylint: disable=wrong-import-position,import-error
 
 
 bitSignal = 0

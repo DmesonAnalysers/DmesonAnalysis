@@ -11,9 +11,8 @@ import numpy as np
 from root_numpy import fill_hist
 from ROOT import TH1F, kRed, kAzure, kFullCircle, TCanvas, TLegend # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.DfUtils import LoadDfFromRootOrParquet
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.DfUtils import LoadDfFromRootOrParquet  #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
 
 def main(): #pylint: disable=too-many-locals,too-many-statements
     """

@@ -9,9 +9,8 @@ import yaml
 from ROOT import TCanvas, TFile, TLine, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kBlue, kOrange, kGreen, kRed, kAzure  # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullTriangleUp, kFullTriangleDown, kFullCross, kFullCircle, kFullSquare, kFullDiamond  # pylint: disable=import-error,no-name-in-module
-sys.path.insert(0, '../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+sys.path.append('../..')
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('cfgFileName', metavar='text', default='config_ptshape_syst.yml')

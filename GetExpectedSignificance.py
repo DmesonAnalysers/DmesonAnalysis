@@ -1,9 +1,13 @@
 '''
+Probably this script is not used anymore
+
 python script for the expected significance of D+ and Ds+ mesons using THnSparses
 and manage sparses for v2 analyses with ML
 run: python GetExpectedSignificance.py cfgFileName.yml cutSetFile.yml outFileName
 with option --suffix a suffix is added to the output file name, otherwise the input file is overwritten
 '''
+
+#TODO: check if this script is still relevant
 
 import sys
 import array
@@ -847,7 +851,4 @@ hAccEffFD.Write()
 cEff.Write()
 cEff.SaveAs('%s_Efficiency.pdf' % outFileName)
 
-if six.PY2:
-    raw_input('Press enter to exit')
-elif six.PY3:
-    input('Press enter to exit')
+input('Press enter to exit')

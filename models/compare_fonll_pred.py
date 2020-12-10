@@ -7,10 +7,10 @@ import numpy as np
 from root_numpy import fill_hist
 from ROOT import TCanvas, TLegend, TH1D, gPad #pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kFullCircle, kFullSquare #pylint: disable=import-error,no-name-in-module
-sys.path.insert(0, '..')
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+sys.path.append('..')
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
-def main():
+def main(): #pylint: disable=too-many-statements
     """
     main function of script
     """

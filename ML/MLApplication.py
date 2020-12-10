@@ -47,10 +47,10 @@ def main(): #pylint: disable=too-many-statements, too-many-branches
         print('Applying ML model to dataframes: ...', end='\r')
         for iBin, PtBin in enumerate(PtBins):
             OutPutDirPt = os.path.join(os.path.expanduser(inputCfg['standalone_appl']['output_dir']),
-                                                          f'pt{PtBin[0]}_{PtBin[1]}')
+                                       f'pt{PtBin[0]}_{PtBin[1]}')
             if os.path.isdir(OutPutDirPt):
                 print((f'\033[93mWARNING: Output directory \'{OutPutDirPt}\' already exists,'
-                     ' overwrites possibly ongoing!\033[0m'))
+                       ' overwrites possibly ongoing!\033[0m'))
             else:
                 os.makedirs(OutPutDirPt)
             DataDfPtSel = DataHandler.get_slice(iBin)

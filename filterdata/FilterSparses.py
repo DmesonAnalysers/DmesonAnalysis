@@ -11,8 +11,8 @@ import array
 import yaml
 from ROOT import TFile, TDirectoryFile, TCanvas  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-from utils.TaskFileLoader import LoadSparseFromTask, LoadListFromTask, LoadNormObjFromTask, LoadCutObjFromTask # pylint: disable=wrong-import-position,import-error,no-name-in-module,line-too-long
-from utils.TaskFileLoader import LoadSparseFromTaskV2, LoadListFromTaskV2 # pylint: disable=wrong-import-position,import-error,no-name-in-module,line-too-long
+from utils.TaskFileLoader import LoadSparseFromTask, LoadListFromTask, LoadNormObjFromTask, LoadCutObjFromTask # pylint: disable=wrong-import-position,import-error
+from utils.TaskFileLoader import LoadSparseFromTaskV2, LoadListFromTaskV2 # pylint: disable=wrong-import-position,import-error
 
 def FilterSparses(sparsesOrig, cutvars, axestokeep):
     '''

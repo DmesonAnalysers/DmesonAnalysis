@@ -3,14 +3,15 @@ Script for fitting D+ and Ds+ invariant-mass spectra
 run: python GetRawYieldsDsDplus.py fitConfigFileName.yml centClass inputFileName.root outFileName.root
 '''
 
+import sys
 import argparse
 import ctypes
 import numpy as np
 import yaml
 from ROOT import TFile, TCanvas, TH1D, TH1F, TF1, TDatabasePDG, AliHFInvMassFitter, AliVertexingHFUtils  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, kBlack, kRed, kFullCircle, kFullSquare  # pylint: disable=import-error,no-name-in-module
-from .utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
-from .utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
+from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
 
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('fitConfigFileName', metavar='text', default='config_Ds_Fit.yml')
@@ -65,7 +66,7 @@ for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]
         degPol[-1] = 4
     else:
         print('ERROR: only kExpo, kLin, kPol2, kPol3, and kPol4 background functions supported! Exit')
-        exit()
+        sys.exit()
 
     if sgn == 'kGaus':
         SgnFunc.append(AliHFInvMassFitter.kGaus)
@@ -73,7 +74,7 @@ for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]
         SgnFunc.append(AliHFInvMassFitter.k2Gaus)
     else:
         print('ERROR: only kGaus and k2Gaus signal functions supported! Exit')
-        exit()
+        sys.exit()
 
 if mesonName == 'Dplus':
     massAxisTit = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
@@ -83,7 +84,7 @@ elif mesonName == 'Ds':
 # load inv-mass histos
 infile = TFile.Open(args.inFileName)
 if not infile or not infile.IsOpen():
-    exit()
+    sys.exit()
 
 hMass, hMassForFit = [], []
 for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
@@ -110,7 +111,7 @@ infile.Close()
 if fitConfig[cent]['FixSigma']:
     infileSigma = TFile.Open(fitConfig[cent]['SigmaFile'])
     if not infileSigma:
-        exit()
+        sys.exit()
     hSigmaToFix = infileSigma.Get("hRawYieldsSigma")
     if hSigmaToFix.GetNbinsX() != nPtBins:
         print("WARNING: Different number of bins for this analysis and histo for fix sigma")
@@ -118,7 +119,7 @@ if fitConfig[cent]['FixSigma']:
 if fitConfig[cent]['FixMean']:
     infileMean = TFile.Open(fitConfig[cent]['MeanFile'])
     if not infileMean or not infileMean.IsOpen():
-        exit()
+        sys.exit()
     hMeanToFix = infileMean.Get("hRawYieldsMean")
     if hMeanToFix.GetNbinsX() != nPtBins:
         print("WARNING: Different number of bins for this analysis and histo for fix mean")

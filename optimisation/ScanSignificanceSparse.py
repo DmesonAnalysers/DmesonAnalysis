@@ -10,8 +10,9 @@ import array
 import time
 import six
 import yaml
-from utils.ReadModel import ReadFONLL, ReadTAMU
 from ROOT import TFile, TF1, TNtuple, TSpline3, gROOT # pylint: disable=import-error,no-name-in-module
+sys.path.append('..')
+from utils.ReadModel import ReadFONLL, ReadTAMU #pylint: disable=wrong-import-position,import-error
 
 #TODO: not working now, adapt to new ReadModel functions and functions to get expected quantities from utils
 
@@ -39,7 +40,7 @@ def ApplyCuts(sparse, bins, axesnum, upperlowercuts, name):
 
 def GetSideBandHisto(hMassData, mean, sigma):
     '''
-    method that returns a mass histogram with the side-bands 
+    method that returns a mass histogram with the side-bands
     '''
     hMassDataReb = hMassData.Clone('hSB')
     hMassDataReb.Rebin(5)
@@ -57,7 +58,7 @@ def GetSideBandHisto(hMassData, mean, sigma):
 
 def GetExpectedBackgroundFromSB(hSB, mean, sigma, Nexp, Nanal):
     '''
-    method that returns the expected background from a side-band histogram 
+    method that returns the expected background from a side-band histogram
     '''
     fMassBkg = TF1('fMassBkg', 'expo', 1.8, 2.12)
     hSB.Fit('fMassBkg', 'QR')
@@ -66,7 +67,7 @@ def GetExpectedBackgroundFromSB(hSB, mean, sigma, Nexp, Nanal):
 
 def GetExpectedBackgroundFromMC(hBkgMC, mean, sigma, Nexp, Nanal):
     '''
-    method that returns the expected background from the MC 
+    method that returns the expected background from the MC
     '''
     binmin = hBkgMC.GetXaxis().FindBin(mean-3*sigma)
     binmax = hBkgMC.GetXaxis().FindBin(mean+3*sigma)
@@ -148,7 +149,7 @@ if inputCfg['bkgConfiguration']['getbkgfromMC']:
 if inputCfg['bkgConfiguration']['applyCorrFactor']:
     infileCorrFactor = TFile.Open(inputCfg['bkgConfiguration']['bkgCorrFactorfilename'])
     hBkgCorrFactor = infileCorrFactor.Get(inputCfg['bkgConfiguration']['bkgCorrFactorhistoname'])
-    
+
 PtThreshold = inputCfg['PtThreshold']
 
 Nexp = inputCfg['nExpectedEvents']
@@ -274,14 +275,14 @@ for iPt, _ in enumerate(PtMin):
             if inputCfg['bkgConfiguration']['applyCorrFactor']:
                 binCorrFactor = hBkgCorrFactor.GetXaxis().FindBin((PtMax[iPt]+PtMin[iPt])/2)
                 corrfactor = hBkgCorrFactor.GetBinContent(binCorrFactor)
-                hMassBkg.Scale(corrfactor)    
+                hMassBkg.Scale(corrfactor)
         else:
             hMassData, index, array4Ntuple = ApplyCuts(sMassPtCutVars, iBins, axesnum, upperlowercuts, 'hMassData')
             if inputCfg['bkgConfiguration']['applyCorrFactor']:
                 binCorrFactor = hBkgCorrFactor.GetXaxis().FindBin((PtMax[iPt]+PtMin[iPt])/2)
                 corrfactor = hBkgCorrFactor.GetBinContent(binCorrFactor)
                 hMassData.Scale(corrfactor)
-    
+
         hMassSgn = hMassPrompt.Clone('hMassSgn')
         hMassSgn.Add(hMassFD)
         fMassSgn = TF1('fMassSgn', 'gaus', 1.7, 2.15)

@@ -6,7 +6,7 @@ import ctypes
 import numpy as np
 import pandas as pd
 from ROOT import TH1F, TF1, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from .FitUtils import SingleGaus
+from utils.FitUtils import SingleGaus
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''

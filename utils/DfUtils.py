@@ -82,6 +82,7 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
     return dfFilt
 
 
+# pylint: disable=too-many-branches
 def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None, flat=True):
     '''
     Helper method to load a pandas dataframe from either root or parquet files

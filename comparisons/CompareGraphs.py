@@ -10,9 +10,8 @@ import numpy as np
 import yaml
 from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker
-from utils.AnalysisUtils import ComputeRatioDiffBins, ScaleGraph, ComputeRatioGraph
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import ComputeRatioDiffBins, ScaleGraph, ComputeRatioGraph #pylint: disable=wrong-import-position,import-error
 
 # load inputs
 parser = argparse.ArgumentParser(description='Arguments')

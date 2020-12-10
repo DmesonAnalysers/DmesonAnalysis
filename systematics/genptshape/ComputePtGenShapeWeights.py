@@ -9,9 +9,8 @@ import sys
 import argparse
 import yaml
 from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
-sys.path.insert(0, '../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ
+sys.path.append('../..')
+from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ  #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
