@@ -2,8 +2,7 @@
 Module with function definitions and fit utils
 '''
 
-import numpy as np
-from ROOT import TMath # pylint: disable=import-error,no-name-in-module
+from ROOT import TMath, TF1, kBlue, kGreen # pylint: disable=import-error,no-name-in-module
 
 def SingleGaus(x, par):
     '''
@@ -118,4 +117,80 @@ def ExpoPowLaw(x, par):
         par[2]: expo slope
     '''
 
-    return par[0] * np.sqrt(x[0] - par[1]) * np.exp(-1. * par[2] * (x[0] - par[1]))
+    return par[0] * TMath.Sqrt(x[0] - par[1]) * TMath.Exp(-1. * par[2] * (x[0] - par[1]))
+
+
+# pylint: disable=too-many-instance-attributes
+class BkgFuncCreator:
+    '''
+    Class to handle custom background functions as done by AliHFInvMassFitter. Mainly designed
+    to provide functions for sidebands fitting
+    '''
+
+    def __init__(self, funcName, minMassHisto, maxMassHisto, numSigmaSideBands=0., peakMass=0.,
+                 peakSigma=0., secPeakMass=0., secPeakSigma=0.):
+        self.funcName = funcName
+        self.minMass = minMassHisto
+        self.maxMass = maxMassHisto
+        self.peakMass = peakMass
+        self.peakDelta = peakSigma * numSigmaSideBands
+        self.secPeakMass = secPeakMass
+        self.secPeakDelta = secPeakSigma * numSigmaSideBands
+
+        self.removePeak = False
+        self.removeSecPeak = False
+        if self.peakMass > 0. and self.peakDelta > 0.:
+            self.removePeak = True
+        if self.secPeakMass > 0. and self.secPeakDelta > 0.:
+            self.removeSecPeak = True
+
+    def _ExpIntegralNorm(self, x, par):
+        '''
+        Exponential function normalized to its integral.
+        See AliHFInvMassFitter::FitFunction4Bkg for more information.
+
+        Parameters
+        ----------
+
+        - x: function variable
+        - par: function parameters
+            par[0]: normalisation (integral of background)
+            par[1]: expo slope
+        '''
+        norm = par[0] * par[1] / (TMath.Exp(par[1] * self.maxMass) - TMath.Exp(par[1] * self.minMass))
+        return norm * TMath.Exp(par[1] * x[0])
+
+    def _SideBandsFunc(self, x, par):
+        '''
+        Function where only sidebands are considered.
+
+        Parameters
+        ----------
+
+        - x: function variable
+        - par: function parameters
+        '''
+        if self.removePeak and TMath.Abs(x[0] - self.peakMass) < self.peakDelta:
+            TF1.RejectPoint()
+            return 0
+        if self.removeSecPeak and TMath.Abs(x[0] - self.secPeakMass) < self.secPeakDelta:
+            TF1.RejectPoint()
+            return 0
+
+        return self._ExpIntegralNorm(x, par)
+
+    def GetBkgSideBandsFunc(self, integral):
+        numPar = 2
+        funcBkgSB = TF1('bkgSBfunc', self._SideBandsFunc, self.minMass, self.maxMass, numPar)
+        funcBkgSB.SetParNames('BkgInt', 'Slope')
+        funcBkgSB.SetParameters(integral, -2.)
+        funcBkgSB.SetLineColor(kBlue+2)
+        return funcBkgSB
+
+    def GetBkgFullRangeFunc(self, integral):
+        numPar = 2
+        funcBkg = TF1('bkgFunc', self._ExpIntegralNorm, self.minMass, self.maxMass, numPar)
+        funcBkg.SetParNames('BkgInt', 'Slope')
+        funcBkg.SetParameters(integral, -2.)
+        funcBkg.SetLineColor(kGreen+2)
+        return funcBkg
