@@ -177,8 +177,8 @@ estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'S': 'expected s
             'EffAccPrompt': '(Acc#times#font[152]{e})_{prompt}', 'EffAccFD': '(Acc#times#font[152]{e})_{FD}',
             'fPrompt': '#it{f}_{ prompt}^{ fc}', 'fFD': '#it{f}_{ FD}^{ fc}'}
 
-varsName4Tuple = (':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:BError:EffAccPromptError:EffAccFDError:SError:'
-                  + ':'.join(estNames.keys()))
+varsName4Tuple = (':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:EffAccPromptError:EffAccFDError:SError:BError'
+                  ':SignifError:SoverBError' + ':'.join(estNames.keys()))
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = 1
@@ -269,7 +269,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 nBinsVar = int((maxVar - minVar) / cutVars[varNames[0]]['step'])
                 hEstimVsCut[iPt][est] = TH1F(f'h{est}VsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
                                              f';{varNames[0]};{estNames[est]}', nBinsVar, minVar, maxVar)
-                SetObjectStyle(hEstimVsCut[iPt][est], color=kBlack, marker=kFullCircle)
+                SetObjectStyle(hEstimVsCut[iPt][est], color=kBlack, marker=kFullCircle, linewidth=1)
         elif len(varNames) == 2:
             for est in estNames:
                 minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
@@ -344,10 +344,14 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             # S/B and significance
             expSoverB = 0.
             expSignif = 0.
-            SError = 0. # TODO: think how to define a meaningful error on the estimated signal
+            errS = 0. # TODO: think how to define a meaningful error on the estimated signal and propagate it
+            errSoverB = 0.
+            errSignif = 0.
             if expBkg > 0:
                 expSoverB = expSignal / expBkg
                 expSignif = expSignal / np.sqrt(expSignal + expBkg)
+                errSoverB = expSoverB * errExpBkg / expBkg
+                errSignif = expSignif * 0.5 * errExpBkg / (expSignal + expBkg)
 
             # Efficiency
             EffAccFDError = np.sqrt((effFDUnc/effFD)**2
@@ -357,17 +361,21 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                         + (preselEffPromptUnc/preselEffPrompt)**2
                                         + (accUnc/acc)**2)*effTimesAccPrompt
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, errExpBkg, EffAccPromptError,
-                                       EffAccFDError, SError, expSignif, expSoverB, expSignal, expBkg,
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, EffAccPromptError, EffAccFDError,
+                                       errS, errExpBkg, errSignif, errSoverB, expSignif, expSoverB, expSignal, expBkg,
                                        effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))
             estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'S': expSignal, 'B': expBkg,
                          'EffAccPrompt': effTimesAccPrompt, 'EffAccFD': effTimesAccFD,
                          'fPrompt': fPrompt[0], 'fFD': fFD[0]}
+            estValuesErr = {'SignifError': errSignif, 'SoverBError': errSoverB, 'SError': errS, 'BError': errExpBkg,
+                            'EffAccPromptError': EffAccPromptError, 'EffAccFDError': EffAccFDError}
             if len(varNames) == 1:
                 binVar = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
                 for est in estValues:
                     hEstimVsCut[iPt][est].SetBinContent(binVar, estValues[est])
+                    if f'{est}Error' in estValuesErr:
+                        hEstimVsCut[iPt][est].SetBinError(binVar, estValuesErr[f'{est}Error'])
             if len(varNames) == 2:
                 binVar0 = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
                 binVar1 = hEstimVsCut[iPt]['Signif'].GetYaxis().FindBin(cutSet[1])
