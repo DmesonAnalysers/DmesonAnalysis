@@ -304,14 +304,14 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0
     if hMassData.Integral() <= 5: # check to have some entries in the histogram before fitting
         return 0., 0., hMassData
     funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
-    fit = hMassData.Fit(funcBkg, 'Q')
+    fit = hMassData.Fit(funcBkg, 'Q+')
     expBkg3s, errExpBkg3s = 0., 0.
     if int(fit) == 0:
         expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
         errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
     return expBkg3s, errExpBkg3s, hMassData
 
-def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='expo', nSigmaForSB=4, mean=0., sigma=0.,
+def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0., sigma=0.,
                                    meanSecPeak=0., sigmaSecPeak=0.):
     '''
     Helper method to get the expected bkg from side-bands, improved using maximum-likelihood and

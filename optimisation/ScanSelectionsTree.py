@@ -13,8 +13,8 @@ from root_numpy import fill_hist
 from ROOT import TFile, TH1F, TH2F, TF1, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBandsImp  #pylint: disable=wrong-import-position,import-error
-from utils.AnalysisUtils import GetExpectedBkgFromMC, GetExpectedSignal  #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands  #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import  GetExpectedBkgFromSideBandsImp, GetExpectedBkgFromMC, GetExpectedSignal  #pylint: disable=wrong-import-position,import-error
 from utils.FitUtils import SingleGaus #pylint: disable=wrong-import-position,import-error
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
 from utils.DfUtils import LoadDfFromRootOrParquet  #pylint: disable=wrong-import-position,import-error
@@ -323,10 +323,14 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             errExpBkg = 0.
             if bkgConfig['isMC']:
                 expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromMC(hMassBkg, mean, sigma)
-            else:
+            elif bkgConfig['impFit']:
                 expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBandsImp(hMassBkg, bkgConfig['fitFunc'],
                                                                              bkgConfig['nSigma'], mean, sigma,
                                                                              meanSecPeak, sigmaSecPeak)
+            else:
+                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
+                                                                          bkgConfig['nSigma'], mean, sigma,
+                                                                          meanSecPeak, sigmaSecPeak)
             hMassBkg.Write()
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
             errExpBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
