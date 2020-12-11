@@ -178,7 +178,7 @@ estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'S': 'expected s
             'fPrompt': '#it{f}_{ prompt}^{ fc}', 'fFD': '#it{f}_{ FD}^{ fc}'}
 
 varsName4Tuple = (':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:EffAccPromptError:EffAccFDError:SError:BError'
-                  ':SignifError:SoverBError' + ':'.join(estNames.keys()))
+                  ':SignifError:SoverBError:' + ':'.join(estNames.keys()))
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = 1
