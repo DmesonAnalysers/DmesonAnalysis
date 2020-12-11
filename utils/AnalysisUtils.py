@@ -6,7 +6,7 @@ import ctypes
 import numpy as np
 import pandas as pd
 from ROOT import TH1F, TF1, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from .FitUtils import SingleGaus, BkgFitFuncCreator
+from .FitUtils import BkgFitFuncCreator
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -23,7 +23,6 @@ def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     ----------
     - efficiency, error on efficiency
     '''
-
     hTmpNum = TH1F('hTmpNum', '', 1, 0, 1)
     hTmpDen = TH1F('hTmpDen', '', 1, 0, 1)
     hTmpNum.SetBinContent(1, recoCounts)
@@ -43,7 +42,6 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
 
     Parameters
     ----------
-
     - effPromptList: list of efficiencies for prompt D
     - effFDList: list of efficiencies for FD D
     - rawYieldList: list of raw yields
@@ -56,13 +54,11 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
 
     Returns
     ----------
-
     - mCorrYield (numpy matrix): corrected yields (Nprompt, NFD)
     - mCovariance (numpy matrix): covariance matrix for corrected yields
     - redChiSquare (float): reduced chi square
     - dicOfMatrices (dictionary): dictionary with all matrices used in minimisation procedure
     '''
-
     nCutSets = len(effPromptList)
 
     mRawYield = np.zeros(shape=(nCutSets, 1))
@@ -144,7 +140,6 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
 
     Parameters
     ----------
-
     - accEffPrompt: efficiency times acceptance of prompt D
     - accEffFD: efficiency times acceptance of feed-down D
     - crossSecPrompt: list of production cross sections (cent, min, max) of prompt D in pp collisions from theory
@@ -154,7 +149,6 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
 
     Returns
     ----------
-
     - fracPrompt: list of fraction of prompt D (cent, min, max)
     - fracFD: list of fraction of feed-down D (cent, min, max)
     '''
@@ -210,7 +204,6 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
 
     Parameters
     ----------
-
     - accEffSame: efficiency times acceptance of prompt (feed-down) D
     - accEffOther: efficiency times acceptance of feed-down (prompt) D
     - crossSec: list of production cross sections (cent, min, max) of feed-down (prompt)
@@ -227,7 +220,6 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
 
     Returns
     ----------
-
     - frac: list of fraction of prompt (feed-down) D (cent, min, max)
     '''
     if not isinstance(crossSec, list) and isinstance(crossSec, float):
@@ -275,51 +267,27 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
     return frac
 
 
-def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassSignal=None, mean=-1., sigma=-1.,
-                                hMassSecPeak=None, meanSecPeak=-1., sigmaSecPeak=-1.):
+def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0., sigma=0.,
+                                meanSecPeak=0., sigmaSecPeak=0.):
     '''
     Helper method to get the expected bkg from side-bands
 
     Parameters
     ----------
-
     - hMassData: invariant-mass histogram from which extract the estimated bkg
     - bkgFunc: expression for bkg fit function
     - nSigmaForSB: number of sigmas away from the invariant-mass peak to define SB windows
-    - hMassSignal: invariant-mass histogram for the signal used to get mean and sigma
-                   not needed in case of passed mean and sigma parameters
     - mean: mean of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
     - sigma: width of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
-    - hMassSecPeak: invariant-mass histogram for the second peak (only Ds) used to get meanSecPeak and sigmaSecPeak
-                   not needed in case of passed meanSecPeak and sigmaSecPeak parameters
     - meanSecPeak: mean of invariant-mass peak of the second peak (only Ds)
-                   not needed in case of passed hMassSecPeak
     - sigmaSecPeak: width of invariant-mass peak of the second peak (only Ds)
-                   not needed in case of passed hMassSecPeak
 
     Returns
     ----------
-
     - expBkg3s: expected background within 3 sigma from signal peak mean
     - errExpBkg3s: error on the expected background
     - hMassData: SB histogram with fit function (if fit occurred)
     '''
-    if hMassSignal:
-        funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
-        funcSignal.SetParameters(
-            hMassSignal.Integral() * hMassSignal.GetBinWidth(1), hMassSignal.GetMean(), hMassSignal.GetRMS())
-        hMassSignal.Fit('funcSignal', 'Q0')
-        mean = funcSignal.GetParameter(1)
-        sigma = funcSignal.GetParameter(2)
-    if hMassSecPeak:
-        funcSignal.SetParameters(
-            hMassSecPeak.Integral() * hMassSecPeak.GetBinWidth(1), hMassSecPeak.GetMean(), hMassSecPeak.GetRMS())
-        hMassSecPeak.Fit('funcSignal', 'Q0')
-        meanSecPeak = funcSignal.GetParameter(1)
-        sigmaSecPeak = funcSignal.GetParameter(2)
-
     for iMassBin in range(1, hMassData.GetNbinsX()+1):
         massLowLimit = hMassData.GetBinLowEdge(iMassBin)
         massUpLimit = hMassData.GetBinLowEdge(iMassBin) + hMassData.GetBinWidth(iMassBin)
@@ -343,49 +311,28 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
         errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
     return expBkg3s, errExpBkg3s, hMassData
 
-def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='expo', nSigmaForSB=4, hMassSignal=None, mean=-1., sigma=-1.,
-                                   hMassSecPeak=None, meanSecPeak=-1., sigmaSecPeak=-1.):
+def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='expo', nSigmaForSB=4, mean=0., sigma=0.,
+                                   meanSecPeak=0., sigmaSecPeak=0.):
     '''
-    Helper method to get the expected bkg from side-bands, improved
+    Helper method to get the expected bkg from side-bands, improved using maximum-likelihood and
+    background functions defined only on the sidebands
 
     Parameters
     ----------
-
     - hMassData: invariant-mass histogram from which extract the estimated bkg
     - bkgFunc: expression for bkg fit function
     - nSigmaForSB: number of sigmas away from the invariant-mass peak to define SB windows
-    - hMassSignal: invariant-mass histogram for the signal used to get mean and sigma
-                   not needed in case of passed mean and sigma parameters
     - mean: mean of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
     - sigma: width of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
-    - hMassSecPeak: invariant-mass histogram for the second peak (only Ds) used to get meanSecPeak and sigmaSecPeak
-                   not needed in case of passed meanSecPeak and sigmaSecPeak parameters
     - meanSecPeak: mean of invariant-mass peak of the second peak (only Ds)
-                   not needed in case of passed hMassSecPeak
     - sigmaSecPeak: width of invariant-mass peak of the second peak (only Ds)
-                   not needed in case of passed hMassSecPeak
 
     Returns
     ----------
-
     - expBkg3s: expected background within 3 sigma from signal peak mean
     - errExpBkg3s: error on the expected background
     - hMassData: SB histogram with fit function (if fit occurred)
     '''
-    if hMassSignal:
-        funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
-        funcSignal.SetParameters(hMassSignal.Integral('width'), hMassSignal.GetMean(), hMassSignal.GetRMS())
-        hMassSignal.Fit('funcSignal', 'Q0')
-        mean = funcSignal.GetParameter(1)
-        sigma = funcSignal.GetParameter(2)
-    if hMassSecPeak:
-        funcSignal.SetParameters(hMassSecPeak.Integral('width'), hMassSecPeak.GetMean(), hMassSecPeak.GetRMS())
-        hMassSecPeak.Fit('funcSignal', 'Q0')
-        meanSecPeak = funcSignal.GetParameter(1)
-        sigmaSecPeak = funcSignal.GetParameter(2)
-
     numEntriesSB = hMassData.Integral(1, hMassData.FindBin(mean - nSigmaForSB * sigma))
     numEntriesSB += hMassData.Integral(hMassData.FindBin(mean + nSigmaForSB * sigma), hMassData.GetNbinsX())
     if meanSecPeak > 0 and sigmaSecPeak > 0:
@@ -409,38 +356,24 @@ def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='expo', nSigmaForSB=4, hMa
     return expBkg3s, errExpBkg3s, hMassData
 
 
-def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=True, bkgFunc='pol3'):
+def GetExpectedBkgFromMC(hMassBkg, mean=0., sigma=0., doFit=True, bkgFunc='pol3'):
     '''
     Helper method to get the expected bkg from MC
 
     Parameters
     ----------
-
     - hMassBkg: invariant-mass histogram of background
-    - hMassSignal: invariant-mass histogram for the signal used to get mean and sigma
-                   not needed in case of passed mean and sigma parameters
     - mean: mean of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
     - sigma: width of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
     - doFit: flag to enable fit of bkg distribution (useful with low stat)
     - bkgFunc: expression for bkg fit function (if fit enabled)
 
     Returns
     ----------
-
     - expBkg3s: expected background within 3 sigma from signal peak mean
     - errExpBkg3s: error on the expected background
     - hMassBkg: bkg histogram with fit function (if fit occurred)
     '''
-    if hMassSignal:
-        funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
-        funcSignal.SetParameters(hMassSignal.Integral() * hMassSignal.GetBinWidth(1),
-                                 hMassSignal.GetMean(), hMassSignal.GetRMS())
-        hMassSignal.Fit('funcSignal', 'Q0')
-        mean = funcSignal.GetParameter(1)
-        sigma = funcSignal.GetParameter(2)
-
     expBkg3s, errExpBkg3s = 0., 0.
     if doFit:
         if hMassBkg.Integral() <= 5: # check to have some entries in the histogram before fitting
@@ -466,7 +399,6 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
 
     Parameters
     ----------
-
     - crossSec: prediction for differential cross section in pp
     - deltaPt: pT interval
     - deltaY: Y interval
@@ -481,10 +413,8 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
 
     Returns
     ----------
-
     - expected signal
     '''
-
     return 2 * crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
 
 
@@ -496,7 +426,6 @@ def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, delt
 
     Parameters
     ----------
-
     - rawY: raw yield
     - uncRawY: raw-yield statistical uncertainty
     - frac: either prompt or feed-down fraction
@@ -508,14 +437,11 @@ def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, delt
     - nEv: number of events
     - BR: branching ratio of the decay channel
 
-
     Returns
     ----------
-
     - crossSection: cross section
     - crossSecUnc: cross-section statistical uncertainty
     '''
-
     crossSection = rawY * frac * sigmaMB / (2 * deltaPt * deltaY * effTimesAcc * nEv * BR)
     crossSecUnc = np.sqrt((uncRawY / rawY)**2 + (uncFrac / frac)**2) * crossSection
 
@@ -528,12 +454,10 @@ def MergeHists(listOfHists):
 
     Parameters
     ----------
-
     - listOfHists: python list of histos
 
     Returns
     ----------
-
     - hMerged: merged histo
 
     '''
@@ -544,6 +468,7 @@ def MergeHists(listOfHists):
         else:
             listMerge.Add(hist)
     hMerged.Merge(listMerge)
+
     return hMerged
 
 
@@ -553,7 +478,6 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
 
     Parameters
     ----------
-
     - df: input pandas.Dataframe
     - column: column of the pandas dataframe to which apply the spline
     - spline: spline (scipy.interpolate.InterpolatedUnivariateSpline object)
@@ -562,11 +486,9 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
 
     Returns
     ----------
-
     - y: pandas.Series with result of the function application to column
 
     '''
-
     y = []
     for x in df[column].values:
         if minRange <= x <= maxRange:
@@ -587,16 +509,13 @@ def ApplyHistoEntriesToColumn(df, column, histo):
 
     Parameters
     ----------
-
     - df: input pandas.Dataframe
     - column: column of the pandas dataframe to which apply the spline
     - histo: ROOT.TH1 with values
 
     Returns
     ----------
-
     - y: pandas.Series with result of the function application to column
-
     '''
     binMins, binMaxs, contents, y = ([] for _ in range(4))
     for iBin in range(1, histo.GetNbinsX()+1):
@@ -625,16 +544,13 @@ def ComputeRatioDiffBins(hNum, hDen, uncOpt=''):
 
     Parameters
     ----------
-
     - hNum: histogram for numerator
     - hDen: histogram for denominator
     - uncOpt: uncertainty option as in ROOT.TH1.Divide
 
     Returns
     ----------
-
     - hRatio: ratio histogram
-
     '''
 
     ptMinNum = hNum.GetBinLowEdge(1)
@@ -698,7 +614,6 @@ def ScaleGraph(graph, scaleFactor):
 
     Parameters
     ----------
-
     - graph: graph to scale
     - scaleFactor: scale factor
     '''
@@ -725,13 +640,11 @@ def ComputeRatioGraph(gNum, gDen, useDenUnc=True):
 
     Parameters
     ----------
-
     - gNum: graph to divide (numerator)
     - gDen: graph to divide (denominator)
 
     Returns
     ----------
-
     - gRatio: resulting graph
     '''
     if gNum.GetN() != gDen.GetN():
@@ -773,13 +686,11 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
 
     Parameters
     ----------
-
     - gNum: graph to divide (numerator)
     - hDen: histogram (denominator)
 
     Returns
     ----------
-
     - gRatio: resulting graph
     '''
     if gNum.GetN() != hDen.GetNbinsX():
@@ -814,7 +725,6 @@ def ApplyVariationToList(listToVary, relVar, option='decreasing'):
 
     Parameters
     ----------
-
     - listToVary: list of values to be varied
     - relVar: relative variation
     - option: option for variation among
@@ -825,10 +735,8 @@ def ApplyVariationToList(listToVary, relVar, option='decreasing'):
 
     Returns
     ----------
-
     - listVaried: list of varied values
     '''
-
     if option not in ['upshift', 'downshift', 'decreasing', 'increasing']:
         print('ERROR: option for variation of list not valid! Returning None')
         return None

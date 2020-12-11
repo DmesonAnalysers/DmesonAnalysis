@@ -17,7 +17,7 @@ infiles:
             filename: null
             dirname: null
             treename: null
-        mean: 1.87 # fixed values of mean and sigma if > 0 overwrite the use of the histogram
+        mean: 1.87 # fixed values of mean and sigma, used if histogram is not provided
         sigma: 0.008
     background:
         filename: ~/DsPbPb_paper/training/final_3050/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip

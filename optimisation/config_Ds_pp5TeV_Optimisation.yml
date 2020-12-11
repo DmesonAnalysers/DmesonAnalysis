@@ -17,7 +17,7 @@ infiles:
             filename: null
             dirname: null
             treename: null
-        mean: 1.87 # fixed values of mean and sigma if > 0 overwrite the use of the histogram
+        mean: 1.87 # fixed values of mean and sigma, used if histogram is not provided
         sigma: 0.008
     background:
         filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/data/Data_pT_2_4_ModelApplied.parquet.gzip

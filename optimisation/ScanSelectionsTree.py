@@ -10,11 +10,12 @@ import itertools
 import numpy as np
 import yaml
 from root_numpy import fill_hist
-from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TF1, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBandsImp  #pylint: disable=wrong-import-position,import-error
 from utils.AnalysisUtils import GetExpectedBkgFromMC, GetExpectedSignal  #pylint: disable=wrong-import-position,import-error
+from utils.FitUtils import SingleGaus #pylint: disable=wrong-import-position,import-error
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
 from utils.DfUtils import LoadDfFromRootOrParquet  #pylint: disable=wrong-import-position,import-error
 from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania  #pylint: disable=wrong-import-position,import-error
@@ -41,7 +42,6 @@ dfFD = LoadDfFromRootOrParquet(inputCfg['infiles']['signal']['feeddown']['filena
 dfBkg = LoadDfFromRootOrParquet(inputCfg['infiles']['background']['filename'],
                                 inputCfg['infiles']['background']['dirname'],
                                 inputCfg['infiles']['background']['treename'])
-
 if inputCfg['infiles']['secpeak']['prompt']['filename']:
     dfSecPeakPrompt = LoadDfFromRootOrParquet(inputCfg['infiles']['secpeak']['prompt']['filename'],
                                               inputCfg['infiles']['secpeak']['prompt']['dirname'],
@@ -201,15 +201,18 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     dfPromptPt = dfPrompt.query(f'{ptMin} < pt_cand < {ptMax}')
     dfFDPt = dfFD.query(f'{ptMin} < pt_cand < {ptMax}')
     dfBkgPt = dfBkg.query(f'{ptMin} < pt_cand < {ptMax}')
+
     # Raa
     ptCent = (ptMax + ptMin) / 2.
     if isinstance(RaaPrompt_config, str):
         RaaPrompt = float(RaaPromptSpline['yCent'](ptCent))
     if isinstance(RaaFD_config, str):
         RaaFD = float(RaaFDSpline['yCent'](ptCent))
+
     # denominator for efficiency
     nTotPrompt = len(dfPromptPt)
     nTotFD = len(dfFDPt)
+
     # preselection efficiency (if input provided)
     if inputCfg['infiles']['preseleff']['filename']:
         ptBinPreselEff = hPreselEffPrompt.GetXaxis().FindBin(ptMin*1.0001)
@@ -220,28 +223,41 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     else:
         preselEffPrompt = 1.
         preselEffFD = 1.
+
     # acceptance
     ptBinAccMin = hPtGenAcc.GetXaxis().FindBin(ptMin*1.0001)
     ptBinAccMax = hPtGenAcc.GetXaxis().FindBin(ptMax*0.9999)
     numAcc = hPtGenAcc.Integral(ptBinAccMin, ptBinAccMax)
     denAcc = hPtGenLimAcc.Integral(ptBinAccMin, ptBinAccMax)
     acc, accUnc = ComputeEfficiency(numAcc, denAcc, np.sqrt(numAcc), np.sqrt(denAcc))
+
     # cross section from theory
     ptBinCrossSecMin = hCrossSecPrompt.GetXaxis().FindBin(ptMin*1.0001)
     ptBinCrossSecMax = hCrossSecPrompt.GetXaxis().FindBin(ptMax*0.9999)
     crossSecPrompt = hCrossSecPrompt.Integral(ptBinCrossSecMin, ptBinCrossSecMax, 'width') / (ptMax - ptMin)
     crossSecFD = hCrossSecFD.Integral(ptBinCrossSecMin, ptBinCrossSecMax, 'width') / (ptMax - ptMin)
+
     # signal histograms
     hMassSignal = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}', ';#it{M} (GeV/#it{c});Counts', 400,
                        min(dfPromptPt['inv_mass']), max(dfPromptPt['inv_mass']))
     fill_hist(hMassSignal, np.concatenate((dfPromptPt['inv_mass'].values, dfFDPt['inv_mass'].values)))
+    funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
+    funcSignal.SetParameters(hMassSignal.Integral('width'), hMassSignal.GetMean(), hMassSignal.GetRMS())
+    hMassSignal.Fit('funcSignal', 'Q0')
+    mean = funcSignal.GetParameter(1)
+    sigma = funcSignal.GetParameter(2)
     # SecPeak
+    meanSecPeak = inputCfg['infiles']['secpeak']['mean']
+    sigmaSecPeak = inputCfg['infiles']['secpeak']['sigma']
     if dfSecPeakPrompt and dfSecPeakFD:
-        hMassSeaPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}', ';#it{M} (GeV/#it{c});Counts', 400,
+        hMassSecPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}', ';#it{M} (GeV/#it{c});Counts', 400,
                             min(dfSecPeakPrompt['inv_mass']), max(dfSecPeakPrompt['inv_mass']))
         fill_hist(hMassSecPeak, np.concatenate((dfSecPeakPrompt['inv_mass'].values, dfSecPeakFD['inv_mass'].values)))
-    else:
-        hMassSecPeak = None
+        funcSignal.SetParameters(hMassSecPeak.Integral('width'), hMassSecPeak.GetMean(), hMassSecPeak.GetRMS())
+        hMassSecPeak.Fit('funcSignal', 'Q0')
+        meanSecPeak = funcSignal.GetParameter(1)
+        sigmaSecPeak = funcSignal.GetParameter(2)
+
     # output histos
     hSignifVsRest.append(dict())
     hEstimVsCut.append(dict())
@@ -306,23 +322,12 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             expBkg = 0.
             errExpBkg = 0.
             if bkgConfig['isMC']:
-                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromMC(hMassBkg, hMassSignal)
-                hMassBkg.Write()
+                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromMC(hMassBkg, mean, sigma)
             else:
-                meanSec = inputCfg['infiles']['secpeak']['mean']
-                sigmaSec = inputCfg['infiles']['secpeak']['sigma']
-                if hMassSecPeak:
-                    expBkg, errExpBkg, hMassSB = GetExpectedBkgFromSideBandsImp(hMassBkg, bkgConfig['fitFunc'],
-                                                                                bkgConfig['nSigma'], hMassSignal,
-                                                                                -1., -1., hMassSecPeak)
-                elif meanSec > 0 and sigmaSec > 0:
-                    expBkg, errExpBkg, hMassSB = GetExpectedBkgFromSideBandsImp(hMassBkg, bkgConfig['fitFunc'],
-                                                                                bkgConfig['nSigma'], hMassSignal,
-                                                                                -1., -1., None, meanSec, sigmaSec)
-                else:
-                    expBkg, errExpBkg, hMassSB = GetExpectedBkgFromSideBandsImp(hMassBkg, bkgConfig['fitFunc'],
-                                                                                bkgConfig['nSigma'], hMassSignal)
-                hMassSB.Write()
+                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBandsImp(hMassBkg, bkgConfig['fitFunc'],
+                                                                             bkgConfig['nSigma'], mean, sigma,
+                                                                             meanSecPeak, sigmaSecPeak)
+            hMassBkg.Write()
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
             errExpBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
 

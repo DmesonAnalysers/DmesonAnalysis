@@ -41,7 +41,7 @@ infiles:
             filename: null
             dirname: null
             treename: null
-        mean: 0 # fixed values of mean and sigma if > 0 overwrite the use of the histogram
+        mean: 0 # fixed values of mean and sigma, used if histogram is not provided
         sigma: 0
     background:
         filename: [/home/alidock/DmesonAnalysis/ML/AnalysisDs/MLoutput_ITS2/ML_output_apply_test_set_1/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip,
