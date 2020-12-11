@@ -6,7 +6,7 @@ import ctypes
 import numpy as np
 import pandas as pd
 from ROOT import TH1F, TF1, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from .FitUtils import SingleGaus, BkgFuncCreator
+from .FitUtils import SingleGaus, BkgFitFuncCreator
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -397,15 +397,13 @@ def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='expo', nSigmaForSB=4, hMa
 
     minMass = hMassData.GetBinLowEdge(1)
     maxMass = hMassData.GetBinLowEdge(hMassData.GetNbinsX()) + hMassData.GetBinWidth(1)
-    bkgFuncCreator = BkgFuncCreator('expo', minMass, maxMass, nSigmaForSB, mean, sigma, meanSecPeak, sigmaSecPeak)
+    bkgFuncCreator = BkgFitFuncCreator(bkgFunc, minMass, maxMass, nSigmaForSB, mean, sigma, meanSecPeak, sigmaSecPeak)
     integral = hMassData.Integral('width')
-    funcBkgSB = bkgFuncCreator.GetBkgSideBandsFunc(integral)
+    funcBkgSB = bkgFuncCreator.GetSideBandsFunc(integral)
     fit = hMassData.Fit(funcBkgSB, 'LRQ+')
     expBkg3s, errExpBkg3s = 0., 0.
     if int(fit) == 0:
-        funcBkg = bkgFuncCreator.GetBkgFullRangeFunc(integral)
-        funcBkg.SetParameter(0, funcBkgSB.GetParameter(0))
-        funcBkg.SetParameter(1, funcBkgSB.GetParameter(1))
+        funcBkg = bkgFuncCreator.GetFullRangeFunc(funcBkgSB)
         expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
         errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
     return expBkg3s, errExpBkg3s, hMassData

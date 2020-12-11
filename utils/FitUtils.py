@@ -10,7 +10,6 @@ def SingleGaus(x, par):
 
     Parameters
     ----------
-
     - x: function variable
     - par: function parameters
         par[0]: normalisation
@@ -26,7 +25,6 @@ def DoubleGaus(x, par):
 
     Parameters
     ----------
-
     - x: function variable
     - par: function parameters
         par[0]: normalisation
@@ -46,7 +44,6 @@ def DoublePeakSingleGaus(x, par):
 
     Parameters
     ----------
-
     - x: function variable
     - par: function parameters
         par[0]: normalisation first peak
@@ -67,7 +64,6 @@ def DoublePeakDoubleGaus(x, par):
 
     Parameters
     ----------
-
     - x: function variable
     - par: function parameters
         par[0]: normalisation first peak
@@ -91,7 +87,6 @@ def VoigtFunc(x, par):
 
     Parameters
     ----------
-
     - x: function variable
     - par: function parameters
         par[0]: normalisation
@@ -109,7 +104,6 @@ def ExpoPowLaw(x, par):
 
     Parameters
     ----------
-
     - x: function variable
     - par: function parameters
         par[0]: normalisation
@@ -121,17 +115,43 @@ def ExpoPowLaw(x, par):
 
 
 # pylint: disable=too-many-instance-attributes
-class BkgFuncCreator:
+class BkgFitFuncCreator:
     '''
     Class to handle custom background functions as done by AliHFInvMassFitter. Mainly designed
     to provide functions for sidebands fitting
-    '''
 
-    def __init__(self, funcName, minMassHisto, maxMassHisto, numSigmaSideBands=0., peakMass=0.,
+    Parameters
+    -------------------------------------------------
+    - funcName: function to use. Currently implemented: 'expo', 'pol0', 'pol1', 'pol2', 'pol3'
+    - minMass:  lower extreme of fitting interval
+    - maxMass:  higher extreme of fitting interval
+    - numSigmaSideBands: number of widths excluded around the peak
+    - peakMass: peak mass (if not defined the signal region will not be excluded from the function)
+    - peakSigma: peak width
+    - secPeakMass: second peak mass (if not defined the second-peak region will not be excluded from the function)
+    - secPeakSigma: second peak width
+    '''
+    __implFunc = {'expo': '_ExpoIntegralNorm',
+                  'pol0': '_Pol0IntegralNorm',
+                  'pol1': '_Pol1IntegralNorm',
+                  'pol2': '_Pol2IntegralNorm',
+                  'pol3': '_Pol3IntegralNorm'
+                  }
+
+    __numPar = {'expo': 2,
+                'pol0': 1,
+                'pol1': 2,
+                'pol2': 3,
+                'pol3': 4
+                }
+
+    def __init__(self, funcName, minMass, maxMass, numSigmaSideBands=0., peakMass=0.,
                  peakSigma=0., secPeakMass=0., secPeakSigma=0.):
+        if funcName not in self.__implFunc:
+            raise ValueError(f'Function \'{funcName}\' not implemented')
         self.funcName = funcName
-        self.minMass = minMassHisto
-        self.maxMass = maxMassHisto
+        self.minMass = minMass
+        self.maxMass = maxMass
         self.peakMass = peakMass
         self.peakDelta = peakSigma * numSigmaSideBands
         self.secPeakMass = secPeakMass
@@ -144,14 +164,13 @@ class BkgFuncCreator:
         if self.secPeakMass > 0. and self.secPeakDelta > 0.:
             self.removeSecPeak = True
 
-    def _ExpIntegralNorm(self, x, par):
+    def _ExpoIntegralNorm(self, x, par):
         '''
         Exponential function normalized to its integral.
         See AliHFInvMassFitter::FitFunction4Bkg for more information.
 
         Parameters
         ----------
-
         - x: function variable
         - par: function parameters
             par[0]: normalisation (integral of background)
@@ -160,13 +179,76 @@ class BkgFuncCreator:
         norm = par[0] * par[1] / (TMath.Exp(par[1] * self.maxMass) - TMath.Exp(par[1] * self.minMass))
         return norm * TMath.Exp(par[1] * x[0])
 
+    def _Pol0IntegralNorm(self, x, par): # pylint: disable=unused-argument
+        '''
+        Constant Function normalized to its integral.
+
+        Parameters
+        ----------
+        - x: function variable
+        - par: function parameters
+            par[0]: normalisation (integral of background)
+        '''
+        return par[0] / (self.maxMass - self.minMass)
+
+    def _Pol1IntegralNorm(self, x, par):
+        '''
+        Linear function normalized to its integral.
+        See AliHFInvMassFitter::FitFunction4Bkg for more information.
+
+        Parameters
+        ----------
+        - x: function variable
+        - par: function parameters
+            par[0]: normalisation (integral of background)
+            par[1]: angular coefficient
+        '''
+        return par[0] / (self.maxMass - self.minMass) + par[1] * (x[0] - 0.5 * (self.maxMass + self.minMass))
+
+    def _Pol2IntegralNorm(self, x, par):
+        '''
+        Second order polinomial function normalized to its integral.
+        See AliHFInvMassFitter::FitFunction4Bkg for more information.
+
+        Parameters
+        ----------
+        - x: function variable
+        - par: function parameters
+            par[0]: normalisation (integral of background)
+            par[1]: a
+            par[2]: b
+        '''
+        firstTerm = par[0] / (self.maxMass - self.minMass)
+        secondTerm = par[1] * (x[0] - 0.5 * (self.maxMass + self.minMass))
+        thirdTerm = par[2] * (x[0]**2 - 1 / 3. * (self.maxMass**3 - self.minMass**3) / (self.maxMass - self.minMass))
+        return firstTerm + secondTerm + thirdTerm
+
+    def _Pol3IntegralNorm(self, x, par):
+        '''
+        Third order polinomial function normalized to its integral.
+        See AliHFInvMassFitter::FitFunction4Bkg for more information.
+
+        Parameters
+        ----------
+        - x: function variable
+        - par: function parameters
+            par[0]: normalisation (integral of background)
+            par[1]: a
+            par[2]: b
+            par[3]: c
+        '''
+        firstTerm = par[0] / (self.maxMass - self.minMass)
+        secondTerm = par[1] * (x[0] - 0.5 * (self.maxMass + self.minMass))
+        thirdTerm = par[2] * (x[0]**2 - 1 / 3. * (self.maxMass**3 - self.minMass**3) / (self.maxMass - self.minMass))
+        fourthTerm = par[3] * (x[0]**3 - 1 / 4. * (self.maxMass**4 - self.minMass**4) / (self.maxMass - self.minMass))
+        return firstTerm + secondTerm + thirdTerm + fourthTerm
+
     def _SideBandsFunc(self, x, par):
         '''
         Function where only sidebands are considered.
 
         Parameters
         ----------
-
         - x: function variable
         - par: function parameters
         '''
@@ -177,20 +259,46 @@ class BkgFuncCreator:
             TF1.RejectPoint()
             return 0
 
-        return self._ExpIntegralNorm(x, par)
+        return getattr(self, self.__implFunc[self.funcName])(x, par)
 
-    def GetBkgSideBandsFunc(self, integral):
-        numPar = 2
-        funcBkgSB = TF1('bkgSBfunc', self._SideBandsFunc, self.minMass, self.maxMass, numPar)
-        funcBkgSB.SetParNames('BkgInt', 'Slope')
-        funcBkgSB.SetParameters(integral, -2.)
+    def GetSideBandsFunc(self, integral):
+        '''
+        Return the ROOT.TF1 function defined on the sidebands
+
+        Parameters
+        --------------------------------------
+        integral: integral of the histogram to fit, obtained with TH1.Integral('width')
+
+        Returns
+        ---------------------------------------
+        funcBkgSB: ROOT.TF1
+            Background function
+        '''
+        funcBkgSB = TF1('bkgSBfunc', self._SideBandsFunc, self.minMass, self.maxMass, self.__numPar[self.funcName])
+        funcBkgSB.SetParName(0, 'BkgInt')
+        funcBkgSB.SetParameter(0, integral)
+        for iPar in range(1, self.__numPar[self.funcName]):
+            funcBkgSB.SetParameter(iPar, 1.)
         funcBkgSB.SetLineColor(kBlue+2)
         return funcBkgSB
 
-    def GetBkgFullRangeFunc(self, integral):
-        numPar = 2
-        funcBkg = TF1('bkgFunc', self._ExpIntegralNorm, self.minMass, self.maxMass, numPar)
-        funcBkg.SetParNames('BkgInt', 'Slope')
-        funcBkg.SetParameters(integral, -2.)
+    def GetFullRangeFunc(self, func):
+        '''
+        Return the ROOT.TF1 function defined on the full range
+
+        Parameters
+        --------------------------------------
+        func: function from GetSideBandsFunc() after the histogram fit
+
+        Returns
+        ---------------------------------------
+        funcBkg: ROOT.TF1
+            Background function
+        '''
+        funcBkg = TF1('bkgFunc', getattr(self, self.__implFunc[self.funcName]),
+                      self.minMass, self.maxMass, self.__numPar[self.funcName])
+        funcBkg.SetParName(0, 'BkgInt')
+        for iPar in range(0, self.__numPar[self.funcName]):
+            funcBkg.SetParameter(iPar, func.GetParameter(iPar))
         funcBkg.SetLineColor(kGreen+2)
         return funcBkg
