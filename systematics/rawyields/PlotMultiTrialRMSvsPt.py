@@ -8,8 +8,7 @@ import argparse
 from ROOT import TCanvas, TFile, TGaxis, gPad # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
 # set global style
 SetGlobalStyle(padleftmargin=0.14, padrightmargin=0.14, padbottommargin=0.14, titleoffsety=1.2, padticky=0)

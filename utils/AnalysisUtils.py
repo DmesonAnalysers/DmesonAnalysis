@@ -5,7 +5,8 @@ Script with miscellanea utils methods for the analysis
 import ctypes
 import numpy as np
 import pandas as pd
-from ROOT import TH1F, TF1, TMath, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from ROOT import TH1F, TF1, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from .FitUtils import BkgFitFuncCreator
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -22,7 +23,6 @@ def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     ----------
     - efficiency, error on efficiency
     '''
-
     hTmpNum = TH1F('hTmpNum', '', 1, 0, 1)
     hTmpDen = TH1F('hTmpDen', '', 1, 0, 1)
     hTmpNum.SetBinContent(1, recoCounts)
@@ -42,7 +42,6 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
 
     Parameters
     ----------
-
     - effPromptList: list of efficiencies for prompt D
     - effFDList: list of efficiencies for FD D
     - rawYieldList: list of raw yields
@@ -55,13 +54,11 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
 
     Returns
     ----------
-
     - mCorrYield (numpy matrix): corrected yields (Nprompt, NFD)
     - mCovariance (numpy matrix): covariance matrix for corrected yields
     - redChiSquare (float): reduced chi square
     - dicOfMatrices (dictionary): dictionary with all matrices used in minimisation procedure
     '''
-
     nCutSets = len(effPromptList)
 
     mRawYield = np.zeros(shape=(nCutSets, 1))
@@ -136,13 +133,13 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     return mCorrYield, mCovariance, float(redChiSquare), dicOfMatrices
 
 
+# pylint: disable=too-many-branches
 def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt=1., raaFD=1.):
     '''
     Method to get fraction of prompt / FD fraction with fc method
 
     Parameters
     ----------
-
     - accEffPrompt: efficiency times acceptance of prompt D
     - accEffFD: efficiency times acceptance of feed-down D
     - crossSecPrompt: list of production cross sections (cent, min, max) of prompt D in pp collisions from theory
@@ -152,7 +149,6 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
 
     Returns
     ----------
-
     - fracPrompt: list of fraction of prompt D (cent, min, max)
     - fracFD: list of fraction of feed-down D (cent, min, max)
     '''
@@ -172,21 +168,21 @@ def GetPromptFDFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, ra
         fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
         fracFD = [fracFDCent, fracFDCent, fracFDCent]
         return fracPrompt, fracFD
-    elif accEffFD == 0:
+    if accEffFD == 0:
         fracFDCent = 0.
         fracPromptCent = 1.
         fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
         fracFD = [fracFDCent, fracFDCent, fracFDCent]
         return fracPrompt, fracFD
-    else:
-        for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
-            for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
-                if iSigma == 0 and iRaa == 0:
-                    fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
-                    fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
-                else:
-                    fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
-                    fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
+
+    for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
+        for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
+            if iSigma == 0 and iRaa == 0:
+                fracPromptCent = 1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
+                fracFDCent = 1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
+            else:
+                fracPrompt.append(1./(1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
+                fracFD.append(1./(1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
 
     if fracPrompt and fracFD:
         fracPrompt.sort()
@@ -208,7 +204,6 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
 
     Parameters
     ----------
-
     - accEffSame: efficiency times acceptance of prompt (feed-down) D
     - accEffOther: efficiency times acceptance of feed-down (prompt) D
     - crossSec: list of production cross sections (cent, min, max) of feed-down (prompt)
@@ -225,7 +220,6 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
 
     Returns
     ----------
-
     - frac: list of fraction of prompt (feed-down) D (cent, min, max)
     '''
     if not isinstance(crossSec, list) and isinstance(crossSec, float):
@@ -273,167 +267,27 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
     return frac
 
 
-def SingleGaus(x, par):
-    '''
-    Gaussian function
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation
-        par[1]: mean
-        par[2]: sigma
-    '''
-    return par[0]*TMath.Gaus(x[0], par[1], par[2], True)
-
-
-def DoubleGaus(x, par):
-    '''
-    Sum of two Gaussian functions with same mean and different sigma
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation
-        par[1]: mean
-        par[2]: first sigma
-        par[3]: second sigma
-        par[4]: fraction of integral in second Gaussian
-    '''
-    firstGaus = TMath.Gaus(x[0], par[1], par[2], True)
-    secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
-    return par[0] * ((1-par[4])*firstGaus + par[4]*secondGaus)
-
-
-def DoublePeakSingleGaus(x, par):
-    '''
-    Sum of two Gaussian functions with different mean and sigma
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation first peak
-        par[1]: mean first peak
-        par[2]: sigma first peak
-        par[3]: normalisation second peak
-        par[4]: mean second peak
-        par[5]: sigma second peak
-    '''
-    firstGaus = par[0]*TMath.Gaus(x[0], par[1], par[2], True)
-    secondGaus = par[3]*TMath.Gaus(x[0], par[4], par[5], True)
-    return firstGaus + secondGaus
-
-
-def DoublePeakDoubleGaus(x, par):
-    '''
-    Sum of a double Gaussian function and a single Gaussian function
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation first peak
-        par[1]: mean first peak
-        par[2]: first sigma first peak
-        par[3]: second sigma first peak
-        par[4]: fraction of integral in second Gaussian first peak
-        par[5]: normalisation second peak
-        par[6]: mean second peak
-        par[7]: sigma second peak
-    '''
-    firstGaus = TMath.Gaus(x[0], par[1], par[2], True)
-    secondGaus = TMath.Gaus(x[0], par[1], par[3], True)
-    thirdGaus = par[5]*TMath.Gaus(x[0], par[6], par[7], True)
-    return par[0] * ((1-par[4])*firstGaus + par[4]*secondGaus) + thirdGaus
-
-
-def VoigtFunc(x, par):
-    '''
-    Voigtian function
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation
-        par[1]: mean
-        par[2]: sigma
-        par[3]: gamma
-    '''
-
-    return par[0] * TMath.Voigt(x[0]-par[1], par[2], par[3])
-
-
-def ExpoPowLaw(x, par):
-    '''
-    Exponential times power law function
-
-    Parameters
-    ----------
-
-    - x: function variable
-    - par: function parameters
-        par[0]: normalisation
-        par[1]: mass (lowest possible value)
-        par[2]: expo slope
-    '''
-
-    return par[0] * np.sqrt(x[0] - par[1]) * np.exp(-1. * par[2] * (x[0] - par[1]))
-
-
-
-def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassSignal=None, mean=-1., sigma=-1.,
-                                hMassSecPeak=None, meanSecPeak=-1., sigmaSecPeak=-1.):
+def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0., sigma=0.,
+                                meanSecPeak=0., sigmaSecPeak=0.):
     '''
     Helper method to get the expected bkg from side-bands
 
     Parameters
     ----------
-
     - hMassData: invariant-mass histogram from which extract the estimated bkg
     - bkgFunc: expression for bkg fit function
     - nSigmaForSB: number of sigmas away from the invariant-mass peak to define SB windows
-    - hMassSignal: invariant-mass histogram for the signal used to get mean and sigma
-                   not needed in case of passed mean and sigma parameters
     - mean: mean of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
     - sigma: width of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
-    - hMassSecPeak: invariant-mass histogram for the second peak (only Ds) used to get meanSecPeak and sigmaSecPeak
-                   not needed in case of passed meanSecPeak and sigmaSecPeak parameters
     - meanSecPeak: mean of invariant-mass peak of the second peak (only Ds)
-                   not needed in case of passed hMassSecPeak
     - sigmaSecPeak: width of invariant-mass peak of the second peak (only Ds)
-                   not needed in case of passed hMassSecPeak
 
     Returns
     ----------
-
     - expBkg3s: expected background within 3 sigma from signal peak mean
-    - hMassData: SB histogram with fit function
+    - errExpBkg3s: error on the expected background
+    - hMassData: SB histogram with fit function (if fit occurred)
     '''
-    if hMassSignal:
-        funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
-        funcSignal.SetParameters(
-            hMassSignal.Integral() * hMassSignal.GetBinWidth(1), hMassSignal.GetMean(), hMassSignal.GetRMS())
-        hMassSignal.Fit('funcSignal', 'Q0')
-        mean = funcSignal.GetParameter(1)
-        sigma = funcSignal.GetParameter(2)
-    if hMassSecPeak:
-        funcSignal.SetParameters(
-            hMassSecPeak.Integral() * hMassSecPeak.GetBinWidth(1), hMassSecPeak.GetMean(), hMassSecPeak.GetRMS())
-        hMassSecPeak.Fit('funcSignal', 'Q0')
-        meanSecPeak = funcSignal.GetParameter(1)
-        sigmaSecPeak = funcSignal.GetParameter(2)
-
     for iMassBin in range(1, hMassData.GetNbinsX()+1):
         massLowLimit = hMassData.GetBinLowEdge(iMassBin)
         massUpLimit = hMassData.GetBinLowEdge(iMassBin) + hMassData.GetBinWidth(iMassBin)
@@ -447,53 +301,96 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, hMassS
                 hMassData.SetBinContent(iMassBin, 0.)
                 hMassData.SetBinError(iMassBin, 0.)
 
+    if hMassData.Integral() <= 5: # check to have some entries in the histogram before fitting
+        return 0., 0., hMassData
     funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
-    hMassData.Fit(funcBkg, 'Q')
-    expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
-    return expBkg3s, hMassData
+    fit = hMassData.Fit(funcBkg, 'Q+')
+    expBkg3s, errExpBkg3s = 0., 0.
+    if int(fit) == 0:
+        expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+        errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+    return expBkg3s, errExpBkg3s, hMassData
+
+def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0., sigma=0.,
+                                   meanSecPeak=0., sigmaSecPeak=0.):
+    '''
+    Helper method to get the expected bkg from side-bands, improved using maximum-likelihood and
+    background functions defined only on the sidebands
+
+    Parameters
+    ----------
+    - hMassData: invariant-mass histogram from which extract the estimated bkg
+    - bkgFunc: expression for bkg fit function
+    - nSigmaForSB: number of sigmas away from the invariant-mass peak to define SB windows
+    - mean: mean of invariant-mass peak of the signal
+    - sigma: width of invariant-mass peak of the signal
+    - meanSecPeak: mean of invariant-mass peak of the second peak (only Ds)
+    - sigmaSecPeak: width of invariant-mass peak of the second peak (only Ds)
+
+    Returns
+    ----------
+    - expBkg3s: expected background within 3 sigma from signal peak mean
+    - errExpBkg3s: error on the expected background
+    - hMassData: SB histogram with fit function (if fit occurred)
+    '''
+    numEntriesSB = hMassData.Integral(1, hMassData.FindBin(mean - nSigmaForSB * sigma))
+    numEntriesSB += hMassData.Integral(hMassData.FindBin(mean + nSigmaForSB * sigma), hMassData.GetNbinsX())
+    if meanSecPeak > 0 and sigmaSecPeak > 0:
+        numEntriesSB -= hMassData.Integral(hMassData.FindBin(meanSecPeak - nSigmaForSB * sigmaSecPeak),
+                                           hMassData.FindBin(meanSecPeak + nSigmaForSB * sigmaSecPeak))
+
+    if numEntriesSB <= 5: # check to have some entries in the histogram before fitting
+        return 0., 0., hMassData
+
+    minMass = hMassData.GetBinLowEdge(1)
+    maxMass = hMassData.GetBinLowEdge(hMassData.GetNbinsX()) + hMassData.GetBinWidth(1)
+    bkgFuncCreator = BkgFitFuncCreator(bkgFunc, minMass, maxMass, nSigmaForSB, mean, sigma, meanSecPeak, sigmaSecPeak)
+    integral = hMassData.Integral('width')
+    funcBkgSB = bkgFuncCreator.GetSideBandsFunc(integral)
+    fit = hMassData.Fit(funcBkgSB, 'LRQ+')
+    expBkg3s, errExpBkg3s = 0., 0.
+    if int(fit) == 0:
+        funcBkg = bkgFuncCreator.GetFullRangeFunc(funcBkgSB)
+        expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+        errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
+    return expBkg3s, errExpBkg3s, hMassData
 
 
-def GetExpectedBkgFromMC(hMassBkg, hMassSignal=None, mean=-1., sigma=-1., doFit=True, bkgFunc='pol3'):
+def GetExpectedBkgFromMC(hMassBkg, mean=0., sigma=0., doFit=True, bkgFunc='pol3'):
     '''
     Helper method to get the expected bkg from MC
 
     Parameters
     ----------
-
     - hMassBkg: invariant-mass histogram of background
-    - hMassSignal: invariant-mass histogram for the signal used to get mean and sigma
-                   not needed in case of passed mean and sigma parameters
     - mean: mean of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
     - sigma: width of invariant-mass peak of the signal
-                   not needed in case of passed hMassSignal
     - doFit: flag to enable fit of bkg distribution (useful with low stat)
     - bkgFunc: expression for bkg fit function (if fit enabled)
 
     Returns
     ----------
-
     - expBkg3s: expected background within 3 sigma from signal peak mean
+    - errExpBkg3s: error on the expected background
+    - hMassBkg: bkg histogram with fit function (if fit occurred)
     '''
-    if hMassSignal:
-        funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
-        funcSignal.SetParameters(hMassSignal.Integral() * hMassSignal.GetBinWidth(1),
-                                 hMassSignal.GetMean(), hMassSignal.GetRMS())
-        hMassSignal.Fit('funcSignal', 'Q0')
-        mean = funcSignal.GetParameter(1)
-        sigma = funcSignal.GetParameter(2)
-
+    expBkg3s, errExpBkg3s = 0., 0.
     if doFit:
+        if hMassBkg.Integral() <= 5: # check to have some entries in the histogram before fitting
+            return 0., 0., hMassBkg
         funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
-        hMassBkg.Fit(funcBkg, 'Q')
-        hMassBkg.Write()
-        expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
+        fit = hMassBkg.Fit(funcBkg, 'Q')
+        if int(fit) == 0:
+            expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
+            errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
     else:
         massBinMin = hMassBkg.GetXaxis().FindBin(mean - 3 * sigma)
         massBinMax = hMassBkg.GetXaxis().FindBin(mean + 3 * sigma)
-        expBkg3s = hMassBkg.Integral(massBinMin, massBinMax)
+        tmpErr = ctypes.c_double()
+        expBkg3s = hMassBkg.IntegralAndError(massBinMin, massBinMax, tmpErr)
+        errExpBkg3s = tmpErr.value
 
-    return expBkg3s
+    return expBkg3s, errExpBkg3s, hMassBkg
 
 
 def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD, nEv, sigmaMB=1, TAA=1, RAA=1):
@@ -502,7 +399,6 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
 
     Parameters
     ----------
-
     - crossSec: prediction for differential cross section in pp
     - deltaPt: pT interval
     - deltaY: Y interval
@@ -517,10 +413,8 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
 
     Returns
     ----------
-
     - expected signal
     '''
-
     return 2 * crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
 
 
@@ -532,7 +426,6 @@ def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, delt
 
     Parameters
     ----------
-
     - rawY: raw yield
     - uncRawY: raw-yield statistical uncertainty
     - frac: either prompt or feed-down fraction
@@ -544,14 +437,11 @@ def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, delt
     - nEv: number of events
     - BR: branching ratio of the decay channel
 
-
     Returns
     ----------
-
     - crossSection: cross section
     - crossSecUnc: cross-section statistical uncertainty
     '''
-
     crossSection = rawY * frac * sigmaMB / (2 * deltaPt * deltaY * effTimesAcc * nEv * BR)
     crossSecUnc = np.sqrt((uncRawY / rawY)**2 + (uncFrac / frac)**2) * crossSection
 
@@ -564,12 +454,10 @@ def MergeHists(listOfHists):
 
     Parameters
     ----------
-
     - listOfHists: python list of histos
 
     Returns
     ----------
-
     - hMerged: merged histo
 
     '''
@@ -580,6 +468,7 @@ def MergeHists(listOfHists):
         else:
             listMerge.Add(hist)
     hMerged.Merge(listMerge)
+
     return hMerged
 
 
@@ -589,7 +478,6 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
 
     Parameters
     ----------
-
     - df: input pandas.Dataframe
     - column: column of the pandas dataframe to which apply the spline
     - spline: spline (scipy.interpolate.InterpolatedUnivariateSpline object)
@@ -598,11 +486,9 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
 
     Returns
     ----------
-
     - y: pandas.Series with result of the function application to column
 
     '''
-
     y = []
     for x in df[column].values:
         if minRange <= x <= maxRange:
@@ -623,16 +509,13 @@ def ApplyHistoEntriesToColumn(df, column, histo):
 
     Parameters
     ----------
-
     - df: input pandas.Dataframe
     - column: column of the pandas dataframe to which apply the spline
     - histo: ROOT.TH1 with values
 
     Returns
     ----------
-
     - y: pandas.Series with result of the function application to column
-
     '''
     binMins, binMaxs, contents, y = ([] for _ in range(4))
     for iBin in range(1, histo.GetNbinsX()+1):
@@ -661,16 +544,13 @@ def ComputeRatioDiffBins(hNum, hDen, uncOpt=''):
 
     Parameters
     ----------
-
     - hNum: histogram for numerator
     - hDen: histogram for denominator
     - uncOpt: uncertainty option as in ROOT.TH1.Divide
 
     Returns
     ----------
-
     - hRatio: ratio histogram
-
     '''
 
     ptMinNum = hNum.GetBinLowEdge(1)
@@ -734,7 +614,6 @@ def ScaleGraph(graph, scaleFactor):
 
     Parameters
     ----------
-
     - graph: graph to scale
     - scaleFactor: scale factor
     '''
@@ -761,13 +640,11 @@ def ComputeRatioGraph(gNum, gDen, useDenUnc=True):
 
     Parameters
     ----------
-
     - gNum: graph to divide (numerator)
     - gDen: graph to divide (denominator)
 
     Returns
     ----------
-
     - gRatio: resulting graph
     '''
     if gNum.GetN() != gDen.GetN():
@@ -809,13 +686,11 @@ def DivideGraphByHisto(gNum, hDen, useHistoUnc=True):
 
     Parameters
     ----------
-
     - gNum: graph to divide (numerator)
     - hDen: histogram (denominator)
 
     Returns
     ----------
-
     - gRatio: resulting graph
     '''
     if gNum.GetN() != hDen.GetNbinsX():
@@ -850,7 +725,6 @@ def ApplyVariationToList(listToVary, relVar, option='decreasing'):
 
     Parameters
     ----------
-
     - listToVary: list of values to be varied
     - relVar: relative variation
     - option: option for variation among
@@ -861,12 +735,10 @@ def ApplyVariationToList(listToVary, relVar, option='decreasing'):
 
     Returns
     ----------
-
     - listVaried: list of varied values
     '''
-
     if option not in ['upshift', 'downshift', 'decreasing', 'increasing']:
-        print(f'ERROR: option for variation of list not valid! Returning None')
+        print('ERROR: option for variation of list not valid! Returning None')
         return None
 
     if option == 'upshift':

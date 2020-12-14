@@ -63,13 +63,13 @@ for (cuts, ptMin, ptMax) in zip(selToApply, cutVars['Pt']['min'], cutVars['Pt'][
                 varsToDraw.remove(varToRemove)
 
 
-        plot_utils.plot_distr(dfPromptList, varsToDraw, (12, 7), 100, True, LegLabels)
+        plot_utils.plot_distr(dfPromptList, varsToDraw, 100, LegLabels, figsize=(12, 7), density=True)
         plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
         plt.savefig(f'{args.outputDir}/PromptDistrCompBeforeAfterSel_pT_{ptMin}_{ptMax}.pdf')
         plt.close('all')
         del dfPromptList
 
-        plot_utils.plot_distr(dfFDList, varsToDraw, (12, 7), 100, True, LegLabels)
+        plot_utils.plot_distr(dfFDList, varsToDraw, 100, LegLabels, figsize=(12, 7), density=True)
         plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
         plt.savefig(f'{args.outputDir}/FDDistrCompBeforeAfterSel_pT_{ptMin}_{ptMax}.pdf')
         plt.close('all')
@@ -83,7 +83,7 @@ for (cuts, ptMin, ptMax) in zip(selToApply, cutVars['Pt']['min'], cutVars['Pt'][
             if varToRemove in varsToDraw:
                 varsToDraw.remove(varToRemove)
 
-        plot_utils.plot_distr(dfAllList, varsToDraw, (12, 7), 100, True, LegLabels)
+        plot_utils.plot_distr(dfAllList, varsToDraw, 100, LegLabels, figsize=(12, 7), density=True)
         plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
         plt.savefig(f'{args.outputDir}/DataDistrCompBeforeAfterSel_pT_{ptMin}_{ptMax}.pdf')
         plt.close('all')

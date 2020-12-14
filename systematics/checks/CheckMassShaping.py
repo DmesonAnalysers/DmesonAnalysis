@@ -13,10 +13,9 @@ from ROOT import TCanvas, TLegend, TDatabasePDG, TH1F, TH2F, TF1, TLine, TGraph,
 from ROOT import kFullCircle, kFullSquare, kRainBow, kRed, kAzure, kGray, kBlack # pylint: disable=import-error,no-name-in-module
 from ROOT import RooStats # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.TaskFileLoader import LoadSingleSparseFromTask
-from utils.DfUtils import LoadDfFromRootOrParquet
-from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle, DivideCanvas
+from utils.TaskFileLoader import LoadSingleSparseFromTask  #pylint: disable=wrong-import-position,import-error
+from utils.DfUtils import LoadDfFromRootOrParquet  #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle, DivideCanvas  #pylint: disable=wrong-import-position,import-error
 
 SetGlobalStyle(palette=kRainBow, padbottommargin=0.14, padrightmargin=0.14,
                padleftmargin=0.14, padtopmargin=0.075, titleoffsety=1.4, opttitle=1)

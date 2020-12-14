@@ -8,8 +8,7 @@ import argparse
 from ROOT import TObject, TCanvas, TFile, TMath #pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kFullSquare, kOpenCircle #pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
 SetGlobalStyle(padbottommargin=0.14)
 

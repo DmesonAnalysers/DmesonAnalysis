@@ -4,15 +4,15 @@ run: python CheckCorrAmongVariations.py cfgFileName.yml
 '''
 
 import sys
-from os.path import join
 import argparse
+from os.path import join
 import numpy as np
-from sklearn.cluster import dbscan
 import yaml
+from sklearn.cluster import dbscan
 from ROOT import TCanvas, TFile, TGraph, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import kAzure, kRed, kWhite, kFullCircle # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
 # load inputs
 parser = argparse.ArgumentParser(description='Arguments')

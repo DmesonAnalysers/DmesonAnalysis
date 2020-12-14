@@ -4,6 +4,7 @@ run: python ValidateTreeCreator inputfile.root inputdir inputlist
 if the output is from MC, use --mc option
 '''
 
+import sys
 import argparse
 import pandas as pd
 import numba
@@ -13,7 +14,7 @@ from root_numpy import fill_hist # pylint: disable=import-error, no-name-in-modu
 from ROOT import TFile, TCanvas, TH1F, TLegend # pylint: disable=import-error, no-name-in-module
 from ROOT import kBlack, kRed, kFullCircle, kOpenSquare # pylint: disable=import-error, no-name-in-module
 sys.path.append('..')
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
 
 @numba.njit

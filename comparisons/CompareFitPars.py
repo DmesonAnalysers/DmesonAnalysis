@@ -4,9 +4,8 @@ from ROOT import TCanvas, TFile, TLegend, TLine, TDatabasePDG # pylint: disable=
 from ROOT import gStyle, kRed, kAzure, kBlack, kBlue, kOrange, kGreen # pylint: disable=import-error,no-name-in-module,unused-import
 from ROOT import kFullCircle, kOpenCircle, kFullSquare, kFullDiamond, kFullCross, kOpenCross, kOpenSquare # pylint: disable=import-error,no-name-in-module,unused-import
 sys.path.append('..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-from utils.AnalysisUtils import ComputeRatioDiffBins
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import ComputeRatioDiffBins #pylint: disable=wrong-import-position,import-error
 
 def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-statements,too-many-locals
     inputdir = '../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields'

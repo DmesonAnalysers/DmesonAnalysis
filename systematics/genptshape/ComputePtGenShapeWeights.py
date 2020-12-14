@@ -9,9 +9,8 @@ import sys
 import argparse
 import yaml
 from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
-sys.path.insert(0, '../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ
+sys.path.append('../..')
+from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ  #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -96,22 +95,18 @@ infileGenPtShape.Close()
 
 # default models
 isPbPb = False
-sFONLLD, _ = ReadFONLL(shapesD['fonll']['file'], True)
+sFONLLD, _, _, _ = ReadFONLL(shapesD['fonll']['file'], True)
 if Bspecie:
-    sFONLLB, _ = ReadFONLL(shapesB['fonll']['file'], True)
+    sFONLLB, _, _, _ = ReadFONLL(shapesB['fonll']['file'], True)
 
 if 'tamu' in shapesD and shapesD['tamu']['enabled']:
-    sTAMU, dfTAMU = ReadTAMU(shapesD['tamu']['file'])
-    ptMaxTAMU = max(dfTAMU['PtCent'].values)
+    sTAMU, _, ptMinTAMU, ptMaxTAMU = ReadTAMU(shapesD['tamu']['file'])
 if 'phsd' in shapesD and shapesD['phsd']['enabled']:
-    sPHSD, dfPHSD = ReadPHSD(shapesD['phsd']['file'])
-    ptMaxPHSD = max(dfPHSD['pt'].values)
+    sPHSD, _, ptMinPHSD, ptMaxPHSD = ReadPHSD(shapesD['phsd']['file'])
 if 'catania' in shapesD and shapesD['catania']['enabled']:
-    sCatania, dfCatania = ReadCatania(shapesD['catania']['file'])
-    ptMaxCatania = max(dfCatania['pt'].values)
+    sCatania, _, ptMinCatania, ptMaxCatania = ReadCatania(shapesD['catania']['file'])
 if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
-    sGossiaux, dfGossiaux = ReadMCatsHQ(shapesD['mc@shq']['file'])
-    ptMaxGoss = max(dfGossiaux['pt'].values)
+    sGossiaux, _, ptMinGoss, ptMaxGoss = ReadMCatsHQ(shapesD['mc@shq']['file'])
 
 # TODO: add FONLLxRaa weights for B
 histoDNames = ['hPtFONLLDcent', 'hPtFONLLDmin', 'hPtFONLLDmax']
@@ -140,28 +135,36 @@ for histoName, pred in zip(histoDNames, modelPred):
         ptCent = hPtFONLLD[-1].GetBinCenter(iPt)
         hPtFONLLD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent))
         if 'tamu' in shapesD and shapesD['tamu']['enabled']:
-            if ptCent < ptMaxTAMU:
+            if ptMinTAMU < ptCent < ptMaxTAMU:
                 hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptCent))
-            else:
+            elif ptCent > ptMaxTAMU:
                 hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptMaxTAMU))
+            else:
+                hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptMinTAMU))
 
         if 'phsd' in shapesD and shapesD['phsd']['enabled']:
-            if ptCent < ptMaxPHSD:
+            if ptMinPHSD < ptCent < ptMaxPHSD:
                 hPtFONLLtimesPHSDD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sPHSD['yCent'](ptCent))
-            else:
+            elif ptCent > ptMaxPHSD:
                 hPtFONLLtimesPHSDD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sPHSD['yCent'](ptMaxPHSD))
+            else:
+                hPtFONLLtimesPHSDD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sPHSD['yCent'](ptMinPHSD))
 
         if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
-            if ptCent < ptMaxGoss:
+            if ptMinGoss < ptCent < ptMaxGoss:
                 hPtFONLLtimesGossiauxD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sGossiaux['yCent'](ptCent))
-            else:
+            elif ptCent > ptMaxGoss:
                 hPtFONLLtimesGossiauxD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sGossiaux['yCent'](ptMaxGoss))
+            else:
+                hPtFONLLtimesGossiauxD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sGossiaux['yCent'](ptMinGoss))
 
         if 'catania' in shapesD and shapesD['catania']['enabled']:
-            if ptCent < ptMaxCatania:
+            if ptMinCatania < ptCent < ptMaxCatania:
                 hPtFONLLtimesCataniaD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sCatania['yCent'](ptCent))
-            else:
+            elif ptCent > ptMaxCatania:
                 hPtFONLLtimesCataniaD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sCatania['yCent'](ptMaxCatania))
+            else:
+                hPtFONLLtimesCataniaD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sCatania['yCent'](ptMinCatania))
 
     hPtFONLLD[-1].Sumw2()
     hPtFONLLD[-1].Scale(1./hPtFONLLD[-1].Integral())

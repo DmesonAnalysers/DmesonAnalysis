@@ -2,10 +2,9 @@ import sys
 from os.path import join
 from ROOT import TCanvas, TFile, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kBlack, kBlue, kAzure, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module,unused-import
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
 sys.path.append('..')
-from utils.AnalysisUtils import ComputeRatioDiffBins
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.AnalysisUtils import ComputeRatioDiffBins #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
 inDir = 'inputdir'
 inFileNames = ['file1.root', 'file2.root']

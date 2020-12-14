@@ -12,9 +12,8 @@ import numpy as np
 from ROOT import TFile, TCanvas, TGraphAsymmErrors, TLegend, TLine, TLatex # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-from utils.AnalysisUtils import ScaleGraph, DivideGraphByHisto, ComputeRatioGraph
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import ScaleGraph, DivideGraphByHisto, ComputeRatioGraph #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('FONLLFileName', metavar='text', default='FONLL.root', help='root file FONLL predictions')

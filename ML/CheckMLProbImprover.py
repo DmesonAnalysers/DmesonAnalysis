@@ -42,13 +42,13 @@ for (ptMin, ptMax) in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['m
             varsToDraw.remove(varToRemove)
 
     outputDir = inputCfg['output']['dir']
-    plot_utils.plot_distr(dfPromptList, varsToDraw, (12, 10), 100, True, LegLabels)
+    plot_utils.plot_distr(dfPromptList, varsToDraw, 100, LegLabels, figsize=(12, 10), density=True)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(f'{outputDir}/PromptDistrCompImprover_pT_{ptMin}_{ptMax}.pdf')
     plt.close('all')
     del dfPromptList
 
-    plot_utils.plot_distr(dfFDList, varsToDraw, (12, 10), 100, True, LegLabels)
+    plot_utils.plot_distr(dfFDList, varsToDraw, 100, LegLabels, figsize=(12, 10), density=True)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(f'{outputDir}/FDDistrCompImprover_pT_{ptMin}_{ptMax}.pdf')
     plt.close('all')

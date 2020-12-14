@@ -10,15 +10,15 @@ import itertools
 import numpy as np
 import yaml
 from root_numpy import fill_hist
-from ROOT import TFile, TH1F, TH2F, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TH1F, TH2F, TF1, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-# pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands, \
-    GetExpectedBkgFromMC, GetExpectedSignal
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-from utils.DfUtils import LoadDfFromRootOrParquet
-from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania
+from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands  #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import  GetExpectedBkgFromSideBandsImp, GetExpectedBkgFromMC, GetExpectedSignal  #pylint: disable=wrong-import-position,import-error
+from utils.FitUtils import SingleGaus #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
+from utils.DfUtils import LoadDfFromRootOrParquet  #pylint: disable=wrong-import-position,import-error
+from utils.ReadModel import ReadTAMU, ReadPHSD, ReadMCatsHQ, ReadCatania  #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -42,7 +42,6 @@ dfFD = LoadDfFromRootOrParquet(inputCfg['infiles']['signal']['feeddown']['filena
 dfBkg = LoadDfFromRootOrParquet(inputCfg['infiles']['background']['filename'],
                                 inputCfg['infiles']['background']['dirname'],
                                 inputCfg['infiles']['background']['treename'])
-
 if inputCfg['infiles']['secpeak']['prompt']['filename']:
     dfSecPeakPrompt = LoadDfFromRootOrParquet(inputCfg['infiles']['secpeak']['prompt']['filename'],
                                               inputCfg['infiles']['secpeak']['prompt']['dirname'],
@@ -121,13 +120,13 @@ if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, 
             sys.exit()
         else:
             if Raa_model_name == 'phsd':
-                RaaPromptSpline, _ = ReadPHSD(RaaPrompt_config)
+                RaaPromptSpline, _, ptMinRaaPrompt, ptMaxRaaPrompt = ReadPHSD(RaaPrompt_config)
             elif Raa_model_name == 'Catania':
-                RaaPromptSpline, _ = ReadCatania(RaaPrompt_config)
+                RaaPromptSpline, _, ptMinRaaPrompt, ptMaxRaaPrompt = ReadCatania(RaaPrompt_config)
             elif Raa_model_name == 'MCatsHQ':
-                RaaFDSpline, _ = ReadMCatsHQ(RaaPrompt_config)
+                RaaPromptSpline, _, ptMinRaaPrompt, ptMaxRaaPrompt = ReadMCatsHQ(RaaPrompt_config)
             elif Raa_model_name == 'tamu':
-                RaaPromptSpline, _ = ReadTAMU(RaaPrompt_config)
+                RaaPromptSpline, _, ptMinRaaPrompt, ptMaxRaaPrompt = ReadTAMU(RaaPrompt_config)
 else:
     RaaPrompt = RaaPrompt_config
 
@@ -143,13 +142,13 @@ if not isinstance(RaaFD_config, float) and not isinstance(RaaFD_config, int):
             sys.exit()
         else:
             if Raa_model_name == 'phsd':
-                RaaFDSpline, _ = ReadPHSD(RaaFD_config)
+                RaaFDSpline, _, ptMinRaaFD, ptMaxRaaFD = ReadPHSD(RaaFD_config)
             elif Raa_model_name == 'Catania':
-                RaaFDSpline, _ = ReadCatania(RaaFD_config)
+                RaaFDSpline, _, ptMinRaaFD, ptMaxRaaFD = ReadCatania(RaaFD_config)
             elif Raa_model_name == 'MCatsHQ':
-                RaaFDSpline, _ = ReadMCatsHQ(RaaFD_config)
+                RaaFDSpline, _, ptMinRaaFD, ptMaxRaaFD = ReadMCatsHQ(RaaFD_config)
             elif Raa_model_name == 'tamu':
-                RaaFDSpline, _ = ReadTAMU(RaaFD_config)
+                RaaFDSpline, _, ptMinRaaFD, ptMaxRaaFD = ReadTAMU(RaaFD_config)
 else:
     RaaFD = RaaFD_config
 
@@ -178,9 +177,8 @@ estNames = {'Signif': 'expected significance', 'SoverB': 'S/B', 'S': 'expected s
             'EffAccPrompt': '(Acc#times#font[152]{e})_{prompt}', 'EffAccFD': '(Acc#times#font[152]{e})_{FD}',
             'fPrompt': '#it{f}_{ prompt}^{ fc}', 'fFD': '#it{f}_{ FD}^{ fc}'}
 
-varsName4Tuple = ':'.join(cutVars) + \
-                 ':PtMin:PtMax:ParCutMin:ParCutMax:BError:EffAccPromptError:EffAccFDError:SError:' + \
-                 ':'.join(estNames.keys())
+varsName4Tuple = (':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:EffAccPromptError:EffAccFDError:SError:BError'
+                  ':SignifError:SoverBError:' + ':'.join(estNames.keys()))
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = 1
@@ -203,15 +201,28 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     dfPromptPt = dfPrompt.query(f'{ptMin} < pt_cand < {ptMax}')
     dfFDPt = dfFD.query(f'{ptMin} < pt_cand < {ptMax}')
     dfBkgPt = dfBkg.query(f'{ptMin} < pt_cand < {ptMax}')
+
     # Raa
     ptCent = (ptMax + ptMin) / 2.
     if isinstance(RaaPrompt_config, str):
-        RaaPrompt = float(RaaPromptSpline['yCent'](ptCent))
+        if ptMinRaaPrompt < ptCent < ptMaxRaaPrompt:
+            RaaPrompt = RaaPromptSpline['yCent'](ptCent)
+        elif ptCent > ptMaxRaaPrompt:
+            RaaPrompt = RaaPromptSpline['yCent'](ptMaxRaaPrompt)
+        else:
+            RaaPrompt = RaaPromptSpline['yCent'](ptMinRaaPrompt)
     if isinstance(RaaFD_config, str):
-        RaaFD = float(RaaFDSpline['yCent'](ptCent))
+        if ptMinRaaFD < ptCent < ptMaxRaaFD:
+            RaaFD = RaaFDSpline['yCent'](ptCent)
+        elif ptCent > ptMaxRaaFD:
+            RaaFD = RaaFDSpline['yCent'](ptMaxRaaFD)
+        else:
+            RaaFD = RaaFDSpline['yCent'](ptMinRaaFD)
+
     # denominator for efficiency
     nTotPrompt = len(dfPromptPt)
     nTotFD = len(dfFDPt)
+
     # preselection efficiency (if input provided)
     if inputCfg['infiles']['preseleff']['filename']:
         ptBinPreselEff = hPreselEffPrompt.GetXaxis().FindBin(ptMin*1.0001)
@@ -222,17 +233,41 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     else:
         preselEffPrompt = 1.
         preselEffFD = 1.
+
     # acceptance
     ptBinAccMin = hPtGenAcc.GetXaxis().FindBin(ptMin*1.0001)
     ptBinAccMax = hPtGenAcc.GetXaxis().FindBin(ptMax*0.9999)
     numAcc = hPtGenAcc.Integral(ptBinAccMin, ptBinAccMax)
     denAcc = hPtGenLimAcc.Integral(ptBinAccMin, ptBinAccMax)
     acc, accUnc = ComputeEfficiency(numAcc, denAcc, np.sqrt(numAcc), np.sqrt(denAcc))
+
     # cross section from theory
     ptBinCrossSecMin = hCrossSecPrompt.GetXaxis().FindBin(ptMin*1.0001)
     ptBinCrossSecMax = hCrossSecPrompt.GetXaxis().FindBin(ptMax*0.9999)
     crossSecPrompt = hCrossSecPrompt.Integral(ptBinCrossSecMin, ptBinCrossSecMax, 'width') / (ptMax - ptMin)
     crossSecFD = hCrossSecFD.Integral(ptBinCrossSecMin, ptBinCrossSecMax, 'width') / (ptMax - ptMin)
+
+    # signal histograms
+    hMassSignal = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}', ';#it{M} (GeV/#it{c});Counts', 400,
+                       min(dfPromptPt['inv_mass']), max(dfPromptPt['inv_mass']))
+    fill_hist(hMassSignal, np.concatenate((dfPromptPt['inv_mass'].values, dfFDPt['inv_mass'].values)))
+    funcSignal = TF1('funcSignal', SingleGaus, 1.6, 2.2, 3)
+    funcSignal.SetParameters(hMassSignal.Integral('width'), hMassSignal.GetMean(), hMassSignal.GetRMS())
+    hMassSignal.Fit('funcSignal', 'Q0')
+    mean = funcSignal.GetParameter(1)
+    sigma = funcSignal.GetParameter(2)
+    # SecPeak
+    meanSecPeak = inputCfg['infiles']['secpeak']['mean']
+    sigmaSecPeak = inputCfg['infiles']['secpeak']['sigma']
+    if dfSecPeakPrompt and dfSecPeakFD:
+        hMassSecPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}', ';#it{M} (GeV/#it{c});Counts', 400,
+                            min(dfSecPeakPrompt['inv_mass']), max(dfSecPeakPrompt['inv_mass']))
+        fill_hist(hMassSecPeak, np.concatenate((dfSecPeakPrompt['inv_mass'].values, dfSecPeakFD['inv_mass'].values)))
+        funcSignal.SetParameters(hMassSecPeak.Integral('width'), hMassSecPeak.GetMean(), hMassSecPeak.GetRMS())
+        hMassSecPeak.Fit('funcSignal', 'Q0')
+        meanSecPeak = funcSignal.GetParameter(1)
+        sigmaSecPeak = funcSignal.GetParameter(2)
+
     # output histos
     hSignifVsRest.append(dict())
     hEstimVsCut.append(dict())
@@ -244,7 +279,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 nBinsVar = int((maxVar - minVar) / cutVars[varNames[0]]['step'])
                 hEstimVsCut[iPt][est] = TH1F(f'h{est}VsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
                                              f';{varNames[0]};{estNames[est]}', nBinsVar, minVar, maxVar)
-                SetObjectStyle(hEstimVsCut[iPt][est], color=kBlack, marker=kFullCircle)
+                SetObjectStyle(hEstimVsCut[iPt][est], color=kBlack, marker=kFullCircle, linewidth=1)
         elif len(varNames) == 2:
             for est in estNames:
                 minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
@@ -279,23 +314,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             effTimesAccFD = effFD * preselEffFD * acc
             fPrompt, fFD = GetPromptFDFractionFc(effTimesAccPrompt, effTimesAccFD,
                                                  crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
-            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400,
+            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 200,
                             min(dfBkgPtSel['inv_mass']), max(dfBkgPtSel['inv_mass']))
-            hMassSignal = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 400,
-                               min(dfPromptPtSel['inv_mass']), max(dfPromptPtSel['inv_mass']))
-
             fill_hist(hMassBkg, dfBkgPtSel['inv_mass'].values)
-            fill_hist(hMassSignal, np.concatenate((dfPromptPtSel['inv_mass'].values, dfFDPtSel['inv_mass'].values)))
-
-            # SecPeak
-            if dfSecPeakPrompt and dfSecPeakFD:
-                hMassSeaPeak = TH1F(f'hMassSignal_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts',
-                                    400, min(dfSecPeakPrompt['inv_mass']), max(dfSecPeakPrompt['inv_mass']))
-                fill_hist(hMassSecPeak,
-                          np.concatenate((dfSecPeakPrompt['inv_mass'].values, dfSecPeakFD['inv_mass'].values)))
-
-            else:
-                hMassSecPeak = None
 
             # expected signal, BR already included in cross section
             if inputCfg['expectedSignalFrom'] == 'prompt':
@@ -308,42 +329,41 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             # expected background
             bkgConfig = inputCfg['infiles']['background']
             outDirFitSBPt[iPt].cd()
+            expBkg = 0.
+            errExpBkg = 0.
             if bkgConfig['isMC']:
-                expBkg = GetExpectedBkgFromMC(hMassBkg, hMassSignal)
-                hMassBkg.Write()
+                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromMC(hMassBkg, mean, sigma)
+            elif bkgConfig['impFit']:
+                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBandsImp(hMassBkg, bkgConfig['fitFunc'],
+                                                                             bkgConfig['nSigma'], mean, sigma,
+                                                                             meanSecPeak, sigmaSecPeak)
             else:
-                meanSec = inputCfg['infiles']['secpeak']['mean']
-                sigmaSec = inputCfg['infiles']['secpeak']['sigma']
-                if hMassSecPeak:
-                    expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
-                                                                  hMassSignal, -1., -1., hMassSecPeak)
-                elif meanSec > 0 and sigmaSec > 0:
-                    expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
-                                                                  hMassSignal, -1., -1., None, meanSec, sigmaSec)
-                else:
-                    expBkg, hMassSB = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'], bkgConfig['nSigma'],
-                                                                  hMassSignal)
-                hMassSB.Write()
-
+                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
+                                                                          bkgConfig['nSigma'], mean, sigma,
+                                                                          meanSecPeak, sigmaSecPeak)
+            hMassBkg.Write()
             expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
+            errExpBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
 
             if inputCfg['infiles']['background']['corrfactor']['filename']:
                 inFile = TFile.Open(inputCfg['infiles']['background']['corrfactor']['filename'])
                 hBkgCorrFactor = inFile.Get(inputCfg['infiles']['background']['corrfactor']['histoname'])
                 expBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
+                errExpBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
 
             # S/B and significance
             expSoverB = 0.
             expSignif = 0.
-            Serror = 0.
+            errS = 0. # TODO: think how to define a meaningful error on the estimated signal and propagate it
+            errSoverB = 0.
+            errSignif = 0.
             if expBkg > 0:
                 expSoverB = expSignal / expBkg
-            if expSignal + expBkg > 0:
                 expSignif = expSignal / np.sqrt(expSignal + expBkg)
-                SError = expSignal / expSignif
+                errSoverB = expSoverB * errExpBkg / expBkg
+                errSignif = expSignif * 0.5 * errExpBkg / (expSignal + expBkg)
 
-            # Efficiency, Bkg and Signal Error
-            BError = np.sqrt(expBkg)
+            # Efficiency
             EffAccFDError = np.sqrt((effFDUnc/effFD)**2
                                     + (preselEffFDUnc/preselEffFD)**2
                                     + (accUnc/acc)**2)*effTimesAccFD
@@ -351,17 +371,21 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                         + (preselEffPromptUnc/preselEffPrompt)**2
                                         + (accUnc/acc)**2)*effTimesAccPrompt
 
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, BError, EffAccPromptError,
-                                       EffAccFDError, SError, expSignif, expSoverB, expSignal, expBkg,
+            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, EffAccPromptError, EffAccFDError,
+                                       errS, errExpBkg, errSignif, errSoverB, expSignif, expSoverB, expSignal, expBkg,
                                        effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
             tSignif.Fill(np.array(tupleForNtuple, 'f'))
             estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'S': expSignal, 'B': expBkg,
                          'EffAccPrompt': effTimesAccPrompt, 'EffAccFD': effTimesAccFD,
                          'fPrompt': fPrompt[0], 'fFD': fFD[0]}
+            estValuesErr = {'SignifError': errSignif, 'SoverBError': errSoverB, 'SError': errS, 'BError': errExpBkg,
+                            'EffAccPromptError': EffAccPromptError, 'EffAccFDError': EffAccFDError}
             if len(varNames) == 1:
                 binVar = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
                 for est in estValues:
                     hEstimVsCut[iPt][est].SetBinContent(binVar, estValues[est])
+                    if f'{est}Error' in estValuesErr:
+                        hEstimVsCut[iPt][est].SetBinError(binVar, estValuesErr[f'{est}Error'])
             if len(varNames) == 2:
                 binVar0 = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
                 binVar1 = hEstimVsCut[iPt]['Signif'].GetYaxis().FindBin(cutSet[1])
@@ -387,7 +411,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                                                    f";{estNames[est]};{estNames['Signif']}")
                 hFrame.GetXaxis().SetDecimals()
                 hFrame.GetYaxis().SetDecimals()
-                hSignifVsRest[iPt][est] = (TH2F(f'hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                hSignifVsRest[iPt][est] = (TH2F((f'hSignifVs{est}_pT{ptMin}-{ptMax}_{ParCutsName}'
+                                                 f'{ParCutMin}-{ParCutMax}'),
                                                 f";{estNames[est]};{estNames['Signif']}", 50,
                                                 tSignif.GetMinimum(est)*0.8, tSignif.GetMaximum(est)*1.2, 50,
                                                 tSignif.GetMinimum('Signif')*0.8, tSignif.GetMaximum('Signif')*1.))

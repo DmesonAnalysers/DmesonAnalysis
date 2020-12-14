@@ -8,10 +8,9 @@ import yaml
 from root_numpy import fill_hist
 from ROOT import TFile, TCanvas, TLegend, TH1F #pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kOrange, kGreen #pylint: disable=import-error,no-name-in-module
-sys.path.insert(0, '../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-from utils.DfUtils import LoadDfFromRootOrParquet
+sys.path.append('../..')
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
+from utils.DfUtils import LoadDfFromRootOrParquet #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -88,7 +87,7 @@ for D, BRD in zip(Dhadrons, BRDhadrons):
         acc = 1.
 
     hPtDFromB[D] = {}
-    cPtDFromB[D] = TCanvas(f'cPtDFromB', '', 800, 800)
+    cPtDFromB[D] = TCanvas('cPtDFromB', '', 800, 800)
     cPtDFromB[D].DrawFrame(0., 1.e-7, 50.05, 2.,
                            ';d#it{p}_{T} (GeV/#it{c});d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c});')
     cPtDFromB[D].SetLogy()

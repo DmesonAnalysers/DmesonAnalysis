@@ -2,7 +2,7 @@ import sys
 from ROOT import TCanvas, TFile, TLegend, TLine  # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kBlack, kBlue, kFullCircle, kOpenCircle, kFullSquare  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error,no-name-in-module
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
 inputdir = 'outputs/crosssec'
 

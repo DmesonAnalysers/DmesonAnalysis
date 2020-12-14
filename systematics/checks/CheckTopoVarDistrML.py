@@ -12,9 +12,8 @@ from PIL import Image
 from ROOT import TFile, TCanvas, TDirectoryFile, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlue, kRed, kFullCircle, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.TaskFileLoader import LoadSparseFromTask
-from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle
+from utils.TaskFileLoader import LoadSparseFromTask  #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle  #pylint: disable=wrong-import-position,import-error
 
 # main function
 SetGlobalStyle()
@@ -55,7 +54,7 @@ for var in cutVars:
 
 if MLmin == [] or MLmax == []:
     print('ERROR: You did not set any ML selection! Exit')
-    exit()
+    sys.exit()
 
 topovars = {1: 'pt', 2: 'deltamKK', 3: 'decL', 5: 'normdecLxy',
             7: 'cospxy', 8: 'sigvtx', 10: 'abscospiKphi3', 11: 'd0d0exp'}

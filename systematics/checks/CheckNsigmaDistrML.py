@@ -13,9 +13,8 @@ from PIL import Image
 from ROOT import TFile, TCanvas, TDirectoryFile, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlue, kRed, kFullCircle, kOpenCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.TaskFileLoader import LoadPIDSparses
-from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle
+from utils.TaskFileLoader import LoadPIDSparses  #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle  #pylint: disable=wrong-import-position,import-error
 
 
 # main function
@@ -58,7 +57,7 @@ for var in cutVars:
 
 if MLmin == [] or MLmax == []:
     print('ERROR: You did not set any ML selection! Exit')
-    exit()
+    sys.exit()
 
 hNsigma, hNsigmaSel = {}, {}
 #1D distributions
@@ -107,7 +106,7 @@ for det in axes:
 
 #2D distributions (TPC vs TOF)
 hNsigma['TPCTOF'], hNsigmaSel['TPCTOF'] = {}, {}
-for spe in axes[det]:
+for spe in axes['TPCTOF']:
     hNsigma['TPCTOF'][spe], hNsigmaSel['TPCTOF'][spe] = {}, {}
     for prong in axes['TPC'][spe]:
         hNsigma['TPCTOF'][spe][prong], hNsigmaSel['TPCTOF'][spe][prong] = {}, {}
@@ -233,10 +232,10 @@ for iDet, det in enumerate(hNsigma):
                     if det != 'TPCTOF':
                         cNsigma[det][f'Pt{ptmin:.0f}_{ptmax:.0f}'].cd(3*iSpe+iProng+1).SetLogy()
                         his.GetYaxis().SetRangeUser(0.8, his.GetMaximum()*10)
-                        his.SetTitle(
-                            f' {ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{det} ({spe}) prong{iProng};Entries')
-                        hissel.SetTitle(
-                            f' {ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{det} ({spe}) prong{iProng};Entries')
+                        utilStr = (f'{ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{det} ({spe})'
+                                   f' prong{iProng};Entries')
+                        his.SetTitle(utilStr)
+                        hissel.SetTitle(utilStr)
                         his.DrawCopy('hist')
                         his.DrawCopy('Esame')
                         hissel.DrawCopy('histsame')
@@ -246,10 +245,10 @@ for iDet, det in enumerate(hNsigma):
                         hissel.Write()
                     else:
                         cNsigma[det][f'Pt{ptmin:.0f}_{ptmax:.0f}'].cd(3*iSpe+iProng+1)
-                        his.SetTitle(
-                            f' {ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{{TOF}} ({spe}) prong{iProng};#it{{N}}_{{#sigma}}^{{TPC}} ({spe}) prong{iProng}')
-                        hissel.SetTitle(
-                            f' {ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{{TOF}} ({spe}) prong{iProng};#it{{N}}_{{#sigma}}^{{TPC}} ({spe}) prong{iProng}')
+                        utilStr = (f'{ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{{TOF}} '
+                                   f'({spe}) prong{iProng};#it{{N}}_{{#sigma}}^{{TPC}} ({spe}) prong{iProng}')
+                        his.SetTitle(utilStr)
+                        hissel.SetTitle(utilStr)
                         his.DrawCopy()
                         hissel.DrawCopy('same')
                         leg2D.Draw('same')
@@ -294,8 +293,10 @@ for iDet, det in enumerate(hNsigma):
                 hissel.GetXaxis().SetLabelSize(0.050)
 
                 cNsigma02[det][f'Pt{ptmin:.0f}_{ptmax:.0f}'].cd(iSpe+1)
-                his.SetTitle(f' {ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{det} ({spe}) prong0;#it{{N}}_{{#sigma}}^{det} ({spe}) prong2')
-                hissel.SetTitle(f' {ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{det} ({spe}) prong0;#it{{N}}_{{#sigma}}^{det} ({spe}) prong2')
+                utilStr = (f'{ptmin} < #it{{p}}_{{T}} < {ptmax} GeV/#it{{c}};#it{{N}}_{{#sigma}}^{det} ({spe}) '
+                           f'prong0;#it{{N}}_{{#sigma}}^{det} ({spe}) prong2')
+                his.SetTitle(utilStr)
+                hissel.SetTitle(utilStr)
                 his.DrawCopy()
                 hissel.DrawCopy('same')
                 leg2D.Draw('same')

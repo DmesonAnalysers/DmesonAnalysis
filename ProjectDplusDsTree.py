@@ -16,8 +16,8 @@ import sys
 import argparse
 import yaml
 import numpy as np
-from scipy.interpolate import InterpolatedUnivariateSpline
 import uproot
+from scipy.interpolate import InterpolatedUnivariateSpline
 from root_numpy import fill_hist
 from ROOT import TFile, TH1F, TDatabasePDG # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadNormObjFromTask, LoadSparseFromTask

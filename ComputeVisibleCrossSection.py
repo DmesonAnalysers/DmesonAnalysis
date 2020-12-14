@@ -140,26 +140,18 @@ if args.ptmax >= hCrossSection.GetXaxis().GetBinUpEdge(hCrossSection.GetNbinsX()
 else:
     ptMax = args.ptmax
 
-hVisibleCrossSectionStat = TH1F('hVisibleCrossSectionStat',
-                                f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})',
-                                1, 0.5, 1.5)
+utilStr = f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})'
+hVisibleCrossSectionStat = TH1F('hVisibleCrossSectionStat', utilStr, 1, 0.5, 1.5)
 
 gVisCrossSecUncorrSyst, gVisCrossSecCorrSyst, gVisCrossSecTotSyst, gVisCrossSecSystWoTrFDAndLumi, \
     gVisCrossSecSystTracking, gVisCrossSecSystFD, gVisCrossSecSystLumi = (TGraphAsymmErrors(0) for _ in range(7))
-gVisCrossSecUncorrSyst.SetNameTitle('gVisCrossSecUncorrSyst',
-                                    f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
-gVisCrossSecCorrSyst.SetNameTitle('gVisCrossSecCorrSyst',
-                                  f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
-gVisCrossSecTotSyst.SetNameTitle('gVisCrossSecTotSyst',
-                                 f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
-gVisCrossSecSystWoTrFDAndLumi.SetNameTitle('gVisCrossSecSystWoTrFDAndLumi',
-                                           f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
-gVisCrossSecSystTracking.SetNameTitle('gVisCrossSecSystTracking',
-                                      f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
-gVisCrossSecSystFD.SetNameTitle('gVisCrossSecSystFD',
-                                f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
-gVisCrossSecSystLumi.SetNameTitle('gVisCrossSecSystLumi',
-                                  f';;d#sigma/d#it{{y}} (#mub) ({ptMin} < #it{{p}}_{{T}} < {ptMax} GeV/#it{{c}})')
+gVisCrossSecUncorrSyst.SetNameTitle('gVisCrossSecUncorrSyst', utilStr)
+gVisCrossSecCorrSyst.SetNameTitle('gVisCrossSecCorrSyst', utilStr)
+gVisCrossSecTotSyst.SetNameTitle('gVisCrossSecTotSyst', utilStr)
+gVisCrossSecSystWoTrFDAndLumi.SetNameTitle('gVisCrossSecSystWoTrFDAndLumi', utilStr)
+gVisCrossSecSystTracking.SetNameTitle('gVisCrossSecSystTracking', utilStr)
+gVisCrossSecSystFD.SetNameTitle('gVisCrossSecSystFD', utilStr)
+gVisCrossSecSystLumi.SetNameTitle('gVisCrossSecSystLumi', utilStr)
 
 SetObjectStyle(hVisibleCrossSectionStat, color=kBlack, markerstyle=kFullCircle)
 SetObjectStyle(gVisCrossSecUncorrSyst, color=kBlack, fillstyle=0)

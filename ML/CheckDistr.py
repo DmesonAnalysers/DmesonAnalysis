@@ -40,7 +40,7 @@ def main():
                                           histtype='step', grid=False, log=True)
         plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, hspace=0.4)
         for ax, minVar, maxVar, xLabel in zip(DistrPlot, LimMin, LimMax, inputCfg['xaxes_label']):
-            ax.set_xlim(minVar, maxVar)    
+            ax.set_xlim(minVar, maxVar)
             ax.set_xlabel(xLabel)
             ax.set_title('')
         plt.savefig(f'{OutPutDir}/DistrComp_pT_{PtMin}_{PtMax}.pdf')

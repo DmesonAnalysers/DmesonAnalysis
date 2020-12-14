@@ -12,8 +12,8 @@ those for the prompt
 import argparse
 import yaml
 import numpy as np
-from scipy.interpolate import InterpolatedUnivariateSpline
 import uproot
+from scipy.interpolate import InterpolatedUnivariateSpline
 from ROOT import TFile, TH1F  # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadSparseFromTask, LoadNormObjFromTask
 from utils.AnalysisUtils import MergeHists

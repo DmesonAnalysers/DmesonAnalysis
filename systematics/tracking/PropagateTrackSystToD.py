@@ -11,10 +11,9 @@ from root_numpy import fill_hist
 from ROOT import TFile, TCanvas, TH2F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kRainBow, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.DfUtils import FilterBitDf, LoadDfFromRootOrParquet
-from utils.AnalysisUtils import ApplyHistoEntriesToColumn
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.DfUtils import FilterBitDf, LoadDfFromRootOrParquet #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import ApplyHistoEntriesToColumn #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
 SetGlobalStyle(palette=kRainBow, padleftmargin=0.14, padrightmargin=0.14, padbottommargin=0.14, titleoffsety=1.4)
 

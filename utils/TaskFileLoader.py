@@ -5,8 +5,8 @@ python script with helper functions to load objects from task
 import sys
 from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
 
-
-def LoadSparseFromTask(infilename, inputCfg): # pylint: disable=too-many-branches,too-many-statements
+# pylint: disable=too-many-branches,too-many-statements, too-many-return-statements
+def LoadSparseFromTask(infilename, inputCfg):
     '''
     Method to retrieve sparses from output task file
 

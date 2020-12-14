@@ -1,5 +1,5 @@
 '''
-Script with helper functions to load models from txt files
+Script with helper functions to load model predictions from txt files
 '''
 
 import numpy as np
@@ -8,12 +8,11 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 
 def InterpolateModel(ptCent, yCent, yMin=None, yMax=None):
     '''
-    Helper function to interpolate model
+    Helper function to interpolate model predictions.
+    The returned splines will raise an error if applied out of the data boundary.
 
     Parameters
     -----------
-    ptRange: list with min and max pt values for interpolation
-    ptStep: pt step for interpolation
     ptCent: list of pT centres to interpolate
     yCent: list of central values to interpolate
     yMin: list of min values to interpolate
@@ -21,18 +20,20 @@ def InterpolateModel(ptCent, yCent, yMin=None, yMax=None):
 
     Returns:
     -----------
-    splinesAll: dictionary with values of splines {yCent, yMin, yMax}
+    splinesAll: dictionary with splines {yCent, yMin, yMax}
+    ptMin: minimum pt for which the interpolation is valid
+    ptMax: maximum pt for which the interpolation is valid
     '''
 
     splinesAll = {}
-    splinesAll['yCent'] = InterpolatedUnivariateSpline(ptCent, yCent)
+    splinesAll['yCent'] = InterpolatedUnivariateSpline(ptCent, yCent, ext='raise', check_finite=True)
 
     if yMin is not None and yMin.any():
-        splinesAll['yMin'] = InterpolatedUnivariateSpline(ptCent, yMin)
+        splinesAll['yMin'] = InterpolatedUnivariateSpline(ptCent, yMin, ext='raise', check_finite=True)
     if yMax is not None and yMax.any():
-        splinesAll['yMax'] = InterpolatedUnivariateSpline(ptCent, yMax)
+        splinesAll['yMax'] = InterpolatedUnivariateSpline(ptCent, yMax, ext='raise', check_finite=True)
 
-    return splinesAll
+    return splinesAll, min(ptCent), max(ptCent)
 
 
 def ReadFONLL(fileNameFONLL, isPtDiff=False):
@@ -45,8 +46,10 @@ def ReadFONLL(fileNameFONLL, isPtDiff=False):
 
     Returns:
     -----------
-    splineFONLL: dictionary with values of splines {yCent, yMin, yMax}
+    splineFONLL: dictionary with splines {yCent, yMin, yMax}
     dfFONLL: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
     '''
     dfFONLL = pd.read_csv(fileNameFONLL, sep=" ", header=13).astype('float64')
     if not isPtDiff:
@@ -60,10 +63,10 @@ def ReadFONLL(fileNameFONLL, isPtDiff=False):
         dfFONLL.rename(columns={'min': 'min_ptdiff'}, inplace=True)
         dfFONLL.rename(columns={'max': 'max_ptdiff'}, inplace=True)
 
-    splineFONLL = InterpolateModel(dfFONLL['ptcent'], dfFONLL['central_ptdiff'],
-                                   dfFONLL['min_ptdiff'], dfFONLL['max_ptdiff'])
+    splineFONLL, ptMin, ptMax = InterpolateModel(dfFONLL['ptcent'], dfFONLL['central_ptdiff'],
+                                                 dfFONLL['min_ptdiff'], dfFONLL['max_ptdiff'])
 
-    return splineFONLL, dfFONLL
+    return splineFONLL, dfFONLL, ptMin, ptMax
 
 
 def ReadGMVFNS(fileNameGMVFNS, isSACOT=False):
@@ -77,23 +80,25 @@ def ReadGMVFNS(fileNameGMVFNS, isSACOT=False):
 
     Returns:
     -----------
-    splineGMVFNS: dictionary with values of splines {yCent, yMin, yMax}
+    splineGMVFNS: dictionary with splines {yCent, yMin, yMax}
     dfGMVFNS: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
     '''
     dfGMVFNS = pd.read_csv(fileNameGMVFNS, sep=' ', comment='#')
     if not isSACOT:
-        splineGMVFNS = InterpolateModel(dfGMVFNS['pT'], dfGMVFNS['cen'],
-                                        dfGMVFNS['min'], dfGMVFNS['max'])
+        splineGMVFNS, ptMin, ptMax = InterpolateModel(dfGMVFNS['pT'], dfGMVFNS['cen'],
+                                                      dfGMVFNS['min'], dfGMVFNS['max'])
     else:
         dfGMVFNS['xsec_min[mb]'] = dfGMVFNS['xsec[mb]'] - \
             np.sqrt(dfGMVFNS['PDFerr[mb]']**2 + dfGMVFNS['down.scale.err[mb]']**2)
         dfGMVFNS['xsec_max[mb]'] = dfGMVFNS['xsec[mb]'] + \
             np.sqrt(dfGMVFNS['PDFerr[mb]']**2 + dfGMVFNS['up.scale.err[mb]']**2)
 
-        splineGMVFNS = InterpolateModel(dfGMVFNS['pT'], dfGMVFNS['xsec[mb]'],
-                                        dfGMVFNS['xsec_min[mb]'], dfGMVFNS['xsec_max[mb]'])
+        splineGMVFNS, ptMin, ptMax = InterpolateModel(dfGMVFNS['pT'], dfGMVFNS['xsec[mb]'],
+                                                      dfGMVFNS['xsec_min[mb]'], dfGMVFNS['xsec_max[mb]'])
 
-    return splineGMVFNS, dfGMVFNS
+    return splineGMVFNS, dfGMVFNS, ptMin, ptMax
 
 
 def ReadKtFact(fileNameKtFact):
@@ -106,15 +111,17 @@ def ReadKtFact(fileNameKtFact):
 
     Returns:
     -----------
-    splineKtFact: dictionary with values of splines {yCent, yMin, yMax}
+    splineKtFact: dictionary with splines {yCent, yMin, yMax}
     dfKtFact: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
     '''
     dfKtFact = pd.read_csv(fileNameKtFact, sep=' ', comment='#')
     dfKtFact['ptcent'] = (dfKtFact['ptmin']+dfKtFact['ptmax']) / 2
-    splineKtFact = InterpolateModel(dfKtFact['ptcent'], dfKtFact['central'],
-                                    dfKtFact['lower'], dfKtFact['upper'])
+    splineKtFact, ptMin, ptMax = InterpolateModel(dfKtFact['ptcent'], dfKtFact['central'],
+                                                  dfKtFact['lower'], dfKtFact['upper'])
 
-    return splineKtFact, dfKtFact
+    return splineKtFact, dfKtFact, ptMin, ptMax
 
 
 def ReadTAMU(fileNameTAMU):
@@ -127,18 +134,20 @@ def ReadTAMU(fileNameTAMU):
 
     Returns:
     -----------
-    splineTAMU: dictionary with values of splines {yCent, yMin, yMax}
+    splineTAMU: dictionary with splines {yCent, yMin, yMax}
     dfTAMU: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
     '''
     dfTAMU = pd.read_csv(fileNameTAMU, sep=' ', comment='#')
     if 'R_AA_max' in dfTAMU and 'R_AA_min' in dfTAMU:
         dfTAMU['R_AA'] = (dfTAMU['R_AA_min'] + dfTAMU['R_AA_max']) / 2 #central value taken as average of min and max
-        splineTAMU = InterpolateModel(dfTAMU['PtCent'], dfTAMU['R_AA'],
-                                      dfTAMU['R_AA_min'], dfTAMU['R_AA_max'])
+        splineTAMU, ptMin, ptMax = InterpolateModel(dfTAMU['PtCent'], dfTAMU['R_AA'],
+                                                    dfTAMU['R_AA_min'], dfTAMU['R_AA_max'])
     else:
-        splineTAMU = InterpolateModel(dfTAMU['PtCent'], dfTAMU['R_AA'])
+        splineTAMU, ptMin, ptMax = InterpolateModel(dfTAMU['PtCent'], dfTAMU['R_AA'])
 
-    return splineTAMU, dfTAMU
+    return splineTAMU, dfTAMU, ptMin, ptMax
 
 def ReadTAMUv2(fileNameTAMUv2):
     '''
@@ -150,18 +159,20 @@ def ReadTAMUv2(fileNameTAMUv2):
 
     Returns:
     -----------
-    splineTAMU: dictionary with values of splines {yCent, yMin, yMax}
+    splineTAMU: dictionary with splines {yCent, yMin, yMax}
     dfTAMU: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
     '''
     dfTAMU = pd.read_csv(fileNameTAMUv2, sep=' ', comment='#')
     if 'v2min' in dfTAMU and 'v2max' in dfTAMU:
         dfTAMU['v2'] = (dfTAMU['v2min'] + dfTAMU['v2max']) / 2 #central value taken as average of min and max
-        splineTAMU = InterpolateModel(dfTAMU['pT'], dfTAMU['v2'],
-                                      dfTAMU['v2min'], dfTAMU['v2max'])
+        splineTAMU, ptMin, ptMax = InterpolateModel(dfTAMU['pT'], dfTAMU['v2'],
+                                                    dfTAMU['v2min'], dfTAMU['v2max'])
     else:
-        splineTAMU = InterpolateModel(dfTAMU['pT'], dfTAMU['v2'])
+        splineTAMU, ptMin, ptMax = InterpolateModel(dfTAMU['pT'], dfTAMU['v2'])
 
-    return splineTAMU, dfTAMU
+    return splineTAMU, dfTAMU, ptMin, ptMax
 
 
 def ReadPHSD(fileNamePHSD):
@@ -174,13 +185,15 @@ def ReadPHSD(fileNamePHSD):
 
     Returns:
     -----------
-    splinePHSD: dictionary with values of splines {yCent}
+    splinePHSD: dictionary with splines {yCent}
     dfPHSD: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
     '''
     dfPHSD = pd.read_csv(fileNamePHSD, sep=' ', comment='#')
-    splinePHSD = InterpolateModel(dfPHSD['pt'], dfPHSD['Raa'])
+    splinePHSD, ptMin, ptMax = InterpolateModel(dfPHSD['pt'], dfPHSD['Raa'])
 
-    return splinePHSD, dfPHSD
+    return splinePHSD, dfPHSD, ptMin, ptMax
 
 
 def ReadMCatsHQ(fileNameMCatsHQ):
@@ -193,17 +206,19 @@ def ReadMCatsHQ(fileNameMCatsHQ):
 
     Returns:
     -----------
-    splineMCatsHQ: dictionary with values of splines {yCent, yMin, yMax}
+    splineMCatsHQ: dictionary with splines {yCent, yMin, yMax}
     dfMCatsHQ: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
     '''
     dfMCatsHQ = pd.read_csv(fileNameMCatsHQ, sep=' ', comment='#')
     dfMCatsHQ['Raa_min'] = dfMCatsHQ[['RAAcolK1.5', 'RAAcolradLPMK0.8', 'RAAcolradLPMgludampK0.8']].min(axis=1)
     dfMCatsHQ['Raa_max'] = dfMCatsHQ[['RAAcolK1.5', 'RAAcolradLPMK0.8', 'RAAcolradLPMgludampK0.8']].max(axis=1)
     dfMCatsHQ['Raa_cent'] = (dfMCatsHQ['Raa_min'] + dfMCatsHQ['Raa_max']) / 2
-    splineMCatsHQ = InterpolateModel(dfMCatsHQ['pt'], dfMCatsHQ['Raa_cent'],
-                                     dfMCatsHQ['Raa_min'], dfMCatsHQ['Raa_max'])
+    splineMCatsHQ, ptMin, ptMax = InterpolateModel(dfMCatsHQ['pt'], dfMCatsHQ['Raa_cent'],
+                                                   dfMCatsHQ['Raa_min'], dfMCatsHQ['Raa_max'])
 
-    return splineMCatsHQ, dfMCatsHQ
+    return splineMCatsHQ, dfMCatsHQ, ptMin, ptMax
 
 
 def ReadCatania(fileNameCatania):
@@ -216,10 +231,12 @@ def ReadCatania(fileNameCatania):
 
     Returns:
     -----------
-    splineCatania: dictionary with values of splines {yCent}
+    splineCatania: dictionary with splines {yCent}
     dfCatania: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
     '''
     dfCatania = pd.read_csv(fileNameCatania, sep=' ', comment='#')
-    splineCatania = InterpolateModel(dfCatania['pt'], dfCatania['Raa'])
+    splineCatania, ptMin, ptMax = InterpolateModel(dfCatania['pt'], dfCatania['Raa'])
 
-    return splineCatania, dfCatania
+    return splineCatania, dfCatania, ptMin, ptMax

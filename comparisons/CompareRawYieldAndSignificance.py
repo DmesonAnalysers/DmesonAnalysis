@@ -3,10 +3,9 @@ import math
 from ROOT import TCanvas, TFile, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
 sys.path.append('..')
-from utils.AnalysisUtils import ComputeRatioDiffBins
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.AnalysisUtils import ComputeRatioDiffBins #pylint: disable=wrong-import-position,import-error
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
 inputdir = 'inputdir'
 inputfilenames = ['file1.root', 'file2.root']

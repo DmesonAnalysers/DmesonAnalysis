@@ -1,0 +1,31 @@
+infile:
+    isMC: 1
+    filename: [~/DsPbPb_paper/input/AnalysisResultsDs_MC_3050_MLtree_LHC20g11b_2_Tot.root]
+    dirname: PWGHF_D2H_InvMassDs_Ds_Filt_kMB
+    treename: treeMLDs
+
+outfile:
+    dirpath: ~/DsPbPb_paper/input/ml/MC
+    suffix: _DsPbPb5TeV3050NoOutlier_MLtraining
+    treename: treeMLDs
+    
+skimming:
+    pt:
+        min: 2
+        max: 50
+    preselections: nsigComb_Pi_0 > 0 and nsigComb_Pi_1 > 0 and nsigComb_Pi_2 > 0 and 
+                   nsigComb_K_0 > 0 and nsigComb_K_1 > 0 and nsigComb_K_2 > 0 #null if you don't want to apply preselections
+    colstokeep: [] #empty list if you want to keep everything
+
+singletrackvars:
+    addAODfiltervars: 0 # it adds min pt and min d0 of daughters with pt < 2
+
+missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
+    enable: 0
+    toreplace:
+        nsigTOF_Pi_0: -999.
+        nsigTOF_K_0: -999.
+        nsigTOF_Pi_1: -999.
+        nsigTOF_K_1: -999.
+        nsigTOF_Pi_2: -999.
+        nsigTOF_K_2: -999.

@@ -6,9 +6,8 @@ import sys
 import argparse
 import yaml
 from ROOT import TFile, TH1F # pylint: disable=import-error,no-name-in-module
-sys.path.insert(0, '..')
-#pylint: disable=wrong-import-position,import-error,no-name-in-module
-from utils.AnalysisUtils import MergeHists
+sys.path.append('..')
+from utils.AnalysisUtils import MergeHists #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('inFileName', metavar='text', default='inFileName.root',

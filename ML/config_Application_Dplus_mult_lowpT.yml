@@ -48,5 +48,10 @@ plots:
                        # list of variables to plot
     train_test_log: True # use log scale for plots of train and test distributions
   
-df_column_to_save_opt: 
-    df_column_to_save_list: ['inv_mass', 'pt_cand', 'pt_B'] # list of variables saved in the dataframes with the applied models
+appl: 
+    column_to_save_list: ['inv_mass', 'pt_cand', 'pt_B'] # list of variables saved in the dataframes with the applied models
+
+standalone_appl:
+    inputs: [] # list of parquet files for the model application
+    output_names: [] # names for the outputs (one for each file)
+    output_dir: null # output directory
