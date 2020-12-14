@@ -64,8 +64,12 @@ for iVar, VartoDraw in enumerate(VarDrawList):
     for iPt, _ in enumerate(cutVars['Pt']['min']):
         dfSignifSel = dfSignif.query(selToApply[iPt])
         hProject[iVar].SetBinContent(iPt+1, dfSignifSel[f'{VartoDraw}'])
-        if VartoDraw in ('EffAccFD', 'EffAccPrompt', 'S'):
+        if VartoDraw in ('EffAccFD', 'EffAccPrompt'):
             hProject[iVar].SetBinError(iPt+1, dfSignifSel[f'{VartoDraw}Error'])
+        if VartoDraw == 'S':
+            hProject[iVar].SetBinError(iPt+1, dfSignifSel['S'] / dfSignifSel['Signif'])
+        if VartoDraw == 'B':
+            hProject[iVar].SetBinError(iPt+1, np.sqrt(dfSignifSel['B']))
     TProject.cd(iVar+1)
     hProject[iVar].DrawCopy()
     TProject.Update()
