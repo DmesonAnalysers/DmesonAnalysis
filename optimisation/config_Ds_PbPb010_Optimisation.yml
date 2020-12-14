@@ -46,8 +46,8 @@ predictions:
             prompt: hDsPhipitoKkpipred_max
             feeddown: hDsPhipitoKkpifromBpred_central_corr
     Raa:
-        prompt: ~/DmesonAnalysis/models/tamu/PromptDs_TAMU_RAA_5TeV_010_ImprovedCoalescence_forOpt.txt # can either be a fixed value or a text file
-        feeddown: ~/DmesonAnalysis/models/tamu/NonPromptDs_TAMU_RAA_5TeV_010_forOpt.txt # can either be a fixed value or a text file
+        prompt: ~/DmesonAnalysis/models/tamu/PromptDs_TAMU_RAA_5TeV_010_ImprovedCoalescence.txt # can either be a fixed value or a text file
+        feeddown: ~/DmesonAnalysis/models/tamu/NonPromptDs_TAMU_RAA_5TeV_010.txt # can either be a fixed value or a text file
         model: 'tamu'
 
 nExpectedEvents: 98000000

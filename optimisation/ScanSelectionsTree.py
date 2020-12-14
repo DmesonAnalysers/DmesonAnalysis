@@ -120,13 +120,13 @@ if not isinstance(RaaPrompt_config, float) and not isinstance(RaaPrompt_config, 
             sys.exit()
         else:
             if Raa_model_name == 'phsd':
-                RaaPromptSpline, _ = ReadPHSD(RaaPrompt_config)
+                RaaPromptSpline, _, ptMinRaaPrompt, ptMaxRaaPrompt = ReadPHSD(RaaPrompt_config)
             elif Raa_model_name == 'Catania':
-                RaaPromptSpline, _ = ReadCatania(RaaPrompt_config)
+                RaaPromptSpline, _, ptMinRaaPrompt, ptMaxRaaPrompt = ReadCatania(RaaPrompt_config)
             elif Raa_model_name == 'MCatsHQ':
-                RaaPromptSpline, _ = ReadMCatsHQ(RaaPrompt_config)
+                RaaPromptSpline, _, ptMinRaaPrompt, ptMaxRaaPrompt = ReadMCatsHQ(RaaPrompt_config)
             elif Raa_model_name == 'tamu':
-                RaaPromptSpline, _ = ReadTAMU(RaaPrompt_config)
+                RaaPromptSpline, _, ptMinRaaPrompt, ptMaxRaaPrompt = ReadTAMU(RaaPrompt_config)
 else:
     RaaPrompt = RaaPrompt_config
 
@@ -142,13 +142,13 @@ if not isinstance(RaaFD_config, float) and not isinstance(RaaFD_config, int):
             sys.exit()
         else:
             if Raa_model_name == 'phsd':
-                RaaFDSpline, _ = ReadPHSD(RaaFD_config)
+                RaaFDSpline, _, ptMinRaaFD, ptMaxRaaFD = ReadPHSD(RaaFD_config)
             elif Raa_model_name == 'Catania':
-                RaaFDSpline, _ = ReadCatania(RaaFD_config)
+                RaaFDSpline, _, ptMinRaaFD, ptMaxRaaFD = ReadCatania(RaaFD_config)
             elif Raa_model_name == 'MCatsHQ':
-                RaaFDSpline, _ = ReadMCatsHQ(RaaFD_config)
+                RaaFDSpline, _, ptMinRaaFD, ptMaxRaaFD = ReadMCatsHQ(RaaFD_config)
             elif Raa_model_name == 'tamu':
-                RaaFDSpline, _ = ReadTAMU(RaaFD_config)
+                RaaFDSpline, _, ptMinRaaFD, ptMaxRaaFD = ReadTAMU(RaaFD_config)
 else:
     RaaFD = RaaFD_config
 
@@ -205,9 +205,19 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     # Raa
     ptCent = (ptMax + ptMin) / 2.
     if isinstance(RaaPrompt_config, str):
-        RaaPrompt = float(RaaPromptSpline['yCent'](ptCent))
+        if ptMinRaaPrompt < ptCent < ptMaxRaaPrompt:
+            RaaPrompt = RaaPromptSpline['yCent'](ptCent)
+        elif ptCent > ptMaxRaaPrompt:
+            RaaPrompt = RaaPromptSpline['yCent'](ptMaxRaaPrompt)
+        else:
+            RaaPrompt = RaaPromptSpline['yCent'](ptMinRaaPrompt)
     if isinstance(RaaFD_config, str):
-        RaaFD = float(RaaFDSpline['yCent'](ptCent))
+        if ptMinRaaFD < ptCent < ptMaxRaaFD:
+            RaaFD = RaaFDSpline['yCent'](ptCent)
+        elif ptCent > ptMaxRaaFD:
+            RaaFD = RaaFDSpline['yCent'](ptMaxRaaFD)
+        else:
+            RaaFD = RaaFDSpline['yCent'](ptMinRaaFD)
 
     # denominator for efficiency
     nTotPrompt = len(dfPromptPt)

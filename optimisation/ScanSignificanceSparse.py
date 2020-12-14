@@ -1,5 +1,5 @@
 '''
-python script for the significance scan of Ds+ mesons with THnSparses 
+python script for the significance scan of Ds+ mesons with THnSparses
 run: python ScanSignificanceSparse.py cfgFileName.yml outFileName.root
 '''
 
