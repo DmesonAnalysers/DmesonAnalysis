@@ -410,6 +410,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                 RaaPrompt = RaaPromptSpline['yCent'](ptMaxRaaPrompt)
             else:
                 RaaPrompt = RaaPromptSpline['yCent'](ptMinRaaPrompt)
+            RaaPrompt = float(RaaPrompt)
         if isinstance(RaaFD_config, str):
             if ptMinRaaFD < ptCent < ptMaxRaaFD:
                 RaaFD = RaaFDSpline['yCent'](ptCent)
@@ -417,6 +418,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                 RaaFD = RaaFDSpline['yCent'](ptMaxRaaFD)
             else:
                 RaaFD = RaaFDSpline['yCent'](ptMinRaaFD)
+            RaaFD = float(RaaFD)
         if compareToFc:
             fPromptFc, fFDFc = GetPromptFDFractionFc(effP, effF, crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
             gPromptFracFcVsCut[iPt].SetPoint(iCutSet, iCutSet+1, fPromptFc[0])

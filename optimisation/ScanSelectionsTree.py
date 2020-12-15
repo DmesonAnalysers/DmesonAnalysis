@@ -211,6 +211,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             RaaPrompt = RaaPromptSpline['yCent'](ptMaxRaaPrompt)
         else:
             RaaPrompt = RaaPromptSpline['yCent'](ptMinRaaPrompt)
+        RaaPrompt = float(RaaPrompt)
     if isinstance(RaaFD_config, str):
         if ptMinRaaFD < ptCent < ptMaxRaaFD:
             RaaFD = RaaFDSpline['yCent'](ptCent)
@@ -218,6 +219,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             RaaFD = RaaFDSpline['yCent'](ptMaxRaaFD)
         else:
             RaaFD = RaaFDSpline['yCent'](ptMinRaaFD)
+        RaaFD = float(RaaFD)
 
     # denominator for efficiency
     nTotPrompt = len(dfPromptPt)
