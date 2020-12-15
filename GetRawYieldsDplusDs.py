@@ -212,15 +212,22 @@ canvSizes = [1920, 1080]
 if nPtBins == 1:
     canvSizes = [500, 500]
 
-cMass = TCanvas('cMass', 'cMass', canvSizes[0], canvSizes[1])
-DivideCanvas(cMass, nPtBins)
-cResiduals = TCanvas('cResiduals', 'cResiduals', canvSizes[0], canvSizes[1])
-DivideCanvas(cResiduals, nPtBins)
+nMaxCanvases = 20 # do not put more than 20 bins per canvas to make them visible
+nCanvases = np.ceil(nPtBins / nMaxCanvases)
+cMass, cResiduals = [], []
+for iCanv in range(nCanvases):
+    nPads = nPtBins if nCanvases == 1 else nMaxCanvases
+    cMass[iCanv].append(TCanvas(f'cMass{iCanv}', f'cMass{iCanv}', canvSizes[0], canvSizes[1]))
+    DivideCanvas(cMass[iCanv], nPads)
+    cResiduals[iCanv].append(TCanvas(f'cResiduals{iCanv}', f'cResiduals{iCanv}', canvSizes[0], canvSizes[1]))
+    DivideCanvas(cResiduals[iCanv], nPads)
 
 massFitter = []
 for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumerate(zip(
         hMass, ptMins, ptMaxs, fitConfig[cent]['Rebin'], SgnFunc, BkgFunc, \
             inclSecPeak, fitConfig[cent]['MassMin'], fitConfig[cent]['MassMax'])):
+
+    iCanv = np.floor(iPt / nMaxCanvases)
 
     hMassForFit.append(TH1F())
     AliVertexingHFUtils.RebinHisto(hM, reb).Copy(hMassForFit[iPt]) #to cast TH1D to TH1F
@@ -268,9 +275,9 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                 parSigmaSecPeak = 7
 
         if nPtBins > 1:
-            cMass.cd(iPt+1)
+            cMass[iCanv].cd(iPt-nMaxCanvases*iCanv+1)
         else:
-            cMass.cd()
+            cMass[iCanv].cd()
         hMassForFit[iPt].Fit(massFunc, 'E')  # fit with chi2
 
         rawyield = massFunc.GetParameter(parRawYield)
@@ -457,33 +464,35 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
             hRawYieldsBkgSecPeak.SetBinError(iPt+1, bkgSecPeakerr)
 
         if nPtBins > 1:
-            cMass.cd(iPt+1)
+            cMass[iCanv].cd(iPt-nMaxCanvases*iCanv+1)
         else:
-            cMass.cd()
+            cMass[iCanv].cd()
 
         hMassForFit[iPt].GetYaxis().SetRangeUser(hMassForFit[iPt].GetMinimum()*0.95, hMassForFit[iPt].GetMaximum()*1.2)
         massFitter[iPt].DrawHere(gPad)
 
         # residuals
         if nPtBins > 1:
-            cResiduals.cd(iPt+1)
+            cResiduals[iCanv].cd(iPt-nMaxCanvases*iCanv+1)
         else:
-            cResiduals.cd()
+            cResiduals[iCanv].cd()
         massFitter[iPt].DrawHistoMinusFit(gPad)
 
-    cMass.Modified()
-    cMass.Update()
+    cMass[iCanv].Modified()
+    cMass[iCanv].Update()
 
-    cResiduals.Modified()
-    cResiduals.Update()
+    cResiduals[iCanv].Modified()
+    cResiduals[iCanv].Update()
 
 #save output histos
 outFile = TFile(args.outFileName, 'recreate')
-cMass.Write()
+for canv in cMass:
+    canv.Write()
 if not args.isMC:
-    cResiduals.Write()
-for iPt in range(nPtBins):
-    hMass[iPt].Write()
+    for canv in cResiduals:
+        canv.Write()
+for hist in hMass:
+    hist.Write()
 hRawYields.Write()
 hRawYieldsSigma.Write()
 hRawYieldsMean.Write()
@@ -520,9 +529,19 @@ if not args.isMC:
 outFile.Close()
 
 outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-cMass.SaveAs(outFileNamePDF)
-outFileNamePDF = args.outFileName.replace('.root', '_Residuals.pdf')
-cResiduals.SaveAs(outFileNamePDF)
+outFileNameResPDF = outFileNamePDF.replace('.root', '_Residuals.pdf')
+for iCanv, (cM, cR) in enumerate(zip(cMass, cResiduals)):
+    if iCanv == 0 and nCanvases > 1:
+        cM.SaveAs(f'{outFileNamePDF}[')
+    cM.SaveAs(outFileNamePDF)
+    if iCanv == nCanvases-1 and nCanvases > 1:
+        cM.SaveAs(f'{outFileNamePDF}]')
+    if not args.isMC:
+        if iCanv == 0 and nCanvases > 1:
+            cR.SaveAs(f'{outFileNameResPDF}[')
+        cR.SaveAs(outFileNameResPDF)
+        if iCanv == nCanvases-1 and nCanvases > 1:
+            cR.SaveAs(f'{outFileNameResPDF}]')
 
 if not args.batch:
     input('Press enter to exit')
