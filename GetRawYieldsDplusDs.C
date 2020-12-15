@@ -202,6 +202,27 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     SetHistoStyle(hRelDiffRawYieldsFitTrue);
     SetHistoStyle(hRelDiffRawYieldsSecondPeakFitTrue,kRed+1);
 
+    // additional S, B, S/B, and significance histos for different Nsigma values (filled only in case of data)
+    const int nMassWindows = 6;
+    double nSigma4SandB[nMassWindows] = {1.5, 1.75, 2., 2.25, 2.5, 2.75};
+    TH1D *hRawYieldsSignalDiffSigma[nMassWindows], *hRawYieldsBkgDiffSigma[nMassWindows];
+    TH1D *hRawYieldsSoverBDiffSigma[nMassWindows], *hRawYieldsSignifDiffSigma[nMassWindows];
+    for(int iS = 0; iS < nMassWindows; iS++)
+    {
+        hRawYieldsSignalDiffSigma[iS] = new TH1D(Form("hRawYieldsSignal_%0.2fsigma", nSigma4SandB[iS]),
+                                                 Form(";#it{p}_{T} (GeV/#it{c});Signal (%0.2f#sigma)", nSigma4SandB[iS]), nPtBins, PtLims);
+        hRawYieldsBkgDiffSigma[iS] = new TH1D(Form("hRawYieldsBkg_%0.2fsigma", nSigma4SandB[iS]),
+                                              Form(";#it{p}_{T} (GeV/#it{c});Background (%0.2f#sigma)", nSigma4SandB[iS]), nPtBins, PtLims);
+        hRawYieldsSoverBDiffSigma[iS] = new TH1D(Form("hRawYieldsSoverB_%0.2fsigma", nSigma4SandB[iS]),
+                                                 Form(";#it{p}_{T} (GeV/#it{c});S/B (%0.2f#sigma)", nSigma4SandB[iS]), nPtBins, PtLims);
+        hRawYieldsSignifDiffSigma[iS] = new TH1D(Form("hRawYieldsSignif_%0.2fsigma", nSigma4SandB[iS]),
+                                                 Form(";#it{p}_{T} (GeV/#it{c});significance (%0.2f#sigma)", nSigma4SandB[iS]), nPtBins, PtLims);
+        SetHistoStyle(hRawYieldsSignalDiffSigma[iS]);
+        SetHistoStyle(hRawYieldsBkgDiffSigma[iS]);
+        SetHistoStyle(hRawYieldsSoverBDiffSigma[iS]);
+        SetHistoStyle(hRawYieldsSignifDiffSigma[iS]);
+    }
+
     TH1D *hSigmaToFix = NULL;
     if(fixSigma) {
         auto infileSigma = TFile::Open(infilenameSigma.data());
@@ -406,6 +427,22 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             hRawYieldsChiSquare->SetBinContent(iPt+1,redchi2);
             hRawYieldsChiSquare->SetBinError(iPt+1,1.e-20);
 
+            for(int iS = 0; iS < nMassWindows; iS++)
+            {
+                massFitter->Significance(nSigma4SandB[iS],signif,signiferr);
+                massFitter->Signal(nSigma4SandB[iS],sgn,sgnerr);
+                massFitter->Background(nSigma4SandB[iS],bkg,bkgerr);
+
+                hRawYieldsSignalDiffSigma[iS]->SetBinContent(iPt+1,sgn);
+                hRawYieldsSignalDiffSigma[iS]->SetBinError(iPt+1,sgnerr);
+                hRawYieldsBkgDiffSigma[iS]->SetBinContent(iPt+1,bkg);
+                hRawYieldsBkgDiffSigma[iS]->SetBinError(iPt+1,bkgerr);
+                hRawYieldsSoverBDiffSigma[iS]->SetBinContent(iPt+1,sgn/bkg);
+                hRawYieldsSoverBDiffSigma[iS]->SetBinError(iPt+1,sgn/bkg*TMath::Sqrt(sgnerr/sgn*sgnerr/sgn+bkgerr/bkg*bkgerr/bkg));
+                hRawYieldsSignifDiffSigma[iS]->SetBinContent(iPt+1,signif);
+                hRawYieldsSignifDiffSigma[iS]->SetBinError(iPt+1,signiferr);
+            }
+
             TF1* fTotFunc = massFitter->GetMassFunc();
             TF1* fBkgFunc = massFitter->GetBackgroundRecalcFunc();
 
@@ -525,6 +562,20 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     hRelDiffRawYieldsFitTrue->Write();
     hRelDiffRawYieldsSecondPeakFitTrue->Write();
     hEv->Write();
+    if(!isMC)
+    {
+        TDirectoryFile dir("SandBDiffNsigma", "SandBDiffNsigma");
+        dir.Write();
+        dir.cd();
+        for(int iS = 0; iS < nMassWindows; iS++)
+        {
+            hRawYieldsSignalDiffSigma[iS]->Write();
+            hRawYieldsBkgDiffSigma[iS]->Write();
+            hRawYieldsSoverBDiffSigma[iS]->Write();
+            hRawYieldsSignifDiffSigma[iS]->Write();
+        }
+        dir.Close();
+    }
     outFile.Close();
 
     outFileName.ReplaceAll(".root",".pdf");
