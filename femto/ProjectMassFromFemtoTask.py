@@ -1,5 +1,5 @@
 '''
-python script for the projection of of D-meson mass spectrum from femto task
+python script for the projection of the D-meson mass spectrum from femto task
 '''
 
 import sys
@@ -18,14 +18,20 @@ parser.add_argument('outFileName', metavar='text', default='outFileName.root',
                     help='output root file name')
 parser.add_argument('--prefix', metavar='text', default='MB',
                     help='prefix for directory inside task output file')
+parser.add_argument('--suffix', metavar='text', default='0',
+                    help='suffix for directory inside task output file')
 args = parser.parse_args()
 
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
 cutVars = cutSetCfg['cutvars']
 
+listName = f'{args.prefix}_CharmFemto_DChargedQA{args.suffix}/{args.prefix}_CharmFemto_DChargedQA{args.suffix}'
+print(f'Read input file: {args.inFileName}')
+print(f'           list: {listName}')
+
 inFile = TFile.Open(args.inFileName)
-inList = inFile.Get(f'{args.prefix}_CharmFemto_DChargedQA0/{args.prefix}_CharmFemto_DChargedQA0')
+inList = inFile.Get(listName)
 hDminusMassVsPt = inList.FindObject('fHistDminusInvMassPt')
 hDplusMassVsPt = inList.FindObject('fHistDplusInvMassPt')
 hMassVsPt = hDminusMassVsPt.Clone()
@@ -59,3 +65,5 @@ for hM, hP in zip(hMass, hPt):
     hP.Write()
 hEvForNorm.Write()
 outFile.Close()
+
+print(f'Projected histograms saved in output file: {args.outFileName}')

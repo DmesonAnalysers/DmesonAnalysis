@@ -1,0 +1,13 @@
+input:
+    filename: /Users/fabrizio/cernbox/ALICE_WORK/Files/Trains/Run2/pp13TeV/AnalysisResults_Femto_Dplus_proton_HMV0_sphericity.root
+    suffix: 0
+    prefix: HM
+
+rawyields:
+    filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYields_Dplus_pp13TeV_HMV0_finebins_sphericity_0dot7_1.root
+    histoname: SandBDiffNsigma/hRawYieldsSoverB_2.00sigma # 2sigma window
+
+output:
+    directory: '.'
+    suffix: masswindow_2sigma_sphericity_0dot7_1
+    addTDirectory: True # to add a TDirectory in output root file named as the suffix
