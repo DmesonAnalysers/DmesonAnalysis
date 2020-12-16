@@ -1,7 +1,7 @@
 '''
 Script for the computation of the extra systematic uncertainty
 on the theory-driven fprompt due to the multiplicity dependence
-run: python ComputeTheoryDrivenFpromptMultSyst.py fracFile.root multDepFile.root
+run: python ComputeTheoryDrivenFpromptMultSyst.py fracFile.root multDepFile.root outFile.root [--multFactor MULTFACTOR]
 '''
 
 import sys
