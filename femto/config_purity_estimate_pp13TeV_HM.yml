@@ -5,9 +5,9 @@ input:
 
 rawyields:
     filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYields_Dplus_pp13TeV_HMV0_finebins_sphericity_0dot7_1.root
-    histoname: hRawYieldsSoverB #SandBDiffNsigma/hRawYieldsSoverB_1.50sigma # 3sigma window
+    histoname: SandBDiffNsigma/hRawYieldsSoverB_2.00sigma # 2sigma window
 
 output:
     directory: '.'
-    suffix: masswindow_3sigma_sphericity_0dot7_1
+    suffix: masswindow_2sigma_sphericity_0dot7_1
     addTDirectory: True # to add a TDirectory in output root file named as the suffix
