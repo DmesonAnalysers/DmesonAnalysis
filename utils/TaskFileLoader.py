@@ -32,11 +32,6 @@ def LoadSparseFromTask(infilename, inputCfg):
         print(f'List {inputCfg["listname"]} not found!')
         return None, None
 
-    if inputCfg['sparsenameAll'] == inputCfg['sparsenamePrompt'] or \
-        inputCfg['sparsenameAll'] == inputCfg['sparsenameFD']:
-        print('ERROR: do not use the same object for different sparses, this gives an error when merged! Exit')
-        sys.exit()
-
     sparses, sparsesGen = {}, {}
     if inputCfg['sparsenameAll']:
         sparses['RecoAll'] = inlistData.FindObject(inputCfg['sparsenameAll']) # not mandatory for MC
@@ -44,6 +39,10 @@ def LoadSparseFromTask(infilename, inputCfg):
             print(f'ERROR: sparse {inputCfg["sparsenameAll"]} not found!')
             return None, None
     if inputCfg['isMC']:
+        if (inputCfg['sparsenameAll'] == inputCfg['sparsenamePrompt'] or
+                inputCfg['sparsenameAll'] == inputCfg['sparsenameFD']):
+            print('ERROR: do not use the same object for different sparses, this gives an error when merged! Exit')
+            sys.exit()
         sparses['RecoPrompt'] = inlistData.FindObject(inputCfg['sparsenamePrompt'])
         if not sparses['RecoPrompt']:
             print(f'ERROR: sparse {inputCfg["sparsenamePrompt"]} not found!')
