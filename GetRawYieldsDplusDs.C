@@ -415,15 +415,15 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             }
 
             if(InclSecPeak[iPt] && meson==kDs) {
-                if (fixSigmaToFirstPeak) {
-                    // fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
-                    massFitter->IncludeSecondGausPeak(massDplus, false, SigmaSecPeak[iPt], true);
-                    massFitter->MassFitter(false);
-                    double sigmaFirstPeak = massFitter->GetSigma();
-                    double sigmaRatioMC = hSigmaToFixSecPeak->GetBinContent(iPt+1) / hSigmaFirstPeakMC->GetBinContent(iPt+1);
-                    massFitter->IncludeSecondGausPeak(massDplus, false, sigmaRatioMC * sigmaFirstPeak, true);
-                } else if (hSigmaToFixSecPeak) {
+                if (hSigmaToFixSecPeak) {
                     massFitter->IncludeSecondGausPeak(massDplus, false, hSigmaToFixSecPeak->GetBinContent(iPt+1) * sigmaMultSecPeak, true);
+                    if (fixSigmaToFirstPeak) {
+                        // fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
+                        massFitter->MassFitter(false);
+                        double sigmaFirstPeak = massFitter->GetSigma();
+                        double sigmaRatioMC = hSigmaToFixSecPeak->GetBinContent(iPt+1) / hSigmaFirstPeakMC->GetBinContent(iPt+1);
+                        massFitter->IncludeSecondGausPeak(massDplus, false, sigmaRatioMC * sigmaFirstPeak, true);
+                    }
                 } else {
                     massFitter->IncludeSecondGausPeak(massDplus, false, SigmaSecPeak[iPt], true);
                 }
