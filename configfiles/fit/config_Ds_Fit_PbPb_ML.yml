@@ -11,6 +11,10 @@ Cent010:
     MassMax: [2.08, 2.08, 2.08, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
     Rebin: [3, 4, 4, 4, 4, 4, 4, 5, 5, 6]
     InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    SigmaSecPeak: [0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008]
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
     UseLikelihood: 1
     BkgFunc: ['kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
     SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
@@ -37,6 +41,10 @@ Cent3050:
     MassMax: [2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
     Rebin: [3, 4, 4, 4, 4, 4, 4, 5, 6]
     InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1, 1]
+    SigmaSecPeak: [0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008]
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
     UseLikelihood: 1
     BkgFunc: ['kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
     SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
