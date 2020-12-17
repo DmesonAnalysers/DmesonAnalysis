@@ -1,7 +1,7 @@
 isMC: yes
-filename: ../ML_DsAnalysis/QM_prel/inputs/MC/D2H_prod/010/010_run_071019_tightPre/AnalysisResultsDs_MC_010_LHC19c3a_Tot_wTRcut_tightPre.root
-dirname: PWG3_D2H_InvMassDs_MLappl010_pt2_8_tightPre
-listname: coutputDs_MLappl010_pt2_8_tightPre
+filename: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/MC/010/D2H_MLapplied/AnalysisResultsDs_MC_010_ML_LHC20g2a_Tot.root
+dirname: PWGHF_D2H_InvMassDs_MLappl010
+listname: coutputDs_MLappl010
 sparsenameAll: null
 sparsenamePrompt: fnSparseReco_fromC
 sparsenameFD: fnSparseReco_fromB

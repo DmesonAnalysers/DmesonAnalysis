@@ -11,6 +11,10 @@ pp5TeVPrompt:
     MassMax: [ 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00 ]
     Rebin: [ 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 6, 8, 12 ]
     InclSecPeak: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+    SigmaSecPeak: []
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
     UseLikelihood: 1
     BkgFunc: [ 'kPol3', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
     SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
@@ -29,6 +33,10 @@ pp5TeVPrompt:
 #     MassMax: [ 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00, 2.00 ]
 #     Rebin: [ 2, 2, 2, 2, 2, 2, 4, 4 ]
 #     InclSecPeak: [0, 0, 0, 0, 0, 0, 0, 0 ]
+#     SigmaSecPeak: []
+#     SigmaFileSecPeak: ''
+#     SigmaMultFactorSecPeak: 1.
+#     FixSigmaToFirstPeak: 0
 #     UseLikelihood: 1
 #     BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
 #     SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
@@ -46,6 +54,10 @@ pp5TeVFD:
     MassMax: [ 2.00, 2.00, 2.00, 2.00, 1.98, 1.98, 1.98, 1.98]
     Rebin: [ 6, 6, 6, 6, 8, 8, 8, 10 ]
     InclSecPeak: [0, 0, 0, 0, 0, 0, 0, 0 ]
+    SigmaSecPeak: []
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
     UseLikelihood: 1
     BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
     SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]

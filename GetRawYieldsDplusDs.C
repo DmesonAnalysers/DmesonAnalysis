@@ -61,12 +61,9 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     bool isSigmaMultFromUnc = false;
     double sigmaMult = 1.;
     string sigmaMultFromUnc = "";
-    try
-    {
+    try {
         sigmaMult = config[centname.Data()]["SigmaMultFactor"].as<double>();
-    }
-    catch (const YAML::BadConversion& e) 
-    {
+    } catch (const YAML::BadConversion& e)  {
         sigmaMultFromUnc = config[centname.Data()]["SigmaMultFactor"].as<string>();
         isSigmaMultFromUnc = true;
     }
@@ -79,6 +76,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     vector<double> MassMax = config[centname.Data()]["MassMax"].as<vector<double>>();
     vector<int> Rebin = config[centname.Data()]["Rebin"].as<vector<int>>();
     vector<int> InclSecPeak = config[centname.Data()]["InclSecPeak"].as<vector<int>>();
+    vector<double> SigmaSecPeak = config[centname.Data()]["SigmaSecPeak"].as<vector<double>>();
+    string infilenameSigmaSecPeak = config[centname.Data()]["SigmaFileSecPeak"].as<string>();
+    double sigmaMultSecPeak = config[centname.Data()]["SigmaMultFactorSecPeak"].as<double>();
+    bool fixSigmaToFirstPeak = static_cast<bool>(config[centname.Data()]["FixSigmaToFirstPeak"].as<int>());
     vector<string> bkgfunc = config[centname.Data()]["BkgFunc"].as<vector<string>>();
     vector<string> sgnfunc = config[centname.Data()]["SgnFunc"].as<vector<string>>();
     const unsigned int nPtBins = PtMin.size();
@@ -150,7 +151,6 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         hEv = static_cast<TH1F*>(infile->Get("hEvForNorm"));
         hMass[iPt]->SetDirectory(0);
         hEv->SetDirectory(0);
-        // hEv->Scale(0.5); // quick fix for normalization
         SetHistoStyle(hMass[iPt]);
         SetHistoStyle(hEv);
     }
@@ -226,19 +226,41 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     TH1D *hSigmaToFix = NULL;
     if(fixSigma) {
         auto infileSigma = TFile::Open(infilenameSigma.data());
-        if(!infileSigma) return -2;
-            hSigmaToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigma"));
-        if( static_cast<unsigned int>(hSigmaToFix->GetNbinsX()) != nPtBins)
+        if(!infileSigma)
+            return -2;
+        hSigmaToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigma"));
+        hSigmaToFix->SetDirectory(0);
+        if(static_cast<unsigned int>(hSigmaToFix->GetNbinsX()) != nPtBins)
             cout << "WARNING: Different number of bins for this analysis and histo for fix sigma" << endl;
+        infileSigma->Close();
     }
 
     TH1D *hMeanToFix = NULL;
     if(fixMean) {
         auto infileMean = TFile::Open(infilenameMean.data());
-        if(!infileMean) return -3;
-            hMeanToFix = static_cast<TH1D*>(infileMean->Get("hRawYieldsMean"));
+        if(!infileMean)
+            return -3;
+        hMeanToFix = static_cast<TH1D*>(infileMean->Get("hRawYieldsMean"));
+        hMeanToFix->SetDirectory(0);
         if(static_cast<unsigned int>(hMeanToFix->GetNbinsX())!=nPtBins)
             cout << "WARNING: Different number of bins for this analysis and histo for fix mean" << endl;
+        infileMean->Close();
+    }
+
+    TH1D *hSigmaFirstPeakMC = NULL;
+    TH1D *hSigmaToFixSecPeak = NULL;
+    auto infileSigmaSecPeak = TFile::Open(infilenameSigmaSecPeak.data());
+    if(!infileSigmaSecPeak && fixSigmaToFirstPeak)
+        return -2;
+    if(infileSigmaSecPeak) {
+        hSigmaFirstPeakMC = static_cast<TH1D*>(infileSigmaSecPeak->Get("hRawYieldsSigma"));
+        hSigmaToFixSecPeak = static_cast<TH1D*>(infileSigmaSecPeak->Get("hRawYieldsSigmaSecondPeak"));
+        hSigmaFirstPeakMC->SetDirectory(0);
+        hSigmaToFixSecPeak->SetDirectory(0);
+        if(static_cast<unsigned int>(hSigmaFirstPeakMC->GetNbinsX()) != nPtBins ||
+           static_cast<unsigned int>(hSigmaToFixSecPeak->GetNbinsX()) != nPtBins)
+            cout << "WARNING: Different number of bins for this analysis and histos for fix sigma" << endl;
+        infileSigmaSecPeak->Close();
     }
 
     //fit histos
@@ -374,18 +396,16 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             auto massFitter = new AliHFInvMassFitter(hMassForFit[iPt] ,MassMin[iPt], MassMax[iPt], BkgFunc[iPt], SgnFunc[iPt]);
             if(degPol[iPt] > 0)
                 massFitter->SetPolDegreeForBackgroundFit(degPol[iPt]);
-
-            if(UseLikelihood) massFitter->SetUseLikelihoodFit();
+            if(UseLikelihood)
+                massFitter->SetUseLikelihoodFit();
             if(fixMean)
                 massFitter->SetFixGaussianMean(hMeanToFix->GetBinContent(iPt+1));
             else
                 massFitter->SetInitialGaussianMean(massForFit);
-            if(fixSigma)
-            {
+            if(fixSigma) {
                 if(!isSigmaMultFromUnc)
                     massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
-                else
-                {
+                else {
                     if(sigmaMultFromUnc=="MinusUnc")
                         massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)-hSigmaToFix->GetBinError(iPt+1));
                     else if(sigmaMultFromUnc=="PlusUnc")
@@ -394,16 +414,28 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                         cout << "WARNING: impossible to fix sigma! Wrong mult factor set in config file!" << endl;
                 }
             }
-            else
-            {
+            else {
                 if(hSigmaToFix)
                     massFitter->SetInitialGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
                 else
                     massFitter->SetInitialGaussianSigma(0.008);
             }
-            
 
-            if(InclSecPeak[iPt] && meson==kDs) massFitter->IncludeSecondGausPeak(massDplus,false,0.008,true); //TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
+            if(InclSecPeak[iPt] && meson==kDs) {
+                if (hSigmaToFixSecPeak) {
+                    massFitter->IncludeSecondGausPeak(massDplus, false, hSigmaToFixSecPeak->GetBinContent(iPt+1) * sigmaMultSecPeak, true);
+                    if (fixSigmaToFirstPeak) {
+                        // fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
+                        massFitter->MassFitter(false);
+                        double sigmaFirstPeak = massFitter->GetSigma();
+                        double sigmaRatioMC = hSigmaToFixSecPeak->GetBinContent(iPt+1) / hSigmaFirstPeakMC->GetBinContent(iPt+1);
+                        massFitter->IncludeSecondGausPeak(massDplus, false, sigmaRatioMC * sigmaFirstPeak, true);
+                    }
+                } else {
+                    massFitter->IncludeSecondGausPeak(massDplus, false, SigmaSecPeak[iPt], true);
+                }
+            }
+
             massFitter->MassFitter(false);
 
             double rawyield = massFitter->GetRawYield();
