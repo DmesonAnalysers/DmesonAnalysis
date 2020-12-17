@@ -229,8 +229,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         if(!infileSigma)
             return -2;
         hSigmaToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigma"));
+        hSigmaToFix->SetDirectory(0);
         if(static_cast<unsigned int>(hSigmaToFix->GetNbinsX()) != nPtBins)
             cout << "WARNING: Different number of bins for this analysis and histo for fix sigma" << endl;
+        infileSigma->Close();
     }
 
     TH1D *hMeanToFix = NULL;
@@ -239,8 +241,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         if(!infileMean)
             return -3;
         hMeanToFix = static_cast<TH1D*>(infileMean->Get("hRawYieldsMean"));
+        hMeanToFix->SetDirectory(0);
         if(static_cast<unsigned int>(hMeanToFix->GetNbinsX())!=nPtBins)
             cout << "WARNING: Different number of bins for this analysis and histo for fix mean" << endl;
+        infileMean->Close();
     }
 
     TH1D *hSigmaFirstPeakMC = NULL;
@@ -251,9 +255,12 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     if(infileSigmaSecPeak) {
         hSigmaFirstPeakMC = static_cast<TH1D*>(infileSigmaSecPeak->Get("hRawYieldsSigma"));
         hSigmaToFixSecPeak = static_cast<TH1D*>(infileSigmaSecPeak->Get("hRawYieldsSigmaSecondPeak"));
+        hSigmaFirstPeakMC->SetDirectory(0);
+        hSigmaToFixSecPeak->SetDirectory(0);
         if(static_cast<unsigned int>(hSigmaFirstPeakMC->GetNbinsX()) != nPtBins ||
            static_cast<unsigned int>(hSigmaToFixSecPeak->GetNbinsX()) != nPtBins)
             cout << "WARNING: Different number of bins for this analysis and histos for fix sigma" << endl;
+        infileSigmaSecPeak->Close();
     }
 
     //fit histos
