@@ -124,6 +124,15 @@ if fitConfig[cent]['FixMean']:
     if hMeanToFix.GetNbinsX() != nPtBins:
         print('WARNING: Different number of bins for this analysis and histo for fix mean')
 
+infileSigmaSecPeak = TFile.Open(fitConfig[cent]['SigmaFileSecPeak'])
+if fitConfig[cent]['FixSigmaToFirstPeak'] and not infileSigmaSecPeak:
+    sys.exit()
+if infileSigmaSecPeak:
+    hSigmaFirstPeakMC = infileSigmaSecPeak.Get("hRawYieldsSigma")
+    hSigmaToFixSecPeak = infileSigmaSecPeak.Get("hRawYieldsSigmaSecondPeak")
+    if hSigmaFirstPeakMC.GetNbinsX() != nPtBins or hSigmaToFixSecPeak.GetNbinsX() != nPtBins:
+        print('WARNING: Different number of bins for this analysis and histoss for fix mean')
+
 ptBinsArr = np.asarray(ptLims, 'd')
 ptTit = 'it{p}_{T} (GeV/#it{c})'
 
@@ -223,9 +232,9 @@ for iCanv in range(nCanvases):
     DivideCanvas(cResiduals[iCanv], nPads)
 
 massFitter = []
-for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumerate(zip(
-        hMass, ptMins, ptMaxs, fitConfig[cent]['Rebin'], SgnFunc, BkgFunc, \
-            inclSecPeak, fitConfig[cent]['MassMin'], fitConfig[cent]['MassMax'])):
+for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumerate(
+        zip(hMass, ptMins, ptMaxs, fitConfig[cent]['Rebin'], SgnFunc, BkgFunc, inclSecPeak, fitConfig[cent]['MassMin'],
+            fitConfig[cent]['MassMax'])):
 
     iCanv = np.floor(iPt / nMaxCanvases)
 
@@ -365,8 +374,17 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                 massFitter[iPt].SetInitialGaussianSigma(0.008)
 
         if secPeak and mesonName == 'Ds':
-            # TODO: add possibility to fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
-            massFitter[iPt].IncludeSecondGausPeak(massDplus, False, 0.008, True)
+            if hSigmaToFixSecPeak:
+                sigmaToFix = hSigmaToFixSecPeak.GetBinContent(iPt+1) * fitConfig[cent]['SigmaMultFactorSecPeak']
+                massFitter[iPt].IncludeSecondGausPeak(massDplus, False, sigmaToFix, True)
+                if fitConfig[cent]['FixSigmaToFirstPeak']:
+                    # fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
+                    massFitter[iPt].MassFitter(False)
+                    sigmaFirstPeak = massFitter[iPt].GetSigma()
+                    sigmaRatioMC = hSigmaToFixSecPeak.GetBinContent(iPt+1) / hSigmaFirstPeakMC.GetBinContent(iPt+1)
+                    massFitter[iPt].IncludeSecondGausPeak(massDplus, False, sigmaRatioMC * sigmaFirstPeak, True)
+            else:
+                massFitter[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig[cent]['SigmaSecPeak'][iPt], True)
         massFitter[iPt].MassFitter(False)
 
         rawyield = massFitter[iPt].GetRawYield()

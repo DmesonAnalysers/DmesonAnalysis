@@ -12,9 +12,9 @@ Cent010:
     Rebin: [3, 4, 4, 4, 4, 4, 4, 5, 5, 6]
     InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
     SigmaSecPeak: [0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008]
-    SigmaFileSecPeak: ''
+    SigmaFileSecPeak: '/home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/raw_yields/RawYieldsDs_MC_010_pt2_50.root'
     SigmaMultFactorSecPeak: 1.
-    FixSigmaToFirstPeak: 0
+    FixSigmaToFirstPeak: 1
     UseLikelihood: 1
     BkgFunc: ['kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
     SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
