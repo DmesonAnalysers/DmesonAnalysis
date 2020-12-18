@@ -16,9 +16,9 @@ def main(): #pylint: disable=too-many-statements
     """
     SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14, titleoffsety=1.6, maxdigits=2, optstat=0)
 
-    BR_dsPhitoKKpi = 0.0227
-    BR_BtoDs = np.array([0.09, 0.117, 0.93, 0.011]) # B+, B0, Bs, Lb
-    FF_btoB = np.array([0.34, 0.34, 0.101, 0.218]) # B+, B0, Bs, Lb
+    BR_dsPhitoKKpi = 0.0224 # (PDG 2020)
+    BR_BtoDs = np.array([0.09, 0.117, 0.93, 0.011]) # B+, B0, Bs, Lb (PDG 2020)
+    FF_btoB = np.array([0.344, 0.344, 0.115, 0.198]) # B+, B0, Bs, Lb (PDG 2020 from ppbar collisions)
     Ds_from_B = np.inner(BR_BtoDs, FF_btoB)
     cooked_factor = Ds_from_B * BR_dsPhitoKKpi
 
