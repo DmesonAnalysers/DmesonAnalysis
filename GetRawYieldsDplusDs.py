@@ -61,9 +61,15 @@ for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]
     elif bkg == 'kPol3':
         BkgFunc.append(6)
         degPol[-1] = 3
+        if len(ptMins) > 1:
+            print('ERROR: Pol3 and Pol4 fits work only with one bin at the moment! Exit')
+            sys.exit()
     elif bkg == 'kPol4':
         BkgFunc.append(6)
         degPol[-1] = 4
+        if len(ptMins) > 1:
+            print('ERROR: Pol3 and Pol4 fits work only with one bin at the moment! Exit')
+            sys.exit()
     else:
         print('ERROR: only kExpo, kLin, kPol2, kPol3, and kPol4 background functions supported! Exit')
         sys.exit()
@@ -505,7 +511,6 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
 
     cMass[iCanv].Modified()
     cMass[iCanv].Update()
-
     cResiduals[iCanv].Modified()
     cResiduals[iCanv].Update()
 
