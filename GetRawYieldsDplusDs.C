@@ -101,11 +101,19 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         {
             BkgFunc[iPt] = 6;
             degPol[iPt] = 3;
+            if (PtMin.size() > 1) {
+                cerr << "Pol3 and Pol4 fits work only with one bin at the moment! Exit" << endl;
+                return -1;
+            }
         }
         else if(bkgfunc[iPt] == "kPol4")
         {
             BkgFunc[iPt] = 6;
             degPol[iPt] = 4;
+            if (PtMin.size() > 1) {
+                cerr << "Pol3 and Pol4 fits work only with one bin at the moment! Exit" << endl;
+                return -1;
+            }
         }
         else
         {
@@ -563,10 +571,6 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                     cResiduals[iCanv]->cd();
                 massFitter->DrawHistoMinusFit(gPad);
             }
-
-            // plotting issue not understood when used high degree polynomials for at least one pT bin
-            auto bkgFunc = massFitter->GetBackgroundFullRangeFunc();
-            delete bkgFunc;
         }
         cMass[iCanv]->Modified();
         cMass[iCanv]->Update();
