@@ -554,7 +554,7 @@ if not args.isMC:
 outFile.Close()
 
 outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-outFileNameResPDF = outFileNamePDF.replace('.root', '_Residuals.pdf')
+outFileNameResPDF = outFileNamePDF.replace('.pdf', '_Residuals.pdf')
 for iCanv, (cM, cR) in enumerate(zip(cMass, cResiduals)):
     if iCanv == 0 and nCanvases > 1:
         cM.SaveAs(f'{outFileNamePDF}[')
