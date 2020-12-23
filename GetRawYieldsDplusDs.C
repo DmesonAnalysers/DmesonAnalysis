@@ -101,8 +101,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         {
             BkgFunc[iPt] = 6;
             degPol[iPt] = 3;
-            if (PtMin.size() > 1) {
-                cerr << "Pol3 and Pol4 fits work only with one bin at the moment! Exit" << endl;
+            if (PtMin.size() > 1 && InclSecPeak[iPt] == 1) {
+                cerr << "Pol3 and Pol4 fits work only with one bin if you have the secondary peak! Exit!" << endl;
                 return -1;
             }
         }
@@ -110,8 +110,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         {
             BkgFunc[iPt] = 6;
             degPol[iPt] = 4;
-            if (PtMin.size() > 1) {
-                cerr << "Pol3 and Pol4 fits work only with one bin at the moment! Exit" << endl;
+            if (PtMin.size() > 1 && InclSecPeak[iPt] == 1) {
+                cerr << "Pol3 and Pol4 fits work only with one bin if you have the secondary peak! Exit!" << endl;
                 return -1;
             }
         }
