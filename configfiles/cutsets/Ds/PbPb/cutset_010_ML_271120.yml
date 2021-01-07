@@ -8,7 +8,7 @@ cutvars:
         max: [3., 4., 5., 6., 8., 12., 16., 24., 36., 50.]
         name: 'Pt'
     BDTout:
-        axisnum: 2
+        axisnum: 13 # 2 if the reduced number of variables is used
         min: [0.9986, 0.9981, 0.9985, 0.9985, 0.9985, 0.997, 0.98, 0.97, 0.98, 0.95]
         max: [1., 1., 1., 1., 1., 1., 1., 1., 1., 1.]
         name: 'BDToutput'
