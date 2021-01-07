@@ -1,3 +1,5 @@
+channel: Ds # options [Ds, Dplus, LctopKpi, LctopK0s, LctopiL]
+
 infile:
     isMC: 0
     filename: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/data/AnalysisResults_Dspp5TeV_pT_1_50.root]

@@ -1,3 +1,5 @@
+channel: Ds # options [Ds, Dplus, LctopKpi, LctopK0s, LctopiL]
+
 infile:
     isMC: 1
     filename: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/LHC20a8/AnalysisResultsDsMC_LHC20a8_Tot.root]

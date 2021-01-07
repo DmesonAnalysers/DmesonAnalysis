@@ -11,13 +11,24 @@ import yaml
 sys.path.append('..')
 from utils.DfUtils import WriteTree, FilterBitDf, LoadDfFromRootOrParquet, GetMind0 #pylint: disable=wrong-import-position,import-error
 
-
+# common bits
 bitSignal = 0
 bitBkg = 1
 bitPrompt = 2
 bitFD = 3
 bitRefl = 4
-bitSecPeak = 9
+# channel specific bits
+# Ds
+bitSecPeakDs = 9
+# LctopK0s
+bitLctopK0s = 9
+# LctopiL
+bitLctopiL = 10
+# LctopKpi
+bitLcNonRes = 9
+bitLcLambda1520 = 10
+bitLcKStar = 11
+bitLcDelta = 12
 
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('configfile', metavar='text', default='cfgFileName.yml',
@@ -29,6 +40,11 @@ args = parser.parse_args()
 print('Opening input file')
 with open(args.configfile, 'r') as ymlCfgFile:
     cfg = yaml.load(ymlCfgFile, yaml.FullLoader)
+
+channel = cfg['channel']
+if channel not in ['Ds', 'Dplus', 'LctopKpi', 'LctopK0s', 'LctopiL']:
+    print('Error: only Ds, Dplus, LctopKpi, LctopK0s, and LctopiL channels are implemented! Exit')
+    sys.exit()
 
 inFileNames = cfg['infile']['filename']
 inDirName = cfg['infile']['dirname']
@@ -78,85 +94,59 @@ if cfg['singletrackvars'] and cfg['singletrackvars']['addAODfiltervars']:
                 [x['imp_par_prong0'], x['imp_par_prong1'], x['imp_par_prong2']], 2), axis=1)
             colsToKeep.append('imp_par_min_ptgtr2')
 
-if isMC:
-    print('Getting bkg dataframe')
-    dataFramePtCutSelBkg = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitBkg])
-    print('Getting prompt dataframe')
-    dataFramePtCutSelPrompt = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitPrompt], 'and')
-    dataFramePtCutSelPrompt = FilterBitDf(dataFramePtCutSelPrompt, 'cand_type', [bitRefl], 'not')
-    print('Getting FD dataframe')
-    dataFramePtCutSelFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitFD], 'and')
-    dataFramePtCutSelFD = FilterBitDf(dataFramePtCutSelFD, 'cand_type', [bitRefl], 'not')
-    print('Getting reflected prompt dataframe')
-    dataFramePtCutSelPromptRefl = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitPrompt, bitRefl], 'and')
-    print('Getting reflected signal dataframe')
-    dataFramePtCutSelFDRefl = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSignal, bitFD, bitRefl], 'and')
-    print('Getting second-peak prompt dataframe')
-    dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitPrompt], 'and')
-    dataFramePtCutSelSecPeakPrompt = FilterBitDf(dataFramePtCutSelSecPeakPrompt, 'cand_type', [bitRefl], 'not')
-    print('Getting second-peak FD dataframe')
-    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSel, 'cand_type', [bitSecPeak, bitFD], 'and')
-    dataFramePtCutSelSecPeakFD = FilterBitDf(dataFramePtCutSelSecPeakFD, 'cand_type', [bitRefl], 'not')
-    del dataFramePtCutSel
+bitsForSel, labelsContr = ({} for _ in range(2))
+labelsContr = {'bkg': 'Bkg', 'prompt_sig': 'Prompt', 'FD_sig': 'FD',
+               'prompt_sig_refl': 'PromptRefl', 'FD_sig_refl': 'FDRefl',
+               'prompt_sec_peak': 'SecPeakPrompt', 'FD_sec_peak': 'SecPeakFD',
+               'prompt_sig_nonreso': 'PromptNonRes', 'FD_sig_nonreso': 'FDNonRes',
+               'prompt_sig_Lambda1520': 'PromptLambda1520', 'FD_sig_Lambda1520': 'FDLambda1520',
+               'prompt_sig_KStar': 'PromptKStar', 'FD_sig_KStar': 'FDKStar',
+               'prompt_sig_Delta': 'PromptDelta', 'FD_sig_Delta': 'FDDelta'}
 
-    if args.root:
-        if not dataFramePtCutSelBkg.empty:
-            print('Saving bkg tree')
-            WriteTree(dataFramePtCutSelBkg, colsToKeep, outTreeName,
-                      f'{outDirName}/Bkg{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-        if not dataFramePtCutSelPrompt.empty:
-            print('Saving prompt tree')
-            WriteTree(dataFramePtCutSelPrompt, colsToKeep, outTreeName,
-                      f'{outDirName}/Prompt{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-        if not dataFramePtCutSelFD.empty:
-            print('Saving FD tree')
-            WriteTree(dataFramePtCutSelFD, colsToKeep, outTreeName,
-                      f'{outDirName}/FD{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-        if not dataFramePtCutSelPromptRefl.empty:
-            print('Saving prompt refl tree')
-            WriteTree(dataFramePtCutSelPromptRefl, colsToKeep, outTreeName,
-                      f'{outDirName}/PromptRefl{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-        if not dataFramePtCutSelFDRefl.empty:
-            print('Saving FD refl tree')
-            WriteTree(dataFramePtCutSelFDRefl, colsToKeep, outTreeName,
-                      f'{outDirName}/FDRefl{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-        if not dataFramePtCutSelSecPeakPrompt.empty:
-            print('Saving prompt tree')
-            WriteTree(dataFramePtCutSelSecPeakPrompt, colsToKeep, outTreeName,
-                      f'{outDirName}/SecPeakPrompt{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-        if not dataFramePtCutSelSecPeakFD.empty:
-            print('Saving FD tree')
-            WriteTree(dataFramePtCutSelSecPeakFD, colsToKeep, outTreeName,
-                      f'{outDirName}/SecPeakFD{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-    else:
-        if not dataFramePtCutSelBkg.empty:
-            print('Saving bkg parquet')
-            dataFramePtCutSelBkg[colsToKeep].to_parquet(\
-                f'{outDirName}/Bkg{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
-        if not dataFramePtCutSelPrompt.empty:
-            print('Saving prompt parquet')
-            dataFramePtCutSelPrompt[colsToKeep].to_parquet(\
-                f'{outDirName}/Prompt{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
-        if not dataFramePtCutSelFD.empty:
-            print('Saving FD parquet')
-            dataFramePtCutSelFD[colsToKeep].to_parquet(\
-                f'{outDirName}/FD{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
-        if not dataFramePtCutSelPromptRefl.empty:
-            print('Saving prompt refl parquet')
-            dataFramePtCutSelPromptRefl[colsToKeep].to_parquet(\
-                f'{outDirName}/PromptRefl{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
-        if not dataFramePtCutSelFDRefl.empty:
-            print('Saving FD refl parquet')
-            dataFramePtCutSelFDRefl[colsToKeep].to_parquet(\
-                f'{outDirName}/FDRefl{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
-        if not dataFramePtCutSelSecPeakPrompt.empty:
-            print('Saving prompt parquet')
-            dataFramePtCutSelSecPeakPrompt[colsToKeep].to_parquet(\
-                f'{outDirName}/SecPeakPrompt{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
-        if not dataFramePtCutSelSecPeakFD.empty:
-            print('Saving FD parquet')
-            dataFramePtCutSelSecPeakFD[colsToKeep].to_parquet(\
-                f'{outDirName}/SecPeakFD{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
+if isMC:
+    if 'Ds' in channel:
+        bitsForSel = {'bkg': [bitBkg],
+                      'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD],
+                      'prompt_sig_refl': [bitSignal, bitPrompt, bitRefl], 'FD_sig_refl': [bitSignal, bitFD, bitRefl],
+                      'prompt_sec_peak': [bitSecPeakDs, bitPrompt], 'FD_sec_peak': [bitSecPeakDs, bitFD]}
+    elif 'Dplus' in channel:
+        bitsForSel = {'bkg': [bitBkg], 'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD]}
+    elif 'LctopKpi' in channel:
+        bitsForSel = {'bkg': [bitBkg],
+                      'prompt_sig_nonreso': [bitSignal, bitLcNonRes, bitPrompt],
+                      'FD_sig_nonreso': [bitSignal, bitLcNonRes, bitFD],
+                      'prompt_sig_Lambda1520': [bitSignal, bitLcLambda1520, bitPrompt],
+                      'FD_sig_Lambda1520': [bitSignal, bitLcLambda1520, bitFD],
+                      'prompt_sig_KStar': [bitSignal, bitLcKStar, bitPrompt],
+                      'FD_sig_KStar': [bitSignal, bitLcKStar, bitFD],
+                      'prompt_sig_Delta': [bitSignal, bitLcDelta, bitPrompt],
+                      'FD_sig_Delta': [bitSignal, bitLcDelta, bitFD],
+                      'prompt_sig_refl': [bitSignal, bitPrompt, bitRefl], 'FD_sig': [bitSignal, bitFD, bitRefl]}
+    elif 'LctopK0s' in channel:
+        bitsForSel = {'bkg': [bitBkg],
+                      'prompt_sig': [bitSignal, bitLctopK0s, bitPrompt], 'FD_sig': [bitSignal, bitLctopK0s, bitFD]}
+    elif 'LctopiL' in channel:
+        bitsForSel = {'bkg': [bitBkg],
+                      'prompt_sig': [bitSignal, bitLctopiL, bitPrompt], 'FD_sig': [bitSignal, bitLctopiL, bitFD]}
+
+    for contr in bitsForSel:
+        print(f'Getting {labelsContr[contr]} dataframe')
+        dataFramePtCutSelContr = FilterBitDf(dataFramePtCutSel, 'cand_type', bitsForSel[contr], 'and')
+        # always check that it is not reflected, unless is the reflection contribution
+        if 'refl' not in contr:
+            dataFramePtCutSelContr = FilterBitDf(dataFramePtCutSelContr, 'cand_type', [bitRefl], 'not')
+
+        if args.root:
+            if not dataFramePtCutSelContr.empty:
+                print(f'Saving {labelsContr[contr]} tree')
+                WriteTree(dataFramePtCutSelContr, colsToKeep, outTreeName,
+                        f'{outDirName}/{labelsContr[contr]}{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
+        else:
+            if not dataFramePtCutSelContr.empty:
+                print(f'Saving {labelsContr[contr]} parquet')
+                dataFramePtCutSelContr[colsToKeep].to_parquet(
+                    f'{outDirName}/{labelsContr[contr]}{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip',
+                    compression='gzip')
 else:
     if args.root:
         print('Saving data tree')

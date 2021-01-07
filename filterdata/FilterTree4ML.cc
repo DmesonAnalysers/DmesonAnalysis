@@ -2,8 +2,10 @@
 #if !defined (__CINT__) || defined (__CLING__)
 
 #include <vector>
+#include <map>
 #include <string>
 #include <iostream>
+#include <algorithm>
 #include "yaml-cpp/yaml.h"
 
 #include <TFile.h>
@@ -13,6 +15,7 @@
 #endif
 
 using std::vector;
+using std::map;
 using std::string;
 using std::cout;
 using std::cerr;
@@ -26,17 +29,36 @@ using std::endl;
 //______________________________________________________________________________________________
 void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
 {
-    const int bitSignal  = BIT(0);
-    const int bitBkg     = BIT(1);
-    const int bitPrompt  = BIT(2);
-    const int bitFD      = BIT(3);
-    const int bitRefl    = BIT(4);
-    const int bitSecPeak = BIT(9);
+    // Common bits
+    const int bitSignal       = BIT(0);
+    const int bitBkg          = BIT(1);
+    const int bitPrompt       = BIT(2);
+    const int bitFD           = BIT(3);
+    const int bitRefl         = BIT(4);
+    // Channel specific bits
+    // Ds
+    const int bitSecPeakDs    = BIT(9);
+    // LctopK0s
+    const int bitLctopK0s     = BIT(9);
+    // LctopiL
+    const int bitLctopiL      = BIT(10);
+    // LctopKpi
+    const int bitLcNonRes     = BIT(9);
+    const int bitLcLambda1520 = BIT(10);
+    const int bitLcKStar      = BIT(11);
+    const int bitLcDelta      = BIT(12);
 
-    //Load configs from yaml file
+    // Load configs from yaml file
     YAML::Node config = YAML::LoadFile(cfgFileName.Data());
     if (config.IsNull()) {
-        cerr << "Yaml config file not found! Exit" << endl;
+        cerr << "Error: Yaml config file not found! Exit" << endl;
+        return;
+    }
+
+    vector<string> channels = {"Ds", "Dplus", "LctopKpi", "LctopK0s", "LctopLi"};
+    string channel = config["channel"].as<string>();
+    if (std::find(channels.begin(), channels.end(), channel) == channels.end()) {
+        cerr << "Error: only Ds, Dplus, LctopKpi, LctopK0s, and LctopiL channels are implemented! Exit" << endl;
         return;
     }
 
@@ -62,17 +84,17 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     double PtMin = config["skimming"]["pt"]["min"].as<double>();
     double PtMax = config["skimming"]["pt"]["max"].as<double>();
 
-    ROOT::EnableImplicitMT(); //tell ROOT to go parallel
+    ROOT::EnableImplicitMT(); // tell ROOT to go parallel
     ROOT::RDataFrame dataFrame(Form("%s/%s", inDirName.data(), inTreeName.data()), inFileNames);
     
     if(colsToKeep.size() == 0)
     {
         colsToKeep = dataFrame.GetColumnNames();
-        std::remove(colsToKeep.begin(), colsToKeep.end(), "cand_type"); //just remove cand_type if not explicitly kept
+        std::remove(colsToKeep.begin(), colsToKeep.end(), "cand_type"); // just remove cand_type if not explicitly kept
         colsToKeep.pop_back();
     }
 
-    //select desired pT bin
+    // Select desired pT bin
     cout << "Applying selections" << endl;
     TString totsel = Form("pt_cand > %f && pt_cand < %f", PtMin, PtMax);
     if(preSelections != "")
@@ -82,6 +104,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
     }
     auto dataFramePtCutSel = dataFrame.Filter(totsel.Data());
 
+    // Add single track variables as those used in AOD filtering
     auto ptMinFormula = [](float pt0, float pt1, float pt2)
     {
         vector<float> ptVec = {pt0, pt1, pt2};
@@ -109,92 +132,68 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         colsToKeep.push_back("imp_par_min_ptgtr2");
     }
 
+    std::map<string, string> labelsContr = {{"bkg", "Bkg"}, {"prompt_sig", "Prompt"}, {"FD_sig", "FD"},
+                                            {"prompt_sig_refl", "PromptRefl"}, {"FD_sig_refl", "FDRefl"},
+                                            {"prompt_sec_peak", "SecPeakPrompt"}, {"FD_sec_peak", "SecPeakFD"},
+                                            {"prompt_sig_nonreso", "PromptNonRes"}, {"FD_sig_nonreso", "FDNonRes"},
+                                            {"prompt_sig_Lambda1520", "PromptLambda1520"}, {"FD_sig_Lambda1520", "FDLambda1520"},
+                                            {"prompt_sig_KStar", "PromptKStar"}, {"FD_sig_KStar", "FDKStar"},
+                                            {"prompt_sig_Delta", "PromptDelta"}, {"FD_sig_Delta", "FDDelta"}};
+    std::map<string, string> bitsForSel{};
+
     if(isMC)
     {
-        cout << "Getting bkg dataframe" << endl;
-        auto dataFramePtCutSelBkg = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0", bitBkg));
-        cout << "Getting prompt dataframe" << endl;
-        auto dataFramePtCutSelPrompt = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl));
-        cout << "Getting FD dataframe" << endl;
-        auto dataFramePtCutSelFD = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl));
-        cout << "Getting reflected prompt dataframe" << endl;
-        auto dataFramePtCutSelPromptRefl = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitPrompt, bitRefl));
-        cout << "Getting reflected signal dataframe" << endl;
-        auto dataFramePtCutSelFDRefl = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitFD, bitRefl));
-        cout << "Getting second-peak prompt dataframe" << endl;
-        auto dataFramePtCutSelSecPeakPrompt = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeak, bitPrompt, bitRefl));
-        cout << "Getting second-peak FD dataframe" << endl;
-        auto dataFramePtCutSelSecPeakFD = dataFramePtCutSel.Filter(Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeak, bitFD, bitRefl));
+        if(channel == "Ds") {
+            bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
+            bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl);
+            bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl);
+            bitsForSel["prompt_sig_refl"]       = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitPrompt, bitRefl);
+            bitsForSel["FD_sig_refl"]           = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitFD, bitRefl);
+            bitsForSel["prompt_sec_peak"]       = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeakDs, bitPrompt, bitRefl);
+            bitsForSel["FD_sec_peak"]           = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeakDs, bitFD, bitRefl);
+        }
+        else if(channel == "Dplus") {
+            bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
+            bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl);
+            bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl);
+        }
+        else if(channel == "LctopKpi") {
+            bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
+            bitsForSel["prompt_sig_nonreso"]    = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLcNonRes, bitPrompt, bitRefl);
+            bitsForSel["FD_sig_nonreso"]        = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLcNonRes, bitFD, bitRefl);
+            bitsForSel["prompt_sig_Lambda1520"] = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLcLambda1520, bitPrompt, bitRefl);
+            bitsForSel["FD_sig_Lambda1520"]     = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLcLambda1520, bitFD, bitRefl);
+            bitsForSel["prompt_sig_KStar"]      = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLcKStar, bitPrompt, bitRefl);
+            bitsForSel["FD_sig_KStar"]          = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLcKStar, bitFD, bitRefl);
+            bitsForSel["prompt_sig_Delta"]      = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLcDelta, bitPrompt, bitRefl);
+            bitsForSel["FD_sig_Delta"]          = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLcDelta, bitFD, bitRefl);
+            bitsForSel["prompt_sig_refl"]       = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitPrompt, bitRefl);
+            bitsForSel["FD_sig_refl"]           = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitFD, bitRefl);
+        }
+        else if(channel == "LctopK0s") {
+            bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
+            bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLctopK0s, bitPrompt, bitRefl);
+            bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLctopK0s, bitFD, bitRefl);
+        }
+        else if(channel == "LctopiL") {
+            bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
+            bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLctopK0s, bitPrompt, bitRefl);
+            bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLctopK0s, bitFD, bitRefl);
+        }
 
-        if(*dataFramePtCutSelBkg.Count() > 0)
-        {
-            cout << "Saving bkg tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
-                dataFramePtCutSelBkg.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
-                                    .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
-                                    .Snapshot(outTreeName.data(), Form("%s/Bkg%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-            else
-                dataFramePtCutSelBkg.Snapshot(outTreeName.data(), Form("%s/Bkg%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-        }
-        if(*dataFramePtCutSelPrompt.Count() > 0)
-        {
-            cout << "Saving prompt tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
-                dataFramePtCutSelPrompt.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
-                                       .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
-                                       .Snapshot(outTreeName.data(), Form("%s/Prompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-            else
-                dataFramePtCutSelPrompt.Snapshot(outTreeName.data(), Form("%s/Prompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-        }
-        if(*dataFramePtCutSelFD.Count() > 0)
-        {
-            cout << "Saving FD tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
-                dataFramePtCutSelFD.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
-                                   .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
-                                   .Snapshot(outTreeName.data(), Form("%s/FD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-            else
-                dataFramePtCutSelFD.Snapshot(outTreeName.data(), Form("%s/FD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-        }
-        if(*dataFramePtCutSelPromptRefl.Count() > 0)
-        {    
-            cout << "Saving prompt reflected tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
-                dataFramePtCutSelPromptRefl.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
-                                           .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
-                                           .Snapshot(outTreeName.data(), Form("%s/PromptRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-            else
-                dataFramePtCutSelPromptRefl.Snapshot(outTreeName.data(), Form("%s/PromptRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-        }
-        if(*dataFramePtCutSelFDRefl.Count() > 0)
-        {
-            cout << "Saving FD reflected tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"])
-                dataFramePtCutSelFDRefl.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
-                                       .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
-                                       .Snapshot(outTreeName.data(), Form("%s/FDRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-            else
-                dataFramePtCutSelFDRefl.Snapshot(outTreeName.data(), Form("%s/FDRefl%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-        }
-        if(*dataFramePtCutSelSecPeakPrompt.Count() > 0)
-        {
-            cout << "Saving prompt tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
-                dataFramePtCutSelSecPeakPrompt.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
-                                              .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
-                                              .Snapshot(outTreeName.data(), Form("%s/SecPeakPrompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-            else
-                dataFramePtCutSelSecPeakPrompt.Snapshot(outTreeName.data(), Form("%s/SecPeakPrompt%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-        }
-        if(*dataFramePtCutSelSecPeakFD.Count() > 0)
-        {
-            cout << "Saving FD tree" << endl;
-            if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
-                dataFramePtCutSelSecPeakFD.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
+        for(auto &contr: bitsForSel) {
+            cout << Form("Getting %s dataframe", labelsContr[contr.first].data()) << endl;
+            auto dataFramePtCutSelContr = dataFramePtCutSel.Filter(contr.second.data());
+            if(*dataFramePtCutSelContr.Count() > 0)
+            {
+                cout << "Saving bkg tree" << endl;
+                if(config["singletrackvars"]["addAODfiltervars"] && config["singletrackvars"]["addAODfiltervars"].as<int>())
+                    dataFramePtCutSelContr.Define("pt_prong_min", ptMinFormula, {"pt_prong0", "pt_prong1", "pt_prong2"})
                                           .Define("imp_par_min_ptgtr2", d0MinFormula, {"pt_prong0", "pt_prong1", "pt_prong2", "imp_par_prong0", "imp_par_prong1", "imp_par_prong2"})
-                                          .Snapshot(outTreeName.data(), Form("%s/SecPeakFD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
-            else
-                dataFramePtCutSelSecPeakFD.Snapshot(outTreeName.data(), Form("%s/SecPeakFD%s_pT_%0.f_%0.f.root", outDirName.data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+                                          .Snapshot(outTreeName.data(), Form("%s/%s%s_pT_%0.f_%0.f.root", outDirName.data(), labelsContr[contr.first].data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+                else
+                    dataFramePtCutSelContr.Snapshot(outTreeName.data(), Form("%s/%s%s_pT_%0.f_%0.f.root", outDirName.data(), labelsContr[contr.first].data(), outSuffix.data(), PtMin, PtMax), colsToKeep);
+            }
         }
     }
     else
