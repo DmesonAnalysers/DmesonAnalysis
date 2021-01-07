@@ -1,0 +1,28 @@
+channel: LctopK0s # options [Ds, Dplus, LctopKpi, LctopK0s, LctopiL]
+
+infile:
+    isMC: 1
+    filename: [~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a7/cent/LHC17p/AnalysisResults_LctoV0bachelor.root, ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a7/cent/LHC17q/AnalysisResults_LctoV0bachelor.root, ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a7/fast/LHC17p/AnalysisResults_LctoV0bachelor.root, ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a7/fast/LHC17q/AnalysisResults_LctoV0bachelor.root, ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a8/cent/LHC17p/AnalysisResults_LctoV0bachelor.root, ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a8/cent/LHC17q/AnalysisResults_LctoV0bachelor.root, ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a8/fast/LHC17p/AnalysisResults_LctoV0bachelor.root, ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC20a8/fast/LHC17q/AnalysisResults_LctoV0bachelor.root]
+    dirname: PWGHF_D2H_NonPromptLctopK0sLoose
+    treename: treeMLLc
+
+outfile:
+    dirpath: '../../AnalysisNonPromptLcpp2017/inputs/MC/LHC20a7-8'
+    suffix: _LctopK0spp5TeV_LHC20a7-8
+    treename: treeMLLc
+    
+skimming:
+    pt:
+        min: 2
+        max: 16
+    preselections: nsigTPC_Pi_0 > 0 and nsigTPC_Pr_0 > 0 and KF_chi2_topo < 100 and armenteros_V0 < 2000 and cos_p_V0 > 0.99 and d_len < 500 and delta_mass_K0s < 0.5 #null if you don't want to apply preselections
+    colstokeep: [inv_mass, pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, KF_chi2_topo, nsigComb_Pi_0, nsigComb_Pr_0, nsigTPC_Pi_0, nsigTPC_Pr_0, nsigTOF_Pi_0, nsigTOF_Pr_0, signd0, delta_mass_K0s, imp_par_V0, d_len_V0, armenteros_V0, ctau_K0s, cos_p_V0, imp_par_prong0] #empty list if you want to keep everything
+
+singletrackvars:
+    addAODfiltervars: 0 # it adds min pt and min d0 of daughters with pt < 2
+
+missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
+    enable: 1
+    toreplace:
+        nsigTOF_Pi_0: -999.
+        nsigTOF_Pr_0: -999.
