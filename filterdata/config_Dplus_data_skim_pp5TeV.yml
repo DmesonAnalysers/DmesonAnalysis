@@ -1,3 +1,5 @@
+channel: Dplus # options [Ds, Dplus, LctopKpi, LctopK0s, LctopiL]
+
 infile:
     isMC: 0
     filename: [~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC17pq/AnalysisResults_Dplus_Loose_MB_Tree.root]

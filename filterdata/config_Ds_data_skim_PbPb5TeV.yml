@@ -1,3 +1,5 @@
+channel: Ds # options [Ds, Dplus, LctopKpi, LctopK0s, LctopiL]
+
 infile:
     isMC: 0
     filename: [~/DsPbPb_paper/input/AnalysisResults_Ds_3050_MLtree_LHC18qr_pass3_Tot.root]
