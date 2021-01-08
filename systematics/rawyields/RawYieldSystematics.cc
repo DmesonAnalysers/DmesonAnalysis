@@ -38,9 +38,8 @@
 int RawYieldSystematics(TString cfgFileName = "cfgFile.yml");
 double min(TH1F *histo);
 double max(TH1F *histo);
-int LoadRefFiles(std::string refFileName, std::string refFileNameMC,
-                 TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
-                 TH1F *&hMeanRef, TH1F *&hSigmaMC, TH1F *&hMeanMC);
+int LoadRefFiles(std::string refFileName, std::string refFileNameMC, TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
+                 TH1F *&hMeanRef, TH1F *&hSigmaSecPeakref, TH1F *&hSigmaMC, TH1F *&hMeanMC);
 void SetStyle();
 
 
@@ -89,10 +88,12 @@ int RawYieldSystematics(TString cfgFileName) {
     TH1F *hRawYieldRef = nullptr;
     TH1F *hSigmaRef = nullptr;
     TH1F *hMeanRef = nullptr;
+    TH1F *hSigmaSecPeakRef = nullptr;
     TH1F *hSigmaMC = nullptr;
     TH1F *hMeanMC = nullptr;
-    int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef, hSigmaMC, hMeanMC);
-    if (loadref > 0) {
+    int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef,
+                               hSigmaSecPeakRef, hSigmaMC, hMeanMC);
+    if (loadref > 0 || (mesonName == "Ds" && !hSigmaSecPeakRef)) {
         std::cerr << "ERROR: missing information in reference files! Check them please." << std::endl;
         return loadref;
     }
@@ -153,7 +154,7 @@ int RawYieldSystematics(TString cfgFileName) {
         multiTrial.SetUseLogLikelihoodFit();
         multiTrial.SetMass(mass);
         if(mesonName == "Ds")
-            multiTrial.IncludeSecondGausPeak(massDplus, true, 0.9*hSigmaMC->GetBinContent(iPt+1), true);
+            multiTrial.IncludeSecondGausPeak(massDplus, true, hSigmaSecPeakRef->GetBinContent(iPt+1), true);
 
         multiTrial.ConfigureLowLimFitSteps(mins.size(), mins.data());
         multiTrial.ConfigureUpLimFitSteps(maxs.size(), maxs.data());
@@ -604,21 +605,23 @@ double max(TH1F *histo) {
 
 
 //__________________________________________________________________________________________________________________
-int LoadRefFiles(std::string refFileName, std::string refFileNameMC,
-                 TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
-                 TH1F *&hMeanRef, TH1F *&hSigmaMC, TH1F *&hMeanMC) {
+int LoadRefFiles(std::string refFileName, std::string refFileNameMC, TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
+                 TH1F *&hMeanRef, TH1F *&hSigmaSecPeakRef, TH1F *&hSigmaMC, TH1F *&hMeanMC) {
 
     TFile *reffile = TFile::Open(refFileName.data());
     if (reffile) {
         hRawYieldRef = (TH1F *)reffile->Get("hRawYields");
         hSigmaRef = (TH1F *)reffile->Get("hRawYieldsSigma");
         hMeanRef = (TH1F *)reffile->Get("hRawYieldsMean");
+        hSigmaSecPeakRef = (TH1F *)reffile->Get("hRawYieldsSigmaSecondPeak");
         if (hRawYieldRef)
             hRawYieldRef->SetDirectory(0);
         if (hSigmaRef)
             hSigmaRef->SetDirectory(0);
         if (hMeanRef)
             hMeanRef->SetDirectory(0);
+        if(hSigmaSecPeakRef)
+            hSigmaSecPeakRef->SetDirectory(0);
         reffile->Close();
     }
 
