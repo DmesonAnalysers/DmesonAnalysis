@@ -177,8 +177,8 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         }
         else if(channel == "LctopiL") {
             bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
-            bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLctopK0s, bitPrompt, bitRefl);
-            bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLctopK0s, bitFD, bitRefl);
+            bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLctopiL, bitPrompt, bitRefl);
+            bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitLctopiL, bitFD, bitRefl);
         }
 
         for(auto &contr: bitsForSel) {
