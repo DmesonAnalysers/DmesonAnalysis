@@ -1,19 +1,19 @@
-# D<sub>s</sub><sup>+</sup> and D<sup>+</sup>-meson Analysis code
+# D<sub>s</sub><sup>+</sup>, D<sup>+</sup>-meson, and Λ<sub>c</sub><sup>+</sup> Analysis code
 
-Code for the measurement of D<sub>s</sub><sup>+</sup> and D<sup>+</sup>-meson *p*<sub>T</sub>-differential yields starting from the outputs of the [AliPhysics](https://github.com/alisw/AliPhysics) tasks [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx), using rectangular or ML selections
+Code for the measurement of D<sub>s</sub><sup>+</sup>, D<sup>+</sup>-meson p<sub>T</sub>, and Λ<sub>c</sub><sup>+</sup>-hadron p<sub>T</sub>-differential yields starting from the outputs of the [AliPhysics](https://github.com/alisw/AliPhysics) tasks [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx), [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx), and [AliAnalysisTaskSENonPromptLc.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSENonPromptLc.cxx), using rectangular or ML selections
 
 ## Run analysis tasks
 
 ### Creation of files with selections to be applied on the tasks
 * In the [cutobjects](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/cutobjects) folder all the macros needed to produce the cut-object files used in the tasks are stored
 
-### Run D<sup>+</sup> and D<sub>s</sub><sup>+</sup>tasks with private jobs
-The [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx) and [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx) tasks can be run with private jobs using the ```RunAnalysisDsDplusTask.C``` script in the ```runanalysistask``` folder:
+### Run D<sup>+</sup>, D<sub>s</sub><sup>+</sup>, and Λ<sub>c</sub><sup>+</sup> tasks with private jobs
+The [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx), [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx) and [AliAnalysisTaskSENonPromptLc.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSENonPromptLc.cxx) tasks can be run with private jobs using the ```RunAnalysisDplusDsLcTask.cc``` script in the ```runanalysistask``` folder:
 
 ```cpp
-root -l RunAnalysisDsDplusTask.cc+(TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
+root -l RunAnalysisDplusDsLcTask.cc+(TString configfilename = configfile.yml, TString runMode = "full", bool mergeviajdl = true)
 ```
-where ```configfile.yml``` is a configuration file (such as [runAnalysis_config_LHC17p_cent.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/runanalysistask/runAnalysis_config_LHC17p_cent.yml)) with the information about the dataset, the AliPhysics version, and the task options to be used. The tasks options include the possibility to create a tree for the ML studies or apply a ML model trained with [xgboost](https://xgboost.readthedocs.io/en/latest/) or [scikit learn](https://scikit-learn.org/stable/).
+where ```configfile.yml``` is a configuration file (such as [runAnalysis_config_LHC17p_cent.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/runanalysistask/runAnalysis_config_LHC17p_cent.yml)) with the information about the dataset, the AliPhysics version, and the task options to be used. The tasks options include the possibility to create a tree for the ML studies or apply a ML model trained with [xgboost](https://xgboost.readthedocs.io/en/latest/) or [scikit learn](https://scikit-learn.org/stable/). The ML model application is not supported by the Λ<sub>c</sub><sup>+</sup> task.
 
 ### Train output merge
 * The by-hand merge of unmerged outputs of a [ALICE analysis train](http://alimonitor.cern.ch/map.jsp) or private jobs can be performed with the script in the ```merge``` folder:
@@ -21,9 +21,6 @@ where ```configfile.yml``` is a configuration file (such as [runAnalysis_config_
 python3 MergeTrainOutputs.py files_to_merge.yml
 ```
 where ```files_to_merge.yml``` is the configuration file containing the information about the outputs that has to be merged such as [files_to_merge_LHC18q.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/merge/files_to_merge_LHC18q.yml)
-
-## Machine Learning analsyis for D-meson candidate selections
-*To be added*
 
 ## Main analysis with THnSparses
 
@@ -56,7 +53,10 @@ or
 ```python3
 python3 FilterTrees4ML.py configfile.yml
 ```
-where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the input files, the preselections to apply, the features to keep and the output files. The output files are by default ```root``` files. In the case of the python script, if the ```--parquet``` option is used, the output data are saved into ```parquet``` files instead of ```root``` files. 
+where ```configfile.yml``` is a configuration file (such as [config_Dplus_data_skim_pp5TeV.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/filterdata/config_Dplus_data_skim_pp5TeV.yml)) that contains the information about the decay channel, the input files, the preselections to apply, the features to keep and the output files. The output files are by default ```root``` files in the c++ script and ```parquet``` in the python script. If the ```--root``` option is used, the output data are saved into ```root``` files instead of ```parquet``` files. 
+
+## Machine Learning analsyis for D-meson candidate selections
+*To be added*
 
 ### Projection of invariant-mass distributions from TTrees
 * Project the TTree or dataframe with the desired selections into invariant-mass distributions (TH1F):
@@ -73,7 +73,7 @@ The following steps can be performed after having projected THnSparse or TTree (
 
 ### Raw yield extraction
 To perform raw-yield extraction either a ROOT or a python script can be used.
-* ROOT:
+* c++:
 ```cpp
 root -l GetRawYieldsDplusDs.C+(int cent, bool isMC = false, TString infilename = "distributions.root", TString cfgfilename = "config_Fit.yml", TString outFileName = "output.root")
 ```
@@ -102,7 +102,7 @@ both can be run with the ```--batch``` argument to avoid the canvas window
 ## Standard analysis with theory-driven prompt fraction evaluation
 ### Cross section
 
-* For the computation of the cross section, a modified version of [HFPtSpectrum.C](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/macros/HFPtSpectrum.C) present in this repository, is used:
+* For the computation of the cross section, a modified version of [HFPtSpectrum.C](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/macros/HFPtSpectrum.C) present in this repository, is used
 
 ### Nuclear modification factor
 
@@ -111,13 +111,6 @@ both can be run with the ```--batch``` argument to avoid the canvas window
 ### Corrected yield
 
 * For the computation of the *p*<sub>T</sub>-differential corrected yields, a modified version of [ComputeDmesonYield.C](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/macros/ComputeDmesonYield.C) present in this repository, is used
-
-### Run full analysis
-* To run the full analysis, from the raw-yield extraction to the nuclear modification factor and the corrected yields the script
-```sh
-sh RunFullAnalysis.sh
-```
-can be used by setting some hard-coded parameters
 
 ## Analysis with data-driven evaluation of prompt / feed-down fraction
 ### Prompt / feed-down fraction
@@ -133,7 +126,14 @@ where ```cfgFileName.yml``` is a configuration file such as [config_Dplus_Prompt
 ```python3
 python3 ComputeDataDrivenCrossSection.py rawYieldFile.root effAccFile.root fracFile.root outFile.root [--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy] [--batch]
 ```
-where ```rawYieldFile.root```, ```effAccFile.root```, ```fracFile.root``` are the ROOT files containing the raw yields, the acceptance-times-efficiency factors, and the fraction of prompt (feed-down) D mesons estimated with the cut-variation method (previous paragraph), while ```outFile.root``` is the ROOT output file. The optional parameters are needed to define wether the prompt or the feed-down cross section should be computed for the D<sub>s</sub><sup>+</sup> or D<sup>+</sup> meson, the system (```pp``` or ```Pb-Pb```) and the centre-of-mass energy.
+where ```rawYieldFile.root```, ```effAccFile.root```, ```fracFile.root``` are the root files containing the raw yields, the acceptance-times-efficiency factors, and the fraction of prompt (feed-down) D mesons estimated with the cut-variation method (previous paragraph), while ```outFile.root``` is the ROOT output file. The optional parameters are needed to define wether the prompt or the feed-down cross section should be computed for the D<sub>s</sub><sup>+</sup> or D<sup>+</sup> meson, the system (```pp``` or ```Pb-Pb```) and the centre-of-mass energy.
+
+## Run full analysis
+* To run the full analysis escept for the ML part, from the raw-yield extraction to the nuclear modification factor and the corrected yields, the script
+```sh
+sh RunFullAnalysis.sh
+```
+can be used by setting some hard-coded parameters
 
 ## Significance optimisation
 ### Optimisation with TTrees
@@ -142,21 +142,6 @@ where ```rawYieldFile.root```, ```effAccFile.root```, ```fracFile.root``` are th
 python3 ScanSelectionsTree.py cfgFileName.yml outFileName.root
 ```
 where ```cfgFileName.yml``` is a yaml config file containing all the information about the input data to be used and the selections to be tested, such as [config_Dplus_pp5TeV_Optimisation.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/optimisation/config_Dplus_pp5TeV_Optimisation.yml). If the number of variables tested are less or equal 2 (i.e. ML outputs), the script produces plots with expected quantities as a function of the applied selections. In any case, a ntuple with all the expected quantities and the values of applied selections is produced and stored in the output file. 
-
-### Optimisation with THnSparses
-*Outdated - do not use*
-
-* Compute expected significance for all combinations of different selection criteria:
-```python3
-python3 ScanSignificanceSparse.py configfile.yml output.root
-```
-where ```configfile.yml``` is a configuration file such as [config_Ds_010_SignOpt.yml](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/configfiles/config_Ds_010_SignOpt.yml) 
-
-* Project ntuple with expected significance as a function of relevant variables:
-```python3
-python3 ProjectSignifNtuple.py configfile.yml input.root PtMin PtMax minSignificance maxSignificance minEffPrompt maxEffPrompt
-```
-where the input file ```input.root``` is the one produced in the previous step
 
 ## Systematic uncertainties
 All the code for the evaluation of the systematic uncertainties is in the [systematics](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/systematics/) directory.
@@ -184,10 +169,11 @@ where the config file ```cfgFile.yml``` includes all the information of the vari
 ### Generated MC *p*<sub>T</sub> shape
 * The systematic uncertainty arising from the shape of the *p*<sub>T</sub> distributions in the MC simulation can be evaluated with the code in the [systematics/genptshape](https://github.com/DmesonAnalysers/DmesonAnalysis/tree/master/systematics/genptshape/) directory.
     * The first step is the computation of the *p*<sub>T</sub> weights:
+    
     ```python3
     python3 ComputePtGenShapeWeights.py inFileMC.root outFile.root [--Dspecie Dname] [--Bspecie Bname] [--PbPb] [--rebin] [--smooth]
     ```
-    where the ROOT file ```inFileMC.root``` is the output of the [AliAnalysisTaskCheckHFMCProd.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskCheckHFMCProd.cxx) task, ```outFile.root``` is the output file name, ```--Dspecie``` and ```--Bspecie``` is the argument to chose the D-meson and B-meson species to use, ```--PbPb``` is a flag to enable in case of Pb-Pb analysis while ```--rebin``` and ```--smooth``` are two flags to apply a rebin of the spectra and a smoothening of the weights.
+    where the root file ```inFileMC.root``` can be the output of the [AliAnalysisTaskCheckHFMCProd.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliAnalysisTaskCheckHFMCProd.cxx) task or [AliCFTaskVertexingHF.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/AliCFTaskVertexingHF.cxx), ```outFile.root``` is the output file name, ```--Dspecie``` and ```--Bspecie``` is the argument to chose the D-meson and B-meson species to use, ```--PbPb``` is a flag to enable in case of Pb-Pb analysis while ```--rebin``` and ```--smooth``` are two flags to apply a rebin of the spectra and a smoothening of the weights.
 
     * The second step step is the computation of the efficiencies with and without *p*<sub>T</sub> weights, as described in the dedicated section.
 
