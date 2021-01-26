@@ -300,9 +300,9 @@ def main(): #pylint: disable=too-many-statements
     print('Loading analysis configuration: Done!')
 
     print('Loading and preparing data files: ...', end='\r')
-    PromptHandler = TreeHandler(inputCfg['input']['prompt'])
-    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'])
-    DataHandler = TreeHandler(inputCfg['input']['data'])
+    PromptHandler = TreeHandler(inputCfg['input']['prompt'], inputCfg['input']['treename'])
+    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'], inputCfg['input']['treename'])
+    DataHandler = TreeHandler(inputCfg['input']['data'], inputCfg['input']['treename'])
 
     if inputCfg['data_prep']['filt_bkg_mass']:
         BkgHandler = DataHandler.get_subset(inputCfg['data_prep']['filt_bkg_mass'], frac=1.,
