@@ -2,6 +2,7 @@ input: # files to use, set FD to null for binary classification
     prompt: ../../AnalysisNonPromptDpp2017/Dplus/MC/LHC20a7/Prompt_Dpluspp5TeV_LHC20a7_pT_1_50.parquet.gzip
     FD: ../../AnalysisNonPromptDpp2017/Dplus/MC/LHC20a7/FD_Dpluspp5TeV_LHC20a7_pT_1_50.parquet.gzip
     data: ../../AnalysisNonPromptDpp2017/Dplus/Data/LHC17pq/Data_Dpluspp5TeV_LHC17pq_pT_1_50.parquet.gzip
+    treename: null
 
 output:
     leg_labels: ['Background', 'Prompt D$^+$', 'Feed-down D$^+$'] # legend labels, keep the right number of classes

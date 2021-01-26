@@ -2,6 +2,7 @@ input: # files to use, set FD to null for binary classification
     prompt: ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/pythia6_LHC18a4a2/Prompt_Dspp5TeVNoOutlier_EffPythia6_pT_1_50.parquet.gzip
     FD: ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/pythia6_LHC18a4a2/FD_Dspp5TeVNoOutlier_EffPythia6_pT_1_50.parquet.gzip
     data: ~/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/pythia6_LHC18a4a2/FD_Dspp5TeVNoOutlier_EffPythia6_pT_1_50.parquet.gzip
+    treename: null
 
 output:
     leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels, keep the right number of classes
