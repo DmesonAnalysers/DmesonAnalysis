@@ -2,6 +2,7 @@ input: # files to use, set FD to null for binary classification
     prompt: /home/fcatalan/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/ml/Prompt_Dspp5TeVNoOutlier_MLtraining_pT_1_50.parquet.gzip
     FD: null
     data: /home/fcatalan/Desktop/Analyses/pp5TeV/Ds_wML_mult/inputs/data/ml/Data_Dspp5TeVNoOutlier_pT_1_50.parquet.gzip
+    treename: null
 
 output:
     leg_labels: ['Background', 'Signal'] # legend labels, keep the right number of classes

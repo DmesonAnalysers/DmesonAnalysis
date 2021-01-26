@@ -3,6 +3,7 @@ input: # files to use
             ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC20a7_pT_1_50.parquet.gzip,
             ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC20a8_pT_1_50.parquet.gzip
             ]
+    treename: null
 
 output:
     leg_labels: ['LHC18a4a2', 'LHC20a7', 'LHC20a8'] # legend labels

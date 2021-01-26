@@ -2,6 +2,7 @@ input: # files to use
     prompt: ../../Analysispp2017DplusLowPt/inputs/MC/Prompt_Dpluspp5TeV_pt0_1_LHC20a7_pT_0_1.parquet.gzip
     FD: ../../Analysispp2017DplusLowPt/inputs/MC/FD_Dpluspp5TeV_pt0_1_LHC20a7_pT_0_1.parquet.gzip
     data: ../../Analysispp2017DplusLowPt/inputs/data/Data_Dpluspp5TeV_pt0_1_LHC17pq_pT_0_1.parquet.gzip
+    treename: null
 
 output:
     leg_labels: ['Background', 'Prompt D$^+$', 'FD D$^+$'] # legend labels

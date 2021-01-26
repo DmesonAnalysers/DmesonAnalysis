@@ -2,7 +2,8 @@ input: # files to use, set FD to null for binary classification
     prompt: ~/DsPbPb_paper/input/ml/MC/Prompt_DsPbPb5TeV3050NoOutlier_MLtraining_pT_2_50.parquet.gzip
     FD: null
     data: ~/DsPbPb_paper/input/ml/data/Data_DsPbPb5TeV3050NoOutlier_pT_2_50.parquet.gzip
-
+    treename: null
+    
 output:
     leg_labels: ['Background', 'Prompt D$_s$'] # legend labels, keep the right number of classes
     out_labels: ['Bkg', 'Prompt'] # output labels, keep the right number of classes

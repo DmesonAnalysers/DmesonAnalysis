@@ -2,7 +2,8 @@ input: # files to use, set FD to null for binary classification
     prompt: /home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/Prompt_STE__pT_1_50.parquet.gzip
     FD: /home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/FD_STE__pT_1_50.parquet.gzip
     data: /home/stefanop/alidock/DmesonAnalysis/ML/parquet_file/parquet_file_ITS2/training_set/Bkg_STE__pT_1_50.parquet.gzip
-
+    treename: null
+    
 output:
     leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels, keep the right number of classes
     out_labels: ['Bkg', 'Prompt', 'FD'] # output labels, keep the right number of classes
