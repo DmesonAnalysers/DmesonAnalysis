@@ -1,5 +1,9 @@
 '''
+<<<<<<< HEAD
 python script for the projection of of D+, Ds+ and Lc particles TTrees
+=======
+python script for the projection of of D+ and Ds+ particles TTrees
+>>>>>>> add entry for Lc
 run: python ProjectDplusDsTree.py cfgFileName.yml cutSetFileName.yml outFileName.root
                                   [--ptweights PtWeightsFileName.root histoName]
                                   [--ptweightsB PtWeightsFileName.root histoName]
@@ -67,7 +71,11 @@ elif particle == 'Dplus':
 elif particle == 'Lc':
     mD = TDatabasePDG.Instance().GetParticle(4122).Mass()
 else:
+<<<<<<< HEAD
     print('Error: only Dplus, Ds and Lc particles are supported. Exit!')
+=======
+    print('Error: only Dplus, Ds particles and Lc supported. Exit!')
+>>>>>>> add entry for Lc
     sys.exit()
 massBins = 500
 massLimLow = mD - 0.25
