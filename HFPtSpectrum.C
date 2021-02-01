@@ -50,7 +50,7 @@ enum rapidity{ kdefault, k08to04, k07to04, k04to01, k01to01, k01to04, k04to07, k
 enum particularity{ kTopological, kLowPt, kPP7TeVPass4, kBDT };
 
 void HFPtSpectrum (Int_t decayChan=kDsKKpi,
-		    const char *mcfilename="models/DmesonLcPredictions_502TeV_y05_FFee_BRpythia8_SepContr.root",
+		    const char *mcfilename="models/fonll/feeddown/DmesonLcPredictions_502TeV_y05_FFee_BRpythia8_SepContr_PDG2020.root",
 		    const char *efffilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/eff/EffAcc_Ds_norm_pt1_24.root",
 		    const char *recofilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt1_24.root",
 		    const char *recohistoname="hRawYields",
@@ -59,11 +59,11 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
 		    const char *nevhistoname="hEvForNorm",
 		    const char *outfilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/cross_sec/HFPtSpectrum_Ds_norm_pt1_24.root",
 		    Int_t fdMethod=kNb,
-		    Double_t sigma=50.87e+9, // sigma[pb]
+		    Double_t sigma=50.87e+9, // sigma[pb], 1. for PbPb and 50.87e+9 for pp
 		    Bool_t isParticlePlusAntiParticleYield=true,
 		    Int_t cc=kpp5,
 		    Int_t year=k2017,
-		    Bool_t PbPbEloss=false,
+		    Bool_t PbPbEloss=false, // true if PbPb analysis
 		    Int_t Energy=k5dot023,
 		    Int_t ccestimator=kV0M,
 		    Int_t isRaavsEP=kPhiIntegrated,
@@ -72,9 +72,6 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
 		    Int_t analysisSpeciality=kBDT,
 		    Bool_t setUsePtDependentEffUncertainty=true,
         Double_t nevents = 1.0) {
-
-
-  //  gROOT->Macro("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/LoadLibraries.C");
 
   //  Set if calculation considers asymmetric uncertainties or not
   Bool_t asym = true;
