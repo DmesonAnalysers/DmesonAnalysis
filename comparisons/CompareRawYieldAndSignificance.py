@@ -129,10 +129,18 @@ for iFile, _ in enumerate(inputfilenames):
         continue
     hRatioSignif[iFile].Draw('same')
 
+cSignifOnly = TCanvas('cSignifOnly', '', 800, 800)
+cSignifOnly.DrawFrame(PtMin, 0., PtMax, hSignif[0].GetMaximum()*1.5,
+                      ';#it{p}_{T} (GeV/#it{c}); significance / #sqrt{#it{N}_{events}}')
+for iFile, _ in enumerate(inputfilenames):
+    hSignif[iFile].Draw('same')
+leg.Draw()
+
 cSignal.SaveAs(f'{outputdir}/SignalPerEventComparison_{outputsuffix}.pdf')
 cRatioSignal.SaveAs(f'{outputdir}/SignalPerEventRatio_{outputsuffix}.pdf')
 cBkg.SaveAs(f'{outputdir}/BkgPerEventComparison_{outputsuffix}.pdf')
 cSoverB.SaveAs(f'{outputdir}/SoverB_{outputsuffix}.pdf')
 cSignificance.SaveAs(f'{outputdir}/SignificancePerEventComparison_{outputsuffix}.pdf')
+cSignifOnly.SaveAs(f'{outputdir}/SignifPerEventComp_NoRatio_{outputsuffix}.pdf')
 
 input('Press enter to exit')

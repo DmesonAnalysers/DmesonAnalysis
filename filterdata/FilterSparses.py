@@ -1,7 +1,7 @@
 '''
 python script to filter too large sparses (sparses in input files are overwritten with filtered ones)
 and manage sparses for v2 analyses with ML
-run: python FilterSparse cfgFileName.yml [filtFileName.yml, ...]
+run: python FilterSparse cfgFileName.yml filtFileName1.yml filtFileName2.yml ...
 with option --suffix a suffix is added to the output file name, otherwise the input file is overwritten
 '''
 

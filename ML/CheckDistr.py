@@ -4,6 +4,7 @@ run: python ChecckDistr.py cfgFileNameCheck.yml
 '''
 import argparse
 import yaml
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from hipe4ml import plot_utils
@@ -26,28 +27,46 @@ def main():
         DfList.append(pd.read_parquet(filePath))
     print('Loading data files: Done!')
 
+    print('Appling simple pre-filtering: ...', end='\r')
+    DfListSel = []
+    for df, query in zip(DfList, inputCfg['queries']):
+        DfListSel.append(df.query(query))
+    print('Pre-filtering: Done!')
+    del DfList
+
     VarsToDraw = inputCfg['plotting_columns']
     LegLabels = inputCfg['output']['leg_labels']
+    Colors = inputCfg['output']['colors']
     OutPutDir = inputCfg['output']['dir']
 
     for PtMin, PtMax, LimMin, LimMax in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'],
                                             inputCfg['plot_lim_min'], inputCfg['plot_lim_max']):
         print(f'Plot variable distributions --- {PtMin} < pT < {PtMax} GeV/c')
         DfListPt = []
-        for df in DfList:
+        for df in DfListSel:
             DfListPt.append(df.query(f'{PtMin} < pt_cand < {PtMax}'))
-        DistrPlot = plot_utils.plot_distr(DfListPt, VarsToDraw, 100, LegLabels, figsize=(12, 12), density=True,
-                                          histtype='step', grid=False, log=True)
+        DistrPlot = plot_utils.plot_distr(DfListPt, VarsToDraw, 100, LegLabels, figsize=(6, 6), density=True,
+                                          histtype='stepfilled', grid=False, log=True, colors=Colors, alpha=0.3)
         plt.subplots_adjust(left=0.1, bottom=0.05, right=0.95, top=0.95, hspace=0.4)
+        if not isinstance(DistrPlot, np.ndarray):
+            DistrPlot = np.array([DistrPlot])
         for ax, minVar, maxVar, xLabel in zip(DistrPlot, LimMin, LimMax, inputCfg['xaxes_label']):
             ax.set_xlim(minVar, maxVar)
-            ax.set_xlabel(xLabel)
+            ax.set_xlabel(xLabel, fontsize=15, ha='right', position=(1, 20))
+            plt.ylabel('Counts (arb. units)', fontsize=15, horizontalalignment='left')
+            plt.legend(frameon=False, fontsize=14, loc='best')
             ax.set_title('')
+            textstr = r'pp, $\sqrt{s}$ = 5.02 TeV'  
+            textstr2 = r'$3 < p_{\mathrm{T}} < 4~\mathrm{GeV}/c$'
+            ax.text(0.56, 0.75, textstr, transform=ax.transAxes, fontsize=15,
+                    verticalalignment='top')
+            ax.text(0.56, 0.69, textstr2, transform=ax.transAxes, fontsize=15,
+                    verticalalignment='top')
+            plt.tight_layout()
         plt.savefig(f'{OutPutDir}/DistrComp_pT_{PtMin}_{PtMax}.pdf')
         plt.close('all')
         del DfListPt
 
-    del DfList
-
+    del DfListSel
 
 main()
