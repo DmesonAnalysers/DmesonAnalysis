@@ -30,6 +30,7 @@ outExtensions = inputCfg['output']['extensions']
 
 objTypes = inputCfg['options']['ROOTobject']
 scales = inputCfg['options']['scale']
+normalizes = inputCfg['options']['normalize']
 colors = inputCfg['options']['colors']
 markers = inputCfg['options']['markers']
 markersize = inputCfg['options']['markersize']
@@ -78,8 +79,8 @@ leg.SetTextSize(legTextSize)
 leg.SetNColumns(ncolumns)
 
 hToCompare, hRatioToCompare, hUncToCompare = [], [], []
-for iFile, (inFileName, objName, objType, scale, color, marker, fillstyle, fillalpha) in \
-    enumerate(zip(inFileNames, objNames, objTypes, scales, colors, markers, fillstyles, fillalphas)):
+for iFile, (inFileName, objName, objType, scale, normalize, color, marker, fillstyle, fillalpha) in \
+    enumerate(zip(inFileNames, objNames, objTypes, scales, normalizes, colors, markers, fillstyles, fillalphas)):
     if inDirName:
         inFileName = join(inDirName, inFileName)
     inFile = TFile.Open(inFileName)
@@ -100,6 +101,8 @@ for iFile, (inFileName, objName, objType, scale, color, marker, fillstyle, filla
         hToCompare[iFile].SetDirectory(0)
         hToCompare[iFile].SetStats(0)
         hToCompare[iFile].Scale(scale)
+        if normalize:
+            hToCompare[iFile].Scale(1. / hToCompare[iFile].Integral())
     else:
         ScaleGraph(hToCompare[iFile], scale)
     if doRatio:

@@ -18,6 +18,7 @@ output:
 options:
     ROOTobject: [TH1, TH1, TH1, TH1, TH1, TH1, TH1, TH1, TH1] # TH1 or TGraph: no need to specify TH1F, TH1D or TGraphErrors, TGraphAsymmErrors
     scale: [1., 1., 1., 1., 1., 1., 1., 1., 1.]
+    normalize: [false, false, false, false, false, false, false, false, false] # divide histogram by its area
     colors: [kBlack, kRed+1, kAzure+4, kGreen+2, kOrange+7, kMagenta+1, kBlue, kCyan+3, kSpring-5]
     markers: [kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle]
     markersize: 2.5

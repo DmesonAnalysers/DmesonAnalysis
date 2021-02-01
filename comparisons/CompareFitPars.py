@@ -123,6 +123,7 @@ def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-sta
 
     cMean.SaveAs(f'{inputdir}/Mean_{suffix}.pdf')
     cSigma.SaveAs(f'{inputdir}/Sigma_{suffix}.pdf')
+    input('Press enter to exit')
 
 def main():
     parser = argparse.ArgumentParser(description='Arguments')
@@ -130,6 +131,5 @@ def main():
     parser.add_argument("--Dspecie", help="Dplus or Ds mesons", metavar="text", default="Ds")
     args = parser.parse_args()
     comp_fit_pars(args.ratio, args.Dspecie)
-    input('Press enter to exit')
 
 main()
