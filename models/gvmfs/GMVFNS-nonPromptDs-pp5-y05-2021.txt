@@ -1,0 +1,10 @@
+#pp -> Ds+X from pp -> b-quark
+#(using FFs from Kniehl, Kramer, Phys.Rev.D 74 (2006) 037502)
+#for ALICE at 5.02 TeV
+#CT14nlo, m_b = 4.5 GeV, m_c = 1.3 GeV
+#sig-min/max from varying renormalization scale by factors 1/2-2 (nb/GeV)
+
+pTmin   pTmax       cen           min           max
+4.00    6.00     5.0974E+01    3.8433E+01    5.0975E+01
+6.00    8.00     3.3645E+01    2.6419E+01    4.4340E+01
+8.00    12.00    1.1916E+01    9.1794E+00    1.6185E+01
