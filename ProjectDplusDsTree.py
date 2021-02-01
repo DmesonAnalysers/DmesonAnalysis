@@ -1,5 +1,5 @@
 '''
-python script for the projection of of D+ and Ds+ mesons TTrees
+python script for the projection of of D+ and Ds+ particles TTrees
 run: python ProjectDplusDsTree.py cfgFileName.yml cutSetFileName.yml outFileName.root
                                   [--ptweights PtWeightsFileName.root histoName]
                                   [--ptweightsB PtWeightsFileName.root histoName]
@@ -59,13 +59,15 @@ bitPrompt = 2
 bitFD = 3
 bitRefl = 4
 # define mass binning
-meson = inputCfg['tree']['meson']
-if meson == 'Ds':
+particle = inputCfg['tree']['particle']
+if particle == 'Ds':
     mD = TDatabasePDG.Instance().GetParticle(431).Mass()
-elif meson == 'Dplus':
+elif particle == 'Dplus':
     mD = TDatabasePDG.Instance().GetParticle(411).Mass()
+elif particle == 'Lc':
+    mD = TDatabasePDG.Instance().GetParticle(4122).Mass()
 else:
-    print('Error: only Dplus and Ds mesons supported. Exit!')
+    print('Error: only Dplus, Ds particles and Lc supported. Exit!')
     sys.exit()
 massBins = 500
 massLimLow = mD - 0.25
