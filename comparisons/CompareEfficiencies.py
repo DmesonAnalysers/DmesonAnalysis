@@ -1,7 +1,7 @@
 import sys
 from os.path import join
 from ROOT import TCanvas, TFile, TLegend # pylint: disable=import-error,no-name-in-module
-from ROOT import kRed, kBlack, kBlue, kAzure, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module,unused-import
+from ROOT import kRed, kBlack, kBlue, kAzure, kOrange, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module,unused-import
 sys.path.append('..')
 from utils.AnalysisUtils import ComputeRatioDiffBins #pylint: disable=wrong-import-position,import-error
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
@@ -35,10 +35,10 @@ for iFile, inFileName in enumerate(inFileNames):
     hEffFD[iFile].SetDirectory(0)
     hEffPrompt[iFile].GetYaxis().SetRangeUser(1e-4, 1.)
     hEffFD[iFile].GetYaxis().SetRangeUser(1e-4, 1.)
-    hEffPromptRatio.append(ComputeRatioDiffBins(hEffPrompt[iFile], hEffPrompt[0]))
+    hEffPromptRatio.append(ComputeRatioDiffBins(hEffPrompt[iFile], hEffPrompt[0], 'B'))
     hEffPromptRatio[iFile].SetDirectory(0)
     hEffPromptRatio[iFile].SetName(f'hEffPromptRatio{iFile}')
-    hEffFDRatio.append(ComputeRatioDiffBins(hEffFD[iFile], hEffFD[0]))
+    hEffFDRatio.append(ComputeRatioDiffBins(hEffFD[iFile], hEffFD[0], 'B'))
     hEffFDRatio[iFile].SetDirectory(0)
     hEffFDRatio[iFile].SetName(f'hEffFDRatio{iFile}')
     SetObjectStyle(hEffPrompt[iFile], linecolor=colors[iFile], markercolor=colors[iFile], markerstyle=markers[iFile])
@@ -63,13 +63,14 @@ for histo in hEffPrompt:
 
 cPrompt = TCanvas('cPrompt', '', 1000, 500)
 cPrompt.Divide(2, 1)
-cPrompt.cd(1).DrawFrame(PtMin, hEffPrompt[0].GetMinimum()/5, PtMax, 1., ';#it{p}_{T} (GeV/#it{c}); Prompt efficiency')
+cPrompt.cd(1).DrawFrame(PtMin, hEffPrompt[0].GetMinimum()/5, PtMax, 1.,
+                        ';#it{p}_{T} (GeV/#it{c}); Prompt (Acc #times #epsilon)')
 cPrompt.cd(1).SetLogy()
 for iFile in range(len(inFileNames)):
     hEffPrompt[iFile].Draw('same')
 leg.Draw()
-cPrompt.cd(2).DrawFrame(PtMin, hEffPromptRatio[1].GetMinimum()/2, PtMax, hEffPromptRatio[1].GetMaximum()*2,
-                        ';#it{p}_{T} (GeV/#it{c}); Prompt efficiency ratio')
+cPrompt.cd(2).DrawFrame(PtMin, 0.7, PtMax, 1.3,
+                        ';#it{p}_{T} (GeV/#it{c}); Prompt (Acc #times #epsilon) ratio')
 for iFile in range(len(inFileNames)):
     if iFile == 0:
         continue
@@ -77,13 +78,14 @@ for iFile in range(len(inFileNames)):
 
 cFD = TCanvas('cFD', '', 1000, 500)
 cFD.Divide(2, 1)
-cFD.cd(1).DrawFrame(PtMin, hEffFD[0].GetMinimum()/5, PtMax, 1., ';#it{p}_{T} (GeV/#it{c}); Feed-down efficiency')
+cFD.cd(1).DrawFrame(PtMin, hEffFD[0].GetMinimum()/5, PtMax, 1.,
+                    ';#it{p}_{T} (GeV/#it{c}); Feed-down (Acc #times #epsilon)')
 cFD.cd(1).SetLogy()
 for iFile in range(len(inFileNames)):
     hEffFD[iFile].Draw('same')
 leg.Draw()
 cFD.cd(2).DrawFrame(PtMin, hEffFDRatio[1].GetMinimum()/2, PtMax, hEffFDRatio[1].GetMaximum()*2,
-                    ';#it{p}_{T} (GeV/#it{c}); Feed-down efficiency ratio')
+                    ';#it{p}_{T} (GeV/#it{c}); Feed-down (Acc #times #epsilon) ratio')
 for iFile in range(len(inFileNames)):
     if iFile == 0:
         continue
