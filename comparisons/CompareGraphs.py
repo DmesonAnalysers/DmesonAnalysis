@@ -100,9 +100,11 @@ for iFile, (inFileName, objName, objType, scale, normalize, color, marker, fills
     if 'TH' in objType:
         hToCompare[iFile].SetDirectory(0)
         hToCompare[iFile].SetStats(0)
-        hToCompare[iFile].Scale(scale)
         if normalize:
+            if scale != 1.:
+                print('WARNING: you are both scaling and normalizing the histogram, check if it makes sense!')
             hToCompare[iFile].Scale(1. / hToCompare[iFile].Integral())
+        hToCompare[iFile].Scale(scale)
     else:
         ScaleGraph(hToCompare[iFile], scale)
     if doRatio:
