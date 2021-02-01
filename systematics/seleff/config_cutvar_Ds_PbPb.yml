@@ -1,21 +1,74 @@
 inputs:
-    directory: ../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_highpt
+    directory: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/old_TOFPIDbug/eff_syst/checkPt2_3
     commonfilenames:
-        rawyield: RawYieldsDs
-        efficiency: Efficiency_Ds
-        crosssection: DsYield_method2_fd1_br1
-    cutsets: [] # the first one must be the default
-
-outfilename: ../ML_DsAnalysis/QM_prel/outputs/3050/eff_syst_lowpt/CutVarSyst_Ds_3050_hight.root
+        rawyield: rawyields/RawYieldsDs
+        efficiency: eff/Efficiency_Ds
+        crosssection: crosssec/DsYield_method2_fd1_br1
+    cutsets: ["_010_ML_271120_BDTout_pos00",
+              "_010_ML_271120_BDTout_neg01",
+              "_010_ML_271120_BDTout_neg02",
+              "_010_ML_271120_BDTout_neg03",
+              "_010_ML_271120_BDTout_neg04",
+              "_010_ML_271120_BDTout_neg05",
+              "_010_ML_271120_BDTout_neg06",
+              "_010_ML_271120_BDTout_neg07",
+              "_010_ML_271120_BDTout_neg08",
+              "_010_ML_271120_BDTout_neg09",
+              "_010_ML_271120_BDTout_neg10",
+              "_010_ML_271120_BDTout_neg11",
+              "_010_ML_271120_BDTout_neg12",
+              "_010_ML_271120_BDTout_neg13",
+              "_010_ML_271120_BDTout_neg14",
+              "_010_ML_271120_BDTout_neg15",
+              "_010_ML_271120_BDTout_neg16",
+              "_010_ML_271120_BDTout_neg17",
+              "_010_ML_271120_BDTout_neg18",
+              "_010_ML_271120_BDTout_neg19",
+              "_010_ML_271120_BDTout_neg20",
+              "_010_ML_271120_BDTout_neg21",
+              "_010_ML_271120_BDTout_neg22",
+              "_010_ML_271120_BDTout_neg23",
+              "_010_ML_271120_BDTout_neg24",
+              "_010_ML_271120_BDTout_neg25",
+              "_010_ML_271120_BDTout_neg26",
+              "_010_ML_271120_BDTout_neg27",
+              "_010_ML_271120_BDTout_neg28",
+              "_010_ML_271120_BDTout_pos01",
+              "_010_ML_271120_BDTout_pos02",
+              "_010_ML_271120_BDTout_pos03",
+              "_010_ML_271120_BDTout_pos04",
+              "_010_ML_271120_BDTout_pos05",
+              "_010_ML_271120_BDTout_pos06",
+              "_010_ML_271120_BDTout_pos07",
+              "_010_ML_271120_BDTout_pos08",
+              "_010_ML_271120_BDTout_pos09",
+              "_010_ML_271120_BDTout_pos10",
+              "_010_ML_271120_BDTout_pos11",
+              "_010_ML_271120_BDTout_pos12",
+              "_010_ML_271120_BDTout_pos13",
+              "_010_ML_271120_BDTout_pos14",
+              "_010_ML_271120_BDTout_pos15",
+              "_010_ML_271120_BDTout_pos16",
+              "_010_ML_271120_BDTout_pos17",
+              "_010_ML_271120_BDTout_pos18",
+              "_010_ML_271120_BDTout_pos19",
+              "_010_ML_271120_BDTout_pos20",
+              "_010_ML_271120_BDTout_pos21",
+              "_010_ML_271120_BDTout_pos22"
+            ] # the first one must be the default
+                  
+outfilename: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/old_TOFPIDbug/eff_syst/checkPt2_3/CutVarSyst_Ds_010_checkPt2_3.root
 
 quality:
     maxchisquare: 2.
     minsignif: 3.
     minrelsignif: 0.5
-    minreleff: 0.3
-    maxreleff: 1.65
+    minreleff: 0.5
+    maxreleff: 1.5
     fillthrreleff: 0.005
 
 plots:
-    plotrelativevar: 0 # 0 -> false, 1 -> true
-    relassignedsyst: [ 0.06, 0.06, 0.06, 0.05 ] # list of values to be plotted
+    plotrelativevar: 1 # 0 -> false, 1 -> true
+    relassignedsyst: [0.08, 0.06, 0.06, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04] # list of values to be plotted
+    # [0.08, 0.06, 0.06, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04] 0-10%
+    # [0.06, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04] 30-50%

@@ -82,19 +82,21 @@ def make_cuts():
                 yaml.dump(cutset_mod, outfile_mod, default_flow_style=False)
 
 def make_cuts_ml():
-    var_key = ['ML_output_Bkg'] # ['ML_output_FD', 'ML_output_Bkg']
-    var_tag = ['outBkg'] # ['outFD', 'outBkg'] # used in file names to reduce length
-    step_variation = [{"2": 0.0005, "4": 0.0005, "6": 0.001, "8": 0.001, "12": 0.0005}]
+    var_key = ['BDTout'] # ['ML_output_FD', 'ML_output_Bkg']
+    var_tag = ['BDTout'] # ['outFD', 'outBkg'] # used in file names to reduce length
+    step_variation = [{"2": 0.0001, "3": 0.00005, "4": 0.00005, "5": 0.00005, "6": 0.0001, "8": 0.0002, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001}]
+        # {"2": 0.00005, "3": 0.00005, "4": 0.00005, "5": 0.00005, "6": 0.0001, "8": 0.0002, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001} 0-10%
+        # {"2": 0.0001, "3": 0.0001, "4": 0.0001, "5": 0.0001, "6": 0.0002, "8": 0.001, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001} 30-50%
         # [{"2": 0.01, "4": 0.01, "6": 0.01, "8": 0.01, "12": 0.01},
         #  {"2": 0.0005, "4": 0.0005, "6": 0.001, "8": 0.001, "12": 0.0005}]
-    num_step_pos = 10
-    num_step_neg = 10
-    edge_to_vary = ['max'] # ['min', 'max']
+    num_step_pos = 22
+    num_step_neg = 28
+    edge_to_vary = ['min'] # ['min', 'max']
 
-    in_dir = 'configfiles/cutsets/Ds/pp/'
-    cut_file_central = 'cutset_pp5TeV_FDen_conservative.yml'
-    out_dir = 'configfiles/cutsets/Ds/pp/syst_cuts_FDen_1D/'
-    out_file_tag = 'cutset_pp5TeV_FDen'
+    in_dir = 'configfiles/cutsets/Ds/PbPb/'
+    cut_file_central = 'cutset_010_ML_271120.yml'
+    out_dir = 'configfiles/cutsets/Ds/PbPb/syst_cuts_Ds010_ML_data_checkPt2_3/'
+    out_file_tag = 'cutset_010_ML_271120'
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)

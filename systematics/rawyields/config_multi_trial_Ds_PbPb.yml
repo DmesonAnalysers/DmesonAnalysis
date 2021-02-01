@@ -1,27 +1,27 @@
 meson: Ds
 
 reffilenames:
-    data: ../ML_DsAnalysis/QM_prel/outputs/010/raw_yields/RawYieldsDs_010_pt2_50.root
-    MC: ../ML_DsAnalysis/QM_prel/outputs/010/raw_yields/RawYieldsDs_010_MC_pt2_50.root
+    data: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/old_TOFPIDbug/raw_yields/RawYieldsDs_010_pt2_50_testRange2.04.root
+    MC: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/old_TOFPIDbug/raw_yields/RawYieldsDs_MC_010_pt2_50.root
 
-outfilename: outputs/rawyieldsyst/RawYieldsSystDs_010_central_2018.root
+outfilename: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/old_TOFPIDbug/rawyield_syst/RawYieldsSystDs_010_pt2_3_testRange2.04.root
 
 multitrial:
-    ptbins: null #list of pt bins, set null if you want to keep them all
-    mins: [ 1.76, 1.77, 1.78, 1.79, 1.80 ] # lower fit limit
-    maxs: [ 2.06, 2.08, 2.10, 2.12, 2.14 ] # upper fit limit
-    rebins: [ 3, 4, 5, 6, 7 ] # mass rebin values
-    sgnfuncs: [ kGaus ] # signal functions of AliHFInvMassFitter
-    bkgfuncs: [ kExpo, kLin, kPol2 ] # bkg functions of AliHFInvMassFitter
-    sigma: [ kFree, kFixed ]     
+    ptbins: [0] #list of pt bins, set null if you want to keep them all
+    mins: [1.76, 1.77, 1.78, 1.79, 1.80] # lower fit limit
+    maxs: [2.02, 2.03, 2.04, 2.05, 2.06] # upper fit limit
+    rebins: [2, 3, 4, 5] # mass rebin values
+    sgnfuncs: [kGaus] # signal functions of AliHFInvMassFitter
+    bkgfuncs: [kExpo, kLin, kPol2] # bkg functions of AliHFInvMassFitter
+    sigma: [kFree]     
     # all possibilities: 
     # kFree, kFixed, kFixedMinus10Perc, kFixedPlus10Perc, kFixedMinus15Perc, kFixedPlus15Perc, kFixedMinus20Perc, kFixedPlus20Perc, kFixedMinusUnc, kFixedPlusUnc
     # those with variations (Plus/Minus) are exclusive (i.e. it is not possible to run with 10% and 15% variation at the same time)
-    mean: [ kFree ] # other possibilities: kFixedPlus15Perc, kFixedMinus15Perc, 
+    mean: [kFree] # other possibilities: kFixedPlus15Perc, kFixedMinus15Perc, 
     # all possibilities: 
     # kFixed, kFree, kFixedMinusUnc, kFixedPlusUnc
     bincounting:
-        nsigma: [ 3, 5 ] # multi-trial will be repeated for each nsigma value
+        nsigma: [3, 5] # multi-trial will be repeated for each nsigma value
 
 quality:
     chisquare:
