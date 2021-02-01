@@ -1,36 +1,30 @@
 input: # files to use
-    files: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC18a4a2_pT_1_50.parquet.gzip,
-            ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC20a7_pT_1_50.parquet.gzip,
+    files: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/data/ml/Data_Dspp5TeVNoOutlier_pT_1_50.parquet.gzip,
+            ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/Prompt_LHC20a8_pT_1_50.parquet.gzip,
             ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC20a8_pT_1_50.parquet.gzip
             ]
     treename: null
 
+queries: ['d_len <= 0.5 and (inv_mass < 1.832 or inv_mass > 2.012)',
+          'd_len <= 0.5',
+          'd_len <= 0.5'] #list of additional queries
+
+
 output:
-    leg_labels: ['LHC18a4a2', 'LHC20a7', 'LHC20a8'] # legend labels
-    dir: '/home/fcatalan/cernbox/Analyses/pp5TeV/Ds_wML_mult/check_pythia6Vs8/comp_distr_FD/logScale' # output dir
+    leg_labels: ['Background', 'Prompt D$_s^+$', 'Non-prompt D$_s^+$'] # legend labels
+    colors: ['black', 'red', 'blue']
+    dir: '/home/fcatalan/cernbox/Analyses/' # output dir
 
 pt_ranges: # ranges in pt to split the data for the comparison
-    min: [1, 2, 4, 6, 8, 12, 16] # list
-    max: [2, 4, 6, 8, 12, 16, 24] # list
+    min: [3] # list
+    max: [4] # list
 
-plotting_columns: [cos_p, cos_p_xy, d_len, d_len_xy, norm_dl_xy, pt_cand] 
+plotting_columns: ['d_len'] 
                    # list of variables to plot
 
-plot_lim_min: [[0.85, 0.90, 0., 0., 0., 1],
-               [0.85, 0.90, 0., 0., 0., 2],
-               [0.90, 0.92, 0., 0., 0., 4],
-               [0.90, 0.92, 0., 0., 0., 6],
-               [0.92, 0.95, 0., 0., 0., 8],
-               [0.95, 0.95, 0., 0., 0., 12],
-               [0.95, 0.95, 0., 0., 0., 16]
-              ]
-plot_lim_max: [[1., 1., 0.4, 0.4, 30., 2],
-               [1., 1., 0.5, 0.5, 40., 4],
-               [1., 1., 0.6, 0.6, 50., 6],
-               [1., 1., 0.8, 0.8, 50., 8],
-               [1., 1., 1., 1., 50., 12],
-               [1., 1., 1., 1., 50., 16],
-               [1., 1., 1., 1., 50., 24]
-              ]
+plot_lim_min: [[0.]
+               ]
+plot_lim_max: [[0.5]
+               ]
 
-xaxes_label: ['cos_p', 'cos_p_xy', 'd_len [cm]', 'd_len_xy [cm]', 'norm_dl_xy', 'p_T [GeV/c]']
+xaxes_label: ['Decay length (cm)']

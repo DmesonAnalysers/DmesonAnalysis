@@ -69,7 +69,7 @@ cPrompt.cd(1).SetLogy()
 for iFile in range(len(inFileNames)):
     hEffPrompt[iFile].Draw('same')
 leg.Draw()
-cPrompt.cd(2).DrawFrame(PtMin, 0.7, PtMax, 1.3,
+cPrompt.cd(2).DrawFrame(PtMin, hEffPromptRatio[1].GetMinimum()/2, PtMax, hEffPromptRatio[1].GetMaximum()*1.5,
                         ';#it{p}_{T} (GeV/#it{c}); Prompt (Acc #times #epsilon) ratio')
 for iFile in range(len(inFileNames)):
     if iFile == 0:
