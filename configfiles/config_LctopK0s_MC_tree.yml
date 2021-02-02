@@ -1,0 +1,40 @@
+isMC: yes
+filename:
+    [
+        ~/DmesonAnalysis/AnalysisResults/13TeV/MC_D2H/AnalysisResults_LcpK0s_2016_LHC20f4c.root,
+        ~/DmesonAnalysis/AnalysisResults/13TeV/MC_D2H/AnalysisResults_LcpK0s_2017_LHC20f4b.root,
+        ~/DmesonAnalysis/AnalysisResults/13TeV/MC_D2H/AnalysisResults_LcpK0s_2018_LHC20f4a.root,
+    ]
+
+dirname: PWGHF_D2H_NonPromptLctopK0sLoose
+listname: coutputNonPromptLctopK0sLoose
+sparsenameAll: null
+sparsenamePrompt: fnSparseAcc_fromC # ThnSparse with rec candidates
+sparsenameFD: fnSparseAcc_fromB # ThnSparse with rec candidates
+sparsenameGenPrompt: fnSparseAcc_fromC # ThnSparse with generated candidates
+sparsenameGenFD: fnSparseAcc_fromB # ThnSparse with generated candidates
+enableSecPeak: no #no second peak for D+
+sparsenamePromptSecPeak: null
+sparsenameFDSecPeak: null
+sparsenameGenPromptSecPeak: null
+sparsenameGenFDSecPeak: null
+#normname: coutputLctopK0sNormLoose_kMB0100
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: Lc #needed to define binning for invariant-mass histo
+    filenameAll: null #not needed for MC
+    filenamePrompt:
+        [
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/Prompt_pT_6_50_ModelApplied.parquet.gzip,
+        ]
+    filenameFD:
+        [
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/FD_pT_6_50_ModelApplied.parquet.gzip,
+        ]
+    dirname: null
+    treename: null

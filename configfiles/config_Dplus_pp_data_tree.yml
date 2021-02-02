@@ -9,7 +9,7 @@ histoevname: fHistNEvents
 
 #info for trees (files can be different if trees are filtered or with applied ML models)
 tree:
-    meson: Dplus #needed to define binning for invariant-mass histo
+    particle: Dplus #needed to define binning for invariant-mass histo
     filenameAll: [~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip,
                   ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt2_3/Data_pT_2_3_ModelApplied.parquet.gzip, 
                   ~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/ML/pt3_4/Data_pT_3_4_ModelApplied.parquet.gzip,

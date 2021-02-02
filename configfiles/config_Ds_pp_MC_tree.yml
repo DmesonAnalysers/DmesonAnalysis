@@ -17,7 +17,7 @@ histoevname: hNEvents
 
 #info for trees (files can be different if trees are filtered or with applied ML models)
 tree:
-    meson: Ds #needed to define binning for invariant-mass histo
+    particle: Ds #needed to define binning for invariant-mass histo
     filenameAll: null #not needed for MC
     filenamePrompt: [~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_1_2_ModelApplied.parquet.gzip,
                      ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/ML_applied_100320/MC_eff/Prompt_pT_2_4_ModelApplied.parquet.gzip,
