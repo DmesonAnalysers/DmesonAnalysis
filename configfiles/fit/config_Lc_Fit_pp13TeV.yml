@@ -1,0 +1,20 @@
+pp5TeVFD:
+    #Meson: 'Lc'
+    FixSigma: 1
+    SigmaFile: '../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt2_12.root'
+    SigmaMultFactor: 1. #float or MinusUnc, PlusUnc
+    FixMean: 0
+    MeanFile: ""
+    PtMin: [4, 6]
+    PtMax: [6, 12]
+    MassMin: [1.78, 1.78]
+    MassMax: [2.10, 2.10]
+    Rebin: [6, 8]
+    InclSecPeak: [1, 1, 1, 1]
+    SigmaSecPeak: [0.008, 0.008, 0.008, 0.008]
+    SigmaFileSecPeak: ""
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 1
+    BkgFunc: ["kExpo", "kExpo"]
+    SgnFunc: ["kGaus", "kGaus"]
