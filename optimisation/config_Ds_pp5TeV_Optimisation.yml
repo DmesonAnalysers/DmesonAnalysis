@@ -24,7 +24,7 @@ infiles:
         dirname: null
         treename: null
         nEvents: 882500000 # number of events for bkg in dataframe
-        fractiontokeep: 0.1
+        fractiontokeep: [0.1]
         isMC: false # if false bkg from SB
         fitFunc: expo # fit function for bkg from SB, e.g. pol1, pol2, expo
         nSigma: 4 # number of sigma from signal region, used to select SB
