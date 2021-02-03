@@ -55,8 +55,7 @@ if inputCfg['infiles']['secpeak']['feeddown']['filename']:
 else:
     dfSecPeakFD = None
 
-# reshuffle bkg and take only a fraction of it, seed fixed for reproducibility
-dfBkg = dfBkg.sample(frac=inputCfg['infiles']['background']['fractiontokeep'], random_state=42).reset_index(drop=True)
+fractionstokeep = inputCfg['infiles']['background']['fractiontokeep']
 
 # load cut values to scan
 ptMins = inputCfg['ptmin']
@@ -192,6 +191,9 @@ SetGlobalStyle(padleftmargin=0.12, padrightmargin=0.2, padbottommargin=0.15, pad
 cSignifVsRest, hSignifVsRest, cEstimVsCut, hEstimVsCut = [], [], [], []
 counter = 0
 for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
+    # reshuffle bkg and take only a fraction of it, seed fixed for reproducibility
+    dfBkg = dfBkg.sample(frac=fractionstokeep[iPt], random_state=42).reset_index(drop=True)
+
     outDirFitSB.cd()
     outDirFitSBPt.append(TDirectoryFile(f'pT{ptMin}-{ptMax}', f'pT{ptMin}-{ptMax}'))
     outDirFitSBPt[iPt].Write()
@@ -344,8 +346,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                                                           bkgConfig['nSigma'], mean, sigma,
                                                                           meanSecPeak, sigmaSecPeak)
             hMassBkg.Write()
-            expBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
-            errExpBkg *= nExpEv / bkgConfig['nEvents'] / bkgConfig['fractiontokeep']
+            expBkg *= nExpEv / bkgConfig['nEvents'] / fractionstokeep[iPt]
+            errExpBkg *= nExpEv / bkgConfig['nEvents'] / fractionstokeep[iPt]
 
             if inputCfg['infiles']['background']['corrfactor']['filename']:
                 inFile = TFile.Open(inputCfg['infiles']['background']['corrfactor']['filename'])
