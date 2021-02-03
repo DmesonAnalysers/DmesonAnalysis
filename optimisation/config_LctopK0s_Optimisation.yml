@@ -1,0 +1,88 @@
+infiles:
+    signal:
+        prompt:
+            filename: [~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/Prompt_pT_6_50_ModelApplied.parquet.gzip]
+            dirname: null
+            treename: null
+        feeddown:
+            filename: [~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/FD_pT_6_50_ModelApplied.parquet.gzip]
+            dirname: null
+            treename: null
+    secpeak: # only for Ds
+        prompt:
+            filename: null
+            dirname: null
+            treename: null
+        feeddown:
+            filename: null
+            dirname: null
+            treename: null
+        mean: 0 # fixed values of mean and sigma, used if histogram is not provided
+        sigma: 0
+    background:
+        filename: 
+            [
+                ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
+                ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/Data_pT_6_50_ModelApplied.parquet.gzip,
+            ]
+        dirname: null
+        treename: null
+        nEvents: 1800000000 # number of events for bkg in dataframe
+        fractiontokeep: [0.08, 0.2]
+        isMC: false # if false bkg from SB
+        fitFunc: expo # fit function for bkg from SB, e.g. pol1, pol2, expo
+        nSigma: 4 # number of sigma from signal region, used to select SB
+        impFit: false # true to use improved fit method similar to AliHFInvMassFitter
+        corrfactor:
+            filename: null # set null if no MC bkg correction is needed
+            histoname: null
+
+    preseleff: 
+        filename: ~/DmesonAnalysis/efficiency.root
+        prompthistoname: hEffPrompt
+        feeddownhistoname: hEffFD
+    acceptance: ~/DmesonAnalysis/accfiles/Acceptance_Toy_LcK0Sp_yfidPtDep_etaDau09_ptDau100_promptD0FONLL13ptshape.root
+
+ppRefFile: null
+
+predictions:
+    crosssec:
+        filename: ~/DmesonAnalysis/models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFee_BRpythia8_SepContr_PDG2020_PromptLcMod.root
+        histonames: 
+            prompt: hLcK0sppred_max
+            feeddown: hLcK0spfromBpred_max_corr
+    Raa: 
+        prompt: 1. # can either be a fixed value or a text file
+        feeddown: 1. # can either be a fixed value or a text file
+        model: null
+
+nExpectedEvents: 1800000000
+sigmaMB: 57.8e+9 #pb
+Taa: 1.
+
+expectedSignalFrom: 'feeddown' # Choice between: 'prompt' or 'feeddown'
+
+ptmin: [4, 6]
+ptmax: [6, 50]
+
+dfparametercuts:
+    name: null 
+    min: null
+    max: null
+    enable: False  # enable cuts over df column query over each df and relative scan histos 
+
+cutvars:
+    ML_output_Bkg:
+        axisnum: null
+        min: 0.002
+        max: 0.100
+        step: 0.002
+        upperlowercut: Upper
+    ML_output_FD:
+        axisnum: null
+        min: 0.1
+        max: 0.9
+        step: 0.005
+        upperlowercut: Lower
