@@ -24,7 +24,7 @@ data_prep:
         "max_signal" # change how the dataset is built, options available: 'equal', 'max_signal'
         # 'equal' -> same number of prompt/FD/bkg (not using all the signal available)
         # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = bkg_mult * (n_prompt + n_FD)
-    bkg_mult: [0.08, 0.08] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    bkg_mult: [0.08, 0.04] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
     seed_split: 42 # seed used for train_test_split(...)
     test_fraction: 0.2 # fraction of data used for test set and efficiencies --> set to 1. if you want to apply the model to the full dataframes
 
@@ -110,9 +110,13 @@ plots:
             d_len_xy,
             norm_dl_xy,
             imp_par_xy,
-            delta_mass_K0s,
+            pt_prong0,
             nsigComb_Pi_0,
             nsigComb_Pr_0,
+            delta_mass_K0s,
+            d_len_V0,
+            KF_chi2_topo,
+            imp_par_prong0,
         ]
         # list of variables to plot
     train_test_log: True # use log scale for plots of train and test distributions
