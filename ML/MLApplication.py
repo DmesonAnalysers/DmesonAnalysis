@@ -23,7 +23,10 @@ def main(): #pylint: disable=too-many-statements, too-many-branches
     print('Loading analysis configuration: Done!')
 
     PtBins = [[a, b] for a, b in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'])]
-    OutputLabels = inputCfg['output']['out_labels']
+    OutputLabels = [inputCfg['output']['out_labels']['Bkg'],
+                    inputCfg['output']['out_labels']['Prompt']]
+    if inputCfg['output']['out_labels']['FD'] is not None:
+        OutputLabels.append(inputCfg['output']['out_labels']['FD'])
     ColumnsToSave = inputCfg['appl']['column_to_save_list']
     ModelList = inputCfg['ml']['saved_models']
     ModelHandls = []

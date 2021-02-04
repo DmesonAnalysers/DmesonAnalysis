@@ -113,8 +113,14 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
 
     # plots
     VarsToDraw = inputCfg['plots']['plotting_columns']
-    LegLabels = inputCfg['output']['leg_labels']
-    OutputLabels = inputCfg['output']['out_labels']
+    LegLabels = [inputCfg['output']['leg_labels']['Bkg'],
+                 inputCfg['output']['leg_labels']['Prompt']]
+    if inputCfg['output']['leg_labels']['FD'] is not None:
+        LegLabels.append(inputCfg['output']['leg_labels']['FD'])
+    OutputLabels = [inputCfg['output']['out_labels']['Bkg'],
+                    inputCfg['output']['out_labels']['Prompt']]
+    if inputCfg['output']['out_labels']['FD'] is not None:
+        OutputLabels.append(inputCfg['output']['out_labels']['FD'])
     ListDf = [BkgDf, PromptDf] if FDDf.empty else [BkgDf, PromptDf, FDDf]
     #_____________________________________________
     plot_utils.plot_distr(ListDf, VarsToDraw, 100, LegLabels, figsize=(12, 7),
@@ -198,8 +204,14 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
     ModelHandl.dump_original_model(f'{OutPutDirPt}/XGBoostModel_pT_{PtBin[0]}_{PtBin[1]}.model', True)
 
     #plots
-    LegLabels = inputCfg['output']['leg_labels']
-    OutputLabels = inputCfg['output']['out_labels']
+    LegLabels = [inputCfg['output']['leg_labels']['Bkg'],
+                 inputCfg['output']['leg_labels']['Prompt']]
+    if inputCfg['output']['leg_labels']['FD'] is not None:
+        LegLabels.append(inputCfg['output']['leg_labels']['FD'])
+    OutputLabels = [inputCfg['output']['out_labels']['Bkg'],
+                    inputCfg['output']['out_labels']['Prompt']]
+    if inputCfg['output']['out_labels']['FD'] is not None:
+        OutputLabels.append(inputCfg['output']['out_labels']['FD'])
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 7)
     MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'],
@@ -240,7 +252,10 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
 
 
 def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff):
-    OutputLabels = inputCfg['output']['out_labels']
+    OutputLabels = [inputCfg['output']['out_labels']['Bkg'],
+                    inputCfg['output']['out_labels']['Prompt']]
+    if inputCfg['output']['out_labels']['FD'] is not None:
+        OutputLabels.append(inputCfg['output']['out_labels']['FD'])
     print('Applying ML model to prompt dataframe: ...', end='\r')
     yPredPromptEff = ModelHandl.predict(PromptDfPtSelForEff, inputCfg['ml']['raw_output'])
     df_column_to_save_list = inputCfg['appl']['column_to_save_list']
@@ -301,7 +316,8 @@ def main(): #pylint: disable=too-many-statements
 
     print('Loading and preparing data files: ...', end='\r')
     PromptHandler = TreeHandler(inputCfg['input']['prompt'], inputCfg['input']['treename'])
-    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'], inputCfg['input']['treename'])
+    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'],
+                                                                         inputCfg['input']['treename'])
     DataHandler = TreeHandler(inputCfg['input']['data'], inputCfg['input']['treename'])
 
     if inputCfg['data_prep']['filt_bkg_mass']:
