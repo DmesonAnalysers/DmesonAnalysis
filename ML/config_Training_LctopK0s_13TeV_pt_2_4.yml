@@ -73,46 +73,6 @@ ml:
                 "n_jobs": 4,
                 "tree_method": hist,
             },
-            {
-                "max_depth": 4,
-                "learning_rate": 0.092,
-                "n_estimators": 674,
-                "min_child_weight": 7.0,
-                "subsample": 0.90,
-                "colsample_bytree": 0.81,
-                "n_jobs": 4,
-                "tree_method": hist,
-            },
-            {
-                "max_depth": 4,
-                "learning_rate": 0.092,
-                "n_estimators": 674,
-                "min_child_weight": 7.0,
-                "subsample": 0.90,
-                "colsample_bytree": 0.81,
-                "n_jobs": 4,
-                "tree_method": hist,
-            },
-            {
-                "max_depth": 4,
-                "learning_rate": 0.070,
-                "n_estimators": 672,
-                "min_child_weight": 8.7,
-                "subsample": 0.87,
-                "colsample_bytree": 0.82,
-                "n_jobs": 4,
-                "tree_method": hist,
-            },
-            {
-                "max_depth": 3,
-                "learning_rate": 0.086,
-                "n_estimators": 352,
-                "min_child_weight": 8.6,
-                "subsample": 0.96,
-                "colsample_bytree": 0.95,
-                "n_jobs": 2,
-                "tree_method": hist,
-            },
         ]
         # list of dicts of hyperparameters (one for each pT bin)
 
@@ -152,9 +112,13 @@ plots:
             d_len_xy,
             norm_dl_xy,
             imp_par_xy,
-            delta_mass_K0s,
+            pt_prong0,
             nsigComb_Pi_0,
             nsigComb_Pr_0,
+            delta_mass_K0s,
+            d_len_V0,
+            KF_chi2_topo,
+            imp_par_prong0,
         ]
         # list of variables to plot
     train_test_log: True # use log scale for plots of train and test distributions
