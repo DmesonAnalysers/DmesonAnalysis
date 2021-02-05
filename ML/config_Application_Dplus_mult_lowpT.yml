@@ -5,8 +5,14 @@ input: # files to use
     treename: null
 
 output:
-    leg_labels: ['Background', 'Prompt D$^+$', 'FD D$^+$'] # legend labels
-    out_labels: ['Bkg', 'Prompt', 'FD'] # output labels
+    leg_labels: # legend labels, keep the right number of classes
+        Bkg: Background
+        Prompt: Prompt D$^+$
+        FD: Feed-down D$^+$
+    out_labels: # output labels, keep the right number of classes
+        Bkg: Bkg
+        Prompt: Prompt
+        FD: FD
     dir: '../../Analysispp2017DplusLowPt/outputs/ML/MissingValuesTOF/PIDTOFTPC' # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing

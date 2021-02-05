@@ -4,8 +4,14 @@ input: # files to use, set FD to null for binary classification
     data: ~/DmesonAnalysis/filterdata/filtered/Data_filter_pT_0_50.parquet.gzip
 
 output:
-    leg_labels: ["Background", "Prompt L$_c$", "Feed-down L$_c$"] # legend labels, keep the right number of classes
-    out_labels: ["Bkg", "Prompt", "FD"] # output labels, keep the right number of classes
+    leg_labels: # legend labels, keep the right number of classes
+        Bkg: Background
+        Prompt: Prompt $\Lambda_c^+$
+        FD: Feed-down $\Lambda_c^+$
+    out_labels: # output labels, keep the right number of classes
+        Bkg: Bkg
+        Prompt: Prompt
+        FD: FD
     dir: ~/DmesonAnalysis/ML/trained_models/LctopK0s/5TeV/ # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing

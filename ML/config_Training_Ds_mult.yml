@@ -5,8 +5,14 @@ input: # files to use, set FD to null for binary classification
     treename: null
 
 output:
-    leg_labels: ['Background', 'Prompt D$_s$', 'Feed-down D$_s$'] # legend labels, keep the right number of classes
-    out_labels: ['Bkg', 'Prompt', 'FD'] # output labels, keep the right number of classes
+    leg_labels: # legend labels, keep the right number of classes
+        Bkg: Background
+        Prompt: Prompt D$_s^+$
+        FD: Feed-down D$_s^+$
+    out_labels: # output labels, keep the right number of classes
+        Bkg: Bkg
+        Prompt: Prompt
+        FD: FD
     dir: '/home/fcatalan/Desktop/Analyses/pp5TeV/Ds_wML_mult/ml_training' # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing
