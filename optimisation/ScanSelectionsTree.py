@@ -39,7 +39,7 @@ dfPrompt = LoadDfFromRootOrParquet(inputCfg['infiles']['signal']['prompt']['file
 dfFD = LoadDfFromRootOrParquet(inputCfg['infiles']['signal']['feeddown']['filename'],
                                inputCfg['infiles']['signal']['feeddown']['dirname'],
                                inputCfg['infiles']['signal']['feeddown']['treename'])
-dfBkg = LoadDfFromRootOrParquet(inputCfg['infiles']['background']['filename'],
+dfBkg_tot = LoadDfFromRootOrParquet(inputCfg['infiles']['background']['filename'],
                                 inputCfg['infiles']['background']['dirname'],
                                 inputCfg['infiles']['background']['treename'])
 if inputCfg['infiles']['secpeak']['prompt']['filename']:
@@ -192,6 +192,7 @@ cSignifVsRest, hSignifVsRest, cEstimVsCut, hEstimVsCut = [], [], [], []
 counter = 0
 for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     # reshuffle bkg and take only a fraction of it, seed fixed for reproducibility
+    dfBkg = dfBkg_tot.query(str(ptMin) + " < pt_cand  and pt_cand < " + str(ptMax))
     dfBkg = dfBkg.sample(frac=fractionstokeep[iPt], random_state=42).reset_index(drop=True)
 
     outDirFitSB.cd()
