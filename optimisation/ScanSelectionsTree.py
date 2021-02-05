@@ -192,7 +192,7 @@ cSignifVsRest, hSignifVsRest, cEstimVsCut, hEstimVsCut = [], [], [], []
 counter = 0
 for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     # reshuffle bkg and take only a fraction of it, seed fixed for reproducibility
-    dfBkg = dfBkg_tot.query(str(ptMin) + " < pt_cand  and pt_cand < " + str(ptMax))
+    dfBkg = dfBkg_tot.query(f'{ptMin} < pt_cand  and pt_cand < {ptMax}')
     dfBkg = dfBkg.sample(frac=fractionstokeep[iPt], random_state=42).reset_index(drop=True)
 
     outDirFitSB.cd()
