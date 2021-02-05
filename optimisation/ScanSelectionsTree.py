@@ -203,7 +203,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     outDirPlotsPt[iPt].Write()
     dfPromptPt = dfPrompt.query(f'{ptMin} < pt_cand < {ptMax}')
     dfFDPt = dfFD.query(f'{ptMin} < pt_cand < {ptMax}')
-    dfBkgPt = dfBkg.query(f'{ptMin} < pt_cand < {ptMax}')
 
     # Raa
     ptCent = (ptMax + ptMin) / 2.
