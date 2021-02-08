@@ -16,11 +16,11 @@ SetGlobalStyle(padbottommargin=0.14)
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('inFileName', metavar='text', default='predictions.root',
                     help='input root or txt file with FONLL predictions')
-parser.add_argument('--BRD0', type=float, default=0.0389,
+parser.add_argument('--BRD0', type=float, default=0.03950,
                     help='BR for D0 -> Kpi channel. This must correspond to the one used in the original file!')
 parser.add_argument('--BRpKpi', type=float, default=0.0623,
                     help='BR for Lc -> pKpi channel. It is convenient to have the same as for FD')
-parser.add_argument('--BRpK0s', type=float, default=0.0158,
+parser.add_argument('--BRpK0s', type=float, default=0.0159*0.6920,
                     help='BR for Lc -> pK0s channel. It is convenient to have the same as for FD')
 args = parser.parse_args()
 
