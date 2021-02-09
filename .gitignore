@@ -1,18 +1,38 @@
-__pycache__
-*.pyc
-.vscode
-*.pcm
+# C/C++
 *.d
+*.pcm
 *.so
-.DS_Store
+
+# ROOT Files
+**ACLiC**
+/*.root
 runanalysistask/AODfiles
 runanalysistask/ESDfiles
 runanalysistask/*.pdf
 runanalysistask/*.root
 runanalysistask/*/*.root
 runanalysistask/*.xml
-cutobjects/*.root
-cutobjects/*/*.root
-filterdata/*.root
-filterdata/*.parquet*
+cutobjects/**/*.root
+filterdata/**/*.root
+AnalysisResults/
+optimisation/*.root
+# python/ML
+__pycache__
+*.pyc
+*.pickle
+*.model
+*.pkl
+*.parquet.gzip
+
+# misc
+.vscode
+.DS_Store
+
+# Graphics
 RelativeSystematics.eps
+*.pdf
+
+# daniel
+notes.md
+/tutorial/
+filterdata/5TeV/**

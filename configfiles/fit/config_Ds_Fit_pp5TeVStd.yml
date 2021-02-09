@@ -1,5 +1,5 @@
 pp5TeVPrompt:
-    Meson: 'Ds'
+    Particle: 'Ds'
     FixSigma: 1
     SigmaFile: '~/Desktop/Analyses/pp5TeV/Ds_wML_mult/std_analysis/RawYields_Ds_d0cut_strongPIDpt6_LHC18a4a2_upto24.root'
     SigmaMultFactor: 1.

@@ -1,5 +1,5 @@
 pp5TeVPrompt:
-    Meson: 'Ds'
+    Particle: 'Ds'
     FixSigma: 0
     SigmaFile: ''
     SigmaMultFactor: 1.
@@ -20,7 +20,7 @@ pp5TeVPrompt:
     SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
 
 pp5TeVFD:
-    Meson: 'Ds'
+    Particle: 'Ds'
     FixSigma: 1
     SigmaFile: '../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt2_12.root'
     SigmaMultFactor: 1. #float or MinusUnc, PlusUnc
