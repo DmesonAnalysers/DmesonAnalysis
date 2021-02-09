@@ -418,7 +418,7 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
     return 2 * crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
 
 
-def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, deltaY, sigmaMB, nEv, BR):
+def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, deltaY, sigmaMB, nEv, BR, corrRawYieldFrac='corr'):
     '''
     Method to compute cross section and its statistical uncertainty
     Only the statistical uncertainty on the raw yield and prompt (feed-down)
@@ -443,7 +443,13 @@ def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, delt
     - crossSecUnc: cross-section statistical uncertainty
     '''
     crossSection = rawY * frac * sigmaMB / (2 * deltaPt * deltaY * effTimesAcc * nEv * BR)
-    crossSecUnc = np.sqrt((uncRawY / rawY)**2 + (uncFrac / frac)**2) * crossSection
+    crossSecUnc = -1.
+    if corrRawYieldFrac == 'corr':
+        crossSecUnc = ((uncRawY / rawY) + (uncFrac / frac)) * crossSection
+    elif corrRawYieldFrac == 'uncorr':
+        crossSecUnc = np.sqrt((uncRawY / rawY)**2 + (uncFrac / frac)**2) * crossSection
+    elif corrRawYieldFrac == 'anticorr':
+        crossSecUnc = abs((uncRawY / rawY) - (uncFrac / frac)) * crossSection
 
     return crossSection, crossSecUnc
 

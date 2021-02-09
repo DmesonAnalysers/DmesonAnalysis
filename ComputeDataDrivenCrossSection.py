@@ -161,8 +161,13 @@ for iPt in range(hCrossSection.GetNbinsX()):
         frac = fFD
         uncFrac = fFDUnc
 
-    crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
-                                                ptMax - ptMin, 1., sigmaMB, nEv, 1.)
+    if args.FD:
+        crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
+                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., 'corr')
+    else:
+        crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
+                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., 'anticorr') # TODO: check this
+
     hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6)  # convert from pb to mub
     hCrossSection.SetBinError(iPt+1, crossSecUnc * 1.e-6) # convert from pb to mub
 
