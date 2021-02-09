@@ -1,9 +1,0 @@
-cutvars:
-    InvMass:
-        axisnum: null
-        name: 'inv_mass'
-    Pt:
-        axisnum: null
-        min: [4., 6.]
-        max: [6., 12.]
-        name: 'pt_cand'

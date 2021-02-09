@@ -1,17 +1,23 @@
 isMC: no
-filename: ~/DmesonAnalysis/AnalysisResults/13TeV/data/AnalysisResults_LcpK0s_2016_kl.root
+filename: [
+    ~/DmesonAnalysis/AnalysisResults/13TeV/data/AnalysisResults_LcpK0s_2016_kl.root,
+    ~/DmesonAnalysis/AnalysisResults/13TeV/data/AnalysisResults_LcpK0s_2016_deghjop.root,
+    ~/DmesonAnalysis/AnalysisResults/13TeV/data/AnalysisResults_LcpK0s_2017_cefhijklmor.root,
+    ~/DmesonAnalysis/AnalysisResults/13TeV/data/AnalysisResults_LcpK0s_2018_bdefghijklmnop.root,
+]
 dirname: PWGHF_D2H_NonPromptLctopK0sLoose
 listname: coutputNonPromptLctopK0sLoose
 sparsenameAll: hMassPtCutVarsAll
 enableSecPeak: no #always no for data
-normname: coutputLctopK0sLoose
-histoevname: fHistNEvents
+normname: NormalizationCounter
+histoevname: hNEvents
 
 #info for trees (files can be different if trees are filtered or with applied ML models)
 tree:
-    filenameAll:
-        [~/alidock/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
-~/alidock/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/Data_pT_6_50_ModelApplied.parquet.gzip,
-        ]
+    particle: 'Lc'
+    filenameAll: [
+        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
+        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/Data_pT_6_50_ModelApplied.parquet.gzip,
+    ]
     dirname: PWGHF_D2H_NonPromptLctopK0sLoose
     treename: treeML

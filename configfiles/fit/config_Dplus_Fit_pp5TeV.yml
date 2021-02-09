@@ -1,5 +1,5 @@
 pp5TeVPrompt:
-    Meson: 'Dplus'
+    Particle: 'Dplus'
     FixSigma: 0
     SigmaFile: ''
     SigmaMultFactor: 1.
@@ -21,7 +21,7 @@ pp5TeVPrompt:
 
 # prompt in FD bins
 # pp5TeVPrompt:
-#     Meson: 'Dplus'
+#     Particle: 'Dplus'
 #     FixSigma: 0
 #     SigmaFile: ''
 #     SigmaMultFactor: 1.
@@ -42,7 +42,7 @@ pp5TeVPrompt:
 #     SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
 
 pp5TeVFD:
-    Meson: 'Dplus'
+    Particle: 'Dplus'
     FixSigma: 1
     SigmaFile: '~/cernbox/ALICE_WORK/AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_prompt_central.root'
     SigmaMultFactor: 1.

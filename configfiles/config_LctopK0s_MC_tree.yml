@@ -19,22 +19,21 @@ sparsenameFDSecPeak: null
 sparsenameGenPromptSecPeak: null
 sparsenameGenFDSecPeak: null
 #normname: coutputLctopK0sNormLoose_kMB0100
-normname: NormalizationCounter
+#normname: NormalizationCounter
+normname: coutputNonPromptLctopK0sLoose
 histoevname: hNEvents
 
 #info for trees (files can be different if trees are filtered or with applied ML models)
 tree:
     particle: Lc #needed to define binning for invariant-mass histo
     filenameAll: null #not needed for MC
-    filenamePrompt:
-        [
-            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
-            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/Prompt_pT_6_50_ModelApplied.parquet.gzip,
-        ]
-    filenameFD:
-        [
-            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
-            ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/FD_pT_6_50_ModelApplied.parquet.gzip,
-        ]
+    filenamePrompt: [
+        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
+        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/Prompt_pT_6_50_ModelApplied.parquet.gzip,
+    ]
+    filenameFD: [
+        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
+        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/FD_pT_6_50_ModelApplied.parquet.gzip,
+    ]
     dirname: null
     treename: null

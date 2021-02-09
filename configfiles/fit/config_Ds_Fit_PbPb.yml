@@ -1,5 +1,5 @@
 Cent010:
-    Meson: 'Ds'
+    Particle: 'Ds'
     FixSigma: 0
     SigmaFile: ''
     SigmaMultFactor: 1.
@@ -20,7 +20,7 @@ Cent010:
     SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
 
 Cent3050:
-    Meson: 'Ds'
+    Particle: 'Ds'
     FixSigma: 0
     SigmaFile: 'outputs/3_24bin_merge/PIDvar/rawyields/RawYieldsDs_3050_central_2018.root'
     SigmaMultFactor: 1.

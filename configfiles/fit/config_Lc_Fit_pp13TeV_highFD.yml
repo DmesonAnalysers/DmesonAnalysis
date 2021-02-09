@@ -1,0 +1,20 @@
+pp13TeVFD:
+    Particle: 'Lc'
+    FixSigma: 1
+    SigmaFile: '~/DmesonAnalysis/rawYieldExtraction_highSignif.root'
+    SigmaMultFactor: 1. #float or MinusUnc, PlusUnc
+    FixMean: 0
+    MeanFile: ""
+    PtMin: [4, 6]
+    PtMax: [6, 12]
+    MassMin: [2.11, 2.11]
+    MassMax: [2.449, 2.449]
+    Rebin: [5, 5]
+    InclSecPeak: [null, null] # Ds only
+    SigmaSecPeak: [null, null] # Ds only
+    SigmaFileSecPeak: '' # Ds only
+    SigmaMultFactorSecPeak: '' # Ds only
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 0
+    BkgFunc: ["kPol2", "kPol2"]
+    SgnFunc: ["kGaus", "kGaus"]
