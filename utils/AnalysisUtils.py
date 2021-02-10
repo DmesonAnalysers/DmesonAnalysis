@@ -418,7 +418,8 @@ def GetExpectedSignal(crossSec, deltaPt, deltaY, effTimesAcc, frac, BR, fractoD,
     return 2 * crossSec * deltaPt * deltaY * effTimesAcc * BR * fractoD * nEv * TAA * RAA / frac / sigmaMB
 
 
-def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, deltaY, sigmaMB, nEv, BR, corrRawYieldFrac='corr'):
+def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc,
+                        deltaPt, deltaY, sigmaMB, nEv, BR, corrRawYieldFrac='corr'):
     '''
     Method to compute cross section and its statistical uncertainty
     Only the statistical uncertainty on the raw yield and prompt (feed-down)
@@ -436,6 +437,8 @@ def ComputeCrossSection(rawY, uncRawY, frac, uncFrac, effTimesAcc, deltaPt, delt
     - sigmaMB: hadronic cross section for MB
     - nEv: number of events
     - BR: branching ratio of the decay channel
+    - corrRawYieldFrac: type of correlation between raw yield and fraction
+                        options: 'corr', 'uncorr', and 'anticorr'
 
     Returns
     ----------
