@@ -42,11 +42,7 @@ void DivideCanvas(TCanvas* c, int nPtBins);
 
 //__________________________________________________________________________________________________________________
 int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfilename, TString outFileName) {
-    std::cout << __LINE__<<std::endl;
-
     SetStyle();
-    std::cout << __LINE__<<std::endl;
-
 
     //load config
     TString centname = "";
@@ -62,7 +58,6 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         return -1;
     } 
     YAML::Node config = YAML::LoadFile(cfgfilename.Data());
-    std::cout << __LINE__<<std::endl;
 
     string ParticleName = config[centname.Data()]["Particle"].as<string>();
     int particle;
@@ -77,8 +72,6 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         return -1;
     }
     
-    std::cout << __LINE__<<std::endl;
-
     bool fixSigma = static_cast<bool>(config[centname.Data()]["FixSigma"].as<int>());
     string infilenameSigma = config[centname.Data()]["SigmaFile"].as<string>();
     bool isSigmaMultFromUnc = false;
@@ -108,9 +101,6 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     const unsigned int nPtBins = PtMin.size();
     int BkgFunc[nPtBins], SgnFunc[nPtBins], degPol[nPtBins];
     double PtLims[nPtBins+1];
-
-    std::cout << __LINE__<<std::endl;
-
 
     for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
         PtLims[iPt] = PtMin[iPt];
@@ -158,23 +148,18 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             return -1;
         }
     }
-    std::cout << __LINE__<<std::endl;
 
     TString massaxistit = "";
     if(particle==kDplus) massaxistit = "#it{M}(K#pi#pi) (GeV/#it{c}^{2})";
     else if(particle==kDs) massaxistit = "#it{M}(KK#pi) (GeV/#it{c}^{2})";
     else if(particle==kLc) massaxistit = "#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})";
     
-    std::cout << __LINE__<<std::endl;
-
-
     //load inv-mass histos
     auto infile = TFile::Open(infilename.Data());
     if(!infile || !infile->IsOpen()) return -1;
     TH1F* hMass[nPtBins];
     TH1F* hEv = NULL;
 
-    std::cout << __LINE__<<std::endl;
     for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
         if(!isMC)
             hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10)));
@@ -308,7 +293,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     double massForFit;
     
     if(particle==kDplus) massForFit = massDplus;
-    else if (particle==kDplus) massForFit = massDs;
+    else if (particle==kDs) massForFit = massDs;
     else if (particle==kLc) massForFit = massLc;
 
     TH1F* hMassForFit[nPtBins];
