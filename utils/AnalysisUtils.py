@@ -267,6 +267,50 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
     return frac
 
 
+def GetPromptFDFractionCutSet(accEffPrompt, accEffFD, corrYieldPrompt, corrYieldFD,
+                              covPromptPrompt, covFDFD, covPromptFD):
+    '''
+    Helper method to get the prompt and FD fractions for a given cut set with the cut-variation method
+    The Uncertainties on the efficiencies are neglected
+
+    Parameters
+    ----------
+    - accEffPrompt: acc x eff for prompt
+    - accEffFD: acc x eff for prompt
+    - corrYieldPrompt: corr yield for prompt from cut-variation method
+    - corrYieldFD: corr yield for FD from cut-variation method
+    - covPromptPrompt: covariance for corrected yields (prompt, prompt) component
+    - covFDFD: covariance for corrected yields (FD, FD) component
+    - covPromptFD: covariance for corrected yields (prompt, FD) component
+
+    Returns
+    ----------
+    - frac: list of two elements with prompt and FD fractions
+    - uncFrac: list of two elements with uncertainties on prompt and FD fractions
+    '''
+
+    # prompt fraction
+    fPrompt = accEffPrompt * corrYieldPrompt / (accEffPrompt * corrYieldPrompt + accEffFD * corrYieldFD)
+    defPdeNP = (accEffPrompt * (accEffPrompt * corrYieldPrompt + accEffFD * corrYieldFD) - accEffPrompt**2
+                * corrYieldPrompt) / (accEffPrompt * corrYieldPrompt + accEffFD * corrYieldFD)**2
+    defPdeNF = - accEffFD * accEffPrompt * corrYieldPrompt / \
+        (accEffPrompt * corrYieldPrompt + accEffFD * corrYieldFD)**2
+    fPromptUnc = np.sqrt(defPdeNP**2 * covPromptPrompt + defPdeNF**2 * covFDFD + 2 * defPdeNP * defPdeNF * covPromptFD)
+
+    # feed-down fraction
+    fFD = accEffFD * corrYieldFD / (accEffPrompt * corrYieldPrompt + accEffFD * corrYieldFD)
+    defFdeNF = (accEffFD * (accEffFD * corrYieldFD + accEffPrompt * corrYieldPrompt) - accEffFD**2
+                * corrYieldFD) / (accEffPrompt * corrYieldPrompt + accEffFD * corrYieldFD)**2
+    defFdeNP = - accEffFD * accEffPrompt * corrYieldFD / \
+        (accEffPrompt * corrYieldPrompt + accEffFD * corrYieldFD)**2
+    fFDUnc = np.sqrt(defFdeNF**2 * covFDFD + defFdeNP**2 * covPromptPrompt + 2 * defFdeNF * defFdeNP * covPromptFD)
+
+    frac = [fPrompt, fFD]
+    uncFrac = [fPromptUnc, fFDUnc]
+
+    return frac, uncFrac
+
+
 def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0., sigma=0.,
                                 meanSecPeak=0., sigmaSecPeak=0.):
     '''

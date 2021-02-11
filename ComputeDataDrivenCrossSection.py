@@ -10,7 +10,7 @@ import argparse
 import numpy as np
 from ROOT import TFile, TCanvas, TLegend, TGraphErrors, gROOT  # pylint: disable=import-error,no-name-in-module
 from ROOT import AliHFSystErr  # pylint: disable=import-error,no-name-in-module
-from utils.AnalysisUtils import ComputeCrossSection
+from utils.AnalysisUtils import ComputeCrossSection, GetPromptFDFractionCutSet
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
@@ -129,37 +129,25 @@ for iPt in range(hCrossSection.GetNbinsX()):
     covPromptFD = hCovPromptFD.GetBinContent(iPt+1)
     covFDFD = hCovFDFD.GetBinContent(iPt+1)
 
-    # prompt fraction
-    fPrompt = effAccPrompt * corrYieldPrompt / (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)
-    defPdeNP = (effAccPrompt * (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD) - effAccPrompt**2
-                * corrYieldPrompt) / (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)**2
-    defPdeNF = - effAccFD * effAccPrompt * corrYieldPrompt / \
-        (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)**2
-    fPromptUnc = np.sqrt(defPdeNP**2 * covPromptPrompt + defPdeNF**2 * covFDFD + 2 * defPdeNP * defPdeNF * covPromptFD)
+    # prompt and FD and fractions
+    fracPromptFD, uncFracPromptFD = GetPromptFDFractionCutSet(effAccPrompt, effAccFD, corrYieldPrompt, corrYieldFD,
+                                                              covPromptPrompt, covFDFD, covPromptFD)
 
-    # feed-down fraction
-    fFD = effAccFD * corrYieldFD / (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)
-    defFdeNF = (effAccFD * (effAccFD * corrYieldFD + effAccPrompt * corrYieldPrompt) - effAccFD**2
-                * corrYieldFD) / (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)**2
-    defFdeNP = - effAccFD * effAccPrompt * corrYieldFD / \
-        (effAccPrompt * corrYieldPrompt + effAccFD * corrYieldFD)**2
-    fFDUnc = np.sqrt(defFdeNF**2 * covFDFD + defFdeNP**2 * covPromptPrompt + 2 * defFdeNF * defFdeNP * covPromptFD)
-
-    hPromptFrac.SetBinContent(iPt+1, fPrompt)
-    hPromptFrac.SetBinError(iPt+1, fPromptUnc)
-    hFDFrac.SetBinContent(iPt+1, fFD)
-    hFDFrac.SetBinError(iPt+1, fFDUnc)
+    hPromptFrac.SetBinContent(iPt+1, fracPromptFD[0])
+    hPromptFrac.SetBinError(iPt+1, uncFracPromptFD[0])
+    hFDFrac.SetBinContent(iPt+1, fracPromptFD[1])
+    hFDFrac.SetBinError(iPt+1, uncFracPromptFD[1])
 
     if args.prompt:
         effAcc = effAccPrompt
         uncEffAcc = effAccPromptUnc
-        frac = fPrompt
-        uncFrac = fPromptUnc
+        frac = fracPromptFD[0]
+        uncFrac = uncFracPromptFD[0]
     else:
         effAcc = effAccFD
         uncEffAcc = effAccFDUnc
-        frac = fFD
-        uncFrac = fFDUnc
+        frac = fracPromptFD[1]
+        uncFrac = uncFracPromptFD[1]
 
     if args.FD:
         crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
@@ -188,7 +176,7 @@ cCrossSec.SetLogy()
 hCrossSection.Draw()
 gCrossSectionSyst['Tot'].Draw('2')
 
-legFrac = TLegend(0.6, 0.7, 0.9, 0.9)
+legFrac = TLegend(0.2, 0.84, 0.4, 0.94)
 legFrac.SetBorderSize(0)
 legFrac.SetFillStyle(0)
 legFrac.SetTextSize(0.045)
