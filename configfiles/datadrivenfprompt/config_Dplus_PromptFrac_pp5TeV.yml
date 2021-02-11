@@ -10,6 +10,11 @@ efficiencies:
         prompt: hAccEffPrompt
         feeddown: hAccEffFD
 
+background: # needed only in case of smearing applied
+    inputdir: null
+    inputfiles: null
+    histoname: null
+
 minimisation:
     correlated: true # true --> fully correlated, false --> fully uncorrelated
     doRawYieldSmearing: false # whether to smear the yields with a poissonian error
