@@ -301,8 +301,7 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0
     minMass = hMassData.GetBinLowEdge(1)
     maxMass = hMassData.GetBinLowEdge(hMassData.GetNbinsX()) + hMassData.GetBinWidth(1)
     bkgFuncCreator = BkgFitFuncCreator(bkgFunc, minMass, maxMass, nSigmaForSB, mean, sigma, meanSecPeak, sigmaSecPeak)
-    integral = hMassData.Integral('width')
-    funcBkgSB = bkgFuncCreator.GetSideBandsFunc(integral)
+    funcBkgSB = bkgFuncCreator.GetSideBandsFunc(hMassData.Integral('width'))
     fit = hMassData.Fit(funcBkgSB, 'LRQ+')
     expBkg3s, errExpBkg3s = 0., 0.
     if int(fit) == 0:
@@ -334,8 +333,11 @@ def GetExpectedBkgFromMC(hMassBkg, mean=0., sigma=0., doFit=True, bkgFunc='pol3'
     if doFit:
         if hMassBkg.Integral() <= 5: # check to have some entries in the histogram before fitting
             return 0., 0., hMassBkg
-        funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
-        fit = hMassBkg.Fit(funcBkg, 'Q')
+        minMass = hMassBkg.GetBinLowEdge(1)
+        maxMass = hMassBkg.GetBinLowEdge(hMassBkg.GetNbinsX()) + hMassBkg.GetBinWidth(1)
+        bkgFuncCreator = BkgFitFuncCreator(bkgFunc, minMass, maxMass)
+        funcBkg = bkgFuncCreator.GetSideBandsFunc(hMassBkg.Integral('width'))
+        fit = hMassBkg.Fit(funcBkg, 'LRQ+')
         if int(fit) == 0:
             expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
             errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassBkg.GetBinWidth(1)
