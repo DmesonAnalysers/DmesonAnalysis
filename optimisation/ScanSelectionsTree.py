@@ -14,7 +14,7 @@ from ROOT import TFile, TH1F, TH2F, TF1, TCanvas, TNtuple, TDirectoryFile  # pyl
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands  #pylint: disable=wrong-import-position,import-error
-from utils.AnalysisUtils import  GetExpectedBkgFromSideBandsImp, GetExpectedBkgFromMC, GetExpectedSignal  #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import  GetExpectedBkgFromMC, GetExpectedSignal  #pylint: disable=wrong-import-position,import-error
 from utils.FitUtils import SingleGaus #pylint: disable=wrong-import-position,import-error
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
 from utils.DfUtils import LoadDfFromRootOrParquet  #pylint: disable=wrong-import-position,import-error
@@ -40,8 +40,8 @@ dfFD = LoadDfFromRootOrParquet(inputCfg['infiles']['signal']['feeddown']['filena
                                inputCfg['infiles']['signal']['feeddown']['dirname'],
                                inputCfg['infiles']['signal']['feeddown']['treename'])
 dfBkg_tot = LoadDfFromRootOrParquet(inputCfg['infiles']['background']['filename'],
-                                inputCfg['infiles']['background']['dirname'],
-                                inputCfg['infiles']['background']['treename'])
+                                    inputCfg['infiles']['background']['dirname'],
+                                    inputCfg['infiles']['background']['treename'])
 if inputCfg['infiles']['secpeak']['prompt']['filename']:
     dfSecPeakPrompt = LoadDfFromRootOrParquet(inputCfg['infiles']['secpeak']['prompt']['filename'],
                                               inputCfg['infiles']['secpeak']['prompt']['dirname'],
@@ -337,10 +337,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             errExpBkg = 0.
             if bkgConfig['isMC']:
                 expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromMC(hMassBkg, mean, sigma)
-            elif bkgConfig['impFit']:
-                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBandsImp(hMassBkg, bkgConfig['fitFunc'],
-                                                                             bkgConfig['nSigma'], mean, sigma,
-                                                                             meanSecPeak, sigmaSecPeak)
             else:
                 expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
                                                                           bkgConfig['nSigma'], mean, sigma,
