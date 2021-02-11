@@ -35,6 +35,10 @@ elif args.centClass == 'kpp5TeVPrompt':
     cent = 'pp5TeVPrompt'
 elif args.centClass == 'kpp5TeVFD':
     cent = 'pp5TeVFD'
+elif args.centClass == 'kpp13TeVPrompt':
+    cent = 'pp13TeVPrompt'
+elif args.centClass == 'kpp13TeVFD':
+    cent = 'pp13TeVFD'
 
 gROOT.SetBatch(args.batch)
 SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, titlesize=0.045, labelsize=0.04)
