@@ -35,6 +35,18 @@ with open(args.cfgFileName, 'r') as ymlCutSetFile:
 inputFilesRaw = cutSetCfg['rawyields']['inputfiles']
 inputFilesEff = cutSetCfg['efficiencies']['inputfiles']
 inputFilesBkg = cutSetCfg['background']['inputfiles']
+if inputFilesBkg is None:
+    inputFilesBkg = inputFilesRaw.copy()
+
+inputDirRaw = cutSetCfg['rawyields']['inputdir']
+inputDirEff = cutSetCfg['efficiencies']['inputdir']
+inputDirBkg = cutSetCfg['background']['inputdir']
+
+histoNameRaw = cutSetCfg['rawyields']['histoname']
+histoNameEffPrompt = cutSetCfg['efficiencies']['histonames']['prompt']
+histoNameEffFD = cutSetCfg['efficiencies']['histonames']['feeddown']
+histoNameBkg = cutSetCfg['background']['histoname']
+
 nSets = len(cutSetCfg['rawyields']['inputfiles'])
 
 doRawYieldsSmearing = cutSetCfg['minimisation']['doRawYieldSmearing']
@@ -102,24 +114,24 @@ compareToNb = cutSetCfg['theorydriven']['enableNb']
 hCrossSecPrompt, hCrossSecFD = [], []
 
 for inFileNameRawYield, inFileNameEff, inFileNameBkg in zip(inputFilesRaw, inputFilesEff, inputFilesBkg):
-    inFileNameRawYield = os.path.join(cutSetCfg['rawyields']['inputdir'], inFileNameRawYield)
+    inFileNameRawYield = os.path.join(inputDirRaw, inFileNameRawYield)
     inFileRawYield = TFile.Open(inFileNameRawYield)
-    hRawYields.append(inFileRawYield.Get(cutSetCfg['rawyields']['histoname']))
+    hRawYields.append(inFileRawYield.Get(histoNameRaw))
     hRawYields[-1].SetDirectory(0)
     if compareToNb:
         hEv.append(inFileRawYield.Get('hEvForNorm'))
         hEv[-1].SetDirectory(0)
-    inFileNameEff = os.path.join(cutSetCfg['efficiencies']['inputdir'], inFileNameEff)
+    inFileNameEff = os.path.join(inputDirEff, inFileNameEff)
     inFileEff = TFile.Open(inFileNameEff)
-    hEffPrompt.append(inFileEff.Get(cutSetCfg['efficiencies']['histonames']['prompt']))
-    hEffFD.append(inFileEff.Get(cutSetCfg['efficiencies']['histonames']['feeddown']))
+    hEffPrompt.append(inFileEff.Get(histoNameEffPrompt))
+    hEffFD.append(inFileEff.Get(histoNameEffFD))
     hEffPrompt[-1].SetDirectory(0)
     hEffFD[-1].SetDirectory(0)
-    inFileNameBkg = os.path.join(cutSetCfg['background']['inputdir'], inFileNameBkg)
-    inFileBkg = TFile.Open(inFileNameBkg)
-    hBkg.append(inFileBkg.Get(cutSetCfg['background']['histonames']))
-    hBkg[-1].SetDirectory(0)
-
+    if inputDirBkg is not None and inFileNameBkg is not None:
+        inFileNameBkg = os.path.join(inputDirBkg, inFileNameBkg)
+        inFileBkg = TFile.Open(inFileNameBkg)
+        hBkg.append(inFileBkg.Get(histoNameBkg))
+        hBkg[-1].SetDirectory(0)
 
 if compareToFc or compareToNb:
     crossSecCfg = cutSetCfg['theorydriven']['predictions']['crosssec']
@@ -340,22 +352,22 @@ for iPt in range(hRawYields[0].GetNbinsX()):
                                                 hRawYieldFDVsCut[iPt].GetBinContent(iCutSet+1))
 
         if cutSetCfg['linearplot']['enable']:
-            fNfdNprompt[iPt].append(TF1(f'cutset{iCutSet+1}', '[1]*x + [0]',
-                                        0., max(corrYields)/2.))
-            if cutSetCfg['linearplot']['uncbands']:
-                fNfdNpromptUpper[iPt].append(TF1(f'lowerlimit cutset{iCutSet+1}', '[1]*x + [0]',
-                                                 0., max(corrYields)/2.))
+            fNfdNprompt[iPt].append(TF1(f'cutset{iCutSet+1}', '[1]*x + [0]', 0., max(corrYields)/2.))
             fNfdNprompt[iPt][iCutSet].SetParameter(0, rawY/effP)
             fNfdNprompt[iPt][iCutSet].SetParameter(1, -effF/effP)
             if cutSetCfg['linearplot']['uncbands']:
+                fNfdNpromptUpper[iPt].append(TF1(f'fNfdNpromptUpper{iPt}{iCutSet+1}',
+                                                 '[1]*x + [0]', 0., max(corrYields)/2.))
+                fNfdNpromptLower[iPt].append(TF1(f'fNfdNpromptLower{iPt}{iCutSet+1}',
+                                                 '[1]*x + [0]', 0., max(corrYields)/2.))
                 fNfdNpromptUpper[iPt][iCutSet].SetTitle(f'Lower Limit cutset{iCutSet+1}')
                 fNfdNpromptLower[iPt][iCutSet].SetTitle(f'Upper Limit cutset{iCutSet+1}')
                 fNfdNpromptUpper[iPt][iCutSet].SetParameter(0, (rawY+rawYunc)/(effP+effPunc))
                 fNfdNpromptUpper[iPt][iCutSet].SetParameter(1, -(effF+effFunc)/(effP+effPunc))
                 fNfdNpromptLower[iPt][iCutSet].SetParameter(0, (rawY-rawYunc)/(effP-effPunc))
                 fNfdNpromptLower[iPt][iCutSet].SetParameter(1, -(effF-effFunc)/(effP-effPunc))
-            fNfdNprompt[iPt][iCutSet].GetYaxis().SetTitle('#it{N_{prompt}}')
-            fNfdNprompt[iPt][iCutSet].GetXaxis().SetTitle('#it{N_{feed-down}}')
+            fNfdNprompt[iPt][iCutSet].GetYaxis().SetTitle('#it{N}_{prompt}')
+            fNfdNprompt[iPt][iCutSet].GetXaxis().SetTitle('#it{N}_{feed-down}')
             fNfdNprompt[iPt][iCutSet].GetYaxis().SetRangeUser(0., 1.5*max(corrYields))
             fNfdNprompt[iPt][iCutSet].SetTitle('')
             fNfdNprompt[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
