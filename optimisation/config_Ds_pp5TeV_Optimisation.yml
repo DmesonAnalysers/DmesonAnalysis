@@ -28,7 +28,6 @@ infiles:
         isMC: false # if false bkg from SB
         fitFunc: expo # fit function for bkg from SB, e.g. pol1, pol2, expo
         nSigma: 4 # number of sigma from signal region, used to select SB
-        impFit: false # true to use improved fit method similar to AliHFInvMassFitter
         corrfactor:
             filename: null # set null if no MC bkg correction is needed
             histoname: null

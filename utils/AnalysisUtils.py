@@ -270,51 +270,7 @@ def GetFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, 
 def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0., sigma=0.,
                                 meanSecPeak=0., sigmaSecPeak=0.):
     '''
-    Helper method to get the expected bkg from side-bands
-
-    Parameters
-    ----------
-    - hMassData: invariant-mass histogram from which extract the estimated bkg
-    - bkgFunc: expression for bkg fit function
-    - nSigmaForSB: number of sigmas away from the invariant-mass peak to define SB windows
-    - mean: mean of invariant-mass peak of the signal
-    - sigma: width of invariant-mass peak of the signal
-    - meanSecPeak: mean of invariant-mass peak of the second peak (only Ds)
-    - sigmaSecPeak: width of invariant-mass peak of the second peak (only Ds)
-
-    Returns
-    ----------
-    - expBkg3s: expected background within 3 sigma from signal peak mean
-    - errExpBkg3s: error on the expected background
-    - hMassData: SB histogram with fit function (if fit occurred)
-    '''
-    for iMassBin in range(1, hMassData.GetNbinsX()+1):
-        massLowLimit = hMassData.GetBinLowEdge(iMassBin)
-        massUpLimit = hMassData.GetBinLowEdge(iMassBin) + hMassData.GetBinWidth(iMassBin)
-
-        if massLowLimit > mean - nSigmaForSB * sigma and massUpLimit < mean + nSigmaForSB * sigma:
-            hMassData.SetBinContent(iMassBin, 0.)
-            hMassData.SetBinError(iMassBin, 0.)
-        elif meanSecPeak > 0 and sigmaSecPeak > 0:
-            if massLowLimit > meanSecPeak - nSigmaForSB * sigmaSecPeak and \
-                massUpLimit < meanSecPeak + nSigmaForSB * sigmaSecPeak:
-                hMassData.SetBinContent(iMassBin, 0.)
-                hMassData.SetBinError(iMassBin, 0.)
-
-    if hMassData.Integral() <= 5: # check to have some entries in the histogram before fitting
-        return 0., 0., hMassData
-    funcBkg = TF1('funcBkg', bkgFunc, 1.6, 2.2)
-    fit = hMassData.Fit(funcBkg, 'Q+')
-    expBkg3s, errExpBkg3s = 0., 0.
-    if int(fit) == 0:
-        expBkg3s = funcBkg.Integral(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
-        errExpBkg3s = funcBkg.IntegralError(mean - 3 * sigma, mean + 3 * sigma) / hMassData.GetBinWidth(1)
-    return expBkg3s, errExpBkg3s, hMassData
-
-def GetExpectedBkgFromSideBandsImp(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0., sigma=0.,
-                                   meanSecPeak=0., sigmaSecPeak=0.):
-    '''
-    Helper method to get the expected bkg from side-bands, improved using maximum-likelihood and
+    Helper method to get the expected bkg from side-bands, using maximum-likelihood and
     background functions defined only on the sidebands
 
     Parameters
