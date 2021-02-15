@@ -26,6 +26,7 @@ SoverBHistoName = cfg['rawyields']['histoname']
 inFileName = cfg['input']['filename']
 suffix = cfg['input']['suffix']
 prefix = cfg['input']['prefix']
+HFsuffix = cfg['input']['HFsuffix']
 evaluateFracFromBeauty = cfg['fractions']['beauty']['enable']
 beautyFracFileName = cfg['fractions']['beauty']['filename']
 beautyFracHistoName = cfg['fractions']['beauty']['histoname']
@@ -100,7 +101,8 @@ corrTitles = {'Particle0_Particle2': 'p - D^{+}',
               'Particle1_Particle3': '#bar{p} - D^{#font[122]{-}}'}
 
 inFile = TFile.Open(inFileName)
-listName = f'{prefix}_CharmFemto_ResultQA{suffix}/{prefix}_CharmFemto_ResultQA{suffix}'
+listName = f'{prefix}_CharmFemto{HFsuffix}_ResultQA{suffix}/{prefix}_CharmFemto{HFsuffix}_ResultQA{suffix}'
+print(listName)
 inList = inFile.Get(listName)
 
 kStarDelta = 0.2
