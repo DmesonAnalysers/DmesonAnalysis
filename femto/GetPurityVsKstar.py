@@ -224,8 +224,9 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
                                             fPurity.Eval(avPt)-fPurity.Eval(avPt+avPtUnc))
 
 # compute lambda parameters
-hLambdaPars = {}
+hLambdaPars, hFractions = {}, {}
 gLambdaBkg, gLambdaBeauty, gLambdaDirect, gLambdaFromDstar = ({} for _ in range(4))
+gPurity, gBeautyFrac, gDstarFrac = ({} for _ in range(3))
 hSEPairVsPtReb, hSEPairSignalVsPtReb, hSEPairBkgVsPt, hSEPairBeautyVsPt, \
     hSEPairDirectVsPt, hSEPairFromDstarVsPt = ({} for _ in range(6))
 
@@ -243,6 +244,13 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
     hLambdaPars[corrName].GetXaxis().SetBinLabel(4, 'c #rightarrow D*^{#pm} #rightarrow D^{#pm}')
     SetObjectStyle(hLambdaPars[corrName], fillstyle=0)
 
+    hFractions[corrName] = TH1F(f'hFractions_{suffix}', ';;fraction', 3, 0.5, 3.5)
+    hFractions[corrName].SetDirectory(0)
+    hFractions[corrName].GetXaxis().SetBinLabel(1, 'signal / all')
+    hFractions[corrName].GetXaxis().SetBinLabel(2, 'b #rightarrow D^{#pm} / signal')
+    hFractions[corrName].GetXaxis().SetBinLabel(3, 'c #rightarrow D*^{#pm} #rightarrow D^{#pm} / signal')
+    SetObjectStyle(hFractions[corrName], fillstyle=0)
+
     gLambdaBkg[corrName], gLambdaBeauty[corrName], gLambdaDirect[corrName], \
         gLambdaFromDstar[corrName] = (TGraphAsymmErrors(0) for _ in range(4))
     SetObjectStyle(gLambdaBkg[corrName], color=kOrange+7, fillstyle=0)
@@ -253,6 +261,14 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
     gLambdaBeauty[corrName].SetName(f'gLambda_Beauty_{suffix}')
     gLambdaFromDstar[corrName].SetName(f'gLambda_Dstar_{suffix}')
     gLambdaDirect[corrName].SetName(f'gLambda_Direct_{suffix}')
+
+    gPurity[corrName], gBeautyFrac[corrName], gDstarFrac[corrName] = (TGraphAsymmErrors(0) for _ in range(3))
+    SetObjectStyle(gPurity[corrName], color=kRed+1, fillstyle=0)
+    SetObjectStyle(gBeautyFrac[corrName], color=kAzure+4, fillstyle=0)
+    SetObjectStyle(gDstarFrac[corrName], color=kGreen+2, fillstyle=0)
+    gLambdaBkg[corrName].SetName(f'gPurity_{suffix}')
+    gLambdaBeauty[corrName].SetName(f'gBeautyFrac_{suffix}')
+    gLambdaFromDstar[corrName].SetName(f'gDstarFrac_{suffix}')
 
     hSEPairVsPtReb[corrName], hSEPairSignalVsPtReb[corrName], hSEPairBkgVsPt[corrName], hSEPairBeautyVsPt[corrName], \
         hSEPairDirectVsPt[corrName], hSEPairFromDstarVsPt[corrName] = ([] for _ in range(6))
@@ -356,9 +372,11 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
             hSEPairDirectVsPt[corrName][iK].SetBinContent(iPt+1, directCounts)
             hSEPairDirectVsPt[corrName][iK].SetBinError(iPt+1, directCountsErr)
 
-        intErrAll, intErrBkg, intErrBeauty, intErrFromDstar, intErrDirect = (ctypes.c_double() for _ in range(5))
+        intErrAll, intErrBkg, intErrSgn, intErrBeauty, intErrFromDstar, \
+            intErrDirect = (ctypes.c_double() for _ in range(6))
         nPtBins = hSEPairVsPt[corrName][iK].GetNbinsX()
         intAll = hSEPairVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrAll)
+        intSgn = hSEPairSignalVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrSgn)
         intBkg = hSEPairBkgVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrBkg)
         intBeauty = hSEPairBeautyVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrBeauty)
         intFromDstar = hSEPairFromDstarVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrFromDstar)
@@ -374,6 +392,14 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
         lamErrDstar = intErrFromDstar.value / intAll
         lamErrDirect = intErrDirect.value / intAll
 
+        purity = intSgn / intAll
+        fracBeauty = intBeauty / intSgn
+        fracDstar = intFromDstar / intSgn
+
+        purityErr = np.sqrt((intErrSgn.value/intSgn)**2 + (intErrAll.value/intAll)**2) * purity
+        fracBeautyErr = np.sqrt((intErrSgn.value/intSgn)**2 + (intErrBeauty.value/intBeauty)**2) * fracBeauty
+        fracDstarErr = np.sqrt((intErrSgn.value/intSgn)**2 + (intErrFromDstar.value/intFromDstar)**2) * fracDstar
+
         kStar = (kStarMax+kStarMin) / 2
         kStarDelta = (kStarMax-kStarMin) / 2
 
@@ -387,6 +413,14 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
         gLambdaFromDstar[corrName].SetPointError(iK, kStarDelta, kStarDelta, lamErrDstar, lamErrDstar)
         gLambdaDirect[corrName].SetPointError(iK, kStarDelta, kStarDelta, lamErrDirect, lamErrDirect)
 
+        gPurity[corrName].SetPoint(iK, kStar, purity)
+        gBeautyFrac[corrName].SetPoint(iK, kStar, fracBeauty)
+        gDstarFrac[corrName].SetPoint(iK, kStar, fracDstar)
+
+        gPurity[corrName].SetPointError(iK, kStarDelta, kStarDelta, purityErr, purityErr)
+        gBeautyFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracBeautyErr, fracBeautyErr)
+        gDstarFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracDstarErr, fracDstarErr)
+
         if iK == 0: # only for k* < 200 MeV/c^2
             hLambdaPars[corrName].SetBinContent(1, lambdaDirect)
             hLambdaPars[corrName].SetBinContent(2, lambdaBkg)
@@ -396,6 +430,13 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
             hLambdaPars[corrName].SetBinError(2, lamErrBkg)
             hLambdaPars[corrName].SetBinError(3, lamErrBeauty)
             hLambdaPars[corrName].SetBinError(4, lamErrDstar)
+
+            hFractions[corrName].SetBinContent(1, purity)
+            hFractions[corrName].SetBinContent(2, fracBeauty)
+            hFractions[corrName].SetBinContent(3, fracDstar)
+            hFractions[corrName].SetBinError(1, purityErr)
+            hFractions[corrName].SetBinError(2, fracBeautyErr)
+            hFractions[corrName].SetBinError(3, fracDstarErr)
 
 # plots
 legSoverB = TLegend(0.18, 0.7, 0.5, 0.85)
@@ -577,7 +618,7 @@ legContr.AddEntry(hSEPairBeautyVsPt[corrName][0], 'b #rightarrow D^{#pm}', 'pl')
 legContr.AddEntry(hSEPairFromDstarVsPt[corrName][0], 'c #rightarrow D*^{#pm} #rightarrow D^{#pm}', 'pl')
 legContr.AddEntry(hSEPairDirectVsPt[corrName][0], 'c #rightarrow D^{#pm}', 'pl')
 
-cSEPairsDiffContr, cLambda = {}, {}
+cSEPairsDiffContr, cLambda, cFractions = {}, {}, {}
 for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Particle3_plus_Particle1_Particle2']:
 
     if corrName == 'Particle0_Particle2_plus_Particle1_Particle3':
@@ -608,6 +649,14 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
     info.DrawLatex(0.5, 0.80, '#it{k}* < 200 MeV/#it{c}')
     cLambda[corrName].Modified()
     cLambda[corrName].Update()
+
+    cFractions[corrName] = TCanvas(f'cFractions_{suffix}', '', 500, 500)
+    hFractions[corrName].GetYaxis().SetRangeUser(0., 1.)
+    hFractions[corrName].Draw('e')
+    info.DrawLatex(0.5, 0.86, corrTitles[corrName])
+    info.DrawLatex(0.5, 0.80, '#it{k}* < 200 MeV/#it{c}')
+    cFractions[corrName].Modified()
+    cFractions[corrName].Update()
 
 outFileName = 'Purity_vs_kstar' + outSuffix + '.root'
 outFileName = os.path.join(outDirName, outFileName)
@@ -647,12 +696,17 @@ if addTDirectory:
     outDir.cd()
 for corrName in hLambdaPars:
     hLambdaPars[corrName].Write()
+    hFractions[corrName].Write()
     cLambda[corrName].Write()
+    cFractions[corrName].Write()
 for corrName in hLambdaPars:
     gLambdaBkg[corrName].Write()
     gLambdaBeauty[corrName].Write()
     gLambdaFromDstar[corrName].Write()
     gLambdaDirect[corrName].Write()
+    gPurity[corrName].Write()
+    gBeautyFrac[corrName].Write()
+    gDstarFrac[corrName].Write()
 if addTDirectory:
     outDir.Close()
 outFilePurity.Close()
@@ -666,5 +720,6 @@ for corrName in hLambdaPars:
     outFileNamePDF = outFileName.replace('.root', f'_{suffix}.pdf')
     cLambda[corrName].SaveAs(outFileNamePDF)
     cSEPairsDiffContr[corrName].SaveAs(outFileNamePDF.replace('Lambda_parameters', 'SEparis_diffContr'))
+    cFractions[corrName].SaveAs(outFileNamePDF.replace('Lambda_parameters', 'Fractions'))
 
 input('Press enter to exit')

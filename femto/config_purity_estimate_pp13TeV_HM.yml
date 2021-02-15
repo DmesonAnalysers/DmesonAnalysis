@@ -4,7 +4,7 @@ input:
     prefix: HM
 
 rawyields:
-    filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYields_Dplus_pp13TeV_HMV0_finebins_sphericity_0_1.root
+    filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYieldsDplus_pp13TeV_HMV0M_central_finebins_sparse.root
     histoname: SandBDiffNsigma/hRawYieldsSoverB_2.00sigma # 2sigma window
 
 fractions:
