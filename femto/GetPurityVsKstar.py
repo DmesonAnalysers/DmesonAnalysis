@@ -11,6 +11,7 @@ import yaml
 from ROOT import TFile, TCanvas, TGraphAsymmErrors, TLatex, TF1, TH1F, TGaxis, TLegend, TDirectoryFile, gPad # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kOrange, kBlack, kGreen, kOpenCircle # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
+from utils.AnalysisUtils import ComputeWeightedAverage
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle # pylint: disable=import-error,wrong-import-position
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
@@ -56,14 +57,14 @@ hPurity.GetYaxis().SetTitle('S/(S+B)')
 hPurity.SetDirectory(0)
 for iPt in range(hSoverB.GetNbinsX()):
     bkg = hBkg.GetBinContent(iPt+1)
-    bkgErr = hBkg.GetBinError(iPt+1)
+    bkgUnc = hBkg.GetBinError(iPt+1)
     sgn = hSignal.GetBinContent(iPt+1)
-    sgnErr = hSignal.GetBinError(iPt+1)
+    sgnUnc = hSignal.GetBinError(iPt+1)
     sgnPlusBkg = sgn+bkg
     purity = sgn/sgnPlusBkg
-    purityErr = np.sqrt((bkg/sgnPlusBkg**2)**2 * sgnErr**2 + (sgn/sgnPlusBkg**2)**2 * bkgErr**2)
+    purityUnc = np.sqrt((bkg/sgnPlusBkg**2)**2 * sgnUnc**2 + (sgn/sgnPlusBkg**2)**2 * bkgUnc**2)
     hPurity.SetBinContent(iPt+1, purity)
-    hPurity.SetBinError(iPt+1, purityErr)
+    hPurity.SetBinError(iPt+1, purityUnc)
 SetObjectStyle(hSoverB, color=kRed+1, fillstyle=0)
 SetObjectStyle(hPurity, color=kRed+1, fillstyle=0)
 ptMax = hSoverB.GetXaxis().GetBinUpEdge(hSoverB.GetNbinsX())
@@ -102,7 +103,6 @@ corrTitles = {'Particle0_Particle2': 'p - D^{+}',
 
 inFile = TFile.Open(inFileName)
 listName = f'{prefix}_CharmFemto{HFsuffix}_ResultQA{suffix}/{prefix}_CharmFemto{HFsuffix}_ResultQA{suffix}'
-print(listName)
 inList = inFile.Get(listName)
 
 kStarDelta = 0.2
@@ -175,33 +175,26 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
     SetObjectStyle(gAveragePurity[corrName], markerstyle=kOpenCircle)
 
     for iK, (kStarMin, kStarMax) in enumerate(zip(kStarMins, kStarMaxs)):
-        weighAvSoverB, weighAvPurity, weighAvSoverBUnc, weighAvPurityUnc, totCounts = (0. for _ in range(5))
+        nPairs, nPairsUnc, SoverB, purity, SoverBUnc, purityUnc = ([] for _ in range(6))
         for iPt in range(hSoverB.GetXaxis().FindBin(ptMax)):
             ptCent = hSoverB.GetBinCenter(iPt+1)
             ptBinPair = hSEPairVsPt[corrName][iK].GetXaxis().FindBin(ptCent)
-            nPairs = hSEPairVsPt[corrName][iK].GetBinContent(ptBinPair)
-            nPairsUnc = hSEPairVsPt[corrName][iK].GetBinError(ptBinPair)
-            nPairsRelUnc = nPairsUnc / nPairs if nPairs > 0 else 0.
-            SoverB = hSoverB.GetBinContent(iPt+1)
-            SoverBUnc = hSoverB.GetBinError(iPt+1)
-            SoverBRelUnc = SoverBUnc / SoverB if SoverB > 0 else 0.
-            purity = hPurity.GetBinContent(iPt+1)
-            purityUnc = hPurity.GetBinError(iPt+1)
-            purityRelUnc = purityUnc / purity if purity > 0 else 0.
-            weighAvSoverB += SoverB * nPairs
-            weighAvSoverBUnc += (SoverBRelUnc**2 + nPairsRelUnc**2) * (SoverB * nPairs)**2
-            weighAvPurity += purity * nPairs
-            weighAvPurityUnc += (purityRelUnc**2 + nPairsRelUnc**2) * (purity * nPairs)**2
-            totCounts += nPairs
+            nPairs.append(hSEPairVsPt[corrName][iK].GetBinContent(ptBinPair))
+            nPairsUnc.append(hSEPairVsPt[corrName][iK].GetBinError(ptBinPair))
+            nPairsRelUnc = nPairsUnc[iPt] / nPairs[iPt] if nPairs[iPt] > 0 else 0.
+            SoverB.append(hSoverB.GetBinContent(iPt+1))
+            SoverBUnc.append(hSoverB.GetBinError(iPt+1))
+            purity.append(hPurity.GetBinContent(iPt+1))
+            purityUnc.append(hPurity.GetBinError(iPt+1))
+            purityRelUnc = purityUnc[iPt] / purity[iPt] if purity[iPt] > 0 else 0.
 
-            hSEPairSignalVsPt[corrName][iK].SetBinContent(ptBinPair, nPairs * purity)
+            nPairsSignal = nPairs[iPt] * purity[iPt]
+            hSEPairSignalVsPt[corrName][iK].SetBinContent(ptBinPair, nPairsSignal)
             hSEPairSignalVsPt[corrName][iK].SetBinError(ptBinPair,
-                                                        np.sqrt(purityRelUnc**2 + nPairsRelUnc**2) * purity * nPairs)
+                                                        np.sqrt(purityRelUnc**2 + nPairsRelUnc**2) * nPairsSignal)
 
-        weighAvSoverB /= totCounts
-        weighAvSoverBUnc = np.sqrt(weighAvSoverBUnc) / totCounts
-        weighAvPurity /= totCounts
-        weighAvPurityUnc = np.sqrt(weighAvPurityUnc) / totCounts
+        weighAvSoverB, weighAvSoverBUnc = ComputeWeightedAverage(SoverB, nPairs, SoverBUnc, nPairsUnc)
+        weighAvPurity, weighAvPurityUnc = ComputeWeightedAverage(purity, nPairs, purityUnc, nPairsUnc)
 
         avPt = hSEPairVsPt[corrName][iK].GetMean()
         avPtUnc = hSEPairVsPt[corrName][iK].GetMeanError()
@@ -226,9 +219,7 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
                                             fPurity.Eval(avPt)-fPurity.Eval(avPt+avPtUnc))
 
 # compute lambda parameters
-hLambdaPars, hFractions = {}, {}
-gLambdaBkg, gLambdaBeauty, gLambdaDirect, gLambdaFromDstar = ({} for _ in range(4))
-gPurity, gBeautyFrac, gDstarFrac = ({} for _ in range(3))
+hFractions, gBeautyFrac, gDstarFrac = ({} for _ in range(3))
 hSEPairVsPtReb, hSEPairSignalVsPtReb, hSEPairBkgVsPt, hSEPairBeautyVsPt, \
     hSEPairDirectVsPt, hSEPairFromDstarVsPt = ({} for _ in range(6))
 
@@ -238,14 +229,6 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
     else:
         suffix = 'DmPr'
 
-    hLambdaPars[corrName] = TH1F(f'hLambdaPars_{suffix}', ';;#lambda', 4, 0.5, 4.5)
-    hLambdaPars[corrName].SetDirectory(0)
-    hLambdaPars[corrName].GetXaxis().SetBinLabel(1, 'c #rightarrow D^{#pm}')
-    hLambdaPars[corrName].GetXaxis().SetBinLabel(2, 'background')
-    hLambdaPars[corrName].GetXaxis().SetBinLabel(3, 'b #rightarrow D^{#pm}')
-    hLambdaPars[corrName].GetXaxis().SetBinLabel(4, 'c #rightarrow D*^{#pm} #rightarrow D^{#pm}')
-    SetObjectStyle(hLambdaPars[corrName], fillstyle=0)
-
     hFractions[corrName] = TH1F(f'hFractions_{suffix}', ';;fraction', 3, 0.5, 3.5)
     hFractions[corrName].SetDirectory(0)
     hFractions[corrName].GetXaxis().SetBinLabel(1, 'signal / all')
@@ -253,24 +236,11 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
     hFractions[corrName].GetXaxis().SetBinLabel(3, 'c #rightarrow D*^{#pm} #rightarrow D^{#pm} / signal')
     SetObjectStyle(hFractions[corrName], fillstyle=0)
 
-    gLambdaBkg[corrName], gLambdaBeauty[corrName], gLambdaDirect[corrName], \
-        gLambdaFromDstar[corrName] = (TGraphAsymmErrors(0) for _ in range(4))
-    SetObjectStyle(gLambdaBkg[corrName], color=kOrange+7, fillstyle=0)
-    SetObjectStyle(gLambdaBeauty[corrName], color=kAzure+4, fillstyle=0)
-    SetObjectStyle(gLambdaFromDstar[corrName], color=kGreen+2, fillstyle=0)
-    SetObjectStyle(gLambdaDirect[corrName], color=kRed+1, fillstyle=0)
-    gLambdaBkg[corrName].SetName(f'gLambda_Bkg_{suffix}')
-    gLambdaBeauty[corrName].SetName(f'gLambda_Beauty_{suffix}')
-    gLambdaFromDstar[corrName].SetName(f'gLambda_Dstar_{suffix}')
-    gLambdaDirect[corrName].SetName(f'gLambda_Direct_{suffix}')
-
-    gPurity[corrName], gBeautyFrac[corrName], gDstarFrac[corrName] = (TGraphAsymmErrors(0) for _ in range(3))
-    SetObjectStyle(gPurity[corrName], color=kRed+1, fillstyle=0)
+    gBeautyFrac[corrName], gDstarFrac[corrName] = (TGraphAsymmErrors(0) for _ in range(2))
     SetObjectStyle(gBeautyFrac[corrName], color=kAzure+4, fillstyle=0)
     SetObjectStyle(gDstarFrac[corrName], color=kGreen+2, fillstyle=0)
-    gLambdaBkg[corrName].SetName(f'gPurity_{suffix}')
-    gLambdaBeauty[corrName].SetName(f'gBeautyFrac_{suffix}')
-    gLambdaFromDstar[corrName].SetName(f'gDstarFrac_{suffix}')
+    gBeautyFrac[corrName].SetName(f'gBeautyFrac_{suffix}')
+    gDstarFrac[corrName].SetName(f'gDstarFrac_{suffix}')
 
     hSEPairVsPtReb[corrName], hSEPairSignalVsPtReb[corrName], hSEPairBkgVsPt[corrName], hSEPairBeautyVsPt[corrName], \
         hSEPairDirectVsPt[corrName], hSEPairFromDstarVsPt[corrName] = ([] for _ in range(6))
@@ -325,120 +295,84 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
         SetObjectStyle(hSEPairFromDstarVsPt[corrName][iK], color=kGreen+2, fillstyle=0)
         SetObjectStyle(hSEPairDirectVsPt[corrName][iK], color=kRed+1, fillstyle=0)
 
+        allCounts, allCountsUnc, sgnCounts, sgnCountsUnc, bkgCounts, bkgCountsUnc, bCounts, bCountsUnc, \
+            DstarCounts, DstarCountsUnc, directCounts, directCountsUnc = ([] for _ in range(12))
+        bFrac, bFracUnc, DstarFrac, DstarFracUnc = ([] for _ in range(4))
+
         for iPt in range(hSEPairVsPtReb[corrName][iK].GetNbinsX()):
             ptCent = hSEPairVsPtReb[corrName][iK].GetBinCenter(iPt+1)
-            allCounts = hSEPairVsPtReb[corrName][iK].GetBinContent(iPt+1) # considered w/o error (sum of fractions = 1)
-            sgnCounts = hSEPairSignalVsPtReb[corrName][iK].GetBinContent(iPt+1)
-            sgnCountsErr = hSEPairSignalVsPtReb[corrName][iK].GetBinError(iPt+1)
-            bkgCounts = allCounts - sgnCounts
-            bkgCountsErr = sgnCountsErr
-            hSEPairBkgVsPt[corrName][iK].SetBinContent(iPt+1, bkgCounts)
-            hSEPairBkgVsPt[corrName][iK].SetBinError(iPt+1, bkgCountsErr)
+            allCounts.append(hSEPairVsPtReb[corrName][iK].GetBinContent(iPt+1))
+            allCountsUnc.append(hSEPairVsPtReb[corrName][iK].GetBinError(iPt+1))
+            sgnCounts.append(hSEPairSignalVsPtReb[corrName][iK].GetBinContent(iPt+1))
+            sgnCountsUnc.append(hSEPairSignalVsPtReb[corrName][iK].GetBinError(iPt+1))
+            bkgCounts.append(allCounts[iPt] - sgnCounts[iPt])
+            bkgCountsUnc.append(sgnCountsUnc[iPt])
+            hSEPairBkgVsPt[corrName][iK].SetBinContent(iPt+1, bkgCounts[iPt])
+            hSEPairBkgVsPt[corrName][iK].SetBinError(iPt+1, bkgCountsUnc[iPt])
 
             if evaluateFracFromBeauty:
-                beautyFrac = hFracFromB.GetBinContent(iPt+1)
-                beautyFracErr = hFracFromB.GetBinError(iPt+1)
-                bCounts = sgnCounts * beautyFrac
-                bCountsErr = np.sqrt((beautyFracErr/beautyFrac)**2 + (sgnCountsErr/sgnCounts)**2) * bCounts
-                cCounts = sgnCounts * (1-beautyFrac)
-                cCountsErr = np.sqrt((beautyFracErr/(1-beautyFrac))**2 + (sgnCountsErr/sgnCounts)**2) * cCounts
-                hSEPairBeautyVsPt[corrName][iK].SetBinContent(iPt+1, bCounts)
-                hSEPairBeautyVsPt[corrName][iK].SetBinError(iPt+1, bCountsErr)
+                bFrac.append(hFracFromB.GetBinContent(iPt+1))
+                bFracUnc.append(hFracFromB.GetBinError(iPt+1))
+                bCounts.append(sgnCounts[iPt] * bFrac[iPt])
+                bCountsUnc.append(np.sqrt((
+                    bFracUnc[iPt]/bFrac[iPt])**2 + (sgnCountsUnc[iPt]/sgnCounts[iPt])**2) * bCounts[iPt])
+                hSEPairBeautyVsPt[corrName][iK].SetBinContent(iPt+1, bCounts[iPt])
+                hSEPairBeautyVsPt[corrName][iK].SetBinError(iPt+1, bCountsUnc[iPt])
             else:
-                beautyFrac = 0.
-                beautyFracErr = 0.
-                bCounts = 0.
-                bCountsErr = 0.
-                cCounts = sgnCounts
-                cCountsErr = sgnCountsErr
+                bFrac.append(0.)
+                bFracUnc.append(0.)
+                bCounts.append(0.)
+                bCountsUnc.append(0.)
                 hSEPairBeautyVsPt[corrName][iK].SetBinContent(iPt+1, 0.)
                 hSEPairBeautyVsPt[corrName][iK].SetBinError(iPt+1, 0.)
 
             if evaluateFracFromDstar:
                 ptBinDstar = hFracFromDstar.GetXaxis().FindBin(ptCent)
-                DstarFrac = hFracFromDstar.GetBinContent(ptBinDstar)
-                DstarFracErr = hFracFromDstar.GetBinError(ptBinDstar)
-                DstarCounts = cCounts * DstarFrac
-                DstarCountsErr = np.sqrt((DstarFracErr/DstarFrac)**2 + (cCountsErr/cCounts)**2) * DstarCounts
-                hSEPairFromDstarVsPt[corrName][iK].SetBinContent(iPt+1, DstarCounts)
-                hSEPairFromDstarVsPt[corrName][iK].SetBinError(iPt+1, DstarCountsErr)
+                # Dstar fraction wrt prompt signal
+                DstarFrac.append(hFracFromDstar.GetBinContent(ptBinDstar) * (1-bFrac[iPt]))
+                DstarFracUnc.append(hFracFromDstar.GetBinError(ptBinDstar) * (1-bFrac[iPt]))
+                DstarCounts.append(sgnCounts[iPt] * DstarFrac[iPt])
+                DstarCountsUnc.append(np.sqrt((
+                    DstarFracUnc[iPt]/DstarFrac[iPt])**2 + (sgnCountsUnc[iPt]/sgnCounts[iPt])**2) * DstarCounts[iPt])
+                hSEPairFromDstarVsPt[corrName][iK].SetBinContent(iPt+1, DstarCounts[iPt])
+                hSEPairFromDstarVsPt[corrName][iK].SetBinError(iPt+1, DstarCountsUnc[iPt])
             else:
-                DstarCounts = 0.
-                DstarCountsErr = 0.
+                DstarCounts.append(0.)
+                DstarCountsUnc.append(0.)
                 hSEPairFromDstarVsPt[corrName][iK].SetBinContent(iPt+1, 0.)
                 hSEPairFromDstarVsPt[corrName][iK].SetBinError(iPt+1, 0.)
 
-            directCounts = allCounts - (bkgCounts + bCounts + DstarCounts)
-            directCountsErr = np.sqrt(bkgCountsErr**2 + bCountsErr**2 + DstarCountsErr**2)
+            directCounts.append(allCounts[iPt] - (bkgCounts[iPt] + bCounts[iPt] + DstarCounts[iPt]))
+            directCountsUnc.append(np.sqrt(bkgCountsUnc[iPt]**2 + bCountsUnc[iPt]**2 + DstarCountsUnc[iPt]**2))
 
-            hSEPairDirectVsPt[corrName][iK].SetBinContent(iPt+1, directCounts)
-            hSEPairDirectVsPt[corrName][iK].SetBinError(iPt+1, directCountsErr)
+            hSEPairDirectVsPt[corrName][iK].SetBinContent(iPt+1, directCounts[iPt])
+            hSEPairDirectVsPt[corrName][iK].SetBinError(iPt+1, directCountsUnc[iPt])
 
-        intErrAll, intErrBkg, intErrSgn, intErrBeauty, intErrFromDstar, \
-            intErrDirect = (ctypes.c_double() for _ in range(6))
-        nPtBins = hSEPairVsPt[corrName][iK].GetNbinsX()
-        intAll = hSEPairVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrAll)
-        intSgn = hSEPairSignalVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrSgn)
-        intBkg = hSEPairBkgVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrBkg)
-        intBeauty = hSEPairBeautyVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrBeauty)
-        intFromDstar = hSEPairFromDstarVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrFromDstar)
-        intDirect = hSEPairDirectVsPt[corrName][iK].IntegralAndError(1, nPtBins, intErrDirect)
 
-        lambdaBkg = intBkg / intAll
-        lambdaBeauty = intBeauty / intAll
-        lambdaDstar = intFromDstar / intAll
-        lambdaDirect = intDirect / intAll
+        kstarPurity, purity = (ctypes.c_double() for _ in range(2))
+        gAveragePurity[corrName].GetPoint(iK, kstarPurity, purity)
+        purity = purity.value
+        purityUnc = gAveragePurity[corrName].GetErrorYlow(iK)
 
-        lamErrBkg = intErrBkg.value / intAll
-        lamErrBeauty = intErrBeauty.value / intAll
-        lamErrDstar = intErrFromDstar.value / intAll
-        lamErrDirect = intErrDirect.value / intAll
-
-        purity = intSgn / intAll
-        fracBeauty = intBeauty / intSgn
-        fracDstar = intFromDstar / intSgn
-
-        purityErr = np.sqrt((intErrSgn.value/intSgn)**2 + (intErrAll.value/intAll)**2) * purity
-        fracBeautyErr = np.sqrt((intErrSgn.value/intSgn)**2 + (intErrBeauty.value/intBeauty)**2) * fracBeauty
-        fracDstarErr = np.sqrt((intErrSgn.value/intSgn)**2 + (intErrFromDstar.value/intFromDstar)**2) * fracDstar
+        fracBeauty, fracBeautyUnc = ComputeWeightedAverage(bFrac, sgnCounts, bFracUnc, sgnCountsUnc)
+        fracDstar, fracDstarUnc = ComputeWeightedAverage(DstarFrac, sgnCounts, DstarFracUnc, sgnCountsUnc)
 
         kStar = (kStarMax+kStarMin) / 2
         kStarDelta = (kStarMax-kStarMin) / 2
 
-        gLambdaBkg[corrName].SetPoint(iK, kStar, lambdaBkg)
-        gLambdaBeauty[corrName].SetPoint(iK, kStar, lambdaBeauty)
-        gLambdaFromDstar[corrName].SetPoint(iK, kStar, lambdaDstar)
-        gLambdaDirect[corrName].SetPoint(iK, kStar, lambdaDirect)
-
-        gLambdaBkg[corrName].SetPointError(iK, kStarDelta, kStarDelta, lamErrBkg, lamErrBkg)
-        gLambdaBeauty[corrName].SetPointError(iK, kStarDelta, kStarDelta, lamErrBeauty, lamErrBeauty)
-        gLambdaFromDstar[corrName].SetPointError(iK, kStarDelta, kStarDelta, lamErrDstar, lamErrDstar)
-        gLambdaDirect[corrName].SetPointError(iK, kStarDelta, kStarDelta, lamErrDirect, lamErrDirect)
-
-        gPurity[corrName].SetPoint(iK, kStar, purity)
         gBeautyFrac[corrName].SetPoint(iK, kStar, fracBeauty)
         gDstarFrac[corrName].SetPoint(iK, kStar, fracDstar)
 
-        gPurity[corrName].SetPointError(iK, kStarDelta, kStarDelta, purityErr, purityErr)
-        gBeautyFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracBeautyErr, fracBeautyErr)
-        gDstarFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracDstarErr, fracDstarErr)
+        gBeautyFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracBeautyUnc, fracBeautyUnc)
+        gDstarFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracDstarUnc, fracDstarUnc)
 
         if iK == 0: # only for k* < 200 MeV/c^2
-            hLambdaPars[corrName].SetBinContent(1, lambdaDirect)
-            hLambdaPars[corrName].SetBinContent(2, lambdaBkg)
-            hLambdaPars[corrName].SetBinContent(3, lambdaBeauty)
-            hLambdaPars[corrName].SetBinContent(4, lambdaDstar)
-            hLambdaPars[corrName].SetBinError(1, lamErrDirect)
-            hLambdaPars[corrName].SetBinError(2, lamErrBkg)
-            hLambdaPars[corrName].SetBinError(3, lamErrBeauty)
-            hLambdaPars[corrName].SetBinError(4, lamErrDstar)
-
             hFractions[corrName].SetBinContent(1, purity)
             hFractions[corrName].SetBinContent(2, fracBeauty)
             hFractions[corrName].SetBinContent(3, fracDstar)
-            hFractions[corrName].SetBinError(1, purityErr)
-            hFractions[corrName].SetBinError(2, fracBeautyErr)
-            hFractions[corrName].SetBinError(3, fracDstarErr)
+            hFractions[corrName].SetBinError(1, purityUnc)
+            hFractions[corrName].SetBinError(2, fracBeautyUnc)
+            hFractions[corrName].SetBinError(3, fracDstarUnc)
 
 # plots
 legSoverB = TLegend(0.18, 0.7, 0.5, 0.85)
@@ -644,14 +578,6 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
     cSEPairsDiffContr[corrName].Modified()
     cSEPairsDiffContr[corrName].Update()
 
-    cLambda[corrName] = TCanvas(f'cLambda_{suffix}', '', 500, 500)
-    hLambdaPars[corrName].GetYaxis().SetRangeUser(0., 1.)
-    hLambdaPars[corrName].Draw('e')
-    info.DrawLatex(0.5, 0.86, corrTitles[corrName])
-    info.DrawLatex(0.5, 0.80, '#it{k}* < 200 MeV/#it{c}')
-    cLambda[corrName].Modified()
-    cLambda[corrName].Update()
-
     cFractions[corrName] = TCanvas(f'cFractions_{suffix}', '', 500, 500)
     hFractions[corrName].GetYaxis().SetRangeUser(0., 1.)
     hFractions[corrName].Draw('e')
@@ -689,39 +615,32 @@ cPurityvsDistr.SaveAs(outFileNamePDF.replace('Purity_vs_kstar', 'Purity_vs_PairD
 cSoverBvsKstar.SaveAs(outFileNamePDF.replace('Purity', 'SoverB'))
 cPurityvsKstar.SaveAs(outFileNamePDF)
 
-outFileName = 'Lambda_parameters' + outSuffix + '.root'
+outFileName = 'Fractions' + outSuffix + '.root'
 outFileName = os.path.join(outDirName, outFileName)
-outFileLambda = TFile(outFileName, 'recreate')
+outFileFractions = TFile(outFileName, 'recreate')
 if addTDirectory:
     outDir = TDirectoryFile(outSuffix, outSuffix)
     outDir.Write()
     outDir.cd()
-for corrName in hLambdaPars:
-    hLambdaPars[corrName].Write()
+for corrName in hFractions:
     hFractions[corrName].Write()
-    cLambda[corrName].Write()
     cFractions[corrName].Write()
-for corrName in hLambdaPars:
-    gLambdaBkg[corrName].Write()
-    gLambdaBeauty[corrName].Write()
-    gLambdaFromDstar[corrName].Write()
-    gLambdaDirect[corrName].Write()
-    gPurity[corrName].Write()
+for corrName in hFractions:
+    gAveragePurity[corrName].Write()
     gBeautyFrac[corrName].Write()
     gDstarFrac[corrName].Write()
 if addTDirectory:
     outDir.Close()
-outFilePurity.Close()
+outFileFractions.Close()
 print('\nOutput file saved: ', outFileName)
 
-for corrName in hLambdaPars:
+for corrName in hFractions:
     if corrName == 'Particle0_Particle2_plus_Particle1_Particle3':
         suffix = 'DpPr'
     else:
         suffix = 'DmPr'
     outFileNamePDF = outFileName.replace('.root', f'_{suffix}.pdf')
-    cLambda[corrName].SaveAs(outFileNamePDF)
-    cSEPairsDiffContr[corrName].SaveAs(outFileNamePDF.replace('Lambda_parameters', 'SEparis_diffContr'))
-    cFractions[corrName].SaveAs(outFileNamePDF.replace('Lambda_parameters', 'Fractions'))
+    cFractions[corrName].SaveAs(outFileNamePDF)
+    cSEPairsDiffContr[corrName].SaveAs(outFileNamePDF.replace('Fractions', 'SEparis_diffContr'))
 
 input('Press enter to exit')

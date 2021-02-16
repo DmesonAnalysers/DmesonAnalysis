@@ -762,3 +762,51 @@ def ApplyVariationToList(listToVary, relVar, option='decreasing'):
         listVaried = [el + el*relVar/len(listToVary)*(iEl+1) - relVar*el/2 for iEl, el in enumerate(listToVary)]
 
     return listVaried
+
+
+def ComputeWeightedAverage(values, weights, uncValues, uncWeights=None):
+    '''
+    Helper method to compute a weighted average
+
+    Parameters
+    ----------
+    - values: values to be averaged
+    - weights: weights for the average
+    - uncValues: uncertainties on the values to be averaged
+    - uncWeights: uncertainties on the weights (optional)
+
+    Returns
+    ----------
+    - average: weighted average 
+    - unc: uncertainty on weighted average
+
+    '''
+    
+    if len(values) != len(weights):
+        print('ERROR: number of values and weights for weighted average different! Returning None')
+        return None, None
+
+    if len(values) != len(uncValues):
+        print('ERROR: number of values and uncertainties for weighted average different! Returning None')
+        return None, None
+
+    if uncWeights:
+        if len(weights) != len(uncWeights):
+            print('ERROR: number of weights and uncertainties for weighted average different! Returning None')
+            return None, None
+    else:
+        uncWeights = [0. for _ in weights]
+
+    num, sumOfWeights, sumOfDerToVal, sumOfDerToWeight = (0. for _ in range(4))
+    for val, wi in zip(values, weights):
+        sumOfWeights += wi
+        num += wi * val
+
+    for val, wi, uncV, uncW in zip(values, weights, uncValues, uncWeights):        
+        sumOfDerToVal += wi**2 * uncV**2 / sumOfWeights**2
+        sumOfDerToWeight += (val * sumOfWeights - num)**2 * uncW**2 / sumOfWeights**4
+
+    average = num / sumOfWeights
+    unc = np.sqrt(sumOfDerToVal + sumOfDerToWeight)
+
+    return average, unc
