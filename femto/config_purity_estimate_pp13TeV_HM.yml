@@ -4,10 +4,20 @@ input:
     prefix: HM
 
 rawyields:
-    filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYields_Dplus_pp13TeV_HMV0_finebins_sphericity_0dot7_1.root
+    filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYieldsDplus_pp13TeV_HMV0M_central_finebins_sparse.root
     histoname: SandBDiffNsigma/hRawYieldsSoverB_2.00sigma # 2sigma window
 
+fractions:
+    beauty:
+        enable: true
+        filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/fractions/datadriven/DataDrivenFraction_Dplus_pp13TeV_HMV0M_femto_central.root
+        histoname: hFDFrac
+    Dstar:
+        enable: true
+        filename: /Users/fabrizio/cernbox/ALICE_WORK/PythiaAndPowhegStudies/pythia8/DplusFromDstar_pp5TeV_decayer_Pythia8.root
+        histoname: hFrac
+
 output:
-    directory: '.'
-    suffix: masswindow_2sigma_sphericity_0dot7_1
-    addTDirectory: True # to add a TDirectory in output root file named as the suffix
+    directory: '/Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/fractions/purity'
+    suffix: _masswindow_2sigma_sphericity_0_1_centralcuts
+    addTDirectory: false # to add a TDirectory in output root file named as the suffix

@@ -125,7 +125,6 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
         }
     }
 
-
     //task options
     string wagonName = config["task"]["wagonname"].as<string>();
     string cutFileName = config["task"]["cuts"]["infile"].as<string>();
@@ -148,6 +147,10 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
         pidTreeOpt = AliHFMLVarHandler::kNsigmaDetAndCombPID;
     else if(sPidTreeOpt == "kRawAndNsigmaPID")
         pidTreeOpt = AliHFMLVarHandler::kRawAndNsigmaPID;
+    else if(sPidTreeOpt == "kBayesPID")
+        pidTreeOpt = AliHFMLVarHandler::kBayesPID;
+    else if(sPidTreeOpt == "kBayesAndNsigmaCombPID")
+        pidTreeOpt = AliHFMLVarHandler::kBayesAndNsigmaCombPID;
     bool enableCandSampling = static_cast<bool>(config["task"]["treeML"]["downsampling"]["cand"]["enable"].as<int>());
     bool enableEvtSampling = static_cast<bool>(config["task"]["treeML"]["downsampling"]["evt"]["enable"].as<int>());
     float fracToKeep = -1.;
@@ -172,6 +175,7 @@ void RunAnalysisDplusDsLcTask(TString configfilename, TString runMode = "full", 
         if (!gGrid)
             TGrid::Connect("alien://");
     }
+
     //_________________________________________________________________________________________________________________
 
     // if compile a class, tell root where to look for headers

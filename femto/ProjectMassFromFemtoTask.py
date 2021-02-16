@@ -20,13 +20,16 @@ parser.add_argument('--prefix', metavar='text', default='MB',
                     help='prefix for directory inside task output file')
 parser.add_argument('--suffix', metavar='text', default='0',
                     help='suffix for directory inside task output file')
+parser.add_argument('--HFsuffix', metavar='text', default='',
+                    help='HF suffix for directory inside task output file')
 args = parser.parse_args()
 
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
 cutVars = cutSetCfg['cutvars']
 
-listName = f'{args.prefix}_CharmFemto_DChargedQA{args.suffix}/{args.prefix}_CharmFemto_DChargedQA{args.suffix}'
+dirName = f'{args.prefix}_CharmFemto_{args.HFsuffix}DChargedQA{args.suffix}'
+listName = f'{dirName}/{args.prefix}_CharmFemto_{args.HFsuffix}DChargedQA{args.suffix}'
 print(f'Read input file: {args.inFileName}')
 print(f'           list: {listName}')
 
@@ -48,7 +51,10 @@ hPt.append(MergeHists(hPt))
 hMass[-1].SetName(f'hMass_{cutVars["Pt"]["min"][0]*10:.0f}_{cutVars["Pt"]["max"][-1]*10:.0f}')
 hPt[-1].SetName(f'hPt{cutVars["Pt"]["min"][0]*10:.0f}_{cutVars["Pt"]["max"][-1]*10:.0f}')
 
-inListEvents = inFile.Get(f'{args.prefix}_CharmFemto_QA0/{args.prefix}_CharmFemto_QA0')
+dirName = f'{args.prefix}_CharmFemto_DbeautyEnhanced_QA0'
+listName = f'{dirName}/{args.prefix}_CharmFemto_DbeautyEnhanced_QA0'
+
+inListEvents = inFile.Get(listName)
 inListAliEventCuts = inListEvents.FindObject('AliEventCuts')
 hEvents = inListAliEventCuts.FindObject('fCutStats')
 nEvents = hEvents.GetBinContent(hEvents.GetNbinsX())

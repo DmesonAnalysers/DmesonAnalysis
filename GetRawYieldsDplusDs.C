@@ -290,7 +290,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     double massDplus = TDatabasePDG::Instance()->GetParticle(411)->Mass();
     double massDs = TDatabasePDG::Instance()->GetParticle(431)->Mass();
     double massLc = TDatabasePDG::Instance()->GetParticle(4122)->Mass();
-    double massForFit;
+    double massForFit = -1.;
     
     if(particle==kDplus) massForFit = massDplus;
     else if (particle==kDs) massForFit = massDs;
