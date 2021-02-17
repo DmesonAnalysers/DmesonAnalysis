@@ -5,7 +5,7 @@ Script with miscellanea utils methods for the analysis
 import ctypes
 import numpy as np
 import pandas as pd
-from ROOT import TH1F, TF1, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from ROOT import TH1F, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 from .FitUtils import BkgFitFuncCreator
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
@@ -516,7 +516,7 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
 
 def ApplyHistoEntriesToColumn(df, column, histo):
     '''
-    Method to apply a function to a pandas column via a spline object
+    Method to apply a function to a pandas column via a TH1
 
     Parameters
     ----------

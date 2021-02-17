@@ -1,11 +1,9 @@
 '''
 Script with utils methods for managment and operations on pandas dataframes
 '''
-
 import numpy as np
 import pandas as pd
 import uproot
-
 
 def WriteTree(df, cols, treeName, fileName):
     '''
@@ -13,7 +11,6 @@ def WriteTree(df, cols, treeName, fileName):
 
     Arguments
     ----------
-
     - pandas data frame to be written as tree in a root file
     - name of the columns
     - name of the output tree
@@ -26,19 +23,16 @@ def WriteTree(df, cols, treeName, fileName):
         outFile[treeName] = uproot.newtree(outBranches, compression=uproot.LZ4(4))
         outFile[treeName].extend(dict(df[cols]))
 
-
 def GetMaskOfBits(bits):
     '''
     Helper method to get bit mask from bits
 
     Arguments
     ----------
-
     - list of bits
 
     Returns
     ----------
-
     - mask corresponding to the input bits
     '''
     mask = 0
@@ -135,7 +129,6 @@ def GetMind0(ptList, d0List, ptThrs):
 
     Arguments
     ----------
-
     - list of pt of daughter tracks
     - list of impact parameters of daughter tracks
     - pt threshold (selected less than threshold)
