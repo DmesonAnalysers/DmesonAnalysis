@@ -18,7 +18,6 @@ import yaml
 import numpy as np
 import uproot
 from scipy.interpolate import InterpolatedUnivariateSpline
-from root_numpy import fill_hist
 from ROOT import TFile, TH1F, TDatabasePDG # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadNormObjFromTask, LoadSparseFromTask
 from utils.DfUtils import FilterBitDf, LoadDfFromRootOrParquet
@@ -211,32 +210,40 @@ if isMC:
         hInvMassFD = TH1F(f'hFDMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', massBins, massLimLow, massLimHigh)
 
         if args.ptweights:
-            hTmp = hPtPrompt.Clone('hTmp')
-            fill_hist(hTmp, dataFramePromptSel['pt_cand'].values) # for stat unc
-            fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'].values, weights=dataFramePromptSel['pt_weights'].values)
+            hTmp = hPtPrompt.Clone('hTmp') # for stat unc
+            for value, weight in zip(dataFramePromptSel['pt_cand'].to_numpy(),
+                                     dataFramePromptSel['pt_weights'].to_numpy()):
+                hTmp.Fill(value)
+                hPtPrompt.Fill(value, weight)
             for iPt in range(1, hTmp.GetNbinsX()+1):
                 if hTmp.GetBinContent(iPt) == 0.:
                     hPtPrompt.SetBinError(iPt, 0.)
                 else:
                     hPtPrompt.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtPrompt.GetBinContent(iPt))
         else:
-            fill_hist(hPtPrompt, dataFramePromptSel['pt_cand'].values)
+            for value in dataFramePromptSel['pt_cand'].to_numpy():
+                hPtPrompt.Fill(value)
             hPtPrompt.Sumw2()
-        fill_hist(hInvMassPrompt, dataFramePromptSel['inv_mass'].values)
+        for mass in  dataFramePromptSel['inv_mass'].to_numpy():
+            hInvMassPrompt.Fill(mass)
 
         if args.ptweightsB or args.ptweights:
-            hTmp = hPtFD.Clone('hTmp')
-            fill_hist(hTmp, dataFrameFDSel['pt_cand'].values) # for stat unc
-            fill_hist(hPtFD, dataFrameFDSel['pt_cand'].values, weights=dataFrameFDSel['pt_weights'].values)
+            hTmp = hPtFD.Clone('hTmp') # for stat unc
+            for value, weight in zip(dataFrameFDSel['pt_cand'].to_numpy(),
+                                     dataFrameFDSel['pt_weights'].to_numpy()):
+                hTmp.Fill(value)
+                hPtFD.Fill(value, weight)
             for iPt in range(1, hTmp.GetNbinsX()+1):
                 if hTmp.GetBinContent(iPt) == 0.:
                     hPtFD.SetBinError(iPt, 0.)
                 else:
                     hPtFD.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtFD.GetBinContent(iPt))
         else:
-            fill_hist(hPtFD, dataFrameFDSel['pt_cand'].values)
+            for value in dataFrameFDSel['pt_cand'].to_numpy():
+                hPtFD.Fill(value)
             hPtFD.Sumw2()
-        fill_hist(hInvMassFD, dataFrameFDSel['inv_mass'].values)
+        for mass in  dataFrameFDSel['inv_mass'].to_numpy():
+            hInvMassFD.Fill(mass)
 
         promptDict['InvMass'].append(hInvMassPrompt)
         promptDict['Pt'].append(hPtPrompt)
@@ -283,8 +290,10 @@ else:
         dataFrameSel = dataFrame.astype(float).query(cuts)
         hPt = TH1F(f'hPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', nPtBins, ptLimLow, ptLimHigh)
         hInvMass = TH1F(f'hMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', massBins, massLimLow, massLimHigh)
-        fill_hist(hPt, dataFrameSel['pt_cand'].values)
-        fill_hist(hInvMass, dataFrameSel['inv_mass'].values)
+        for pt in dataFrameSel['pt_cand'].to_numpy():
+            hPt.Fill(pt)
+        for mass in dataFrameSel['inv_mass'].to_numpy():
+            hInvMass.Fill(mass)
         allDict['InvMass'].append(hInvMass)
         allDict['Pt'].append(hPt)
         outFile.cd()

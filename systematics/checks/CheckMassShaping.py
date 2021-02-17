@@ -8,7 +8,6 @@ import os
 import sys
 import argparse
 import yaml
-from root_numpy import fill_hist
 from ROOT import TCanvas, TLegend, TDatabasePDG, TH1F, TH2F, TF1, TLine, TGraph, TVirtualFitter, TLatex # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCircle, kFullSquare, kRainBow, kRed, kAzure, kGray, kBlack # pylint: disable=import-error,no-name-in-module
 from ROOT import RooStats # pylint: disable=import-error,no-name-in-module
@@ -136,12 +135,14 @@ else: # data from tree/dataframe
                                            100, min(dataFrameBkg[var]), max(dataFrameBkg[var]))
 
         dataFrameBkgPtSel = dataFrameBkg.astype(float).query(f'{ptMin} < pt_cand < {ptMax}')
-        fill_hist(hMassNoSel[iPt], dataFrameBkgPtSel['inv_mass'].values)
+        for mass in dataFrameBkgPtSel['inv_mass'].to_numpy():
+            hMassNoSel[iPt].Fill(mass)
         for var in hMassVsML[iPt]:
-            fill_hist(hMassVsML[iPt][var],
-                      list(zip(dataFrameBkgPtSel['inv_mass'].values, dataFrameBkgPtSel[var].values)))
+            for mass, varVal in zip(dataFrameBkgPtSel['inv_mass'].to_numpy(), dataFrameBkgPtSel[var].to_numpy()):
+                hMassVsML[iPt][var].Fill(mass, varVal)
         dataFrameBkgSel = dataFrameBkg.astype(float).query(cuts)
-        fill_hist(hMassSel[iPt], dataFrameBkgSel['inv_mass'].values)
+        for mass in dataFrameBkgSel['inv_mass'].to_numpy():
+            hMassSel[iPt].Fill(mass)
 
 hMassSel[iPt].Rebin(args.rebin)
 hMassNoSel[iPt].Rebin(args.rebin)

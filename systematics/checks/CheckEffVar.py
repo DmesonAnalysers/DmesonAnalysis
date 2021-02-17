@@ -8,7 +8,6 @@ import sys
 import argparse
 import yaml
 import numpy as np
-from root_numpy import fill_hist
 from ROOT import TH1F, kRed, kAzure, kFullCircle, TCanvas, TLegend # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
 from utils.DfUtils import LoadDfFromRootOrParquet  #pylint: disable=wrong-import-position,import-error
@@ -54,10 +53,14 @@ def main(): #pylint: disable=too-many-locals,too-many-statements
     dfPromptP8[varName] = dfPromptP8[varName] * scaleFactor
     dfFDP6[varName] = dfFDP6[varName] * scaleFactor
     dfFDP8[varName] = dfFDP8[varName] * scaleFactor
-    fill_hist(hPromptP6, dfPromptP6[varName].values)
-    fill_hist(hPromptP8, dfPromptP8[varName].values)
-    fill_hist(hFDP6, dfFDP6[varName].values)
-    fill_hist(hFDP8, dfFDP8[varName].values)
+    for value in dfPromptP6[varName].to_numpy():
+        hPromptP6.Fill(value)
+    for value in dfPromptP8[varName].to_numpy():
+        hPromptP8.Fill(value)
+    for value in dfFDP6[varName].to_numpy():
+        hFDP6.Fill(value)
+    for value in dfFDP8[varName].to_numpy():
+        hFDP8.Fill(value)
     SetObjectStyle(hPromptP6, color=kAzure+4, marker=kFullCircle)
     SetObjectStyle(hPromptP8, color=kRed+1, marker=kFullCircle)
     SetObjectStyle(hFDP6, color=kAzure+4, marker=kFullCircle)
