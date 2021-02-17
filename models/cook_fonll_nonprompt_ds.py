@@ -4,7 +4,6 @@ Utility script to "cook" the FONLL prediction for the non-prompt Ds
 import sys
 import pandas as pd
 import numpy as np
-from root_numpy import fill_hist
 from ROOT import TFile, TCanvas, TLegend, TH1D, gPad #pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kFullCircle, kFullSquare #pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
@@ -37,12 +36,13 @@ def main(): #pylint: disable=too-many-statements
 
     fonll_df = pd.read_csv("fonll/FONLL_DfromB_pp5_y05_toCook.txt", sep=" ", header=14).astype('float64')
 
-    fill_hist(hFONLLCentral, fonll_df['pt'].values, fonll_df['central'].values * cooked_factor)
-    fill_hist(hFONLLMin, fonll_df['pt'].values, fonll_df['min'].values * cooked_factor)
-    fill_hist(hFONLLMax, fonll_df['pt'].values, fonll_df['max'].values * cooked_factor)
+    for pt, cen, low, up in zip(fonll_df['pt'].to_numpy(), fonll_df['central'].to_numpy(),
+                                fonll_df['min'].to_numpy(), fonll_df['max'].to_numpy()):
+        hFONLLCentral.Fill(pt, cen * cooked_factor)
+        hFONLLMin.Fill(pt, low * cooked_factor)
+        hFONLLMax.Fill(pt, up * cooked_factor)
 
     for iBin in range(hFONLLCentral.GetNbinsX()):
-        #print(f'{hFONLLCentral.GetBinContent(iBin + 1):.4e}')
         hFONLLCentral.SetBinError(iBin + 1, 1.e-3)
         hFONLLMin.SetBinError(iBin + 1, 1.e-3)
         hFONLLMax.SetBinError(iBin + 1, 1.e-3)

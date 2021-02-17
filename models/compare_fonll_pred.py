@@ -4,7 +4,6 @@ Utility script to compare the FONLL predictions for B and D from B
 import sys
 import pandas as pd
 import numpy as np
-from root_numpy import fill_hist
 from ROOT import TCanvas, TLegend, TH1D, gPad #pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kFullCircle, kFullSquare #pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
@@ -39,12 +38,16 @@ def main(): #pylint: disable=too-many-statements
     fonllBtoD_df = pd.read_csv("fonll/FONLL_DfromB_pp5_y05_toCook.txt", sep=" ", header=14).astype('float64')
     fonllB_df = pd.read_csv("fonll/FONLL_B_pp5_y05.txt", sep=" ", header=13).astype('float64')
 
-    fill_hist(hFONLLBtoDCentral, fonllBtoD_df['pt'].values, fonllBtoD_df['central'].values)
-    fill_hist(hFONLLBtoDMin, fonllBtoD_df['pt'].values, fonllBtoD_df['min'].values)
-    fill_hist(hFONLLBtoDMax, fonllBtoD_df['pt'].values, fonllBtoD_df['max'].values)
-    fill_hist(hFONLLBCentral, fonllB_df['pt'].values, fonllB_df['central'].values)
-    fill_hist(hFONLLBMin, fonllB_df['pt'].values, fonllB_df['min'].values)
-    fill_hist(hFONLLBMax, fonllB_df['pt'].values, fonllB_df['max'].values)
+    for pt, cen, low, up in zip(fonllBtoD_df['pt'].to_numpy(), fonllBtoD_df['central'].to_numpy(),
+                                fonllBtoD_df['min'].to_numpy(), fonllBtoD_df['max'].to_numpy()):
+        hFONLLBtoDCentral.Fill(pt, cen)
+        hFONLLBtoDMin.Fill(pt, low)
+        hFONLLBtoDMax.Fill(pt, up)
+    for pt, cen, low, up in zip(fonllB_df['pt'].to_numpy(), fonllB_df['central'].to_numpy(),
+                                fonllB_df['min'].to_numpy(), fonllB_df['max'].to_numpy()):
+        hFONLLBCentral.Fill(pt, cen)
+        hFONLLBMin.Fill(pt, low)
+        hFONLLBMax.Fill(pt, up)
 
     for iBin in range(hFONLLBtoDCentral.GetNbinsX()):
         hFONLLBtoDCentral.SetBinError(iBin + 1, 1.e-3)

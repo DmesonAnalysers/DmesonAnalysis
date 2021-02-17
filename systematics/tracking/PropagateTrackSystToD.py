@@ -7,7 +7,6 @@ import sys
 import argparse
 import yaml
 import numpy as np
-from root_numpy import fill_hist
 from ROOT import TFile, TCanvas, TH2F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kRainBow, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
@@ -131,8 +130,10 @@ hPtDauVsPtDFD = TH2F('hPtDauVsPtDFD', ';#it{p}_{T}^{ D} (GeV/#it{c});#it{p}_{T}^
                      int(ptLims[-1]-ptLims[0])*10, ptLims[0], ptLims[-1],
                      int(ptLims[-1]-ptLims[0])*10, ptLims[0], ptLims[-1])
 
-fill_hist(hSystVsPtPrompt, list(zip(dataFramePromptSel['pt_cand'].values, dataFramePromptSel['ME_tot'].values)))
-fill_hist(hSystVsPtFD, list(zip(dataFrameFDSel['pt_cand'].values, dataFrameFDSel['ME_tot'].values)))
+for pt, meTot in zip(dataFramePromptSel['pt_cand'].to_numpy(), dataFramePromptSel['ME_tot'].to_numpy()):
+    hSystVsPtPrompt.Fill(pt, meTot)
+for pt, meTot in zip(dataFrameFDSel['pt_cand'].to_numpy(), dataFrameFDSel['ME_tot'].to_numpy()):
+    hSystVsPtFD.Fill(pt, meTot)
 hSystVsPtAll = hSystVsPtPrompt.Clone('hSystVsPtAll')
 hSystVsPtAll.Add(hSystVsPtFD)
 
@@ -146,11 +147,13 @@ SetObjectStyle(hSystMeanAll, fillstyle=0, markersize=0.8)
 for iDau in range(3):
     hTmp = hPtDauVsPtDPrompt.Clone('hTmp')
     hTmp.Reset()
-    fill_hist(hTmp, list(zip(dataFramePromptSel['pt_cand'].values, dataFramePromptSel[f'pt_prong{iDau}'].values)))
+    for pt, ptProng in zip(dataFramePromptSel['pt_cand'].to_numpy(), dataFramePromptSel[f'pt_prong{iDau}'].to_numpy()):
+        hTmp.Fill(pt, ptProng)
     hPtDauVsPtDPrompt.Add(hTmp)
     hTmp = hPtDauVsPtDFD.Clone('hTmp')
     hTmp.Reset()
-    fill_hist(hTmp, list(zip(dataFrameFDSel['pt_cand'].values, dataFrameFDSel[f'pt_prong{iDau}'].values)))
+    for pt, ptProng in zip(dataFrameFDSel['pt_cand'].to_numpy(), dataFrameFDSel[f'pt_prong{iDau}'].to_numpy()):
+        hTmp.Fill(pt, ptProng)
     hPtDauVsPtDFD.Add(hTmp)
 hPtDauVsPtDAll = hPtDauVsPtDPrompt.Clone('hPtDauVsPtDAll')
 hPtDauVsPtDAll.Add(hPtDauVsPtDFD)
