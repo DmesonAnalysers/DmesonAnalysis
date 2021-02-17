@@ -47,7 +47,7 @@ def main(): #pylint: disable=too-many-statements
         hFONLLMin.SetBinError(iBin + 1, 1.e-3)
         hFONLLMax.SetBinError(iBin + 1, 1.e-3)
 
-    stdFONLLfile = TFile.Open("D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root")
+    stdFONLLfile = TFile.Open("fonll/feeddown/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root")
     hStdFONLLCentral = stdFONLLfile.Get('hDsPhipitoKkpifromBpred_central_corr')
     hStdFONLLMin = stdFONLLfile.Get('hDsPhipitoKkpifromBpred_min_corr')
     hStdFONLLMax = stdFONLLfile.Get('hDsPhipitoKkpifromBpred_max_corr')
@@ -68,7 +68,7 @@ def main(): #pylint: disable=too-many-statements
     hFONLLPromptMax.SetStats(0)
     stdFONLLfile.Close()
 
-    outFile = TFile('NonPromptDsPredictions_502TeV_y05_cooked.root', 'recreate')
+    outFile = TFile('fonll/feeddown/NonPromptDsPredictions_502TeV_y05_cooked.root', 'recreate')
     hFONLLCentral.Write()
     hFONLLMin.Write()
     hFONLLMax.Write()
