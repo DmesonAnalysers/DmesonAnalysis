@@ -1,4 +1,4 @@
-pp13TeVFD:
+pp13TeVPrompt:
     Particle: 'Lc'
     FixSigma: 0
     SigmaFile: ''
@@ -9,7 +9,7 @@ pp13TeVFD:
     PtMax: [6, 12]
     MassMin: [2.11, 2.11]
     MassMax: [2.44, 2.44]
-    Rebin: [5, 5]
+    Rebin: [4, 4]
     InclSecPeak: [0, 0] # Ds only
     SigmaSecPeak: [0, 0] # Ds only
     SigmaFileSecPeak: '' # Ds only
@@ -18,11 +18,11 @@ pp13TeVFD:
     UseLikelihood: 0
     BkgFunc: ["kPol2", "kPol2"]
     SgnFunc: ["kGaus", "kGaus"]
-
-pp13TeVPrompt:
+    
+pp13TeVFD:
     Particle: 'Lc'
     FixSigma: 1
-    SigmaFile: '~/DmesonAnalysis/rawYieldExtraction_highSignif.root'
+    SigmaFile: '~/DmesonAnalysis/rawYields/RawYieldsLc_LctopK0s_13TeV_presel_PromptEn.root'
     SigmaMultFactor: 1. #float or MinusUnc, PlusUnc
     FixMean: 0
     MeanFile: ""
@@ -30,7 +30,7 @@ pp13TeVPrompt:
     PtMax: [6, 12]
     MassMin: [2.11, 2.11]
     MassMax: [2.44, 2.44]
-    Rebin: [4, 4]
+    Rebin: [5, 5]
     InclSecPeak: [0, 0] # Ds only
     SigmaSecPeak: [0, 0] # Ds only
     SigmaFileSecPeak: '' # Ds only

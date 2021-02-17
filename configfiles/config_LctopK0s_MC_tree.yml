@@ -20,7 +20,8 @@ sparsenameGenPromptSecPeak: null
 sparsenameGenFDSecPeak: null
 #normname: coutputLctopK0sNormLoose_kMB0100
 #normname: NormalizationCounter
-normname: coutputNonPromptLctopK0sLoose
+#normname: coutputNonPromptLctopK0sLoose
+normname: NormalizationCounter
 histoevname: hNEvents
 
 #info for trees (files can be different if trees are filtered or with applied ML models)

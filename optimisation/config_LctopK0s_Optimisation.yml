@@ -48,7 +48,7 @@ ppRefFile: null
 
 predictions:
     crosssec:
-        filename: ~/DmesonAnalysis/models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFee_BRpythia8_SepContr_PDG2020_PromptLcMod.root
+        filename: ~/DmesonAnalysis/models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFptDepLHCb_BRpythia8_PDG2020_PromptLcMod.root
         histonames: 
             prompt: hLcK0sppred_max
             feeddown: hLcK0spfromBpred_max_corr

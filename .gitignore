@@ -31,9 +31,15 @@ __pycache__
 # Graphics
 RelativeSystematics.eps
 *.pdf
+*.png
+*.jpg
+*.jpeg
 
 # daniel
 notes.md
 /tutorial/
 filterdata/5TeV/**
-/projections/**
+projections/**
+rawYields/**
+efficiencies/**
+configfiles/cutsets/LctopK0s/cutset_ML_outFD*
