@@ -1,27 +1,8 @@
 '''
 Script with utils methods for managment and operations on pandas dataframes
 '''
-import numpy as np
 import pandas as pd
 import uproot
-
-def WriteTree(df, cols, treeName, fileName):
-    '''
-    Helper method to write a tree with uproot
-
-    Arguments
-    ----------
-    - pandas data frame to be written as tree in a root file
-    - name of the columns
-    - name of the output tree
-    - name of the output file
-    '''
-    outBranches = {}
-    for colName in cols:
-        outBranches[colName] = np.float32 #define all branches as float for the moment
-    with uproot.recreate(fileName, compression=uproot.LZ4(4)) as outFile:
-        outFile[treeName] = uproot.newtree(outBranches, compression=uproot.LZ4(4))
-        outFile[treeName].extend(dict(df[cols]))
 
 def GetMaskOfBits(bits):
     '''
