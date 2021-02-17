@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 import yaml
 sys.path.append('..')
-from utils.DfUtils import WriteTree, FilterBitDf, LoadDfFromRootOrParquet, GetMind0 #pylint: disable=wrong-import-position,import-error
+from utils.DfUtils import FilterBitDf, LoadDfFromRootOrParquet, GetMind0 #pylint: disable=wrong-import-position,import-error
 
 # common bits
 bitSignal = 0
@@ -33,8 +33,6 @@ bitLcDelta = 12
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('configfile', metavar='text', default='cfgFileName.yml',
                     help='input config yaml file name')
-parser.add_argument('--root', default=False, action='store_true',
-                    help='flag to save output files into root files instead of parquet')
 
 args = parser.parse_args()
 print('Opening input file')
@@ -136,23 +134,12 @@ if isMC:
         if 'refl' not in contr:
             dataFramePtCutSelContr = FilterBitDf(dataFramePtCutSelContr, 'cand_type', [bitRefl], 'not')
 
-        if args.root:
-            if not dataFramePtCutSelContr.empty:
-                print(f'Saving {labelsContr[contr]} tree')
-                WriteTree(dataFramePtCutSelContr, colsToKeep, outTreeName,
-                        f'{outDirName}/{labelsContr[contr]}{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-        else:
-            if not dataFramePtCutSelContr.empty:
-                print(f'Saving {labelsContr[contr]} parquet')
-                dataFramePtCutSelContr[colsToKeep].to_parquet(
-                    f'{outDirName}/{labelsContr[contr]}{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip',
-                    compression='gzip')
+        if not dataFramePtCutSelContr.empty:
+            print(f'Saving {labelsContr[contr]} parquet')
+            dataFramePtCutSelContr[colsToKeep].to_parquet(
+                f'{outDirName}/{labelsContr[contr]}{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip',
+                compression='gzip')
 else:
-    if args.root:
-        print('Saving data tree')
-        WriteTree(dataFramePtCutSel, colsToKeep, outTreeName,
-                  f'{outDirName}/Data{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.root')
-    else:
-        print('Saving data parquet')
-        dataFramePtCutSel[colsToKeep].to_parquet(\
-            f'{outDirName}/Data{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip', compression='gzip')
+    print('Saving data to parquet')
+    dataFramePtCutSel[colsToKeep].to_parquet(f'{outDirName}/Data{outSuffix}_pT_{PtMin:.0f}_{PtMax:.0f}.parquet.gzip',
+                                             compression='gzip')
