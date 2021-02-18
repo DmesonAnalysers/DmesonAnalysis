@@ -29,7 +29,6 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
 
     Arguments
     ----------
-
     - pandas dataframe to filter
     - colum with bitmap
     - list of bits to test
@@ -57,14 +56,12 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
     return dfFilt
 
 
-# pylint: disable=too-many-branches
-def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None, flat=True):
+def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
     '''
     Helper method to load a pandas dataframe from either root or parquet files
 
     Arguments
     ----------
-
     - input file name of list of input file names
     - input dir name of list of input dir names (needed only in case of root files)
 
@@ -81,22 +78,14 @@ def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None, flat
     if not isinstance(inTreeNames, list):
         inTreeName = inTreeNames
         inTreeNames = [inTreeName] * len(inFileNames)
+    dfOut = pd.DataFrame()
 
-    for iFile, (inFile, inDir, inTree) in enumerate(zip(inFileNames, inDirNames, inTreeNames)):
+    for inFile, inDir, inTree in zip(inFileNames, inDirNames, inTreeNames):
         if '.root' in inFile:
-            if inDir:
-                inTree = uproot.open(inFile)[f'{inDir}/{inTree}']
-            else:
-                inTree = uproot.open(inFile)[inTree]
-            if iFile == 0:
-                dfOut = inTree.pandas.df(flatten=flat)
-            else:
-                dfOut = dfOut.append(inTree.pandas.df(flatten=flat))
+            path = f'{inFile}:{inDir}/{inTree}' if inDir else f'{inFile}:{inTree}'
+            dfOut = dfOut.append(uproot.open(path).arrays(library='pd'), ignore_index=True)
         elif '.parquet' in inFile:
-            if iFile == 0:
-                dfOut = pd.read_parquet(inFile)
-            else:
-                dfOut = dfOut.append(pd.read_parquet(inFile), sort=False)
+            dfOut = dfOut.append(pd.read_parquet(inFile), ignore_index=True)
         else:
             print('ERROR: only root or parquet files are supported! Returning empty dataframe')
             return pd.DataFrame()

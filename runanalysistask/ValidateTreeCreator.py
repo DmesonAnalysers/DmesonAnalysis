@@ -62,10 +62,8 @@ for iVar in Vars:
     hMassTask[iVar] = sparse.Projection(Vars[iVar])
     SetObjectStyle(hMassTask[iVar], color=kBlack, markerstyle=kFullCircle)
 
-treeD = uproot.open(args.inputfile)['PWGHF_TreeCreator/tree_Ds'] #tree_event_char
-dfD = treeD.pandas.df()
-treeEv = uproot.open(args.inputfile)['PWGHF_TreeCreator/tree_event_char']
-dfEv = treeEv.pandas.df()
+dfD = uproot.open(args.inputfile)['PWGHF_TreeCreator/tree_Ds'].arrays(library='pd') #tree_event_char
+dfEv = uproot.open(args.inputfile)['PWGHF_TreeCreator/tree_event_char'].arrays(library='pd')
 dfEvSel = dfEv.query('is_ev_rej==0')
 
 dfMerged = pd.merge(dfD, dfEvSel, on=['run_number', 'ev_id'])
