@@ -71,11 +71,11 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
             yTest = LabelsArray.copy()
 
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
-        PromptDfSelForEff = pd.concat([PromptDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).values == 1]], sort=False)
+        PromptDfSelForEff = pd.concat([PromptDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).array == 1]], sort=False)
         if FDDf.empty:
             FDDfSelForEff = pd.DataFrame()
         else:
-            FDDfSelForEff = pd.concat([FDDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).values == 2]], sort=False)
+            FDDfSelForEff = pd.concat([FDDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).array == 2]], sort=False)
         del TotDf
 
     elif dataset_opt == 'max_signal':
@@ -103,8 +103,8 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
             yTest = LabelsArray.copy()
 
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
-        PromptDfSelForEff = TestSet[pd.Series(yTest).values == 1]
-        FDDfSelForEff = pd.DataFrame() if FDDf.empty else TestSet[pd.Series(yTest).values == 2]
+        PromptDfSelForEff = TestSet[pd.Series(yTest).array == 1]
+        FDDfSelForEff = pd.DataFrame() if FDDf.empty else TestSet[pd.Series(yTest).array == 2]
         del TotDf
 
     else:

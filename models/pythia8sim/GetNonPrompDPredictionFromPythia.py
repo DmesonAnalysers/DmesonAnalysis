@@ -39,7 +39,7 @@ leg.SetBorderSize(0)
 leg.SetFillStyle(0)
 
 # get normalisation
-norm = (kineDf['norm'].values)[0]
+norm = (kineDf['norm'].to_numpy())[0]
 
 # get BRs of B -> D from sim
 BRBhadronsToD = {}

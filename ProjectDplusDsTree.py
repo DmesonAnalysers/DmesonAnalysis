@@ -147,7 +147,7 @@ if isMC:
         ptWeights = uproot.open(args.ptweights[0])[args.ptweights[1]]
         bins = ptWeights.axis(0).edges()
         ptCentW = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
-        sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values)
+        sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values())
         dataFramePrompt['pt_weights'] = ApplySplineFuncToColumn(dataFramePrompt, 'pt_cand', sPtWeights, 0, 50)
         if not args.ptweightsB:
             dataFrameFD['pt_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'pt_cand', sPtWeights, 0, 50)
@@ -157,7 +157,7 @@ if isMC:
         ptWeightsB = uproot.open(args.ptweightsB[0])[args.ptweightsB[1]]
         bins = ptWeightsB.axis(0).edges()
         ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
-        sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values)
+        sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
         dataFrameFD['pt_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'pt_B', sPtWeightsB, 0, 50)
         # average correction for gen part since tree not available (--> good approximation)
         hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()

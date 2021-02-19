@@ -84,20 +84,20 @@ elif '.txt' in args.inFileName:
     dfFONLL = pd.read_csv(args.inFileName, comment='#', sep=' ')
     if 'pt' not in dfFONLL.columns:
         if 'ptmax' not in dfFONLL.columns :
-            ptMaxs = list(dfFONLL['ptmin'].values)
+            ptMaxs = list(dfFONLL['ptmin'].to_numpy())
             ptMaxs.pop(0)
             ptMaxs.append(100) # FIXME: arbitrary value, to find cleverer way
             dfFONLL['ptmax'] = ptMaxs
         dfFONLL['pt'] = dfFONLL.apply(lambda row: (row['ptmin'] + row['ptmax']) / 2)
 
-    crossSecD = dfFONLL['central'].values.copy()
-    ptCent = dfFONLL['pt'].values
+    crossSecD = dfFONLL['central'].to_numpy().copy()
+    ptCent = dfFONLL['pt'].to_numpy()
     for col in dfFONLL.columns:
         if 'pt' not in col:
             dfFONLL[col] = dfFONLL.apply(
                 lambda row: row[col] * (0.11 + 4.68735e-01 * TMath.Gaus(row['pt'], 1, 4.90037)), axis=1)
 
-    crossSecLc = dfFONLL['central'].values.copy()
+    crossSecLc = dfFONLL['central'].to_numpy().copy()
 
     gD, gLc = TGraph(0), TGraph(0)
     for iPt, (pt, d, lc) in enumerate(zip(ptCent, crossSecD, crossSecLc)):

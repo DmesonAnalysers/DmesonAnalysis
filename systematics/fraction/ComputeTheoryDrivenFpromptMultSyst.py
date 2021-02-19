@@ -43,7 +43,7 @@ for tune in tunes:
     fRatioVsMult = uproot.open(args.multDepFileName)[f'hfnonprompt_ratioMB_meson_tune{tune}']
     bins = fRatioVsMult.axis(0).edges()
     multCent = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
-    sFracRatioVsMult.append(InterpolatedUnivariateSpline(multCent, fRatioVsMult.values))
+    sFracRatioVsMult.append(InterpolatedUnivariateSpline(multCent, fRatioVsMult.values()))
     multFactor.append(sFracRatioVsMult[-1](args.multFactor))
 
 gFracFONLLUnc, gFracMultUnc, gFracTotUnc = (TGraphAsymmErrors(0) for _ in range(3))

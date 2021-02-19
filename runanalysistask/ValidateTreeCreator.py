@@ -68,7 +68,7 @@ dfEvSel = dfEv.query('is_ev_rej==0')
 
 dfMerged = pd.merge(dfD, dfEvSel, on=['run_number', 'ev_id'])
 
-isSel = FidAccSel(dfMerged.pt_cand.values, dfMerged.y_cand.values)
+isSel = FidAccSel(dfMerged['pt_cand'].to_numpy(), dfMerged.y_cand.to_numpy())
 dfMerged['fidacc'] = isSel
 dfMergedSel = dfMerged.query('fidacc==True')
 

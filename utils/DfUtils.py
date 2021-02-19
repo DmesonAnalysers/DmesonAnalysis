@@ -51,7 +51,7 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
         print('Error: only and, or, and not logics are supported for bitwise operations')
         return None
 
-    dfFilt = dfToFilter[flags.values]
+    dfFilt = dfToFilter[flags.to_numpy()]
 
     return dfFilt
 
