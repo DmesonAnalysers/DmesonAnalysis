@@ -11,7 +11,6 @@ The code in this repository requires to have installed:
 - [python3](https://www.python.org)(>=3.6)
 - [AliPhysics](https://github.com/alisw/AliPhysics)
 - [hipe4ml](https://github.com/hipe4ml/hipe4ml)(>=0.0.9 or installed from dev branch)
-- [root_numpy](http://scikit-hep.org/root_numpy)(>=4.7.3dev0)
 - [pyaml](https://pypi.org/project/pyaml)
 
 ## Documentation
