@@ -75,7 +75,7 @@ if args.ptweights:
         sPtWeightsRecoDfromB = sPtWeights
 
 if args.ptweightsB:
-    ptWeightsB = uproot.open(args.ptweights[0])[args.ptweights[1]]
+    ptWeightsB = uproot.open(args.ptweightsB[0])[args.ptweightsB[1]]
     ptCentWB = [(ptWeightsB.edges[iBin]+ptWeightsB.edges[iBin+1])/2 for iBin in range(len(ptWeights.edges)-1)]
     sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values)
     hPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2)
