@@ -70,7 +70,7 @@ if args.ptweights:
     ptWeights = uproot.open(args.ptweights[0])[args.ptweights[1]]
     bins = ptWeights.axis(0).edges()
     ptCentW = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
-    sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values)
+    sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values())
     if not args.ptweightsB:
         sPtWeightsGenDfromB = sPtWeights
         sPtWeightsRecoDfromB = sPtWeights
@@ -79,7 +79,7 @@ if args.ptweightsB:
     ptWeightsB = uproot.open(args.ptweightsB[0])[args.ptweightsB[1]]
     bins = ptWeightsB.axis(0).edges()
     ptCentWB = [(ptWeightsB.edges[iBin]+ptWeightsB.edges[iBin+1])/2 for iBin in range(len(bins)-1)]
-    sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values)
+    sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
     hPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2)
     hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(0, 2)
     averagePtBvsPtGen = np.array(hPtBvsPtGenD.ProfileX())

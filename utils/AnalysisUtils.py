@@ -501,7 +501,7 @@ def ApplySplineFuncToColumn(df, column, spline, minRange=-1.e10, maxRange=1.e10)
 
     '''
     y = []
-    for x in df[column].values:
+    for x in df[column].to_numpy():
         if minRange <= x <= maxRange:
             y.append(spline(x))
         elif x < minRange:
@@ -534,7 +534,7 @@ def ApplyHistoEntriesToColumn(df, column, histo):
         binMaxs.append(histo.GetBinLowEdge(iBin)+histo.GetBinWidth(iBin))
         contents.append(histo.GetBinContent(iBin))
 
-    for x in df[column].values:
+    for x in df[column].to_numpy():
         for binMin, binMax, content in zip(binMins, binMaxs, contents):
             if binMin <= x <= binMax:
                 y.append(content)
