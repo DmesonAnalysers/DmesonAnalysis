@@ -1260,7 +1260,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_Pass3(bool fIsMC=false, doubl
     float maxcen=10;
 
     const int nptbins=2;
-    float ptbins[nptbins+1]={0.,5.,50.};
+    float ptbins[nptbins+1]={0.,4.,50.};
 
     const int nvars = 20;
     float** anacutsval=new float*[nvars];
