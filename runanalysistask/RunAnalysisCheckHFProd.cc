@@ -15,6 +15,7 @@
 #include "AliAnalysisAlien.h"
 #include "AliAnalysisManager.h"
 #include "AliESDInputHandler.h"
+#include "AliAODInputHandler.h"
 #include "AliMCEventHandler.h"
 #include "AliAnalysisGrid.h"
 
@@ -58,12 +59,12 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
 
     bool local = false;
     bool gridTest = false;
-    string pathToLocalESDfiles = "";
+    string pathToLocalFiles = "";
 
     if (config["runtype"].as<string>() == "local")
     {
         local = true;
-        pathToLocalESDfiles = config["pathtolocalESD"].as<string>();
+        pathToLocalFiles = config["pathtolocalFile"].as<string>();
     }
     else
     {
@@ -71,6 +72,13 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
             TGrid::Connect("alien://");
         if (config["runtype"].as<string>() == "test")
             gridTest = true;
+    }
+
+    string dataType = config["datatype"].as<string>();
+    if(dataType != "ESD" && dataType != "AOD")
+    {
+        cerr << "ERROR: Only ESD and AOD data types are supported, please check your config file. Exit" << endl;
+        return;
     }
 
     //task options
@@ -81,14 +89,24 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
 
     // create the analysis manager
     AliAnalysisManager *mgr = new AliAnalysisManager();
-    AliVEventHandler* esdH = new AliESDInputHandler;
     AliMCEventHandler* handlerMC = new AliMCEventHandler;
-    mgr->SetInputEventHandler(esdH);
-    esdH->SetNeedField();
     mgr->SetMCtruthEventHandler(handlerMC);
+
+    if(dataType == "ESD")
+    {
+        AliVEventHandler* esdH = new AliESDInputHandler;
+        mgr->SetInputEventHandler(esdH);
+        esdH->SetNeedField();
+    }
+    else
+    {
+        AliAODInputHandler *aodH = new AliAODInputHandler();
+        mgr->SetInputEventHandler(aodH);
+    }
 
     // CheckHFProd task
     AliAnalysisTaskCheckHFMCProd* taskHFMCProd = reinterpret_cast<AliAnalysisTaskCheckHFMCProd *>(gInterpreter->ProcessLine(Form(".x %s(%d, %d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddHFMCCheck.C"), system, isRunOnMC)));
+    taskHFMCProd->SetSearchUpToQuark(true); // keep only pythia for Pb-Pb
     taskHFMCProd->SetPtBins(ptMin, ptMax, nPtBins);
     taskHFMCProd->SetYBins(-2., 2., 40);
 
@@ -100,17 +118,32 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
 
     if (local)
     {
+        string treeName = "";
+        string treeFriendName = "";
+        string dataFileName = "";
+        if(dataType == "ESD")
+        {
+            treeName = "esdTree";
+            treeFriendName = "esdFriendTree";
+            dataFileName = "AliESDs.root";
+        }
+        else
+        {
+            treeName = "aodTree";
+            treeFriendName = "aodTree";
+            dataFileName = "AliAOD.root";
+        }
+
         // if you want to run locally, we need to define some input
-        TChain *chainESD = new TChain("esdTree");
-        TChain *chainESDfriend = new TChain("esdFriendTree");
+        TChain *chain = new TChain(treeName.data());
+        TChain *chainFriend = new TChain(treeFriendName.data());
 
         // add a few files to the chain (change this so that your local files are added)
-        chainESD->Add(Form("%s/AliESDs.root", pathToLocalESDfiles.data()));
-        chainESDfriend->Add(Form("%s/AliAOD.VertexingHF.root", pathToLocalESDfiles.data()));
-        chainESD->AddFriend(chainESDfriend);
-
+        chain->Add(Form("%s/%s", pathToLocalFiles.data(), dataFileName.data()));
+        chain->AddFriend(chainFriend);
+        
         // start the analysis locally, reading the events from the tchain
-        mgr->StartAnalysis("local", chainESD);
+        mgr->StartAnalysis("local", chain);
     }
     else
     {
@@ -128,7 +161,13 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
 
         // select the input data
         alienHandler->SetGridDataDir(gridDataDir.data());
-        alienHandler->SetDataPattern(Form("%s/*AliESDs.root", gridDataPattern.data()));
+        if(dataType == "ESD")
+            alienHandler->SetDataPattern(Form("%s/*AliESDs.root", gridDataPattern.data()));
+        else
+        {
+            alienHandler->SetDataPattern(Form("%s/*AliAOD.root", gridDataPattern.data()));
+            alienHandler->SetFriendChainName("AliAOD.VertexingHF.root");
+        }
 
         // MC has no prefix, data has prefix 000
         if (!isRunOnMC)

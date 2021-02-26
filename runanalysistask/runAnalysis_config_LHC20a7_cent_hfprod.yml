@@ -1,9 +1,9 @@
 runtype: grid #local, test, grid
-pathtolocalESD: ESDfiles/LHC20a7
+pathtolocalFile: ESDfiles/LHC20a7
 system: pp
-datadir: /alice/sim/2020/LHC20a7_fast
+datadir: /alice/sim/2020/LHC20a7_cent
 datapattern: ''
-gridworkdir: PtShapesPP5TeV_fast
+gridworkdir: PtShapesPP5TeV_cent
 splitmaxinputfilenum: 50
 nmasterjobs: 10
 AliPhysicVersion: vAN-20200406_ROOT6-1
@@ -11,6 +11,8 @@ runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 2
        282304, 282303, 282302, 282247, 282230, 282229, 282227, 282224, 282206, 282189, 282147, 
        282146, 282127, 282126, 282125, 282123, 282122, 282120, 282119, 282118, 282099, 282098, 
        282078, 282051, 282050, 282031, 282030, 282025, 282021, 282016, 282008]
+
+datatype: ESD
 
 task:
     ptbins:
