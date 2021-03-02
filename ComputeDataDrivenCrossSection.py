@@ -44,7 +44,7 @@ if args.system == 'pp':
         print(f'Energy {args.energy} not implemented! Exit')
         sys.exit()
 elif args.system == 'PbPb':
-    systErr.SetCollisionType(2)
+    systErr.SetCollisionType(1)
     systErr.SetRunNumber(18)
     if args.energy == '5.02':
         sigmaMB = 1. # yields in case of PbPb
