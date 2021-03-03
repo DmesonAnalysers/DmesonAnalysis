@@ -78,16 +78,19 @@ if args.ptweights:
 if args.ptweightsB:
     ptWeightsB = uproot.open(args.ptweightsB[0])[args.ptweightsB[1]]
     bins = ptWeightsB.axis(0).edges()
-    ptCentWB = [(ptWeightsB.edges[iBin]+ptWeightsB.edges[iBin+1])/2 for iBin in range(len(bins)-1)]
+    ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
     sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
-    hPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2)
-    hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(0, 2)
-    averagePtBvsPtGen = np.array(hPtBvsPtGenD.ProfileX())
-    averagePtBvsPtReco = np.array(hPtBvsPtRecoD.ProfileX())
+    hPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2).ProfileX()
+    hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(0, 2).ProfileX()
+    averagePtBvsPtGen, averagePtBvsPtReco = [], []
+    for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
+        averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
+    for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
+        averagePtBvsPtReco.append(hPtBvsPtGenD.GetBinContent(iPt))
     aPtGenWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtGen]
     aPtRecoWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtReco]
-    sPtWeightsGenDfromB = InterpolatedUnivariateSpline(ptCentW, aPtGenWeightsB)
-    sPtWeightsRecoDfromB = InterpolatedUnivariateSpline(ptCentW, aPtRecoWeightsB)
+    sPtWeightsGenDfromB = InterpolatedUnivariateSpline(ptCentWB, aPtGenWeightsB)
+    sPtWeightsRecoDfromB = InterpolatedUnivariateSpline(ptCentWB, aPtRecoWeightsB)
 
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
