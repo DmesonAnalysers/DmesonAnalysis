@@ -247,8 +247,6 @@ if Bspecie:
                 if Bspecie != 'BsBmix':
                     if ptMinTAMUB < ptCent < ptMaxTAMUB:
                         hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sTAMUB['yCent'](ptCent))
-                        if pred == 'yCent':
-                            print(ptCent, sTAMUB['yCent'](ptCent), f'{sFONLLB[pred](ptCent) * sTAMUB["yCent"](ptCent):0.2f}')
                     elif ptCent > ptMaxTAMUB:
                         hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sTAMUB['yCent'](ptMaxTAMUB))
                     else:
