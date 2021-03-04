@@ -156,6 +156,8 @@ class BkgFitFuncCreator:
         self.peakDelta = peakSigma * numSigmaSideBands
         self.secPeakMass = secPeakMass
         self.secPeakDelta = secPeakSigma * numSigmaSideBands
+        self.funcSBCallable = None
+        self.funcFullCallable = None
 
         self.removePeak = False
         self.removeSecPeak = False
@@ -274,7 +276,8 @@ class BkgFitFuncCreator:
         funcBkgSB: ROOT.TF1
             Background function
         '''
-        funcBkgSB = TF1('bkgSBfunc', self._SideBandsFunc, self.minMass, self.maxMass, self.__numPar[self.funcName])
+        self.funcSBCallable = self._SideBandsFunc # trick to keep away the garbage collector
+        funcBkgSB = TF1('bkgSBfunc', self.funcSBCallable, self.minMass, self.maxMass, self.__numPar[self.funcName])
         funcBkgSB.SetParName(0, 'BkgInt')
         funcBkgSB.SetParameter(0, integral)
         for iPar in range(1, self.__numPar[self.funcName]):
@@ -295,7 +298,8 @@ class BkgFitFuncCreator:
         funcBkg: ROOT.TF1
             Background function
         '''
-        funcBkg = TF1('bkgFunc', getattr(self, self.__implFunc[self.funcName]),
+        self.funcFullCallable = getattr(self, self.__implFunc[self.funcName]) # trick to keep away the garbage collector
+        funcBkg = TF1('bkgFunc', self.funcFullCallable,
                       self.minMass, self.maxMass, self.__numPar[self.funcName])
         funcBkg.SetParName(0, 'BkgInt')
         for iPar in range(0, self.__numPar[self.funcName]):

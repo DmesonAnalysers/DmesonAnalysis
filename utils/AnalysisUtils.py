@@ -777,11 +777,11 @@ def ComputeWeightedAverage(values, weights, uncValues, uncWeights=None):
 
     Returns
     ----------
-    - average: weighted average 
+    - average: weighted average
     - unc: uncertainty on weighted average
 
     '''
-    
+
     if len(values) != len(weights):
         print('ERROR: number of values and weights for weighted average different! Returning None')
         return None, None
@@ -802,7 +802,7 @@ def ComputeWeightedAverage(values, weights, uncValues, uncWeights=None):
         sumOfWeights += wi
         num += wi * val
 
-    for val, wi, uncV, uncW in zip(values, weights, uncValues, uncWeights):        
+    for val, wi, uncV, uncW in zip(values, weights, uncValues, uncWeights):
         sumOfDerToVal += wi**2 * uncV**2 / sumOfWeights**2
         sumOfDerToWeight += (val * sumOfWeights - num)**2 * uncW**2 / sumOfWeights**4
 
