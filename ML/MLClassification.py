@@ -320,12 +320,6 @@ def main(): #pylint: disable=too-many-statements
     print('Loading analysis configuration: Done!')
 
     print('Loading and preparing data files: ...', end='\r')
-    # PromptHandler = TreeHandler(inputCfg['input']['prompt'], inputCfg['input']['treename'])
-    # FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'],
-    #                                                                      inputCfg['input']['treename'])
-    # DataHandler = TreeHandler(inputCfg['input']['data'], inputCfg['input']['treename'])
-    
-
 
     PromptHandler = TreeHandler()
     FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler()
@@ -335,11 +329,6 @@ def main(): #pylint: disable=too-many-statements
     DataHandler.get_handler_from_large_file(inputCfg['input']['data'], inputCfg['input']['treename'], max_workers=8)
     if FDHandler is not None:
         FDHandler.get_handler_from_large_file(inputCfg['input']['FD'], inputCfg['input']['treename'], max_workers=8)
-    
-    #print(f"Execution time: {(time.time() - start_time)/60 :.2f} min\n")
-    # exec_time(start_time, time.time())
-    # sys.exit()
-
 
     if inputCfg['data_prep']['filt_bkg_mass']:
         BkgHandler = DataHandler.get_subset(inputCfg['data_prep']['filt_bkg_mass'], frac=1.,
