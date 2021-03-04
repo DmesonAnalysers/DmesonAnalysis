@@ -299,8 +299,7 @@ class BkgFitFuncCreator:
             Background function
         '''
         self.funcFullCallable = getattr(self, self.__implFunc[self.funcName]) # trick to keep away the garbage collector
-        funcBkg = TF1('bkgFunc', self.funcFullCallable,
-                      self.minMass, self.maxMass, self.__numPar[self.funcName])
+        funcBkg = TF1('bkgFunc', self.funcFullCallable, self.minMass, self.maxMass, self.__numPar[self.funcName])
         funcBkg.SetParName(0, 'BkgInt')
         for iPar in range(0, self.__numPar[self.funcName]):
             funcBkg.SetParameter(iPar, func.GetParameter(iPar))
