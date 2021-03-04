@@ -43,3 +43,13 @@ projections/**
 rawYields/**
 efficiencies/**
 configfiles/cutsets/LctopK0s/cutset_ML_outFD*
+comparisons/**/*.root
+.clang-format
+clean.sh
+computeFrac.sh
+crosssec.sh
+evalEfficiencies.sh
+makeProjections.sh
+makeYields.sh
+HyperParOpt*.txt
+trash/**
