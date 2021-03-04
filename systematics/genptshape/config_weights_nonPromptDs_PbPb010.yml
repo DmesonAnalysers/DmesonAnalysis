@@ -35,4 +35,4 @@ options:
     rebin: 20
     smooth: 100
 
-outputfile: ptweights/DsPbPb/PtWeigths_NonPromptDs_LHC20g11a_BsBmixshape_coarse.root
+outputfile: ptweights/DsPbPb/PtWeigths_NonPromptDs_LHC20g11a_BsBmixshape.root
