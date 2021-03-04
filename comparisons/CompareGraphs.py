@@ -84,6 +84,12 @@ for iFile, (inFileName, objName, objType, scale, normalize, color, marker, fills
     if inDirName:
         inFileName = join(inDirName, inFileName)
     inFile = TFile.Open(inFileName)
+    if inFile == None:
+        print(f"ERROR: cannot open {inFileName}. Check your config. Exit!")
+        sys.exit()
+    if inFile.Get(objName) == None:
+        print(f"ERROR: couldn't load the histogram \'{objName}\' in \'{inFileName}\'. Check your config. Exit! ")
+        sys.exit()
     hToCompare.append(inFile.Get(objName))
     if 'TH' in objType:
         hToCompare[iFile].SetName(f'h{iFile}')
@@ -267,4 +273,4 @@ for ext in outExtensions:
     else:
         cOut.SaveAs(f'{outFileName}.{ext}')
 
-input()
+input("Press enter to exit")
