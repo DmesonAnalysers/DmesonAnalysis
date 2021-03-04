@@ -1,9 +1,9 @@
 isMC: yes
 filename:
     [
-        ~/DmesonAnalysis/AnalysisResults/13TeV/MC_D2H/AnalysisResults_LcpK0s_2016_LHC20f4c.root,
-        ~/DmesonAnalysis/AnalysisResults/13TeV/MC_D2H/AnalysisResults_LcpK0s_2017_LHC20f4b.root,
-        ~/DmesonAnalysis/AnalysisResults/13TeV/MC_D2H/AnalysisResults_LcpK0s_2018_LHC20f4a.root,
+        /data/shared/NonPromptLc/MC/LHC20f4c_2016/AnalysisResults_Bayes.root,
+        /data/shared/NonPromptLc/MC/LHC20f4b_2017/AnalysisResults_Bayes.root,
+        /data/shared/NonPromptLc/MC/LHC20f4a_2018/AnalysisResults_Bayes.root,
     ]
 
 dirname: PWGHF_D2H_NonPromptLctopK0sLoose
@@ -28,13 +28,19 @@ histoevname: hNEvents
 tree:
     particle: Lc #needed to define binning for invariant-mass histo
     filenameAll: null #not needed for MC
-    filenamePrompt: [
-        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
-        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/Prompt_pT_6_50_ModelApplied.parquet.gzip,
-    ]
-    filenameFD: [
-        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
-        ~/DmesonAnalysis/ML/trained_models/LctopK0s/13TeV/pt6_50/FD_pT_6_50_ModelApplied.parquet.gzip,
-    ]
+    filenamePrompt:
+        [
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt2_4/Prompt_pT_2_4_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt6_8/Prompt_pT_6_8_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt8_12/Prompt_pT_8_12_ModelApplied.parquet.gzip,
+        ]
+    filenameFD:
+        [
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt2_4/FD_pT_2_4_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt6_8/FD_pT_6_8_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt8_12/FD_pT_8_12_ModelApplied.parquet.gzip,
+        ]
     dirname: null
     treename: null
