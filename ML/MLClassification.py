@@ -12,12 +12,15 @@ import yaml
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+import time
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
 from hipe4ml.tree_handler import TreeHandler
+sys.path.append('..')
+from utils.Misc import exec_time
 
 def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylint: disable=too-many-statements, too-many-branches
     '''
@@ -303,6 +306,8 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
 
 def main(): #pylint: disable=too-many-statements
     # read config file
+    start_time = time.time()
+
     parser = argparse.ArgumentParser(description='Arguments to pass')
     parser.add_argument('cfgFileName', metavar='text', default='cfgFileNameML.yml', help='config file name for ml')
     parser.add_argument("--train", help="perform only training and testing", action="store_true")
@@ -315,10 +320,15 @@ def main(): #pylint: disable=too-many-statements
     print('Loading analysis configuration: Done!')
 
     print('Loading and preparing data files: ...', end='\r')
-    PromptHandler = TreeHandler(inputCfg['input']['prompt'], inputCfg['input']['treename'])
-    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'],
-                                                                         inputCfg['input']['treename'])
-    DataHandler = TreeHandler(inputCfg['input']['data'], inputCfg['input']['treename'])
+
+    PromptHandler = TreeHandler()
+    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler()
+    DataHandler = TreeHandler()
+
+    PromptHandler.get_handler_from_large_file(inputCfg['input']['prompt'], inputCfg['input']['treename'], max_workers=8)
+    DataHandler.get_handler_from_large_file(inputCfg['input']['data'], inputCfg['input']['treename'], max_workers=8)
+    if FDHandler is not None:
+        FDHandler.get_handler_from_large_file(inputCfg['input']['FD'], inputCfg['input']['treename'], max_workers=8)
 
     if inputCfg['data_prep']['filt_bkg_mass']:
         BkgHandler = DataHandler.get_subset(inputCfg['data_prep']['filt_bkg_mass'], frac=1.,
@@ -378,5 +388,7 @@ def main(): #pylint: disable=too-many-statements
         for data in TrainTestData:
             del data
         del PromptDfSelForEff, FDDfSelForEff
+    
+    exec_time(start_time, time.time())
 
 main()
