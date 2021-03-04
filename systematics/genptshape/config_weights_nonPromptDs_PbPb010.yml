@@ -1,0 +1,38 @@
+meson:
+    Dspecie: Ds
+    Bspecie: BsBmix # options: ['Bs', 'Bplus', 'Bzero', 'Lb', 'BsBmix']
+
+inputMC:
+    filename: ptweights/DsPbPb/GenPtShape_LHC20g11a.root
+    suffixCF: null # only for CF outputs otherwise null
+
+shapes:
+    D:
+        fonll: # fonll is mandatory
+            file: ../../models/fonll/FONLL_D_pp5_y05.txt
+        tamu:
+            enabled: true
+            file: ../../models/tamu/PromptDs_TAMU_RAA_5TeV_010_ImprovedCoalescence.txt
+        phsd:
+            enabled: false
+            file: ../../models/phsd/Ds_PHSD_RAA_5TeV_010_new.txt
+        mc@shq:
+            enabled: false
+            file: ../../models/mcatshq/D_Gossiaux_RAA_5TeV_010.txt
+        catania:
+            enabled: false
+            file: ../../models/catania/Ds_Catania_RAA_5TeV_010.dat
+    B:
+        fonll: # fonll is mandatory
+            file: ../../models/fonll/FONLL_B_pp5_y05.txt
+        tamu:
+            enabled: true
+            file:
+                B: ../../models/tamu/B_TAMU_RAA_5TeV_010.txt
+                Bs: ../../models/tamu/Bs_TAMU_RAA_5TeV_010.txt
+
+options:
+    rebin: 20
+    smooth: 100
+
+outputfile: ptweights/DsPbPb/PtWeigths_NonPromptDs_LHC20g11a_BsBmixshape.root

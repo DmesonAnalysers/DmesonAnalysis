@@ -70,10 +70,11 @@ hPtGenD.Rebin(rebin)
 hPtGenD.Scale(1./hPtGenD.Integral())
 
 if Bspecie:
-    if Bspecie not in ['Bs', 'Bplus', 'Bzero', 'Lb']:
-        print(f'ERROR: B specie {Bspecie} not supported! Only Bs, Bplus, Bzero, Lb are supported! Exit')
+    if Bspecie not in ['Bs', 'Bplus', 'Bzero', 'Lb', 'BsBmix']:
+        print(f'ERROR: B specie {Bspecie} not supported! Only Bs, Bplus, Bzero, Lb, BsBmix are supported! Exit')
+        sys.exit()
     if listGenPtShape:
-        if Bspecie == 'Bs':
+        if Bspecie in ['Bs', 'BsBmix']:
             hYPtGenB = listGenPtShape.FindObject('hyptBsAllDecay')
         elif Bspecie == 'Bplus':
             hYPtGenB = listGenPtShape.FindObject('hyptBplusAllDecay')
@@ -84,20 +85,31 @@ if Bspecie:
         hYPtGenB.SetDirectory(0)
         hPtGenB = hYPtGenB.ProjectionX('hPtGenB')
         hPtGenB.SetName('hPtGenB')
+        if Bspecie == 'BsBmix':
+            hYPtGenB2 = listGenPtShape.FindObject('hyptB0AllDecay')
+            hPtGenB2 = hYPtGenB2.ProjectionX('hPtGenB2')
+            hPtGenB2.SetName('hPtGenB2')
     elif suffixCF != '':
         print(f'ERROR: B specie {Bspecie} not implemented for CF outputs! Exit')
     hPtGenB.SetDirectory(0)
     hPtGenB.Sumw2()
     hPtGenB.Rebin(rebin)
     hPtGenB.Scale(1./hPtGenB.Integral())
+    if Bspecie == 'BsBmix':
+        hPtGenB2.SetDirectory(0)
+        hPtGenB2.Sumw2()
+        hPtGenB2.Rebin(rebin)
+        hPtGenB2.Scale(1./hPtGenB2.Integral())
+        hPtGenB.Add(hPtGenB2) # assuming 50% Bs and 50% B, reasonable for non-prompt Ds
+        hPtGenB.Scale(1./2)
 
 infileGenPtShape.Close()
 
 # default models
 isPbPb = False
-sFONLLD, _, _, _ = ReadFONLL(shapesD['fonll']['file'], True)
+sFONLLD, _, ptMinFONLL, ptMaxFONLL = ReadFONLL(shapesD['fonll']['file'], True)
 if Bspecie:
-    sFONLLB, _, _, _ = ReadFONLL(shapesB['fonll']['file'], True)
+    sFONLLB, _, ptMinFONLLB, ptMaxFONLLB = ReadFONLL(shapesB['fonll']['file'], True)
 
 if 'tamu' in shapesD and shapesD['tamu']['enabled']:
     sTAMU, _, ptMinTAMU, ptMaxTAMU = ReadTAMU(shapesD['tamu']['file'])
@@ -108,16 +120,27 @@ if 'catania' in shapesD and shapesD['catania']['enabled']:
 if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
     sGossiaux, _, ptMinGoss, ptMaxGoss = ReadMCatsHQ(shapesD['mc@shq']['file'])
 
-# TODO: add FONLLxRaa weights for B
+if 'tamu' in shapesB and shapesB['tamu']['enabled']:
+    if Bspecie not in ['Bplus', 'Bzero', 'Bs', 'BsBmix']:
+        print(f'WARNING: no models available for {Bspecie} RAA, using B RAA as defult')
+        sTAMUB, _, ptMinTAMUB, ptMaxTAMUB = ReadTAMU(shapesB['tamu']['file']['B'])
+    elif Bspecie in ['Bplus', 'Bzero']:
+        sTAMUB, _, ptMinTAMUB, ptMaxTAMUB = ReadTAMU(shapesB['tamu']['file']['B'])
+    elif Bspecie == 'Bs':
+        sTAMUB, _, ptMinTAMUB, ptMaxTAMUB = ReadTAMU(shapesB['tamu']['file']['Bs'])
+    elif Bspecie == 'BsBmix':
+        sTAMUB, _, ptMinTAMUB, ptMaxTAMUB = ReadTAMU(shapesB['tamu']['file']['B'])
+        sTAMUBs, _, ptMinTAMUBs, ptMaxTAMUBs = ReadTAMU(shapesB['tamu']['file']['Bs'])
+
 histoDNames = ['hPtFONLLDcent', 'hPtFONLLDmin', 'hPtFONLLDmax']
 histoBNames = ['hPtFONLLBcent', 'hPtFONLLBmin', 'hPtFONLLBmax']
 modelPred = ['yCent', 'yMin', 'yMax']
 
-hPtFONLLD, hPtFONLLB, hPtFONLLtimesTAMUD, hPtFONLLtimesPHSDD, \
-    hPtFONLLtimesGossiauxD, hPtFONLLtimesCataniaD = ([] for _ in range(6))
+hPtFONLLD, hPtFONLLB, hPtFONLLtimesTAMUD, hPtFONLLtimesTAMUB, hPtFONLLtimesPHSDD, \
+    hPtFONLLtimesGossiauxD, hPtFONLLtimesCataniaD = ([] for _ in range(7))
 
-hPtWeightsFONLLD, hPtWeightsFONLLB, hPtWeightsFONLLtimesTAMUD, hPtWeightsFONLLtimesPHSDD, \
-    hPtWeightsFONLLtimesGossiauxD, hPtWeightsFONLLtimesCataniaD = ([] for _ in range(6))
+hPtWeightsFONLLD, hPtWeightsFONLLB, hPtWeightsFONLLtimesTAMUD, hPtWeightsFONLLtimesTAMUB, \
+    hPtWeightsFONLLtimesPHSDD, hPtWeightsFONLLtimesGossiauxD, hPtWeightsFONLLtimesCataniaD = ([] for _ in range(7))
 
 # D meson weights
 for histoName, pred in zip(histoDNames, modelPred):
@@ -133,7 +156,14 @@ for histoName, pred in zip(histoDNames, modelPred):
 
     for iPt in range(1, hPtFONLLD[-1].GetNbinsX()+1):
         ptCent = hPtFONLLD[-1].GetBinCenter(iPt)
-        hPtFONLLD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent))
+        if ptMinFONLL < ptCent < ptMaxFONLL:
+            hPtFONLLD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent))
+        elif ptCent > ptMaxFONLL:
+            print(f'WARNING: Results for pT > {ptMaxFONLL} not reliable!')
+            continue
+        else:
+            print(f'WARNING: Results for pT < {ptMinFONLL} not reliable!')
+            continue
         if 'tamu' in shapesD and shapesD['tamu']['enabled']:
             if ptMinTAMU < ptCent < ptMaxTAMU:
                 hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptCent))
@@ -200,16 +230,49 @@ for histoName, pred in zip(histoDNames, modelPred):
 if Bspecie:
     for histoName, pred in zip(histoBNames, modelPred):
         hPtFONLLB.append(hPtGenB.Clone(histoName))
+        if 'tamu' in shapesB and shapesB['tamu']['enabled']:
+            hPtFONLLtimesTAMUB.append(hPtGenB.Clone(histoName.replace('FONLL', 'FONLLtimesTAMU')))
 
         for iPt in range(1, hPtFONLLB[-1].GetNbinsX()+1):
             ptCent = hPtFONLLB[-1].GetBinCenter(iPt)
-            hPtFONLLB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent))
+            if ptMinFONLLB < ptCent < ptMaxFONLLB:
+                hPtFONLLB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent))
+            elif ptCent > ptMaxFONLLB:
+                print(f'WARNING: Results for pT > {ptMaxFONLLB} not reliable! Set weights to 0')
+                continue
+            else:
+                print(f'WARNING: Results for pT < {ptMinFONLLB} not reliable! Set weights to 0')
+                continue
+            if 'tamu' in shapesB and shapesB['tamu']['enabled']:
+                if Bspecie != 'BsBmix':
+                    if ptMinTAMUB < ptCent < ptMaxTAMUB:
+                        hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sTAMUB['yCent'](ptCent))
+                    elif ptCent > ptMaxTAMUB:
+                        hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sTAMUB['yCent'](ptMaxTAMUB))
+                    else:
+                        hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sTAMUB['yCent'](ptMinTAMUB))
+                else:
+                    ptMaxMix = min([ptMaxTAMUB, ptMaxTAMUBs])
+                    ptMinMix = max([ptMinTAMUB, ptMinTAMUBs])
+                    if ptMinMix < ptCent < ptMaxMix:
+                        rAAMix = (sTAMUB['yCent'](ptCent) + sTAMUBs['yCent'](ptCent)) / 2
+                    elif ptCent > ptMaxMix:
+                        rAAMix = (sTAMUB['yCent'](ptMaxMix) + sTAMUBs['yCent'](ptMaxMix)) / 2
+                    else:
+                        rAAMix = (sTAMUB['yCent'](ptMinMix) + sTAMUBs['yCent'](ptMinMix)) / 2
+                    hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * rAAMix)
 
         hPtFONLLB[-1].Sumw2()
         hPtFONLLB[-1].Scale(1./hPtFONLLB[-1].Integral())
         hPtWeightsFONLLB.append(hPtFONLLB[-1].Clone(histoName.replace('Pt', 'PtWeights')))
         hPtWeightsFONLLB[-1].Divide(hPtFONLLB[-1], hPtGenB)
         hPtWeightsFONLLB[-1].Smooth(smooth)
+        if 'tamu' in shapesB and shapesB['tamu']['enabled']:
+            hPtFONLLtimesTAMUB[-1].Scale(1./hPtFONLLtimesTAMUB[-1].Integral())
+            hPtWeightsFONLLtimesTAMUB.append(
+                hPtFONLLtimesTAMUB[-1].Clone(hPtFONLLtimesTAMUB[-1].GetName().replace('Pt', 'PtWeights')))
+            hPtWeightsFONLLtimesTAMUB[-1].Divide(hPtFONLLtimesTAMUB[-1], hPtGenB)
+            hPtWeightsFONLLtimesTAMUB[-1].Smooth(smooth)
 
 outfile = TFile(outFileName, 'recreate')
 hPtGenD.Write()
@@ -233,4 +296,7 @@ for iHisto, _ in enumerate(hPtFONLLD):
     if Bspecie:
         hPtFONLLB[iHisto].Write()
         hPtWeightsFONLLB[iHisto].Write()
+        if 'tamu' in shapesB and shapesB['tamu']['enabled']:
+            hPtFONLLtimesTAMUB[iHisto].Write()
+            hPtWeightsFONLLtimesTAMUB[iHisto].Write()
 outfile.Close()
