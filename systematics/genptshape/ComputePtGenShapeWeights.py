@@ -87,7 +87,7 @@ if Bspecie:
         hPtGenB.SetName('hPtGenB')
         if Bspecie == 'BsBmix':
             hYPtGenB2 = listGenPtShape.FindObject('hyptB0AllDecay')
-            hPtGenB2 = hYPtGenB.ProjectionX('hPtGenB2')
+            hPtGenB2 = hYPtGenB2.ProjectionX('hPtGenB2')
             hPtGenB2.SetName('hPtGenB2')
     elif suffixCF != '':
         print(f'ERROR: B specie {Bspecie} not implemented for CF outputs! Exit')
@@ -271,7 +271,7 @@ if Bspecie:
             hPtFONLLtimesTAMUB[-1].Scale(1./hPtFONLLtimesTAMUB[-1].Integral())
             hPtWeightsFONLLtimesTAMUB.append(
                 hPtFONLLtimesTAMUB[-1].Clone(hPtFONLLtimesTAMUB[-1].GetName().replace('Pt', 'PtWeights')))
-            hPtWeightsFONLLtimesTAMUB[-1].Divide(hPtFONLLtimesTAMUB[-1], hPtGenD)
+            hPtWeightsFONLLtimesTAMUB[-1].Divide(hPtFONLLtimesTAMUB[-1], hPtGenB)
             hPtWeightsFONLLtimesTAMUB[-1].Smooth(smooth)
 
 outfile = TFile(outFileName, 'recreate')
