@@ -1,0 +1,72 @@
+channel: LctopK0s # options [Ds, Dplus, LctopKpi, LctopK0s, LctopiL]
+
+infile:
+    isMC: 0
+    filename:
+        [
+            /data/shared/NonPromptLc/data/LHC16_deghjop/AnalysisResults_BayesPID.root,
+            /data/shared/NonPromptLc/data/LHC16_kl/AnalysisResults_BayesPID.root,
+            /data/shared/NonPromptLc/data/LHC17_cefhijklmor/AnalysisResults_BayesPID.root,
+            /data/shared/NonPromptLc/data/LHC18_bdefghijklmnop/AnalysisResults_BayesPID.root,
+        ]
+    dirname: PWGHF_D2H_NonPromptLctopK0sLoose
+    treename: treeMLLc
+
+outfile:
+    dirpath: /data/dbattistini/filtered
+    suffix: _filter
+    treename: treeMLLc
+
+skimming:
+    pt:
+        min: [2, 4, 6, 8]
+        max: [4, 6, 8, 12]
+    preselections: inv_mass > 2.1 and inv_mass < 2.45 and delta_mass_K0s > 0
+    colstokeep: [
+            inv_mass,
+            pt_cand,
+            d_len,
+            d_len_xy,
+            norm_dl_xy,
+            cos_p,
+            cos_p_xy,
+            imp_par_xy,
+            dca,
+            pt_prong0,
+            pt_prong1,
+            pt_prong2,
+            nsigComb_Pi_0,
+            nsigComb_Pr_0,
+            probBayes_Pi_0,
+            probBayes_Pr_0,
+            nsigComb_Pi_1,
+            nsigComb_Pr_1,
+            probBayes_Pi_1,
+            probBayes_Pr_1,
+            nsigComb_Pi_2,
+            nsigComb_Pr_2,
+            probBayes_Pi_2,
+            probBayes_Pr_2,
+            signd0,
+            delta_mass_K0s,
+            dca_V0,
+            imp_par_V0,
+            d_len_V0,
+            ctau_K0s,
+            ctau_L,
+            cos_p_V0,
+            pt_V0,
+            KF_chi2_topo,
+            imp_par_prong0,
+            imp_par_prong1,
+            imp_par_prong2,
+        ] #empty list if you want to keep everything
+
+singletrackvars:
+    addAODfiltervars: 0 # it adds min pt and min d0 of daughters with pt < 2
+
+missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
+    enable: 0
+    tolerance:
+        nsigTOF_Pi_0: -999.
+        nsigTOF_Pr_0: -999.
