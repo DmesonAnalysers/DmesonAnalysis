@@ -80,17 +80,16 @@ if args.ptweightsB:
     bins = ptWeightsB.axis(0).edges()
     ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
     sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
-    hPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2).ProfileX()
-    hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(0, 2).ProfileX()
+    hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
+    hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(2, 0).ProfileX()
     averagePtBvsPtGen, averagePtBvsPtReco = [], []
     for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
         averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
-    for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
-        averagePtBvsPtReco.append(hPtBvsPtGenD.GetBinContent(iPt))
+        averagePtBvsPtReco.append(hPtBvsPtRecoD.GetBinContent(iPt))
     aPtGenWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtGen]
     aPtRecoWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtReco]
-    sPtWeightsGenDfromB = InterpolatedUnivariateSpline(ptCentWB, aPtGenWeightsB)
-    sPtWeightsRecoDfromB = InterpolatedUnivariateSpline(ptCentWB, aPtRecoWeightsB)
+    sPtWeightsGenDfromB = InterpolatedUnivariateSpline(ptCentW, aPtGenWeightsB)
+    sPtWeightsRecoDfromB = InterpolatedUnivariateSpline(ptCentW, aPtRecoWeightsB)
 
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
@@ -195,7 +194,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 if hGenPtFD.GetBinContent(iBin) > 0:
                     relStatUnc = hGenPtFD.GetBinError(iBin) / hGenPtFD.GetBinContent(iBin)
                     ptCent = hGenPtFD.GetBinCenter(iBin)
-                    hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeightsRecoDfromB(ptCent))
+                    hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeightsGenDfromB(ptCent))
                     hGenPtFD.SetBinError(iBin, hGenPtFD.GetBinContent(iBin) * relStatUnc)
         hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         fd_gen_list.append(hGenPtFD)
