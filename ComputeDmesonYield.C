@@ -49,6 +49,7 @@ void ComputeDmesonYield(Int_t mesonSpecie=kDs,
 {
   TString collSyst="Pb-Pb";
 
+  // BR from PDG 2020
   TString mesName="Dzero";
   Int_t mesCode=1;
   Double_t brat=0.0395;
