@@ -34,23 +34,23 @@ systErr = AliHFSystErr()
 systErr.SetIsDataDrivenFDAnalysis(True)
 
 if args.system == 'pp':
+    axisTitle = ';#it{p}_{T} (GeV/#it{c}); d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c})'
+    histoName = 'CrossSection'
     systErr.SetCollisionType(0)
     systErr.SetRunNumber(17)
     if args.energy == '5.02':
         if args.Dplus:
             systErr.SetIs5TeVAnalysis(True)
-        sigmaMB = 50.87e+9 # pb
+        sigmaMB = 50.87e+3 # ub
     else:
         print(f'Energy {args.energy} not implemented! Exit')
         sys.exit()
 elif args.system == 'PbPb':
+    axisTitle = ';#it{p}_{T} (GeV/#it{c}); d#it{N}/d#it{p}_{T} #times BR (GeV^{-1} #it{c})'
+    histoName = 'CorrYield'
     systErr.SetCollisionType(1)
     systErr.SetRunNumber(18)
-    if args.energy == '5.02':
-        sigmaMB = 1. # yields in case of PbPb
-    else:
-        print(f'Energy {args.energy} not implemented! Exit')
-        sys.exit()
+    sigmaMB = 1. # yields in case of PbPb
 
 if args.Dplus and args.Ds:
     print('ERROR: not possible to select more than one meson at the same time! Exit')
@@ -89,8 +89,8 @@ if hRawYields.GetNbinsX() != hEffAccPrompt.GetNbinsX() or hRawYields.GetNbinsX()
     print('ERROR: inconsistent number of bins in input objects! Exit')
     sys.exit()
 
-hCrossSection = hRawYields.Clone('hCrossSection')
-hCrossSection.SetTitle(';#it{p}_{T} (GeV/#it{c}); d#sigma/d#it{p}_{T} (#mub GeV^{-1} #it{c})')
+hCrossSection = hRawYields.Clone(f'h{histoName}')
+hCrossSection.SetTitle(axisTitle)
 
 # systematic uncertainties --> total taken as sum in quadrature (uncorrelated)
 systGetter = {'YieldExtr': 'GetRawYieldErr', 'SelEff': 'GetCutsEffErr', 'TrEff': 'GetTrackingEffErr',
@@ -102,8 +102,8 @@ systColors = {'YieldExtr': 'kAzure+4', 'SelEff': 'kRed', 'TrEff': 'kBlue+1',
 gCrossSectionSyst = {}
 for systSource in systGetter:
     gCrossSectionSyst[systSource] = TGraphErrors(0)
-    gCrossSectionSyst[systSource].SetName(f'gCrossSectionSyst{systSource}')
-    gCrossSectionSyst[systSource].SetTitle(';#it{p}_{T} (GeV/#it{c}); d#sigma/d#it{p}_{T} (#mub GeV^{-1} #it{c})')
+    gCrossSectionSyst[systSource].SetName(f'g{histoName}Syst{systSource}')
+    gCrossSectionSyst[systSource].SetTitle(axisTitle)
     SetObjectStyle(gCrossSectionSyst[systSource], color=GetROOTColor(systColors[systSource]), fillstyle=0)
 
 hPromptFrac = hEffAccPrompt.Clone('hPromptFrac')
@@ -156,22 +156,22 @@ for iPt in range(hCrossSection.GetNbinsX()):
         crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
                                                     ptMax - ptMin, 1., sigmaMB, nEv, 1., 'anticorr') # TODO: check this
 
-    hCrossSection.SetBinContent(iPt+1, crossSec * 1.e-6)  # convert from pb to mub
-    hCrossSection.SetBinError(iPt+1, crossSecUnc * 1.e-6) # convert from pb to mub
+    hCrossSection.SetBinContent(iPt+1, crossSec)
+    hCrossSection.SetBinError(iPt+1, crossSecUnc)
 
     # systematic uncertainties (statistical uncertainty on eff included)
     for systSource in systGetter:
-        gCrossSectionSyst[systSource].SetPoint(iPt, ptCent, crossSec * 1.e-6)
+        gCrossSectionSyst[systSource].SetPoint(iPt, ptCent, crossSec)
         if 'SelEff' not in systSource:
             relSyst = getattr(systErr, systGetter[systSource])(ptCent)
         else:
             relSyst = np.sqrt(getattr(systErr, systGetter[systSource])(ptCent)**2 + (uncEffAcc/effAcc)**2)
-        gCrossSectionSyst[systSource].SetPointError(iPt, 0.4, relSyst * crossSec * 1.e-6)
+        gCrossSectionSyst[systSource].SetPointError(iPt, 0.4, relSyst * crossSec)
 
 gROOT.SetBatch(args.batch)
 SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14)
 
-cCrossSec = TCanvas('cCrossSec', '', 700, 800)
+cCrossSec = TCanvas(f'c{histoName}', '', 700, 800)
 cCrossSec.SetLogy()
 hCrossSection.Draw()
 gCrossSectionSyst['Tot'].Draw('2')
