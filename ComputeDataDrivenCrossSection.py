@@ -42,6 +42,7 @@ if args.system == 'pp':
         if args.Dplus:
             systErr.SetIs5TeVAnalysis(True)
         sigmaMB = 50.87e+3 # ub
+        lumiUnc = 0.021
     else:
         print(f'Energy {args.energy} not implemented! Exit')
         sys.exit()
@@ -168,6 +169,14 @@ for iPt in range(hCrossSection.GetNbinsX()):
             relSyst = np.sqrt(getattr(systErr, systGetter[systSource])(ptCent)**2 + (uncEffAcc/effAcc)**2)
         gCrossSectionSyst[systSource].SetPointError(iPt, 0.4, relSyst * crossSec)
 
+if args.system == 'pp':
+    gCrossSectionSystLumi = TGraphErrors(0)
+    gCrossSectionSystLumi.SetName('gCrossSectionSystLumi')
+    gCrossSectionSystLumi.SetTitle('Luminosity syst. unc.;;')
+    gCrossSectionSystLumi.SetPoint(0, 1., 1.)
+    gCrossSectionSystLumi.SetPointError(0, 0.4, lumiUnc)
+    SetObjectStyle(gCrossSectionSystLumi, color=GetROOTColor('kBlue'), fillstyle=0)
+
 gROOT.SetBatch(args.batch)
 SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14)
 
@@ -207,6 +216,8 @@ outFile = TFile(args.outFileName, 'recreate')
 hCrossSection.Write()
 for systSource in systGetter:
     gCrossSectionSyst[systSource].Write()
+if args.system == 'pp':
+    gCrossSectionSystLumi.Write()
 hRawYields.Write()
 hEffAccPrompt.Write()
 hEffAccFD.Write()
