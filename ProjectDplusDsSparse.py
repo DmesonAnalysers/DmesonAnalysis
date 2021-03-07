@@ -11,7 +11,6 @@ those for the prompt
 
 import argparse
 import yaml
-import numpy as np
 import uproot
 from scipy.interpolate import InterpolatedUnivariateSpline
 from ROOT import TFile, TH1F  # pylint: disable=import-error,no-name-in-module
@@ -39,6 +38,9 @@ if not isinstance(infilenames, list):
     infilenames = [infilenames]
 enableSecPeak = inputCfg['enableSecPeak']
 isMC = inputCfg['isMC']
+isRedVar = inputCfg['isReducedVariables']
+isWithPtB = inputCfg['isWithPtB']
+shiftForRedVar = inputCfg['shiftForRedVariables']
 if not isMC:
     if args.ptweights:
         print('WARNING: pt weights will not be applied since it is not MC')
@@ -81,11 +83,16 @@ if args.ptweightsB:
     ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
     sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
     hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
-    hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(2, 0).ProfileX()
+    if isWithPtB:
+        axisNum = 2 if isRedVar else 2 + shiftForRedVar
+        hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(axisNum, 0).ProfileX()
     averagePtBvsPtGen, averagePtBvsPtReco = [], []
     for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
         averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
-        averagePtBvsPtReco.append(hPtBvsPtRecoD.GetBinContent(iPt))
+        if isWithPtB:
+            averagePtBvsPtReco.append(hPtBvsPtRecoD.GetBinContent(iPt))
+        else:
+            averagePtBvsPtReco.append(hPtBvsPtGenD.GetBinContent(iPt))
     aPtGenWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtGen]
     aPtRecoWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtReco]
     sPtWeightsGenDfromB = InterpolatedUnivariateSpline(ptCentW, aPtGenWeightsB)
@@ -115,29 +122,34 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
     for iVar in cutVars:
         if iVar == 'InvMass':
             continue
-        binMin = sparseReco[refSparse].GetAxis(
-            cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['min'][iPt] * 1.0001)
-        binMax = sparseReco[refSparse].GetAxis(
-            cutVars[iVar]['axisnum']).FindBin(cutVars[iVar]['max'][iPt] * 0.9999)
+        axisNum = cutVars[iVar]['axisnum']
+        if 'BDT' in iVar or 'ML' in iVar:
+            if isRedVar:
+                axisNum -= shiftForRedVar
+            if isWithPtB:
+                axisNum += 1
+        binMin = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['min'][iPt] * 1.0001)
+        binMax = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['max'][iPt] * 0.9999)
         if 'RecoAll' in sparseReco:
-            sparseReco['RecoAll'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
+            sparseReco['RecoAll'].GetAxis(axisNum).SetRange(binMin, binMax)
         if isMC:
-            sparseReco['RecoPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
-            sparseReco['RecoFD'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
+            sparseReco['RecoPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
+            sparseReco['RecoFD'].GetAxis(axisNum).SetRange(binMin, binMax)
             if enableSecPeak:
-                sparseReco['RecoSecPeakPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
-                sparseReco['RecoSecPeakFD'].GetAxis(cutVars[iVar]['axisnum']).SetRange(binMin, binMax)
+                sparseReco['RecoSecPeakPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
+                sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(binMin, binMax)
 
     for iVar in ('InvMass', 'Pt'):
         varName = cutVars[iVar]['name']
+        axisNum = cutVars[iVar]['axisnum']
         if 'RecoAll' in sparseReco:
-            hVar = sparseReco['RecoAll'].Projection(cutVars[iVar]['axisnum'])
+            hVar = sparseReco['RecoAll'].Projection(axisNum)
             hVar.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             outfile.cd()
             all_dict[iVar].append(hVar)
             hVar.Write()
         if isMC:
-            hVarPrompt = sparseReco['RecoPrompt'].Projection(cutVars[iVar]['axisnum'])
+            hVarPrompt = sparseReco['RecoPrompt'].Projection(axisNum)
             # apply pt weights
             if iVar == 'Pt' and args.ptweights:
                 for iBin in range(1, hVarPrompt.GetNbinsX()+1):
@@ -149,7 +161,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hVarPrompt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             prompt_dict[iVar].append(hVarPrompt)
             hVarPrompt.Write()
-            hVarFD = sparseReco['RecoFD'].Projection(cutVars[iVar]['axisnum'])
+            hVarFD = sparseReco['RecoFD'].Projection(axisNum)
             # apply pt weights
             if iVar == 'Pt' and (args.ptweightsB or args.ptweights):
                 for iBin in range(1, hVarFD.GetNbinsX()+1):
@@ -162,11 +174,11 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             fd_dict[iVar].append(hVarFD)
             hVarFD.Write()
             if enableSecPeak:
-                hVarPromptSecPeak = sparseReco['RecoSecPeakPrompt'].Projection(cutVars[iVar]['axisnum'])
+                hVarPromptSecPeak = sparseReco['RecoSecPeakPrompt'].Projection(axisNum)
                 hVarPromptSecPeak.SetName(f'hPromptSecPeak{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
                 prompt_dict_secpeak[iVar].append(hVarPromptSecPeak)
                 hVarPromptSecPeak.Write()
-                hVarFDSecPeak = sparseReco['RecoSecPeakFD'].Projection(cutVars[iVar]['axisnum'])
+                hVarFDSecPeak = sparseReco['RecoSecPeakFD'].Projection(axisNum)
                 hVarFDSecPeak.SetName(f'hFDSecPeak{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
                 fd_dict_secpeak[iVar].append(hVarFDSecPeak)
                 hVarFDSecPeak.Write()
@@ -212,15 +224,20 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hGenPtFDSecPeak.Write()
 
     for iVar in cutVars:
+        axisNum = cutVars[iVar]['axisnum']
+        if 'BDT' in iVar or 'ML' in iVar:
+            if isRedVar:
+                axisNum -= shiftForRedVar
+            if isWithPtB:
+                axisNum += 1
         if 'RecoAll' in sparseReco:
-            sparseReco['RecoAll'].GetAxis(
-                cutVars[iVar]['axisnum']).SetRange(-1, -1)
+            sparseReco['RecoAll'].GetAxis(axisNum).SetRange(-1, -1)
         if isMC:
-            sparseReco['RecoPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
-            sparseReco['RecoFD'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
+            sparseReco['RecoPrompt'].GetAxis(axisNum).SetRange(-1, -1)
+            sparseReco['RecoFD'].GetAxis(axisNum).SetRange(-1, -1)
             if enableSecPeak:
-                sparseReco['RecoSecPeakPrompt'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
-                sparseReco['RecoSecPeakFD'].GetAxis(cutVars[iVar]['axisnum']).SetRange(-1, -1)
+                sparseReco['RecoSecPeakPrompt'].GetAxis(axisNum).SetRange(-1, -1)
+                sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(-1, -1)
 
 for iPt in range(0, len(cutVars['Pt']['min']) - 1):
     ptLowLabel = cutVars['Pt']['min'][iPt] * 10
@@ -246,7 +263,6 @@ for iPt in range(0, len(cutVars['Pt']['min']) - 1):
                 hVarFD_secpeak_merged = MergeHists([fd_dict_secpeak[iVar][iPt], fd_dict_secpeak[iVar][iPt+1]])
                 hVarFD_secpeak_merged.SetName(f'hFDSecPeak{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
                 hVarFD_secpeak_merged.Write()
-
     if isMC:
         hVarPromptGen_merged = MergeHists([prompt_gen_list[iPt], prompt_gen_list[iPt+1]])
         hVarPromptGen_merged.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
