@@ -7,5 +7,5 @@ listname: coutputDs_MLappl010
 sparsenameAll: fnSparse
 normname: NormalizationCounter
 histoevname: hNEvents
-shiftForRedVariables: 11 # dependent on the sparse defined in the AliPhysics task
 enableSecPeak: no # always no for data
+shiftForRedVariables: 11 # dependent on the sparse defined in the AliPhysics task
