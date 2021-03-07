@@ -48,6 +48,9 @@ if not isMC:
     if args.ptweightsB:
         print('WARNING: ptB weights will not be applied since it is not MC')
         args.ptweightsB = None
+if isRedVar:
+    print(('WARNING: option for reduced number of variables in THnSparse set to true.'
+           'If this is not the case, the code will work producing wrong results'))
 
 for iFile, infilename in enumerate(infilenames):
     if iFile == 0:
