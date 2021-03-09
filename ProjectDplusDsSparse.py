@@ -87,8 +87,7 @@ if args.ptweightsB:
     sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
     hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
     if isWithPtB:
-        axisNum = 2 if isRedVar else 2 + shiftForRedVar
-        hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(axisNum, 0).ProfileX()
+        hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(2, 0).ProfileX()
     averagePtBvsPtGen, averagePtBvsPtReco = [], []
     for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
         averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
@@ -126,7 +125,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         if iVar == 'InvMass':
             continue
         axisNum = cutVars[iVar]['axisnum']
-        if 'BDT' in iVar or 'ML' in iVar:
+        if axisNum >= 2: # check if axis is a cut variable (not inv. mass or pt)
             if isRedVar:
                 axisNum -= shiftForRedVar
             if isWithPtB:
@@ -228,7 +227,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
 
     for iVar in cutVars:
         axisNum = cutVars[iVar]['axisnum']
-        if 'BDT' in iVar or 'ML' in iVar:
+        if axisNum >=2: # check if axis is a cut variable (not inv. mass or pt)
             if isRedVar:
                 axisNum -= shiftForRedVar
             if isWithPtB:
