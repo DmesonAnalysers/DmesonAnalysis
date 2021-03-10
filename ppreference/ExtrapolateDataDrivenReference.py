@@ -64,7 +64,8 @@ for var in ['cent', 'min', 'max']:
     hFONLLReb[var] = hFONLL[var].Rebin(nPtBinsAll, f'hFONLLReb{var}', np.array(ptLimsAll, 'd'))
     hFONLLReb[var].Scale(hFONLL[var].GetBinWidth(1), 'width')
 
-hCrossSecExtrap = TH1F('hCrossSec', ';#it{p}_{T} (GeV/#it{c});d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c})',
+hCrossSecExtrap = TH1F('hCrossSection',
+                       ';#it{p}_{T} (GeV/#it{c});d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c})',
                        nPtBinsAll, np.array(ptLimsAll, 'd'))
 gCrossSecExtrap = TGraphAsymmErrors(0) # put all systematics together
 gCrossSecExtrap.SetName('gCrossSectionSystTot')
