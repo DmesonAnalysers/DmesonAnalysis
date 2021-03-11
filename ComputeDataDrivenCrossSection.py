@@ -22,7 +22,7 @@ parser.add_argument('fracFileName', metavar='text', default='fracFile.root',
 parser.add_argument('outFileName', metavar='text', default='outFile.root', help='root output file name')
 parser.add_argument('--system', metavar='text', default='pp', help='collision system (pp, pPb, PbPb)')
 parser.add_argument('--energy', metavar='text', default='5.02', help='energy (5.02)')
-parser.add_argument('--centrality', metavar='text', default='010', help='centrality (010)')
+parser.add_argument('--centrality', metavar='text', default='010', help='centrality (010, 3050)')
 parser.add_argument("--prompt", action='store_true', help='flag to compute prompt cross section', default=False)
 parser.add_argument("--FD", action='store_true', help='flag to compute FD cross section', default=False)
 parser.add_argument("--Dplus", action='store_true', help='flag to compute D+ cross section', default=False)
@@ -50,12 +50,10 @@ if args.system == 'pp':
 elif args.system == 'PbPb':
     axisTitle = ';#it{p}_{T} (GeV/#it{c}); d#it{N}/d#it{p}_{T} #times BR (GeV^{-1} #it{c})'
     histoName = 'CorrYield'
-    if args.centrality == '010':
-        systErr.SetCentrality('010')
-    elif args.centrality == '3050':
-        systErr.SetCentrality('3050')
+    if args.centrality in ['010', '3050']:
+        systErr.SetCentrality(args.centrality)
     else:
-        print('ERROR: only 010 and 3050 centrality class implemented! Exit.')
+        print('ERROR: only 0-10 and 30-50 centrality classes implemented! Exit')
         sys.exit()
     systErr.SetCollisionType(1)
     systErr.SetRunNumber(18)
@@ -162,8 +160,9 @@ for iPt in range(hCrossSection.GetNbinsX()):
         crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
                                                     ptMax - ptMin, 1., sigmaMB, nEv, 1., 'corr')
     else:
+        # TODO: check if uncorrelated is the right option or anti-correlated is better
         crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
-                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., 'uncorr') # TODO: check this
+                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., 'uncorr')
 
     hCrossSection.SetBinContent(iPt+1, crossSec)
     hCrossSection.SetBinError(iPt+1, crossSecUnc)
