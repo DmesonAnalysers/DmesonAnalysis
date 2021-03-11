@@ -1,6 +1,6 @@
 isMC: no
 isReducedVariables: yes
-isWithPtB: no # always no for data
+isWithBinfo: no # always no for data
 filename: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/data/010/MLapplied/AnalysisResults_Ds_010_ML_LHC18qr_Tot_train1798.root
 dirname: PWGHF_D2H_InvMassDs_MLappl010
 listname: coutputDs_MLappl010

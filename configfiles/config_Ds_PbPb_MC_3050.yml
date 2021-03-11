@@ -1,6 +1,6 @@
 isMC: yes
 isReducedVariables: no
-isWithPtB: no
+isWithBinfo: no
 filename: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/MC/3050/D2H_MLapplied/AnalysisResultsDs_MC_3050_ML_LHC20g2b_Tot.root
 dirname: PWGHF_D2H_InvMassDs_MLappl3050
 listname: coutputDs_MLappl3050
