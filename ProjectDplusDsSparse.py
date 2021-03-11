@@ -39,7 +39,7 @@ if not isinstance(infilenames, list):
 enableSecPeak = inputCfg['enableSecPeak']
 isMC = inputCfg['isMC']
 isRedVar = inputCfg['isReducedVariables']
-isWithPtB = inputCfg['isWithPtB']
+isWithBinfo = inputCfg['isWithBinfo']
 shiftForRedVar = inputCfg['shiftForRedVariables']
 if not isMC:
     if args.ptweights:
@@ -86,12 +86,12 @@ if args.ptweightsB:
     ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
     sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
     hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
-    if isWithPtB:
+    if isWithBinfo:
         hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(2, 0).ProfileX()
     averagePtBvsPtGen, averagePtBvsPtReco = [], []
     for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
         averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
-        if isWithPtB:
+        if isWithBinfo:
             averagePtBvsPtReco.append(hPtBvsPtRecoD.GetBinContent(iPt))
         else:
             averagePtBvsPtReco.append(hPtBvsPtGenD.GetBinContent(iPt))
@@ -128,7 +128,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         if axisNum >= 2: # check if axis is a cut variable (not inv. mass or pt)
             if isRedVar:
                 axisNum -= shiftForRedVar
-            if isWithPtB:
+            if isWithBinfo:
                 axisNum += 2
         binMin = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['min'][iPt] * 1.0001)
         binMax = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['max'][iPt] * 0.9999)
@@ -230,7 +230,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         if axisNum >=2: # check if axis is a cut variable (not inv. mass or pt)
             if isRedVar:
                 axisNum -= shiftForRedVar
-            if isWithPtB:
+            if isWithBinfo:
                 axisNum += 2
         if 'RecoAll' in sparseReco:
             sparseReco['RecoAll'].GetAxis(axisNum).SetRange(-1, -1)
