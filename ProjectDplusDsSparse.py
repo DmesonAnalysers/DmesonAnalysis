@@ -129,7 +129,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             if isRedVar:
                 axisNum -= shiftForRedVar
             if isWithPtB:
-                axisNum += 1
+                axisNum += 2
         binMin = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['min'][iPt] * 1.0001)
         binMax = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['max'][iPt] * 0.9999)
         if 'RecoAll' in sparseReco:
@@ -231,7 +231,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             if isRedVar:
                 axisNum -= shiftForRedVar
             if isWithPtB:
-                axisNum += 1
+                axisNum += 2
         if 'RecoAll' in sparseReco:
             sparseReco['RecoAll'].GetAxis(axisNum).SetRange(-1, -1)
         if isMC:
