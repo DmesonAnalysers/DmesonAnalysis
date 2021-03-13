@@ -93,7 +93,7 @@ if args.ptweightsB:
     if not args.exactptweightsB:
         hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
         if isWithBinfo:
-            hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(2, 0).ProfileX()
+            hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(3, 1).ProfileX()
         averagePtBvsPtGen, averagePtBvsPtReco = [], []
         for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
             averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
