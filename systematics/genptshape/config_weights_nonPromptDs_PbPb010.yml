@@ -9,7 +9,7 @@ inputMC:
 shapes:
     D:
         fonll: # fonll is mandatory
-            file: ../../models/fonll/FONLL_D_pp5_y05.txt
+            file: ../../models/fonll/FONLL_D_pp5_y05_pt0-50_100MeVbins.txt
         tamu:
             enabled: true
             file: ../../models/tamu/PromptDs_TAMU_RAA_5TeV_010_ImprovedCoalescence.txt
@@ -24,7 +24,7 @@ shapes:
             file: ../../models/catania/Ds_Catania_RAA_5TeV_010.dat
     B:
         fonll: # fonll is mandatory
-            file: ../../models/fonll/FONLL_B_pp5_y05.txt
+            file: ../../models/fonll/FONLL_B_pp5_y05_pt0-150_100MeVbins.txt
         tamu:
             enabled: true
             file:
@@ -32,7 +32,7 @@ shapes:
                 Bs: ../../models/tamu/Bs_TAMU_RAA_5TeV_010.txt
 
 options:
-    rebin: 20
+    rebin: 1
     smooth: 100
 
 outputfile: ptweights/DsPbPb/PtWeigths_NonPromptDs_LHC20g11a_BsBmixshape.root
