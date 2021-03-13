@@ -180,9 +180,12 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 for iBinV in range(1, hPtBvsVarRecoD.GetXaxis().GetNbinsX()+1):
                     for iPtB in range(1, hPtBvsVarRecoD.GetYaxis().GetNbinsX()+1):
                         ptCentB = hPtBvsVarRecoD.GetYaxis().GetBinCenter(iPtB)
-                        hPtBvsVarRecoD.SetBinContent(iBinV, iPtB,
-                                                     hPtBvsVarRecoD.GetBinContent(iBinV, iPtB) * sPtWeightsB(ptCentB))
-                hVarFD = hPtBvsVarRecoD.ProjectionX()
+                        content = hPtBvsVarRecoD.GetBinContent(iBinV, iPtB) * sPtWeightsB(ptCentB)
+                        error = hPtBvsVarRecoD.GetBinError(iBinV, iPtB) / hPtBvsVarRecoD.GetBinContent(iBinV, iPtB) * content
+                        hPtBvsVarRecoD.SetBinContent(iBinV, iPtB, content)
+                        hPtBvsVarRecoD.SetBinError(iBinV, iPtB, error)
+                hVarFD = hPtBvsVarRecoD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                    0, hVarFD.GetNbinsX()+1, 'e')
             else:
                 hVarFD = sparseReco['RecoFD'].Projection(axisNum)
                 if iVar == 'Pt' and (args.ptweightsB or args.ptweights):
@@ -192,7 +195,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                             ptCent = hVarFD.GetBinCenter(iBin)
                             hVarFD.SetBinContent(iBin, hVarFD.GetBinContent(iBin) * sPtWeightsRecoDfromB(ptCent))
                             hVarFD.SetBinError(iBin, hVarFD.GetBinContent(iBin) * relStatUnc)
-            hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+                hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             fd_dict[iVar].append(hVarFD)
             hVarFD.Write()
             if enableSecPeak:
@@ -227,8 +230,12 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             for iPtD in range(1, hPtBvsPtGenD.GetXaxis().GetNbinsX()+1):
                 for iPtB in range(1, hPtBvsPtGenD.GetYaxis().GetNbinsX()+1):
                     ptCentB = hPtBvsPtGenD.GetYaxis().GetBinCenter(iPtB)
-                    hPtBvsPtGenD.SetBinContent(iPtD, iPtB, hPtBvsPtGenD.GetBinContent(iPtD, iPtB) * sPtWeightsB(ptCentB))
-            hGenPtFD = hPtBvsPtGenD.ProjectionX()
+                    content = hPtBvsPtGenD.GetBinContent(iPtD, iPtB) * sPtWeightsB(ptCentB)
+                    error = hPtBvsPtGenD.GetBinError(iPtD, iPtB) / hPtBvsPtGenD.GetBinContent(iPtD, iPtB) * content
+                    hPtBvsPtGenD.SetBinError(iPtD, iPtB, content)
+                    hPtBvsPtGenD.SetBinContent(iPtD, iPtB, error)
+            hGenPtFD = hPtBvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                0, hGenPtFD.GetNbinsX()+1, 'e')
         else:
             hGenPtFD = sparseGen['GenFD'].Projection(0)
             if args.ptweightsB or args.ptweights:
@@ -238,7 +245,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                         ptCent = hGenPtFD.GetBinCenter(iBin)
                         hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeightsGenDfromB(ptCent))
                         hGenPtFD.SetBinError(iBin, hGenPtFD.GetBinContent(iBin) * relStatUnc)
-        hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         fd_gen_list.append(hGenPtFD)
         hGenPtFD.Write()
         if enableSecPeak:
