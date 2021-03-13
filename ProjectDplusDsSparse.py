@@ -12,6 +12,7 @@ if --exactptweightsB is provided, the exact application of the pTB weights is ap
 It works only if pTB axis is present in the reco sparse
 '''
 
+import sys
 import argparse
 import yaml
 import uproot
@@ -56,6 +57,10 @@ if not isMC:
 if isRedVar:
     print(('WARNING: option for reduced number of variables in THnSparse set to true.'
            'If this is not the case, the code will work producing wrong results'))
+
+if args.exactptweightsB and not args.isWithBinfo:
+    print('ERROR: exact ptB weight application cannot be applied without B info in sparses! Exit')
+    sys.exit()
 
 for iFile, infilename in enumerate(infilenames):
     if iFile == 0:
