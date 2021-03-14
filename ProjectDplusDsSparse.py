@@ -58,7 +58,7 @@ if isRedVar:
     print(('WARNING: option for reduced number of variables in THnSparse set to true.'
            'If this is not the case, the code will work producing wrong results'))
 
-if args.exactptweightsB and not args.isWithBinfo:
+if args.exactptweightsB and not isWithBinfo:
     print('ERROR: exact ptB weight application cannot be applied without B info in sparses! Exit')
     sys.exit()
 
@@ -98,7 +98,7 @@ if args.ptweightsB:
     if not args.exactptweightsB:
         hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
         if isWithBinfo:
-            hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(3, 1).ProfileX()
+            hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(2, 1).ProfileX()
         averagePtBvsPtGen, averagePtBvsPtReco = [], []
         for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
             averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
@@ -176,7 +176,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hVarPrompt.Write()
             # apply pt weights
             if args.ptweightsB and args.exactptweightsB:
-                hPtBvsVarRecoD = sparseReco['RecoFD'].Projection(3, axisNum)
+                hPtBvsVarRecoD = sparseReco['RecoFD'].Projection(2, axisNum)
                 for iBinV in range(1, hPtBvsVarRecoD.GetXaxis().GetNbinsX()+1):
                     for iPtB in range(1, hPtBvsVarRecoD.GetYaxis().GetNbinsX()+1):
                         ptCentB = hPtBvsVarRecoD.GetYaxis().GetBinCenter(iPtB)
