@@ -1,15 +1,19 @@
 '''
-python script for the projection of D+ and Ds+ mesons THnSparses
+python script for the projection of D+, Ds+, and Lc hadron THnSparses
 run: python ProjectDplusDsSparse.py cfgFileName.yml cutSetFileName.yml outFileName.root
                                     [--ptweights PtWeightsFileName.root histoName]
                                     [--ptweightsB PtWeightsFileName.root histoName]
                                     [--exactptweightsB]
+                                    [--Bspecie BspecieName]
 
 if the --ptweights argument is provided, pT weights will be applied to prompt and FD pT distributions
 if the --ptweightsB argument is provided, pT weights will be applied to FD pT distributions instead of
 those for the prompt
-if --exactptweightsB is provided, the exact application of the pTB weights is applied instead of the average one.
+if --exactptweightsB is provided, the exact application of the pTB weights is applied instead of the average one
 It works only if pTB axis is present in the reco sparse
+if --Bspecie is provided, the FD efficiency is computed only for D mesons coming from the decays of a given B
+Options for BspecieName: (all, B0, B+, Bs, Lb)
+It works only if Bspecie axis is present in the gen and reco sparses
 '''
 
 import sys
@@ -34,6 +38,8 @@ parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--exactptweightsB', action='store_true', default=False,
                     help='Flag to enable exact application of weights for pTB')
+parser.add_argument('--Bspecie', metavar='text', default='all',
+                    help='Flag to select b-hadron species for the FD efficiency. Options: (all, B0, B+, Bs, Lb)')
 args = parser.parse_args()
 
 with open(args.cfgFileName, 'r') as ymlCfgFile:
@@ -61,6 +67,24 @@ if isRedVar:
 if args.exactptweightsB and not isWithBinfo:
     print('ERROR: exact ptB weight application cannot be applied without B info in sparses! Exit')
     sys.exit()
+
+if args.Bspecie != 'all' and not isWithBinfo:
+    print('ERROR: you cannot select a given b-hadron species without B info in sparses! Exit')
+    sys.exit()
+
+if args.Bspecie not in ('all', 'B0', 'B+', 'Bs', 'Lb'):
+    print(f'ERROR: b-hadron species {args.Bspecie} not supported! The available ones are (all, B0, B+, Bs, Lb). Exit')
+    sys.exit()
+
+BspecieBin = -1
+if args.Bspecie == 'B0':
+    BspecieBin = 1
+elif args.Bspecie == 'B+':
+    BspecieBin = 2
+elif args.Bspecie == 'Bs':
+    BspecieBin = 3
+elif args.Bspecie == 'Lb':
+    BspecieBin = 4
 
 for iFile, infilename in enumerate(infilenames):
     if iFile == 0:
@@ -151,6 +175,10 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             if enableSecPeak:
                 sparseReco['RecoSecPeakPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
                 sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(binMin, binMax)
+    if isMC and args.Bspecie != 'all':
+        sparseReco['RecoFD'].GetAxis(3).SetRange(BspecieBin, BspecieBin)
+        if enableSecPeak:
+            sparseReco['RecoSecPeakFD'].GetAxis(3).SetRange(BspecieBin, BspecieBin)
 
     for iVar in ('InvMass', 'Pt'):
         varName = cutVars[iVar]['name']
@@ -215,6 +243,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 fd_dict_secpeak[iVar].append(hVarFDSecPeak)
                 hVarFDSecPeak.Write()
     if isMC:
+        if args.Bspecie != 'all':
+            sparseGen['GenFD'].GetAxis(3).SetRange(BspecieBin, BspecieBin)
         binGenMin = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMin*1.0001)
         binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax*0.9999)
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
