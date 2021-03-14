@@ -73,33 +73,57 @@ hNtrklWeightsCandInMass.Divide(hNtrklCandInMass['MC'])
 
 SetGlobalStyle(padbottommargin=0.12, padleftmargin=0.14, padtopmargin=0.075, titleoffsety=1.4, opttitle=1)
 
-leg = TLegend(0.7, 0.8, 0.9, 0.9)
-leg.SetTextSize(0.045)
-leg.SetBorderSize(0)
-leg.SetFillStyle(0)
-leg.AddEntry(hNtrkl['data'], 'data', 'pl')
-leg.AddEntry(hNtrkl['MC'], 'MC', 'pl')
+lNtrkl = TLegend(0.2, 0.8, 0.7, 0.9)
+lNtrkl.SetTextSize(0.045)
+lNtrkl.SetBorderSize(0)
+lNtrkl.SetFillStyle(0)
+lNtrkl.AddEntry(hNtrkl['data'],
+                f'data, mean = {hNtrkl["data"].GetMean():0.1f}, RMS = {hNtrkl["data"].GetRMS():0.1f}', 'pl')
+lNtrkl.AddEntry(hNtrkl['MC'],
+                f'MC, mean = {hNtrkl["MC"].GetMean():0.1f}, RMS = {hNtrkl["MC"].GetRMS():0.1f}', 'pl')
+
+lNtrklCand = TLegend(0.2, 0.8, 0.7, 0.9)
+lNtrklCand.SetTextSize(0.045)
+lNtrklCand.SetBorderSize(0)
+lNtrklCand.SetFillStyle(0)
+lNtrklCand.AddEntry(hNtrklCand['data'],
+                    f'data, mean = {hNtrklCand["data"].GetMean():0.1f},'
+                    f' RMS = {hNtrklCand["data"].GetRMS():0.1f}', 'pl')
+lNtrklCand.AddEntry(hNtrklCand['MC'],
+                    f'MC, mean = {hNtrklCand["MC"].GetMean():0.1f},'
+                    f' RMS = {hNtrklCand["MC"].GetRMS():0.1f}', 'pl')
+
+lNtrklCandInMass = TLegend(0.2, 0.8, 0.7, 0.9)
+lNtrklCandInMass.SetTextSize(0.045)
+lNtrklCandInMass.SetBorderSize(0)
+lNtrklCandInMass.SetFillStyle(0)
+lNtrklCandInMass.AddEntry(hNtrklCandInMass['data'],
+                          f'data, mean = {hNtrklCandInMass["data"].GetMean():0.1f},'
+                          f' RMS = {hNtrklCandInMass["data"].GetRMS():0.1f}', 'pl')
+lNtrklCandInMass.AddEntry(hNtrklCandInMass['MC'],
+                          f'MC, mean = {hNtrklCandInMass["MC"].GetMean():0.1f},'
+                          f' RMS = {hNtrklCandInMass["MC"].GetRMS():0.1f}', 'pl')
 
 cNtrkl = TCanvas('cNtrkl', '', 1500, 500)
 cNtrkl.Divide(3, 1)
-cNtrkl.cd(1).DrawFrame(0., 1.e-10, hNtrkl[inpt].GetXaxis().GetXmax(), 1.,
+cNtrkl.cd(1).DrawFrame(0., 1.e-10, hNtrkl[inpt].GetXaxis().GetXmax(), 10.,
                        'all events;#it{N}_{tracklets} (|#it{#eta}|<1);Normalised counts')
 cNtrkl.cd(1).SetLogy()
 for inpt in hNtrkl:
     hNtrkl[inpt].Draw('same')
-leg.Draw()
-cNtrkl.cd(2).DrawFrame(0., 1.e-10, hNtrkl[inpt].GetXaxis().GetXmax(), 1.,
+lNtrkl.Draw()
+cNtrkl.cd(2).DrawFrame(0., 1.e-10, hNtrkl[inpt].GetXaxis().GetXmax(), 10.,
                        'events with cand;#it{N}_{tracklets} (|#it{#eta}|<1);Normalised counts')
 cNtrkl.cd(2).SetLogy()
 for inpt in hNtrklCand:
     hNtrklCand[inpt].Draw('same')
-leg.Draw()
-cNtrkl.cd(3).DrawFrame(0., 1.e-10, hNtrkl[inpt].GetXaxis().GetXmax(), 1.,
+lNtrklCand.Draw()
+cNtrkl.cd(3).DrawFrame(0., 1.e-10, hNtrkl[inpt].GetXaxis().GetXmax(), 10.,
                        'events with cand in mass;#it{N}_{tracklets} (|#it{#eta}|<1);Normalised counts')
 cNtrkl.cd(3).SetLogy()
 for inpt in hNtrklCandInMass:
     hNtrklCandInMass[inpt].Draw('same')
-leg.Draw()
+lNtrklCandInMass.Draw()
 cNtrkl.Modified()
 cNtrkl.Update()
 
