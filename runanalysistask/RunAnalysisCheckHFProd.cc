@@ -82,9 +82,12 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
     }
 
     //task options
-    int nPtBins = config["task"]["ptbins"]["nbins"].as<int>();
-    double ptMin = config["task"]["ptbins"]["min"].as<double>();
-    double ptMax = config["task"]["ptbins"]["max"].as<double>();
+    int nPtBins = config["task"]["ptbins"]["D"]["nbins"].as<int>();
+    double ptMin = config["task"]["ptbins"]["D"]["min"].as<double>();
+    double ptMax = config["task"]["ptbins"]["D"]["max"].as<double>();
+    int nPtBinsB = config["task"]["ptbins"]["B"]["nbins"].as<int>();
+    double ptMinB = config["task"]["ptbins"]["B"]["min"].as<double>();
+    double ptMaxB = config["task"]["ptbins"]["B"]["max"].as<double>();
     //_________________________________________________________________________________________________________________
 
     // create the analysis manager
@@ -108,6 +111,7 @@ void RunAnalysisCheckHFProd(TString configfilename, TString runMode = "full", bo
     AliAnalysisTaskCheckHFMCProd* taskHFMCProd = reinterpret_cast<AliAnalysisTaskCheckHFMCProd *>(gInterpreter->ProcessLine(Form(".x %s(%d, %d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddHFMCCheck.C"), system, isRunOnMC)));
     taskHFMCProd->SetSearchUpToQuark(true); // keep only pythia for Pb-Pb
     taskHFMCProd->SetPtBins(ptMin, ptMax, nPtBins);
+    taskHFMCProd->SetPtBinsB(ptMinB, ptMaxB, nPtBinsB);
     taskHFMCProd->SetYBins(-2., 2., 40);
 
     if (!mgr->InitAnalysis())

@@ -15,7 +15,13 @@ runs: [282343, 282342, 282341, 282340, 282314, 282313, 282312, 282309, 282307, 2
 datatype: ESD
 
 task:
-    ptbins:
-        nbins: 1000
-        min: 0.
-        max: 50.
+    D:
+        ptbins:
+            nbins: 500
+            min: 0.
+            max: 50.
+    B:
+        ptbins:
+            nbins: 1000
+            min: 0.
+            max: 50.
