@@ -39,7 +39,7 @@ int RawYieldSystematics(TString cfgFileName = "cfgFile.yml");
 double min(TH1F *histo);
 double max(TH1F *histo);
 int LoadRefFiles(std::string refFileName, std::string refFileNameMC, TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
-                 TH1F *&hMeanRef, TH1F *&hSigmaSecPeakref, TH1F *&hSigmaMC, TH1F *&hMeanMC);
+                 TH1F *&hMeanRef, TH1F *&hSignalRef, TH1F *&hBkgRef, TH1F *&hSigmaSecPeakref, TH1F *&hSigmaMC, TH1F *&hMeanMC, double nSigma4Purity=3.);
 void SetStyle();
 
 
@@ -51,7 +51,8 @@ int RawYieldSystematics(TString cfgFileName) {
     YAML::Node config = YAML::LoadFile(cfgFileName.Data());
     std::string refFileName = config["reffilenames"]["data"].as<std::string>();
     std::string refFileNameMC = config["reffilenames"]["MC"].as<std::string>();
-    std::string outFileName = config["outfilename"].as<std::string>();
+    std::string outFileName = config["output"]["filename"].as<std::string>();
+    bool drawPurity = static_cast<bool>(config["output"]["drawpurity"].as<int>());
     std::vector<int> ptBins;
     bool allPtBins = true;
     if(config["multitrial"]["ptbins"].Type() != YAML::NodeType::Null) {
@@ -69,6 +70,7 @@ int RawYieldSystematics(TString cfgFileName) {
     const unsigned int nMeanConf = meanOpt.size();
     std::vector<double> nSigmaBinCounting = config["multitrial"]["bincounting"]["nsigma"].as<std::vector<double> >();
     const unsigned int nBinCounting = nSigmaBinCounting.size();
+    double nSigma4Purity = config["multitrial"]["nsigma4purity"].as<double>();
     double minChi2 = config["quality"]["chisquare"]["min"].as<double>();
     double maxChi2 = config["quality"]["chisquare"]["max"].as<double>();
 
@@ -86,14 +88,16 @@ int RawYieldSystematics(TString cfgFileName) {
     }
 
     TH1F *hRawYieldRef = nullptr;
+    TH1F *hSignalRef = nullptr;
+    TH1F *hBkgRef = nullptr;
     TH1F *hSigmaRef = nullptr;
     TH1F *hMeanRef = nullptr;
     TH1F *hSigmaSecPeakRef = nullptr;
     TH1F *hSigmaMC = nullptr;
     TH1F *hMeanMC = nullptr;
-    int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef,
-                               hSigmaSecPeakRef, hSigmaMC, hMeanMC);
-    if (loadref > 0 || (mesonName == "Ds" && !hSigmaSecPeakRef)) {
+    int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef, hSignalRef, hBkgRef,
+                               hSigmaSecPeakRef, hSigmaMC, hMeanMC, nSigma4Purity);
+    if ((loadref > 0 && loadref < 9) || (mesonName == "Ds" && !hSigmaSecPeakRef) || (loadref >= 9 && drawPurity)) {
         std::cerr << "ERROR: missing information in reference files! Check them please." << std::endl;
         return loadref;
     }
@@ -113,20 +117,24 @@ int RawYieldSystematics(TString cfgFileName) {
     TNtuple* ntupleFit[nPtBins];
     TNtuple* ntupleBinC[nPtBins];
     TH1F *hRawYield[nPtBins];
+    TH1F *hPurity[nPtBins];
     TH1F *hBinCount[nBinCounting][nPtBins];
     TH1F *hSigma[nPtBins];
     TH1F *hMean[nPtBins];
     TH1F *hChiSquare[nPtBins];
     TH1F *hRawYieldVsTrial[nPtBins];
+    TH1F *hPurityVsTrial[nPtBins];
     TH1F *hBinCountVsTrial[nBinCounting][nPtBins];
     TH1F *hSigmaVsTrial[nPtBins];
     TH1F *hMeanVsTrial[nPtBins];
     TH1F *hChiSquareVsTrial[nPtBins];
 
     TLine *lRawRef[nPtBins];
+    TLine *lPurityRef[nPtBins];
     TLine *lSigmaRef[nPtBins];
     TLine *lMeanRef[nPtBins];
     TLine *lRawRefVsTrial[nPtBins];
+    TLine *lPurityRefVsTrial[nPtBins];
     TLine *lSigmaRefVsTrial[nPtBins];
     TLine *lMeanRefVsTrial[nPtBins];
 
@@ -151,6 +159,7 @@ int RawYieldSystematics(TString cfgFileName) {
 
         // configure multi-trial
         AliHFInvMassMultiTrialFit multiTrial;
+        multiTrial.SetSaveBkgValue(true, nSigma4Purity);
         multiTrial.SetUseLogLikelihoodFit();
         multiTrial.SetMass(mass);
         if(mesonName == "Ds")
@@ -280,9 +289,20 @@ int RawYieldSystematics(TString cfgFileName) {
         double rawMin = ntupleFit[iPt]->GetMinimum("rawy") > 0 ? ntupleFit[iPt]->GetMinimum("rawy") * 0.5 : 0;
         double rawMax = ntupleFit[iPt]->GetMaximum("rawy") * 1.5;
         if (loadref != 1 && loadref != 2 && loadref != 4) {
-            lRawRefVsTrial[iPt] = new TLine(-0.5, hRawYieldRef->GetBinContent(iPt+1), nTrials - 0.5, hRawYieldRef->GetBinContent(iPt+1));
+            double rawyieldRef = hRawYieldRef->GetBinContent(iPt+1);
+            lRawRefVsTrial[iPt] = new TLine(-0.5, rawyieldRef, nTrials - 0.5, rawyieldRef);
             lRawRefVsTrial[iPt]->SetLineColor(kRed);
             lRawRefVsTrial[iPt]->SetLineWidth(2);
+        }
+
+        if (loadref != 1 && loadref != 2 && loadref != 9 && loadref != 10) {
+            double signalRef = hSignalRef->GetBinContent(iPt+1);
+            double bkgRef = hBkgRef->GetBinContent(iPt+1);
+            double purityRef = signalRef / (signalRef + bkgRef);
+
+            lPurityRefVsTrial[iPt] = new TLine(-0.5, purityRef, nTrials - 0.5, purityRef);
+            lPurityRefVsTrial[iPt]->SetLineColor(kRed);
+            lPurityRefVsTrial[iPt]->SetLineWidth(2);
         }
 
         double sigmaMin = ntupleFit[iPt]->GetMinimum("sigma") * 0.5;
@@ -310,6 +330,14 @@ int RawYieldSystematics(TString cfgFileName) {
         hRawYield[iPt]->SetLineColor(kBlue + 1);
         hRawYield[iPt]->SetFillColor(kBlue + 1);
         ntupleFit[iPt]->Draw(Form("rawy>>hRawYield_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
+
+        hPurity[iPt] = new TH1F(Form("hPurity_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), 
+                                Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};purity(%0.2f#sigma);entries", PtLims[iPt], PtLims[iPt+1], nSigma4Purity), 1000., 0., 1.);
+        hPurity[iPt]->SetFillStyle(3004);
+        hPurity[iPt]->SetLineWidth(2);
+        hPurity[iPt]->SetLineColor(kBlue + 1);
+        hPurity[iPt]->SetFillColor(kBlue + 1);
+        ntupleFit[iPt]->Draw(Form("sgn/(sgn+bkg)>>hPurity_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
 
         hSigma[iPt] = new TH1F(Form("hSigma_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), 
                                Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};width (GeV/c^{2});Entries", PtLims[iPt], PtLims[iPt+1]), nBins, sigmaMin, sigmaMax);
@@ -344,6 +372,15 @@ int RawYieldSystematics(TString cfgFileName) {
         hRawYieldVsTrial[iPt]->SetLineColor(kBlue + 1);
         hRawYieldVsTrial[iPt]->SetMarkerColor(kBlack);
 
+        hPurityVsTrial[iPt] = new TH1F(Form("hPurityVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+                                       Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;purity(%0.2f#sigma)", PtLims[iPt], PtLims[iPt+1], nSigma4Purity), nTrials, -0.5, nTrials - 0.5);
+        hPurityVsTrial[iPt]->GetYaxis()->SetRangeUser(0., 1.);
+        hPurityVsTrial[iPt]->SetMarkerStyle(20);
+        hPurityVsTrial[iPt]->SetLineWidth(2);
+        hPurityVsTrial[iPt]->SetMarkerSize(0.5);
+        hPurityVsTrial[iPt]->SetLineColor(kBlue + 1);
+        hPurityVsTrial[iPt]->SetMarkerColor(kBlack);
+
         hSigmaVsTrial[iPt] = new TH1F(Form("hSigmaVsTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
                                       Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};trial # ;width (GeV/c^{2})", PtLims[iPt], PtLims[iPt+1]), nTrials, -0.5, nTrials - 0.5);
         hSigmaVsTrial[iPt]->GetYaxis()->SetRangeUser(sigmaMin, sigmaMax);
@@ -371,9 +408,13 @@ int RawYieldSystematics(TString cfgFileName) {
         hChiSquareVsTrial[iPt]->SetLineColor(kBlue + 1);
         hChiSquareVsTrial[iPt]->SetMarkerColor(kBlack);
 
-        float rawYield, rawYielUnc, sigma, sigmaUnc, pos, posUnc, chiSquare, confSigma, confMean;
+        float rawYield, rawYielUnc, sigma, sigmaUnc, pos, posUnc, chiSquare, confSigma, confMean, sgn, sgnUnc, bkg, bkgUnc;
         ntupleFit[iPt]->SetBranchAddress("rawy", &rawYield);
         ntupleFit[iPt]->SetBranchAddress("erawy", &rawYielUnc);
+        ntupleFit[iPt]->SetBranchAddress("sgn", &sgn);
+        ntupleFit[iPt]->SetBranchAddress("ersgn", &sgnUnc);
+        ntupleFit[iPt]->SetBranchAddress("bkg", &bkg);
+        ntupleFit[iPt]->SetBranchAddress("erbkg", &bkgUnc);
         ntupleFit[iPt]->SetBranchAddress("sigma", &sigma);
         ntupleFit[iPt]->SetBranchAddress("esigma", &sigmaUnc);
         ntupleFit[iPt]->SetBranchAddress("mean", &pos);
@@ -396,6 +437,10 @@ int RawYieldSystematics(TString cfgFileName) {
                     hMeanVsTrial[iPt]->SetBinContent(iBin, pos);
                     hMeanVsTrial[iPt]->SetBinError(iBin, posUnc);
                     hChiSquareVsTrial[iPt]->SetBinContent(iBin, chiSquare);
+                    double purity = sgn/(sgn+bkg);
+                    double purityUnc = TMath::Sqrt((bkg/((bkg+sgn)*(bkg+sgn)))*(bkg/((bkg+sgn)*(bkg+sgn))) * sgnUnc * sgnUnc + (sgn/((bkg+sgn)*(bkg+sgn)))*(sgn/((bkg+sgn)*(bkg+sgn))) * bkgUnc * bkgUnc);
+                    hPurityVsTrial[iPt]->SetBinContent(iBin, purity);
+                    hPurityVsTrial[iPt]->SetBinError(iBin, purityUnc);
                     iBin++;
                 }
             }
@@ -453,9 +498,22 @@ int RawYieldSystematics(TString cfgFileName) {
         stats[iPt]->SetBorderSize(0);
         stats[iPt]->SetTextFont(42);
         stats[iPt]->SetTextColor(kBlue + 1);
-        stats[iPt]->AddText(Form("mean = %0.1f", mean));
-        stats[iPt]->AddText(Form("RMS = %0.1f (%0.1f%%)", RMS, RMSunc));
-        stats[iPt]->AddText(Form("#frac{max-min}{#sqrt{12}} = %.1f (%0.1f%%)", disp, Flatunc));
+        if(drawPurity) {
+            double meanPurity = hPurity[iPt]->GetMean();
+            double RMSPurity = hPurity[iPt]->GetRMS();
+            double dispPurity = (max(hPurityVsTrial[iPt]) - min(hPurityVsTrial[iPt])) / TMath::Sqrt(12);
+            double purityRef = hSignalRef->GetBinContent(iPt+1) / (hSignalRef->GetBinContent(iPt+1) + hBkgRef->GetBinContent(iPt+1));
+            double RMSuncPurity = RMSPurity / purityRef * 100;
+            double FlatuncPurity = dispPurity / purityRef * 100;
+            stats[iPt]->AddText(Form("mean = %0.2f", meanPurity));
+            stats[iPt]->AddText(Form("RMS = %0.2f (%0.2f%%)", RMSPurity, RMSuncPurity));
+            stats[iPt]->AddText(Form("#frac{max-min}{#sqrt{12}} = %.2f (%0.2f%%)", dispPurity, FlatuncPurity));
+        }
+        else {
+            stats[iPt]->AddText(Form("mean = %0.1f", mean));
+            stats[iPt]->AddText(Form("RMS = %0.1f (%0.1f%%)", RMS, RMSunc));
+            stats[iPt]->AddText(Form("#frac{max-min}{#sqrt{12}} = %.1f (%0.1f%%)", disp, Flatunc));
+        }
 
         for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
 
@@ -480,8 +538,10 @@ int RawYieldSystematics(TString cfgFileName) {
         if (isFirstBin) {
             leg->AddEntry(lRawRefVsTrial[iPt], "Central value", "l");
             leg->AddEntry(hRawYieldVsTrial[iPt], "Fit method", "lpe");
-            for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
-                leg->AddEntry(hBinCountVsTrial[iBinCount][iPt], Form("Bin counting (%0.1f#sigma)", nSigmaBinCounting[iBinCount]), "lpe");
+            if(!drawPurity) {
+                for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
+                    leg->AddEntry(hBinCountVsTrial[iBinCount][iPt], Form("Bin counting (%0.1f#sigma)", nSigmaBinCounting[iBinCount]), "lpe");
+                }
             }
         }
         isFirstBin = false;
@@ -500,33 +560,56 @@ int RawYieldSystematics(TString cfgFileName) {
         cMultiTrial[iPt] = new TCanvas(Form("cMultiTrial_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), "", 1920, 1080);
         cMultiTrial[iPt]->Divide(2, 2);
 
-        cMultiTrial[iPt]->cd(1);
-        hBinCountVsTrial[0][iPt]->Draw();
-        for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
-            hBinCountVsTrial[iBinCount][iPt]->Draw("same");
-        }
-        hRawYieldVsTrial[iPt]->Draw("same");
-        if (lRawRefVsTrial[iPt]) {
-            lRawRefVsTrial[iPt]->Draw("same");
-        }
-        leg->Draw("same");
+        if(drawPurity) {
+            cMultiTrial[iPt]->cd(1);
+            hPurityVsTrial[iPt]->Draw("same");
+            if (lPurityRefVsTrial[iPt]) {
+                lPurityRefVsTrial[iPt]->Draw("same");
+            }
+            leg->Draw("same");
 
-        cMultiTrial[iPt]->cd(2);
-        hBinCount[0][iPt]->GetYaxis()->SetRangeUser(0., hRawYield[iPt]->GetMaximum() * 1.5);
-        hBinCount[0][iPt]->Draw();
-        for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
-            hBinCount[iBinCount][iPt]->Draw("same");
+            cMultiTrial[iPt]->cd(2);
+            hPurity[iPt]->Draw("same");
+            if (lPurityRef[iPt]) {
+                double signalRef = hSignalRef->GetBinContent(iPt+1);
+                double bkgRef = hBkgRef->GetBinContent(iPt+1);
+                double purityRef = signalRef / (signalRef + bkgRef);
+                lPurityRef[iPt] = new TLine(purityRef, 0, purityRef, hPurity[iPt]->GetMaximum());
+                lPurityRef[iPt]->SetLineColor(kRed);
+                lPurityRef[iPt]->SetLineWidth(2);
+                lPurityRef[iPt]->Draw("same");
+            }
+            stats[iPt]->Draw("same");
         }
-        hRawYield[iPt]->Draw("same");
-        if (loadref != 1 && loadref != 2 && loadref != 4) {
-            lRawRef[iPt] = new TLine(hRawYieldRef->GetBinContent(iPt+1), 0, hRawYieldRef->GetBinContent(iPt+1), hRawYield[iPt]->GetMaximum() * 1.5);
-            lRawRef[iPt]->SetLineColor(kRed);
-            lRawRef[iPt]->SetLineWidth(2);
-            lRawRef[iPt]->Draw("same");
-        }
-        stats[iPt]->Draw("same");
-        for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
-            statsbc[iBinCount][iPt]->Draw("same");
+        else {
+            cMultiTrial[iPt]->cd(1);
+            hBinCountVsTrial[0][iPt]->Draw();
+            for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
+                hBinCountVsTrial[iBinCount][iPt]->Draw("same");
+            }
+            hRawYieldVsTrial[iPt]->Draw("same");
+            if (lRawRefVsTrial[iPt]) {
+                lRawRefVsTrial[iPt]->Draw("same");
+            }
+            leg->Draw("same");
+
+            cMultiTrial[iPt]->cd(2);
+            hBinCount[0][iPt]->GetYaxis()->SetRangeUser(0., hRawYield[iPt]->GetMaximum() * 1.5);
+            hBinCount[0][iPt]->Draw();
+            for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
+                hBinCount[iBinCount][iPt]->Draw("same");
+            }
+            hRawYield[iPt]->Draw("same");
+            if (loadref != 1 && loadref != 2 && loadref != 4) {
+                lRawRef[iPt] = new TLine(hRawYieldRef->GetBinContent(iPt+1), 0, hRawYieldRef->GetBinContent(iPt+1), hRawYield[iPt]->GetMaximum() * 1.5);
+                lRawRef[iPt]->SetLineColor(kRed);
+                lRawRef[iPt]->SetLineWidth(2);
+                lRawRef[iPt]->Draw("same");
+            }
+            stats[iPt]->Draw("same");
+            for (unsigned int iBinCount = 0; iBinCount < nBinCounting; iBinCount++) {
+                statsbc[iBinCount][iPt]->Draw("same");
+            }
         }
 
         cMultiTrial[iPt]->cd(3);
@@ -548,10 +631,12 @@ int RawYieldSystematics(TString cfgFileName) {
         ntupleFit[iPt]->Write();
         ntupleBinC[iPt]->Write();
         hRawYield[iPt]->Write();
+        hPurity[iPt]->Write();
         hSigma[iPt]->Write();
         hMean[iPt]->Write();
         hChiSquare[iPt]->Write();
         hRawYieldVsTrial[iPt]->Write();
+        hPurityVsTrial[iPt]->Write();
         hSigmaVsTrial[iPt]->Write();
         hMeanVsTrial[iPt]->Write();
         hChiSquareVsTrial[iPt]->Write();
@@ -606,7 +691,7 @@ double max(TH1F *histo) {
 
 //__________________________________________________________________________________________________________________
 int LoadRefFiles(std::string refFileName, std::string refFileNameMC, TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
-                 TH1F *&hMeanRef, TH1F *&hSigmaSecPeakRef, TH1F *&hSigmaMC, TH1F *&hMeanMC) {
+                 TH1F *&hMeanRef,  TH1F *&hSignalRef, TH1F *&hBkgRef, TH1F *&hSigmaSecPeakRef, TH1F *&hSigmaMC, TH1F *&hMeanMC, double nSigma4Purity) {
 
     TFile *reffile = TFile::Open(refFileName.data());
     if (reffile) {
@@ -622,6 +707,21 @@ int LoadRefFiles(std::string refFileName, std::string refFileNameMC, TH1F *&hRaw
             hMeanRef->SetDirectory(0);
         if(hSigmaSecPeakRef)
             hSigmaSecPeakRef->SetDirectory(0);
+
+        reffile->ls();
+        if(TMath::Abs(nSigma4Purity - 3) < 1.e-5) {
+            hSignalRef = (TH1F *)reffile->Get("hRawYieldsSignal");
+            hBkgRef = (TH1F *)reffile->Get("hRawYieldsBkg");
+        }
+        else {
+            hSignalRef = (TH1F *)reffile->Get(Form("SandBDiffNsigma/hRawYieldsSignal_%0.2fsigma", nSigma4Purity));
+            hBkgRef = (TH1F *)reffile->Get(Form("SandBDiffNsigma/hRawYieldsBkg_%0.2fsigma", nSigma4Purity));
+        }
+        if (hSignalRef)
+            hSignalRef->SetDirectory(0);
+        if(hBkgRef)
+            hBkgRef->SetDirectory(0);
+
         reffile->Close();
     }
 
@@ -652,6 +752,10 @@ int LoadRefFiles(std::string refFileName, std::string refFileNameMC, TH1F *&hRaw
         return 7;
     if (!hMeanMC)
         return 8;
+    if (!hSignalRef)
+        return 9;
+    if (!hBkgRef)
+        return 10;
 
     return 0;
 }
