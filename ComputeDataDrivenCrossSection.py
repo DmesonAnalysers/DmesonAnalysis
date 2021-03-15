@@ -1,8 +1,8 @@
 '''
 python script for the computation of the production cross section of prompt or feed-down D
 run: python ComputeDataDrivenCrossSection.py rawYieldFile.root effAccFile.root fracFile.root outFile.root
-                                             [--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy] [--batch]
-prompt or FD and Dplus or Ds must be specified
+                                             [--prompt] [--FD] [--Dplus] [--Ds] [--Lc] [--system] [--energy] [--batch] [--corr] [--uncorr] [--anticorr]
+prompt or FD and Dplus, Ds or Lc must be specified
 '''
 
 import sys
@@ -27,12 +27,27 @@ parser.add_argument("--prompt", action='store_true', help='flag to compute promp
 parser.add_argument("--FD", action='store_true', help='flag to compute FD cross section', default=False)
 parser.add_argument("--Dplus", action='store_true', help='flag to compute D+ cross section', default=False)
 parser.add_argument("--Ds", action='store_true', help='flag to compute Ds cross section', default=False)
+parser.add_argument("--Lc", action='store_true', help='flag to compute Lc cross section', default=False)
 parser.add_argument("--batch", action='store_true', help='suppress video output', default=False)
+parser.add_argument("--corr", action='store_true', help='assume raw yield and (prompt/feed-down) fraction uncertanties as correlated', default=False)
+parser.add_argument("--uncorr", action='store_true', help='assume raw yield and (prompt/feed-down) fraction uncertanties as uncorrelated', default=False)
+parser.add_argument("--anticorr", action='store_true', help='assume raw yield and (prompt/feed-down) fraction uncertanties as anti correlated', default=False)
 args = parser.parse_args()
 
 # Define arguments (systematic uncertainties from AliHFSystErr)
 systErr = AliHFSystErr()
 systErr.SetIsDataDrivenFDAnalysis(True)
+
+RYFractionCorrelation = 'corr'
+if sum([args.corr, args.uncorr, args.anticorr]) == 0:
+    print("WARNING: Raw Yield and feed-down uncertanties correlation is not specified. Options are --corr --uncorr --anticorr. Default is --corr.")
+elif sum([args.corr, args.uncorr, args.anticorr]) == 0:
+    print("ERROR: you cannot choose two correlation at the same time. Exit!")
+    sys.exit()
+elif args.uncorr:
+    RYFractionCorrelation = 'uncorr'
+elif args.anticorr:
+    RYFractionCorrelation = 'anticorr'
 
 if args.system == 'pp':
     axisTitle = ';#it{p}_{T} (GeV/#it{c}); d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c})'
@@ -44,6 +59,10 @@ if args.system == 'pp':
             systErr.SetIs5TeVAnalysis(True)
         sigmaMB = 50.87e+3 # ub
         lumiUnc = 0.021
+    if args.energy == '13':
+        sigmaMB = 57.8e+3 # ub
+        lumiUnc = 0.05
+
     else:
         print(f'Energy {args.energy} not implemented! Exit')
         sys.exit()
@@ -59,15 +78,20 @@ elif args.system == 'PbPb':
     systErr.SetRunNumber(18)
     sigmaMB = 1. # yields in case of PbPb
 
-if args.Dplus and args.Ds:
-    print('ERROR: not possible to select more than one meson at the same time! Exit')
+nParticles = sum([args.Dplus, args.Ds,  args.Lc])
+if nParticles == 0:
+    print('ERROR: Dplus, Ds or Lc must be specified! Exit')
+    sys.exit()
+elif nParticles > 1:
+    print('ERROR: not possible to select more than one particle at the same time! Exit')
     sys.exit()
 elif args.Dplus:
     systErr.Init(2)
 elif args.Ds:
     systErr.Init(4)
+elif args.Lc:
+    systErr.Init(5)
 else:
-    print('ERROR: Dplus or Ds must be specified! Exit')
     sys.exit()
 
 if args.prompt and args.FD:
@@ -158,11 +182,11 @@ for iPt in range(hCrossSection.GetNbinsX()):
 
     if args.FD:
         crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
-                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., 'corr')
+                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., RYFractionCorrelation)
     else:
         # TODO: check if uncorrelated is the right option or anti-correlated is better
         crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
-                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., 'uncorr')
+                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., RYFractionCorrelation) # TODO: check this
 
     hCrossSection.SetBinContent(iPt+1, crossSec)
     hCrossSection.SetBinError(iPt+1, crossSecUnc)
