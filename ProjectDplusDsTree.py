@@ -3,6 +3,7 @@ python script for the projection of D+, Ds+ and Lc particles TTrees
 run: python ProjectDplusDsTree.py cfgFileName.yml cutSetFileName.yml outFileName.root
                                   [--ptweights PtWeightsFileName.root histoName]
                                   [--ptweightsB PtWeightsFileName.root histoName]
+                                  [--multweights MultWeightsFileName.root histoName]
                                   [--std]
 
 if the --ptweights argument is provided, pT weights will be applied to prompt and FD pT distributions
@@ -34,6 +35,8 @@ parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=F
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
                     help='First path of the pT weights file, second name of the pT weights histogram')
+parser.add_argument('--multweights', metavar=('text', 'text'), nargs=2, required=False,
+                    help='First path of the mult weights file, second name of the mult weights histogram')
 parser.add_argument('--std', help='adapt to std. analysis cuts', action='store_true')
 args = parser.parse_args()
 
@@ -51,6 +54,11 @@ if not isMC:
     if args.ptweightsB:
         print('WARNING: ptB weights will not be applied since it is not MC')
         args.ptweightsB = None
+
+#TODO: add support for application of 2D weights
+if args.multweights and (args.ptweights or args.ptweightsB):
+    print('ERROR: simultaneous application of pT and multiplicity weights not supported! Exit')
+    sys.exit()
 
 #define filter bits
 bitSignal = 0
@@ -168,6 +176,13 @@ if isMC:
         aPtGenWeightsB = list(sPtWeightsB(averagePtBvsPtGen))
         sPtWeightsDfromB = InterpolatedUnivariateSpline(ptCentGen, aPtGenWeightsB)
 
+    if args.multweights:
+        multWeights = uproot.open(args.multweights[0])[args.multweights[1]]
+        bins = multWeights.axis(0).edges()
+        multCent = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
+        sMultWeights = InterpolatedUnivariateSpline(multCent, multWeights.values())
+        dataFrameFD['mult_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'n_trkl', sMultWeights, 0, bins[-1])
+
     for (cuts, ptMin, ptMax) in zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max']):
         print(f'Projecting distributions for {ptMin:.1f} < pT < {ptMax:.1f} GeV/c')
         ptLowLabel = ptMin * 10
@@ -179,28 +194,66 @@ if isMC:
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
 
-        hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
-        hGenPtPrompt.Sumw2()
-        if args.ptweights:
-            for iPt in range(1, hGenPtPrompt.GetNbinsX()+1):
-                if hGenPtPrompt.GetBinContent(iPt) > 0:
-                    relStatUnc = hGenPtPrompt.GetBinError(iPt) / hGenPtPrompt.GetBinContent(iPt)
-                    ptCent = hGenPtPrompt.GetBinCenter(iPt)
-                    hGenPtPrompt.SetBinContent(iPt, hGenPtPrompt.GetBinContent(iPt) * sPtWeights(ptCent))
-                    hGenPtPrompt.SetBinError(iPt, hGenPtPrompt.GetBinContent(iPt) * relStatUnc)
-        hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        promptGenList.append(hGenPtPrompt)
+        if args.multweights:
+            hMultVsGenPtPrompt = sparseGen['GenPrompt'].Projection(5, 0)
+            for iPtD in range(1, hMultVsGenPtPrompt.GetXaxis().GetNbins()+1):
+                for iMult in range(1, hMultVsGenPtPrompt.GetYaxis().GetNbins()+1):
+                    multCent = hMultVsGenPtPrompt.GetYaxis().GetBinCenter(iMult)
+                    origContent = hMultVsGenPtPrompt.GetBinContent(iPtD, iMult)
+                    origError = hMultVsGenPtPrompt.GetBinError(iPtD, iMult)
+                    weight = 0
+                    if sMultWeights(multCent) > 0:
+                        weight = sMultWeights(multCent)
+                    content = hMultVsGenPtPrompt.GetBinContent(iPtD, iMult) * weight
+                    error = 0
+                    if origContent > 0:
+                        error = origError / origContent * content
+                    hMultVsGenPtPrompt.SetBinContent(iPtD, iMult, content)
+                    hMultVsGenPtPrompt.SetBinError(iPtD, iMult, error)
+            hGenPtPrompt = hMultVsGenPtPrompt.ProjectionX(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                          0, hMultVsGenPtPrompt.GetYaxis().GetNbins()+1, 'e')
 
-        hGenPtFD = sparseGen['GenFD'].Projection(0)
-        hGenPtFD.Sumw2()
-        if args.ptweights or args.ptweightsB:
-            for iPt in range(1, hGenPtFD.GetNbinsX()+1):
-                if hGenPtFD.GetBinContent(iPt) > 0:
-                    relStatUnc = hGenPtFD.GetBinError(iPt) / hGenPtFD.GetBinContent(iPt)
-                    ptCent = hGenPtFD.GetBinCenter(iPt)
-                    hGenPtFD.SetBinContent(iPt, hGenPtFD.GetBinContent(iPt) * sPtWeightsDfromB(ptCent))
-                    hGenPtFD.SetBinError(iPt, hGenPtFD.GetBinContent(iPt) * relStatUnc)
-        hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hMultVsGenPtFD = sparseGen['GenFD'].Projection(5, 0)
+            for iPtD in range(1, hMultVsGenPtFD.GetXaxis().GetNbins()+1):
+                for iMult in range(1, hMultVsGenPtFD.GetYaxis().GetNbins()+1):
+                    multCent = hMultVsGenPtFD.GetYaxis().GetBinCenter(iMult)
+                    origContent = hMultVsGenPtFD.GetBinContent(iPtD, iMult)
+                    origError = hMultVsGenPtFD.GetBinError(iPtD, iMult)
+                    weight = 0
+                    if sMultWeights(multCent) > 0:
+                        weight = sMultWeights(multCent)
+                    content = hMultVsGenPtFD.GetBinContent(iPtD, iMult) * weight
+                    error = 0
+                    if origContent > 0:
+                        error = origError / origContent * content
+                    hMultVsGenPtFD.SetBinContent(iPtD, iMult, content)
+                    hMultVsGenPtFD.SetBinError(iPtD, iMult, error)
+            hGenPtFD = hMultVsGenPtFD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                  0, hMultVsGenPtFD.GetYaxis().GetNbins()+1, 'e')
+        else:
+            hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
+            hGenPtPrompt.Sumw2()
+            if args.ptweights:
+                for iPt in range(1, hGenPtPrompt.GetNbinsX()+1):
+                    if hGenPtPrompt.GetBinContent(iPt) > 0:
+                        relStatUnc = hGenPtPrompt.GetBinError(iPt) / hGenPtPrompt.GetBinContent(iPt)
+                        ptCent = hGenPtPrompt.GetBinCenter(iPt)
+                        hGenPtPrompt.SetBinContent(iPt, hGenPtPrompt.GetBinContent(iPt) * sPtWeights(ptCent))
+                        hGenPtPrompt.SetBinError(iPt, hGenPtPrompt.GetBinContent(iPt) * relStatUnc)
+            hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+
+            hGenPtFD = sparseGen['GenFD'].Projection(0)
+            hGenPtFD.Sumw2()
+            if args.ptweights or args.ptweightsB:
+                for iPt in range(1, hGenPtFD.GetNbinsX()+1):
+                    if hGenPtFD.GetBinContent(iPt) > 0:
+                        relStatUnc = hGenPtFD.GetBinError(iPt) / hGenPtFD.GetBinContent(iPt)
+                        ptCent = hGenPtFD.GetBinCenter(iPt)
+                        hGenPtFD.SetBinContent(iPt, hGenPtFD.GetBinContent(iPt) * sPtWeightsDfromB(ptCent))
+                        hGenPtFD.SetBinError(iPt, hGenPtFD.GetBinContent(iPt) * relStatUnc)
+            hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+
+        promptGenList.append(hGenPtPrompt)
         FDGenList.append(hGenPtFD)
 
         # reco histos from trees
@@ -211,10 +264,11 @@ if isMC:
         hPtFD = TH1F(f'hFDPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', nPtBins, ptLimLow, ptLimHigh)
         hInvMassFD = TH1F(f'hFDMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', massBins, massLimLow, massLimHigh)
 
-        if args.ptweights:
+        if args.ptweights or args.multweights:
             hTmp = hPtPrompt.Clone('hTmp') # for stat unc
+            whichWeighs = 'pt_weights' if args.ptweights else 'mult_weights'
             for value, weight in zip(dataFramePromptSel['pt_cand'].to_numpy(),
-                                     dataFramePromptSel['pt_weights'].to_numpy()):
+                                     dataFramePromptSel[whichWeighs].to_numpy()):
                 hTmp.Fill(value)
                 hPtPrompt.Fill(value, weight)
             for iPt in range(1, hTmp.GetNbinsX()+1):
@@ -229,10 +283,11 @@ if isMC:
         for mass in  dataFramePromptSel['inv_mass'].to_numpy():
             hInvMassPrompt.Fill(mass)
 
-        if args.ptweightsB or args.ptweights:
+        if args.ptweightsB or args.ptweights or args.multweights:
             hTmp = hPtFD.Clone('hTmp') # for stat unc
+            whichWeighs = 'pt_weights' if (args.ptweightsB or args.ptweights) else 'mult_weights'
             for value, weight in zip(dataFrameFDSel['pt_cand'].to_numpy(),
-                                     dataFrameFDSel['pt_weights'].to_numpy()):
+                                     dataFrameFDSel[whichWeighs].to_numpy()):
                 hTmp.Fill(value)
                 hPtFD.Fill(value, weight)
             for iPt in range(1, hTmp.GetNbinsX()+1):
