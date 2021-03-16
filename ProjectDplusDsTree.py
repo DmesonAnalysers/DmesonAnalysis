@@ -195,7 +195,7 @@ if isMC:
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
 
         if args.multweights:
-            hMultVsGenPtPrompt = sparseGen['GenPrompt'].Projection(5, 0)
+            hMultVsGenPtPrompt = sparseGen['GenPrompt'].Projection(4, 0)
             for iPtD in range(1, hMultVsGenPtPrompt.GetXaxis().GetNbins()+1):
                 for iMult in range(1, hMultVsGenPtPrompt.GetYaxis().GetNbins()+1):
                     multCent = hMultVsGenPtPrompt.GetYaxis().GetBinCenter(iMult)
@@ -213,7 +213,7 @@ if isMC:
             hGenPtPrompt = hMultVsGenPtPrompt.ProjectionX(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                           0, hMultVsGenPtPrompt.GetYaxis().GetNbins()+1, 'e')
 
-            hMultVsGenPtFD = sparseGen['GenFD'].Projection(5, 0)
+            hMultVsGenPtFD = sparseGen['GenFD'].Projection(4, 0)
             for iPtD in range(1, hMultVsGenPtFD.GetXaxis().GetNbins()+1):
                 for iMult in range(1, hMultVsGenPtFD.GetYaxis().GetNbins()+1):
                     multCent = hMultVsGenPtFD.GetYaxis().GetBinCenter(iMult)
