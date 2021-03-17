@@ -4,6 +4,7 @@ python script for the projection of the D-meson mass spectrum from femto task
 
 import sys
 import argparse
+import numpy as np
 import yaml
 from ROOT import TFile, TH1F # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
@@ -38,7 +39,11 @@ inList = inFile.Get(listName)
 hDminusMassVsPt = inList.FindObject('fHistDminusInvMassPt')
 hDplusMassVsPt = inList.FindObject('fHistDplusInvMassPt')
 hMassVsPt = hDminusMassVsPt.Clone()
-hMassVsPt.Add(hDplusMassVsPt)
+if hDminusMassVsPt.GetYaxis().GetXmin() == hDplusMassVsPt.GetXaxis().GetXmin():
+    hMassVsPt.Add(hDplusMassVsPt)
+else:
+    print('WARNING: using only D- because of different binning between D+ and D- histograms!')
+
 hMass, hPt = [], []
 for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['max'])):
     ptBinMin = hMassVsPt.GetXaxis().FindBin(ptMin*1.0001)
@@ -51,8 +56,8 @@ hPt.append(MergeHists(hPt))
 hMass[-1].SetName(f'hMass_{cutVars["Pt"]["min"][0]*10:.0f}_{cutVars["Pt"]["max"][-1]*10:.0f}')
 hPt[-1].SetName(f'hPt{cutVars["Pt"]["min"][0]*10:.0f}_{cutVars["Pt"]["max"][-1]*10:.0f}')
 
-dirName = f'{args.prefix}_CharmFemto_DbeautyEnhanced_QA0'
-listName = f'{dirName}/{args.prefix}_CharmFemto_DbeautyEnhanced_QA0'
+dirName = f'{args.prefix}_CharmFemto_QA0'
+listName = f'{dirName}/{args.prefix}_CharmFemto_QA0'
 
 inListEvents = inFile.Get(listName)
 inListAliEventCuts = inListEvents.FindObject('AliEventCuts')
