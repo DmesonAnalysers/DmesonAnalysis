@@ -3,14 +3,11 @@ python script for the projection of D+, Ds+, and Lc hadron THnSparses
 run: python ProjectDplusDsSparse.py cfgFileName.yml cutSetFileName.yml outFileName.root
                                     [--ptweights PtWeightsFileName.root histoName]
                                     [--ptweightsB PtWeightsFileName.root histoName]
-                                    [--exactptweightsB]
                                     [--Bspecie BspecieName]
 
 if the --ptweights argument is provided, pT weights will be applied to prompt and FD pT distributions
 if the --ptweightsB argument is provided, pT weights will be applied to FD pT distributions instead of
 those for the prompt
-if --exactptweightsB is provided, the exact application of the pTB weights is applied instead of the average one
-It works only if pTB axis is present in the reco sparse
 if --Bspecie is provided, the FD efficiency is computed only for D mesons coming from the decays of a given B
 Options for BspecieName: (all, B0, B+, Bs, Lb)
 It works only if Bspecie axis is present in the gen and reco sparses
@@ -36,8 +33,6 @@ parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=F
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
                     help='First path of the pT weights file, second name of the pT weights histogram')
-parser.add_argument('--exactptweightsB', action='store_true', default=False,
-                    help='Flag to enable exact application of weights for pTB')
 parser.add_argument('--Bspecie', metavar='text', default='all',
                     help='Flag to select b-hadron species for the FD efficiency. Options: (all, B0, B+, Bs, Lb)')
 args = parser.parse_args()
@@ -64,8 +59,8 @@ if isRedVar:
     print(('WARNING: option for reduced number of variables in THnSparse set to true.'
            'If this is not the case, the code will work producing wrong results'))
 
-if args.exactptweightsB and not isWithBinfo:
-    print('ERROR: exact ptB weight application cannot be applied without B info in sparses! Exit')
+if args.ptweightsB and not isWithBinfo:
+    print('ERROR: ptB weight application cannot be applied without B info in sparses! Exit')
     sys.exit()
 
 if args.Bspecie != 'all' and not isWithBinfo:
@@ -119,21 +114,6 @@ if args.ptweightsB:
     bins = ptWeightsB.axis(0).edges()
     ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
     sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
-    if not args.exactptweightsB:
-        hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0).ProfileX()
-        if isWithBinfo:
-            hPtBvsPtRecoD = sparseReco['RecoFD'].Projection(2, 1).ProfileX()
-        averagePtBvsPtGen, averagePtBvsPtReco = [], []
-        for iPt in range(1, hPtBvsPtGenD.GetNbinsX()+1):
-            averagePtBvsPtGen.append(hPtBvsPtGenD.GetBinContent(iPt))
-            if isWithBinfo:
-                averagePtBvsPtReco.append(hPtBvsPtRecoD.GetBinContent(iPt))
-            else:
-                averagePtBvsPtReco.append(hPtBvsPtGenD.GetBinContent(iPt))
-        aPtGenWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtGen]
-        aPtRecoWeightsB = [sPtWeightsB(pt) for pt in averagePtBvsPtReco]
-        sPtWeightsGenDfromB = InterpolatedUnivariateSpline(ptCentW, aPtGenWeightsB)
-        sPtWeightsRecoDfromB = InterpolatedUnivariateSpline(ptCentW, aPtRecoWeightsB)
 
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
@@ -203,7 +183,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             prompt_dict[iVar].append(hVarPrompt)
             hVarPrompt.Write()
             # apply pt weights
-            if iVar == 'Pt' and args.ptweightsB and args.exactptweightsB:
+            if iVar == 'Pt' and args.ptweightsB:
                 hPtBvsVarRecoD = sparseReco['RecoFD'].Projection(2, axisNum)
                 for iPtD in range(1, hPtBvsVarRecoD.GetXaxis().GetNbins()+1):
                     for iPtB in range(1, hPtBvsVarRecoD.GetYaxis().GetNbins()+1):
@@ -223,13 +203,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                                                     0, hPtBvsVarRecoD.GetYaxis().GetNbins()+1, 'e')
             else:
                 hVarFD = sparseReco['RecoFD'].Projection(axisNum)
-                if iVar == 'Pt' and (args.ptweightsB or args.ptweights):
-                    for iBin in range(1, hVarFD.GetNbinsX()+1):
-                        if hVarFD.GetBinContent(iBin) > 0.:
-                            relStatUnc = hVarFD.GetBinError(iBin) / hVarFD.GetBinContent(iBin)
-                            ptCent = hVarFD.GetBinCenter(iBin)
-                            hVarFD.SetBinContent(iBin, hVarFD.GetBinContent(iBin) * sPtWeightsRecoDfromB(ptCent))
-                            hVarFD.SetBinError(iBin, hVarFD.GetBinContent(iBin) * relStatUnc)
                 hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             fd_dict[iVar].append(hVarFD)
             hVarFD.Write()
@@ -262,7 +235,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         prompt_gen_list.append(hGenPtPrompt)
         hGenPtPrompt.Write()
         # apply pt weights
-        if args.ptweightsB and args.exactptweightsB:
+        if args.ptweightsB:
             hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0)
             for iPtD in range(1, hPtBvsPtGenD.GetXaxis().GetNbins()+1):
                 for iPtB in range(1, hPtBvsPtGenD.GetYaxis().GetNbins()+1):
@@ -282,13 +255,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                                                 0, hPtBvsPtGenD.GetYaxis().GetNbins()+1, 'e')
         else:
             hGenPtFD = sparseGen['GenFD'].Projection(0)
-            if args.ptweightsB or args.ptweights:
-                for iBin in range(1, hGenPtFD.GetNbinsX()+1):
-                    if hGenPtFD.GetBinContent(iBin) > 0:
-                        relStatUnc = hGenPtFD.GetBinError(iBin) / hGenPtFD.GetBinContent(iBin)
-                        ptCent = hGenPtFD.GetBinCenter(iBin)
-                        hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeightsGenDfromB(ptCent))
-                        hGenPtFD.SetBinError(iBin, hGenPtFD.GetBinContent(iBin) * relStatUnc)
             hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         fd_gen_list.append(hGenPtFD)
         hGenPtFD.Write()
