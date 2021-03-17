@@ -1,0 +1,25 @@
+runtype: grid #local, test, grid
+pathtolocalAOD: ../AODfiles/LHC20g11a
+datadir: /alice/sim/2020/LHC20k7a2/
+datapattern: AOD235
+gridworkdir: DplusFemtoGenCheck
+splitmaxinputfilenum: 50
+nmasterjobs: 10
+AliPhysicVersion: vAN-20210315_ROOT6-1
+runs: [285980, 286014, 286025, 286027, 286028, 286030, 286064, 286124, 286127, 286129, 286159, 286198,
+       286199, 286201, 286202, 286203, 286229, 286230, 286231, 286254, 286255, 286257, 286258, 286261,
+       286263, 286282, 286284, 286287, 286288, 286289, 286308, 286309, 286310, 286311, 286312, 286313]
+
+task:
+    cuts:
+        infile: alien:///alice/cern.ch/user/f/fgrosa/CutObjects/pp13TeVHM/DplustoKpipiCuts_pp_femto_loose_kHighMultV0.root
+        objname: AnalysisCuts
+    triggermask: AliVEvent::kINT7
+    applyML:
+        doapplyML: 0
+        configfile: ''
+        MLselector:
+            enable: 0
+            infile: alien:///alice/cern.ch/user/f/fgrosa/CutObjects/pp13TeVHM/DplustoKpipiCuts_pp_femto_loose_kHighMultV0.root
+            objname: AnalysisCuts
+            configfile: ''
