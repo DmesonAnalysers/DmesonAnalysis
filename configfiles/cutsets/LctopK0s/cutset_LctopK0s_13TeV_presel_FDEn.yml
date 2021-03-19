@@ -1,19 +1,19 @@
 cutvars:
     InvMass:
         axisnum: null
-        name: 'inv_mass'
+        name: "inv_mass"
     Pt:
         axisnum: null
-        min: [4., 6.]
-        max: [6., 12.]
-        name: 'pt_cand'
+        min: [2, 4, 6, 8]
+        max: [4, 6, 8, 12]
+        name: "pt_cand"
     ML_output_Bkg:
         axisnum: null
-        min: [0, 0]
-        max: [0.005, 0.01]
-        name: 'ML_output_Bkg'
+        min: [0, 0, 0, 0]
+        max: [0.01, 0.005, 0.005, 0.05]
+        name: "ML_output_Bkg"
     ML_output_FD:
         axisnum: null
-        min: [0.7, 0.7]
-        max: [1, 1]
-        name: 'ML_output_FD'
+        min: [0.85, 0.85, 0.85, 0.85]
+        max: [1, 1, 1, 1]
+        name: "ML_output_FD"

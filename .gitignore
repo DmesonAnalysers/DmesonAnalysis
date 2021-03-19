@@ -53,3 +53,4 @@ makeProjections.sh
 makeYields.sh
 HyperParOpt*.txt
 trash/**
+*_outFD_*.yml

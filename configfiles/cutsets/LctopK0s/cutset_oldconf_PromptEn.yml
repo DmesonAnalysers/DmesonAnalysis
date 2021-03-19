@@ -10,7 +10,7 @@ cutvars:
     ML_output_Bkg:
         axisnum: null
         min: [0, 0, 0, 0]
-        max: [0.4, 0.08, 0.04, 0.02]
+        max: [0.3, 0.1, 0.05, 0.03]
         name: "ML_output_Bkg"
     ML_output_FD:
         axisnum: null

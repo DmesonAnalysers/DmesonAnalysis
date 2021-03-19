@@ -1,0 +1,28 @@
+input: # files to use
+    files:
+        [
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
+            ~/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
+        ]
+    treename: null
+
+queries: ["ML_output_Bkg < 0.03"] #list of additional queries
+
+output:
+    leg_labels: ["Background", "Prompt $Lambda_c^+$", "Non-prompt $Lambda_c^+$"] # legend labels
+    colors: ["black", "red", "blue"]
+    dir: "~/DmesonAnalysis/ML/trained_models/LctopK0s/default" # output dir
+
+pt_ranges: # ranges in pt to split the data for the comparison
+    min: [4] # list
+    max: [6] # list
+
+plotting_columns:
+    ["inv_mass"]
+    # list of variables to plot
+
+plot_lim_min: [[2.1]]
+plot_lim_max: [[2.45]]
+
+xaxes_label: ["Inv mass"]
