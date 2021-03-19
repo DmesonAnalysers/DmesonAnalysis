@@ -16,11 +16,12 @@ histoevname: hNEvents
 #info for trees (files can be different if trees are filtered or with applied ML models)
 tree:
     particle: "Lc"
-    filenameAll: [
-            # /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt2_4/Data_pT_2_4_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt6_8/Data_pT_6_8_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt8_12/Data_pT_8_12_ModelApplied.parquet.gzip,
+    filenameAll:
+        [
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/cospV0/pt2_4/Data_pT_2_4_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/cospV0/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/cospV0/pt6_8/Data_pT_6_8_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/cospV0/pt8_12/Data_pT_8_12_ModelApplied.parquet.gzip,
         ]
     dirname: PWGHF_D2H_NonPromptLctopK0sLoose
     treename: treeML

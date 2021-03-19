@@ -1,0 +1,116 @@
+input: # files to use, set FD to null for binary classification
+    prompt: [/data/dbattistini/filtered/Prompt_filter_eff_pT_6_8.root]
+    FD: [/data/dbattistini/filtered/FD_filter_eff_pT_6_8.root]
+    data: [/data/dbattistini/filtered/Data_filter_pT_6_8.root]
+    treename: treeMLLc
+
+output:
+    leg_labels: # legend labels, keep the right number of classes
+        Bkg: Background
+        Prompt: Prompt $\Lambda_c^+$
+        FD: Feed-down $\Lambda_c^+$
+    out_labels: # output labels, keep the right number of classes
+        Bkg: Bkg
+        Prompt: Prompt
+        FD: FD
+    dir: /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/signd0 # output dir
+
+pt_ranges: # ranges in pt to split the data in the ml training and testing
+    min: [6] # list
+    max: [8] # list
+
+data_prep:
+    filt_bkg_mass: inv_mass < 2.21 or inv_mass > 2.36 # pandas query to select bkg candidates
+    dataset_opt:
+        "max_signal" # change how the dataset is built, options available: 'equal', 'max_signal'
+        # 'equal' -> same number of prompt/FD/bkg (not using all the signal available)
+        # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = bkg_mult * (n_prompt + n_FD)
+    # bkg_mult: [1, 0.3, 0.1] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    bkg_mult: [0.1] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    seed_split: 42 # seed used for train_test_split(...)
+    test_fraction: 1 # fraction of data used for test set and efficiencies --> set to 1. if you want to apply the model to the full dataframes
+
+ml:
+    raw_output: False # use raw_output (True) or probability (False) as output of the model
+    roc_auc_average: "macro" # 'macro' or 'weighted'
+    roc_auc_approach: "ovo" # 'ovo' or 'ovr'
+    training_columns:
+        [
+            d_len,
+            d_len_xy,
+            norm_dl_xy,
+            cos_p,
+            cos_p_xy,
+            imp_par_xy,
+            probBayes_Pi_0,
+            probBayes_Pr_0,
+            delta_mass_K0s,
+            d_len_V0,
+            KF_chi2_topo,
+            imp_par_prong0,
+            signd0,
+        ]
+        # list of training variables
+
+    hyper_par:
+        [
+            {
+                "max_depth": 5,
+                "learning_rate": 0.01,
+                "n_estimators": 1000,
+                "min_child_weight": 1,
+                "subsample": 0.90,
+                "colsample_bytree": 0.97,
+                "n_jobs": 1,
+                "tree_method": hist,
+            },
+        ]
+        # list of dicts of hyperparameters (one for each pT bin)
+
+    hyper_par_opt:
+        do_hyp_opt: False # whether to do the parameter optimization
+        njobs: 5 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
+        nfolds: 5 # number of folds used in cross validation
+        initpoints: 10 # steps of random exploration you want to perform
+        niter: 15 # steps for bayesian optimization
+        bayes_opt_config:
+            {
+                "max_depth": !!python/tuple [3, 5],
+                "learning_rate": !!python/tuple [0.01, 0.1],
+                "n_estimators": !!python/tuple [500, 2000],
+                "min_child_weight": !!python/tuple [0.2, 7],
+                "subsample": !!python/tuple [0.8, 1.],
+                "colsample_bytree": !!python/tuple [0.8, 1.],
+            }
+            # configuration dictionary for optimize_params_bayes()
+
+    saved_models: [
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/signd0/pt6_8/ModelHandler_pT_6_8.pickle,
+        ] # list of saved ModelHandler (path+file), compatible with the pt bins
+plots:
+    plotting_columns: [
+            inv_mass,
+            pt_cand,
+            d_len,
+            d_len_xy,
+            norm_dl_xy,
+            cos_p,
+            cos_p_xy,
+            imp_par_xy,
+            probBayes_Pi_0,
+            probBayes_Pr_0,
+            delta_mass_K0s,
+            d_len_V0,
+            KF_chi2_topo,
+            imp_par_prong0,
+            signd0,
+        ] # list of variables to plot
+    train_test_log: True # use log scale for plots of train and test distributions
+
+appl:
+    column_to_save_list: ["inv_mass", "pt_cand"] # list of variables saved in the dataframes with the applied models
+
+standalone_appl:
+    inputs: [] # list of parquet files for the model application
+    output_names: [] # names for the outputs (one for each file)
+    output_dir: null # output directory

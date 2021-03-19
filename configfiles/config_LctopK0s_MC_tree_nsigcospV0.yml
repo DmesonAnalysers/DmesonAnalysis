@@ -18,8 +18,6 @@ sparsenamePromptSecPeak: null
 sparsenameFDSecPeak: null
 sparsenameGenPromptSecPeak: null
 sparsenameGenFDSecPeak: null
-#normname: coutputLctopK0sNormLoose_kMB0100
-#normname: coutputNonPromptLctopK0sLoose
 normname: NormalizationCounter
 histoevname: hNEvents
 
@@ -29,17 +27,17 @@ tree:
     filenameAll: null #not needed for MC
     filenamePrompt:
         [
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt2_4/Prompt_pT_2_4_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt6_8/Prompt_pT_6_8_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt8_12/Prompt_pT_8_12_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/nsigcospV0/pt2_4/Prompt_pT_2_4_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/nsigcospV0/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/nsigcospV0/pt6_8/Prompt_pT_6_8_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/nsigcospV0/pt8_12/Prompt_pT_8_12_ModelApplied.parquet.gzip,
         ]
     filenameFD:
         [
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt2_4/FD_pT_2_4_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt6_8/FD_pT_6_8_ModelApplied.parquet.gzip,
-            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt8_12/FD_pT_8_12_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/nsigcospV0/pt2_4/FD_pT_2_4_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/nsigcospV0/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/nsigcospV0/pt6_8/FD_pT_6_8_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/nsigcospV0/pt8_12/FD_pT_8_12_ModelApplied.parquet.gzip,
         ]
     dirname: null
     treename: null
