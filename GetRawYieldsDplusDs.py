@@ -141,6 +141,26 @@ if sum(fixSigma) > 0:
         print('WARNING: Different number of bins for this analysis and histo for fix sigma')
     infileSigma.Close()
 
+if fitConfig[cent]['FixSigmaRatio']:
+    # load sigma of first gaussian
+    infileSigma = TFile.Open(fitConfig[cent]['SigmaRatioFile'])
+    if not infileSigma:
+        sys.exit()
+    hSigmaToFix = infileSigma.Get('hRawYieldsSigma')
+    hSigmaToFix.SetDirectory(0)
+    if hSigmaToFix.GetNbinsX() != nPtBins:
+        print('WARNING: Different number of bins for this analysis and histo for fix sigma')
+    infileSigma.Close()
+    # load sigma of second gaussian
+    infileSigma2 = TFile.Open(fitConfig[cent]['SigmaRatioFile'])
+    if not infileSigma2:
+        sys.exit()
+    hSigmaToFix2 = infileSigma2.Get('hRawYieldsSigma2')
+    hSigmaToFix2.SetDirectory(0)
+    if hSigmaToFix2.GetNbinsX() != nPtBins:
+        print('WARNING: Different number of bins for this analysis and histo for fix sigma')
+    infileSigma2.Close()
+
 hMeanToFix = None
 if sum(fixMean) > 0:
     infileMean = TFile.Open(fitConfig[cent]['MeanFile'])
