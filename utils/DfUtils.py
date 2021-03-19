@@ -3,6 +3,9 @@ Script with utils methods for managment and operations on pandas dataframes
 '''
 import pandas as pd
 import uproot
+import ROOT
+import numpy as np
+from alive_progress import alive_bar
 
 def GetMaskOfBits(bits):
     '''
@@ -116,3 +119,36 @@ def GetMind0(ptList, d0List, ptThrs):
         return 999.
 
     return min(d0SelList)
+
+def ConvertParquet2Root(parquetFile, outputName, treename='tree'):
+    '''
+    Converts a pandas dataframe to a TTree and saves it in a root file.
+    Warning: this function is very slow.
+    Arguments
+    ----------
+    - parquetFile: the absolute path of the file that you wanto to convert
+    - outputName: the name of the root file
+
+    '''
+
+    oFile = ROOT.TFile(outputName, 'recreate')
+    tree = ROOT.TTree(treename, treename)
+
+    df = pd.read_parquet(parquetFile, engine='pyarrow')
+
+    print(f'\n\033[94mConversion of {parquetFile}\033[0m')
+
+    data = []
+    for iCol, colname in enumerate(list(df)):
+        data.append(np.ones((1), dtype="float32"))
+        tree.Branch(colname, data[iCol], colname+"/F")
+
+    with alive_bar(len(df)) as bar:
+        for i in range(len(df)):
+            for iCol, colname in enumerate(list(df)):
+                data[iCol][0] = df.values[i, iCol]
+            # print(df.values[i, 0])
+            tree.Fill()
+            bar()
+
+    oFile.Write()
