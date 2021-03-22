@@ -4,7 +4,6 @@ python script for the projection of the D-meson mass spectrum from femto task
 
 import sys
 import argparse
-import numpy as np
 import yaml
 from ROOT import TFile, TH1F # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
