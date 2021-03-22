@@ -4,7 +4,9 @@ reffilenames:
     data: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_FDen_pt2_12_SigmaFix_conservative.root
     MC: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt2_12.root
 
-outfilename: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/systematics/raw_yield/RawYieldSyst_Ds_pp5TeV_FD_moreRebins.root
+output:
+    filename: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/systematics/raw_yield/RawYieldSyst_Ds_pp5TeV_FD_moreRebins.root
+    drawpurity: 0 # 0: False, 1: True
 
 multitrial:
     ptbins: null #list of pt bins, set null if you want to keep them all
@@ -22,6 +24,7 @@ multitrial:
     # kFixed, kFree, kFixedMinusUnc, kFixedPlusUnc
     bincounting:
         nsigma: [3, 5] # multi-trial will be repeated for each nsigma value
+    nsigma4purity: 3
 
 quality:
     chisquare:

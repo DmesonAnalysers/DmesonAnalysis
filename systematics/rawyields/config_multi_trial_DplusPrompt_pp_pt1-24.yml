@@ -4,7 +4,9 @@ reffilenames:
     data: ../../../Analysispp2017DplusLowPt/outputs/rawyields/RawYields_Dplus_pp5TeV_central.root
     MC: ../../../Analysispp2017DplusLowPt/outputs/rawyields/RawYields_Dplus_pp5TeV_central.root
 
-outfilename: ../../../Analysispp2017DplusLowPt/outputs/systematics/rawyields/RawYieldSyst_Dplus_pp5TeV_Prompt_central_pt1-24.root
+output:
+    filename: ../../../Analysispp2017DplusLowPt/outputs/systematics/rawyields/RawYieldSyst_Dplus_pp5TeV_Prompt_central_pt1-24.root
+    drawpurity: 0 # 0: False, 1: True
 
 multitrial:
     ptbins: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ] #list of pt bins, set null if you want to keep them all
@@ -22,6 +24,7 @@ multitrial:
     # kFixed, kFree, kFixedMinusUnc, kFixedPlusUnc
     bincounting:
         nsigma: [ 3, 5 ] # multi-trial will be repeated for each nsigma value
+    nsigma4purity: 3
 
 quality:
     chisquare:

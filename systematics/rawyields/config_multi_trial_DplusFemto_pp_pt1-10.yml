@@ -1,30 +1,30 @@
 meson: Dplus
 
 reffilenames:
-    data: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_FD_central.root
-    MC: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields/RawYieldsDplus_pp5TeV_prompt_central.root
+    data: ~/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYieldsDplus_pp13TeV_HMV0M_central_finebins_sparse.root
+    MC: ~/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYieldsDplus_MC_pp13TeV_HMV0M_central_finebins.root
 
 output:
-    filename: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/rawyields/RawYieldSyst_Dplus_pp5TeV_FD_central2.root
-    drawpurity: 0 # 0: False, 1: True
+    filename: ~/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/systematics/rawyields/RawYieldSyst_DplusFemto_pp13TeV_HMV0_central_pt1-10.root
+    drawpurity: 1 # 0: False, 1: True
 
 multitrial:
-    ptbins: null #list of pt bins, set null if you want to keep them all
+    ptbins: [0, 1, 2] #list of pt bins, set null if you want to keep them all
     mins: [ 1.66, 1.68, 1.70, 1.72, 1.74, 1.76 ] # lower fit limit
-    maxs: [ 1.95, 1.96, 1.97, 1.98, 1.99, 2.00 ] # upper fit limit
-    rebins: [ 4, 5, 6, 7, 8, 9, 10 ] # mass rebin values
+    maxs: [ 2.00, 2.01, 2.02, 2.03, 2.04, 2.05 ] # upper fit limit
+    rebins: [ 2, 3, 4, 5 ] # mass rebin values
     sgnfuncs: [ kGaus ] # signal functions of AliHFInvMassFitter
     bkgfuncs: [ kExpo, kLin, kPol2 ] # bkg functions of AliHFInvMassFitter
-    sigma: [ kFixed, kFixedMinusUnc, kFixedPlusUnc ] 
+    sigma: [ kFree ] 
     # all possibilities: 
     # kFree, kFixed, kFixedMinus10Perc, kFixedPlus10Perc, kFixedMinus15Perc, kFixedPlus15Perc, kFixedMinus20Perc, kFixedPlus20Perc, kFixedMinusUnc, kFixedPlusUnc
     # those with variations (Plus/Minus) are exclusive (i.e. it is not possible to run with 10% and 15% variation at the same time)
-    mean: [ kFree ] # other possibilities: kFixed
+    mean: [ kFree ]
     # all possibilities: 
     # kFixed, kFree, kFixedMinusUnc, kFixedPlusUnc
     bincounting:
         nsigma: [ 3, 5 ] # multi-trial will be repeated for each nsigma value
-    nsigma4purity: 3
+    nsigma4purity: 2.5
 
 quality:
     chisquare:
