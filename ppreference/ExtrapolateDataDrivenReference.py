@@ -30,8 +30,8 @@ gCrossSec = inFile.Get('gCrossSectionSystTot')
 gCrossSec.SetName('gCrossSectionSystTotMeas')
 gCrossSecLumi = inFile.Get('gCrossSectionSystLumi')
 systErr = inFile.Get('AliHFSystErr')
-SetObjectStyle(hCrossSec, color=GetROOTColor('kRed+1'), markerstyle=GetROOTMarker('kFullSquare'), markersize=0.8)
-SetObjectStyle(gCrossSec, color=GetROOTColor('kRed+1'), fillstyle=0)
+SetObjectStyle(hCrossSec, color=GetROOTColor('kBlack'), markerstyle=GetROOTMarker('kFullSquare'), markersize=0.8)
+SetObjectStyle(gCrossSec, color=GetROOTColor('kBlack'), fillstyle=0)
 inFile.Close()
 
 ptMaxMeas = hCrossSec.GetXaxis().GetXmax()
@@ -40,10 +40,12 @@ ptLimsMeas.append(ptMaxMeas)
 ptMinMeas = ptLimsMeas[0]
 
 colors = {'cent': GetROOTColor('kBlack'), 'min': GetROOTColor('kRed+1'), 'max': GetROOTColor('kAzure+4')}
+legNamesFONLL = {'cent': 'FONL central', 'min': 'FONLL min', 'max': 'FONLL max'}
 hFONLL, hDataOverFONLL, fDataOverFONLL = {}, {}, {}
 inFileFONLL = TFile.Open(inCfg['extrap']['FONLLfilename'])
 for var in ['cent', 'min', 'max']:
     hFONLL[var] = inFileFONLL.Get(inCfg['extrap']['hist'][var])
+    SetObjectStyle(hFONLL[var], color=GetROOTColor('kAzure+4'), fillstyle=0)
     hDataOverFONLL[var] = ComputeRatioDiffBins(hCrossSec, hFONLL[var])
     hDataOverFONLL[var].Scale(1.e6)
     SetObjectStyle(hDataOverFONLL[var], color=colors[var], fillstyle=0)
@@ -71,9 +73,9 @@ gCrossSecExtrap = TGraphAsymmErrors(0) # put all systematics together
 gCrossSecExtrap.SetName('gCrossSectionSystTot')
 gCrossSecExtrapSyst = TGraphAsymmErrors(0)
 gCrossSecExtrapSyst.SetName('gCrossSectionSystExtrap')
-SetObjectStyle(hCrossSecExtrap, color=GetROOTColor('kBlack'), markersize=0.8)
-SetObjectStyle(gCrossSecExtrap, color=GetROOTColor('kBlack'), fillstyle=0)
-SetObjectStyle(gCrossSecExtrapSyst, color=GetROOTColor('kBlack'), fillstyle=0)
+SetObjectStyle(hCrossSecExtrap, color=GetROOTColor('kRed+1'), markersize=0.8)
+SetObjectStyle(gCrossSecExtrap, color=GetROOTColor('kRed+1'), fillstyle=0)
+SetObjectStyle(gCrossSecExtrapSyst, color=GetROOTColor('kRed+1'), fillstyle=0)
 
 for iPt in range(1, hCrossSec.GetNbinsX()+1):
     ptCent = hCrossSec.GetBinCenter(iPt)
@@ -99,6 +101,11 @@ for iPt in range(hCrossSec.GetNbinsX()+1, hCrossSecExtrap.GetNbinsX()+1):
     gCrossSecExtrap.SetPointError(iPt-1, 0.4, 0.4, systLow, systHigh)
     gCrossSecExtrapSyst.SetPointError(iPt-1, 0.4, 0.4, systLow, systHigh)
 
+legFit = TLegend(0.2, 0.7, 0.4, 0.9)
+legFit.SetTextSize(0.045)
+legFit.SetBorderSize(0)
+legFit.SetFillStyle(0)
+
 cFit = TCanvas('cFit', '', 500, 500)
 hFrame = cFit.DrawFrame(ptMinMeas, 0., ptMaxMeas, hDataOverFONLL['min'].GetMaximum()*2,
                         ';#it{p}_{T} (GeV/#it{c});data/FONLL')
@@ -106,15 +113,29 @@ hFrame.GetYaxis().SetDecimals()
 for var in ['cent', 'min', 'max']:
     hDataOverFONLL[var].Draw('same')
     fDataOverFONLL[var].Draw('same')
+    legFit.AddEntry(hDataOverFONLL[var], f'{legNamesFONLL[var]}', 'p')
+legFit.Draw()
+
+leg = TLegend(0.3, 0.7, 0.7, 0.9)
+leg.SetTextSize(0.045)
+leg.SetBorderSize(0)
+leg.SetFillStyle(0)
+leg.AddEntry(hCrossSec, f'measured', 'p')
+leg.AddEntry(hCrossSecExtrap, f'extrapolated', 'p')
+leg.AddEntry(hFONLL['cent'], f'FONLL + PYTHIA8 decayer', 'f')
 
 cCrossSec = TCanvas('cCrossSec', '', 500, 500)
 cCrossSec.DrawFrame(ptMinMeas, hCrossSecExtrap.GetMinimum()/5, ptLimsForExtrap[-1], hCrossSecExtrap.GetMaximum()*5,
                     ';#it{p}_{T} (GeV/#it{c});d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c})')
 cCrossSec.SetLogy()
-gCrossSec.Draw('2')
-hCrossSec.Draw('same')
+for var in ['cent', 'min', 'max']:
+    hFONLL[var].Scale(1.e-6)
+    hFONLL[var].Draw('hist same')
 gCrossSecExtrap.Draw('2')
 hCrossSecExtrap.Draw('same')
+gCrossSec.Draw('2')
+hCrossSec.Draw('same')
+leg.Draw()
 
 outFile = TFile(inCfg['outfilename'], 'recreate')
 hCrossSecExtrap.Write()
