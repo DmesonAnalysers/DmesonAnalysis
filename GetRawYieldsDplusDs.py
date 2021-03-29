@@ -13,6 +13,9 @@ from ROOT import gROOT, gPad, kBlack, kRed, kFullCircle, kFullSquare # pylint: d
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
 
+def Deb(msg = None):
+  print(f"Debug {sys._getframe().f_back.f_lineno}: {msg if msg is not None else ''}")
+
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('fitConfigFileName', metavar='text', default='config_Ds_Fit.yml')
 parser.add_argument('centClass', metavar='text', default='')
@@ -84,8 +87,10 @@ for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]
         SgnFunc.append(AliHFInvMassFitter.kGaus)
     elif sgn == 'k2Gaus':
         SgnFunc.append(AliHFInvMassFitter.k2Gaus)
+    elif sgn == 'k2GausSigmaRatioPar':
+        SgnFunc.append(AliHFInvMassFitter.k2GausSigmaRatioPar)
     else:
-        print('ERROR: only kGaus and k2Gaus signal functions supported! Exit')
+        print('ERROR: only kGaus, k2Gaus and k2GausSigmaRatioPar signal functions supported! Exit!')
         sys.exit()
 
 if particleName == 'Dplus':
@@ -134,6 +139,28 @@ if fitConfig[cent]['FixSigma']:
     if hSigmaToFix.GetNbinsX() != nPtBins:
         print('WARNING: Different number of bins for this analysis and histo for fix sigma')
     infileSigma.Close()
+
+if fitConfig[cent]['FixSigmaRatio']:
+    # load sigma of first gaussian
+    Deb("fix sigma ratio")
+    infileSigma = TFile.Open(fitConfig[cent]['SigmaRatioFile'])
+    if not infileSigma:
+        sys.exit()
+    hSigmaToFix = infileSigma.Get('hRawYieldsSigma')
+    hSigmaToFix.SetDirectory(0)
+    if hSigmaToFix.GetNbinsX() != nPtBins:
+        print('WARNING: Different number of bins for this analysis and histo for fix sigma')
+    infileSigma.Close()
+    # load sigma of second gaussian
+    infileSigma2 = TFile.Open(fitConfig[cent]['SigmaRatioFile'])
+    if not infileSigma2:
+        sys.exit()
+    hSigmaToFix2 = infileSigma2.Get('hRawYieldsSigma2')
+    hSigmaToFix2.SetDirectory(0)
+    if hSigmaToFix2.GetNbinsX() != nPtBins:
+        print('WARNING: Different number of bins for this analysis and histo for fix sigma')
+    infileSigma2.Close()
+Deb()
 
 hMeanToFix = None
 if fitConfig[cent]['FixMean']:
@@ -282,7 +309,7 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
     else:
         markerSize = 0.5
     SetObjectStyle(hMassForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=markerSize)
-
+    
     # MC
     if args.isMC:
         parRawYield, parMean, parSigma1 = 0, 1, 2 # always the same
@@ -313,6 +340,10 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                 parRawYieldSecPeak = 5
                 parMeanSecPeak = 6
                 parSigmaSecPeak = 7
+        else:
+            print("ERROR: Only kGaus and k2Gaus are supported for MC. Exit!") #TODO: add support for k2GausSigmaRatioPar
+            sys.exit()
+
 
         if nPtBins > 1:
             cMass[iCanv].cd(iPt-nMaxCanvases*iCanv+1)
@@ -383,6 +414,8 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
             massFitter[iPt].SetFixGaussianMean(hMeanToFix.GetBinContent(iPt+1))
         else:
             massFitter[iPt].SetInitialGaussianMean(massForFit)
+        if fitConfig[cent]['FixSigmaRatio']:
+            massFitter[iPt].SetFixRatio2GausSigma(hSigmaToFix.GetBinContent(iPt+1)/hSigmaToFix2.GetBinContent(iPt+1))
 
         if fitConfig[cent]['FixSigma']:
             if isinstance(fitConfig[cent]['SigmaMultFactor'], (float, int)):
@@ -593,5 +626,6 @@ for iCanv, (cM, cR) in enumerate(zip(cMass, cResiduals)):
         if iCanv == nCanvases-1 and nCanvases > 1:
             cR.SaveAs(f'{outFileNameResPDF}]')
 
-if not args.batch:
-    input('Press enter to exit')
+if __name__ == "__main__":
+    if not args.batch:
+        input('Press enter to exit')
