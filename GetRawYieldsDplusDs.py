@@ -13,9 +13,6 @@ from ROOT import gROOT, gPad, kBlack, kRed, kFullCircle, kFullSquare # pylint: d
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
 
-def Deb(msg = None):
-  print(f"Debug {sys._getframe().f_back.f_lineno}: {msg if msg is not None else ''}")
-
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('fitConfigFileName', metavar='text', default='config_Ds_Fit.yml')
 parser.add_argument('centClass', metavar='text', default='')
@@ -142,7 +139,6 @@ if fitConfig[cent]['FixSigma']:
 
 if fitConfig[cent]['FixSigmaRatio']:
     # load sigma of first gaussian
-    Deb("fix sigma ratio")
     infileSigma = TFile.Open(fitConfig[cent]['SigmaRatioFile'])
     if not infileSigma:
         sys.exit()
@@ -160,7 +156,6 @@ if fitConfig[cent]['FixSigmaRatio']:
     if hSigmaToFix2.GetNbinsX() != nPtBins:
         print('WARNING: Different number of bins for this analysis and histo for fix sigma')
     infileSigma2.Close()
-Deb()
 
 hMeanToFix = None
 if fitConfig[cent]['FixMean']:
