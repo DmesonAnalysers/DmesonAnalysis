@@ -133,7 +133,6 @@ if 'tamu' in shapesB and shapesB['tamu']['enabled']:
     elif Bspecie == 'BsBmix':
         sTAMUB, _, ptMinTAMUB, ptMaxTAMUB = ReadTAMU(shapesB['tamu']['file']['B'])
         sTAMUBs, _, ptMinTAMUBs, ptMaxTAMUBs = ReadTAMU(shapesB['tamu']['file']['Bs'])
-        print(f'WARNING: no LIDO model available for {Bspecie} RAA, using B RAA as defult')
 if 'lido' in shapesB and shapesB['lido']['enabled']:
     if Bspecie not in ['Bplus', 'Bzero']:
         print(f'WARNING: no LIDO model available for {Bspecie} RAA, using B RAA as defult')
