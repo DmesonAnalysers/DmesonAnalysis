@@ -22,6 +22,9 @@ shapes:
         catania:
             enabled: false
             file: ../../models/catania/Ds_Catania_RAA_5TeV_010.dat
+        lido:
+            enabled: true
+            file: ../../models/lido/D-meson-Raa-010.dat
     B:
         fonll: # fonll is mandatory
             file: ../../models/fonll/FONLL_B_pp5_y05_pt0-150_100MeVbins.txt
@@ -30,6 +33,9 @@ shapes:
             file:
                 B: ../../models/tamu/B_TAMU_RAA_5TeV_010.txt
                 Bs: ../../models/tamu/Bs_TAMU_RAA_5TeV_010.txt
+        lido:
+            enabled: true
+            file: ../../models/lido/B-meson-Raa-010.dat
 
 options:
     rebin: 1

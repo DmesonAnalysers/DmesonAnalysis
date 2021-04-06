@@ -149,6 +149,7 @@ def ReadTAMU(fileNameTAMU):
 
     return splineTAMU, dfTAMU, ptMin, ptMax
 
+
 def ReadTAMUv2(fileNameTAMUv2):
     '''
     Helper function to read TAMU v2 txt files
@@ -240,3 +241,29 @@ def ReadCatania(fileNameCatania):
     splineCatania, ptMin, ptMax = InterpolateModel(dfCatania['pt'], dfCatania['Raa'])
 
     return splineCatania, dfCatania, ptMin, ptMax
+
+
+def ReadLIDO(fileName):
+    '''
+    Method to read LIDO Raa files
+
+    Inputs
+    ----------
+    - fileName: file name
+    - obs: observable (Raa or v2)
+
+    Returns
+    ----------
+    splineLIDO: dictionary of splines with LIDO predictions {yCent, yMin, yMax}
+    dfLIDO: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
+    '''
+
+    dfLIDO = pd.read_csv(fileName, sep=' ')
+    dfLIDO['Raa_min'] = dfLIDO['Raa'] - dfLIDO['Raa-error']
+    dfLIDO['Raa_max'] = dfLIDO['Raa'] + dfLIDO['Raa-error']
+
+    splineLIDO, ptMin, ptMax = InterpolateModel(dfLIDO['pT'], dfLIDO['Raa'], dfLIDO['Raa_min'], dfLIDO['Raa_max'])
+
+    return splineLIDO, dfLIDO, ptMin, ptMax
