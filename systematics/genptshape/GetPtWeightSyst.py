@@ -8,7 +8,7 @@ import argparse
 import yaml
 from ROOT import TCanvas, TFile, TLine, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kBlue, kOrange, kGreen, kRed, kAzure  # pylint: disable=import-error,no-name-in-module
-from ROOT import kFullTriangleUp, kFullTriangleDown, kFullCross, kFullCircle, kFullSquare, kFullDiamond  # pylint: disable=import-error,no-name-in-module
+from ROOT import kFullTriangleUp, kFullTriangleDown, kFullCross, kFullCircle, kFullSquare, kFullDiamond, kFullStar  # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle  #pylint: disable=wrong-import-position,import-error
 
@@ -18,16 +18,18 @@ args = parser.parse_args()
 
 SetGlobalStyle(padleftmargin=0.15, padbottommargin=0.14, titlesize=0.045, labelsize=0.04, titleoffsety=1.4)
 
-modelNames = ['pythia', 'fonll', 'tamu', 'phsd', 'mc@shq', 'catania']
-colors = {'pythia': kBlack, 'fonll': kBlue+1, 'tamu': kOrange+7, 'phsd': kGreen+2, 'catania': kRed+2, 'mc@shq':kAzure+4}
+modelNames = ['pythia', 'fonll', 'tamu', 'phsd', 'mc@shq', 'catania', 'lido']
+colors = {'pythia': kBlack, 'fonll': kBlue+1, 'tamu': kOrange+7, 'phsd': kGreen+2,
+          'catania': kRed+2, 'mc@shq': kAzure+4, 'lido': kRed}
 markers = {'pythia': kFullCircle, 'fonll': kFullSquare, 'tamu': kFullCross, 'phsd': kFullDiamond,
-           'catania': kFullTriangleUp, 'mc@shq': kFullTriangleDown}
+           'catania': kFullTriangleUp, 'mc@shq': kFullTriangleDown, 'lido': kFullStar}
 legNames = {'pythia': 'Pythia', 'fonll': 'FONLL', 'tamu': 'FONLL #times TAMU', 'phsd': 'FONLL #times PHSD',
-            'catania': 'FONLL #times Catania', 'mc@shq': 'FONLL #times MC@sHQ'}
+            'catania': 'FONLL #times Catania', 'mc@shq': 'FONLL #times MC@sHQ', 'lido': 'LIDO'}
 histoNames = {'pythia': 'hPtGen', 'fonll': 'hPtFONLL', 'tamu': 'hPtFONLLtimesTAMU', 'phsd': 'hPtFONLLtimesPHSD',
-              'catania': 'hPtFONLLtimesCatania', 'mc@shq': 'hPtFONLLtimesGossiaux'}
+              'catania': 'hPtFONLLtimesCatania', 'mc@shq': 'hPtFONLLtimesGossiaux', 'lido': 'hPtFONLLtimesLIDO'}
 histoWeightNames = {'fonll': 'hPtWeightsFONLL', 'tamu': 'hPtWeightsFONLLtimesTAMU', 'phsd': 'hPtWeightsFONLLtimesPHSD',
-                    'catania': 'hPtWeightsFONLLtimesCatania', 'mc@shq': 'hPtWeightsFONLLtimesGossiaux'}
+                    'catania': 'hPtWeightsFONLLtimesCatania', 'mc@shq': 'hPtWeightsFONLLtimesGossiaux',
+                    'lido': 'hPtWeightsFONLLtimesLIDO'}
 
 leg = TLegend(0.2, 0.2, 0.5, 0.4)
 leg.SetFillStyle(0)

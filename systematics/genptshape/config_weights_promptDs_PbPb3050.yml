@@ -22,9 +22,20 @@ shapes:
         catania:
             enabled: true
             file: ../../models/catania/Ds_Catania_RAA_5TeV_3050.dat
+        lido:
+            enabled: false
+            file: ''
     B:
         fonll: # fonll is mandatory
             file: ../../models/fonll/FONLL_B_pp5_y05.txt
+        tamu:
+            enabled: false
+            file:
+                B: ''
+                Bs: ''
+        lido:
+            enabled: false
+            file: ''
 
 options:
     rebin: 1

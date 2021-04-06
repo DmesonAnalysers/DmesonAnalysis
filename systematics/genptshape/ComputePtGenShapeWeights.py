@@ -10,7 +10,7 @@ import argparse
 import yaml
 from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ  #pylint: disable=wrong-import-position,import-error
+from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ, ReadLIDO  #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -119,10 +119,12 @@ if 'catania' in shapesD and shapesD['catania']['enabled']:
     sCatania, _, ptMinCatania, ptMaxCatania = ReadCatania(shapesD['catania']['file'])
 if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
     sGossiaux, _, ptMinGoss, ptMaxGoss = ReadMCatsHQ(shapesD['mc@shq']['file'])
+if 'lido' in shapesD and shapesD['lido']['enabled']:
+    sLIDO, _, ptMinLIDO, ptMaxLIDO = ReadLIDO(shapesD['lido']['file'])
 
 if 'tamu' in shapesB and shapesB['tamu']['enabled']:
     if Bspecie not in ['Bplus', 'Bzero', 'Bs', 'BsBmix']:
-        print(f'WARNING: no models available for {Bspecie} RAA, using B RAA as defult')
+        print(f'WARNING: no TAMU model available for {Bspecie} RAA, using B RAA as defult')
         sTAMUB, _, ptMinTAMUB, ptMaxTAMUB = ReadTAMU(shapesB['tamu']['file']['B'])
     elif Bspecie in ['Bplus', 'Bzero']:
         sTAMUB, _, ptMinTAMUB, ptMaxTAMUB = ReadTAMU(shapesB['tamu']['file']['B'])
@@ -131,16 +133,22 @@ if 'tamu' in shapesB and shapesB['tamu']['enabled']:
     elif Bspecie == 'BsBmix':
         sTAMUB, _, ptMinTAMUB, ptMaxTAMUB = ReadTAMU(shapesB['tamu']['file']['B'])
         sTAMUBs, _, ptMinTAMUBs, ptMaxTAMUBs = ReadTAMU(shapesB['tamu']['file']['Bs'])
+        print(f'WARNING: no LIDO model available for {Bspecie} RAA, using B RAA as defult')
+if 'lido' in shapesB and shapesB['lido']['enabled']:
+    if Bspecie not in ['Bplus', 'Bzero']:
+        print(f'WARNING: no LIDO model available for {Bspecie} RAA, using B RAA as defult')
+    sLIDOB, _, ptMinLIDOB, ptMaxLIDOB = ReadLIDO(shapesB['lido']['file'])
 
 histoDNames = ['hPtFONLLDcent', 'hPtFONLLDmin', 'hPtFONLLDmax']
 histoBNames = ['hPtFONLLBcent', 'hPtFONLLBmin', 'hPtFONLLBmax']
 modelPred = ['yCent', 'yMin', 'yMax']
 
 hPtFONLLD, hPtFONLLB, hPtFONLLtimesTAMUD, hPtFONLLtimesTAMUB, hPtFONLLtimesPHSDD, \
-    hPtFONLLtimesGossiauxD, hPtFONLLtimesCataniaD = ([] for _ in range(7))
+    hPtFONLLtimesGossiauxD, hPtFONLLtimesCataniaD, hPtFONLLtimesLIDOD, hPtFONLLtimesLIDOB = ([] for _ in range(9))
 
 hPtWeightsFONLLD, hPtWeightsFONLLB, hPtWeightsFONLLtimesTAMUD, hPtWeightsFONLLtimesTAMUB, \
-    hPtWeightsFONLLtimesPHSDD, hPtWeightsFONLLtimesGossiauxD, hPtWeightsFONLLtimesCataniaD = ([] for _ in range(7))
+    hPtWeightsFONLLtimesPHSDD, hPtWeightsFONLLtimesGossiauxD, hPtWeightsFONLLtimesCataniaD, \
+        hPtWeightsFONLLtimesLIDOD, hPtWeightsFONLLtimesLIDOB = ([] for _ in range(9))
 
 # D meson weights
 for histoName, pred in zip(histoDNames, modelPred):
@@ -153,6 +161,8 @@ for histoName, pred in zip(histoDNames, modelPred):
         hPtFONLLtimesGossiauxD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesGossiaux')))
     if 'catania' in shapesD and shapesD['catania']['enabled']:
         hPtFONLLtimesCataniaD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesCatania')))
+    if 'lido' in shapesD and shapesD['lido']['enabled']:
+        hPtFONLLtimesLIDOD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesLIDO')))
 
     for iPt in range(1, hPtFONLLD[-1].GetNbinsX()+1):
         ptCent = hPtFONLLD[-1].GetBinCenter(iPt)
@@ -165,7 +175,7 @@ for histoName, pred in zip(histoDNames, modelPred):
             print(f'WARNING: Results for pT < {ptMinFONLL} not reliable!')
             continue
         if 'tamu' in shapesD and shapesD['tamu']['enabled']:
-            if ptMinTAMU < ptCent < ptMaxTAMU:
+            if ptMinTAMU <= ptCent <= ptMaxTAMU:
                 hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptCent))
             elif ptCent > ptMaxTAMU:
                 hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptMaxTAMU))
@@ -173,7 +183,7 @@ for histoName, pred in zip(histoDNames, modelPred):
                 hPtFONLLtimesTAMUD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sTAMU['yCent'](ptMinTAMU))
 
         if 'phsd' in shapesD and shapesD['phsd']['enabled']:
-            if ptMinPHSD < ptCent < ptMaxPHSD:
+            if ptMinPHSD <= ptCent <= ptMaxPHSD:
                 hPtFONLLtimesPHSDD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sPHSD['yCent'](ptCent))
             elif ptCent > ptMaxPHSD:
                 hPtFONLLtimesPHSDD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sPHSD['yCent'](ptMaxPHSD))
@@ -181,7 +191,7 @@ for histoName, pred in zip(histoDNames, modelPred):
                 hPtFONLLtimesPHSDD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sPHSD['yCent'](ptMinPHSD))
 
         if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
-            if ptMinGoss < ptCent < ptMaxGoss:
+            if ptMinGoss <= ptCent <= ptMaxGoss:
                 hPtFONLLtimesGossiauxD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sGossiaux['yCent'](ptCent))
             elif ptCent > ptMaxGoss:
                 hPtFONLLtimesGossiauxD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sGossiaux['yCent'](ptMaxGoss))
@@ -189,12 +199,20 @@ for histoName, pred in zip(histoDNames, modelPred):
                 hPtFONLLtimesGossiauxD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sGossiaux['yCent'](ptMinGoss))
 
         if 'catania' in shapesD and shapesD['catania']['enabled']:
-            if ptMinCatania < ptCent < ptMaxCatania:
+            if ptMinCatania <= ptCent <= ptMaxCatania:
                 hPtFONLLtimesCataniaD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sCatania['yCent'](ptCent))
             elif ptCent > ptMaxCatania:
                 hPtFONLLtimesCataniaD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sCatania['yCent'](ptMaxCatania))
             else:
                 hPtFONLLtimesCataniaD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sCatania['yCent'](ptMinCatania))
+
+        if 'lido' in shapesD and shapesD['lido']['enabled']:
+            if ptMinLIDO <= ptCent <= ptMaxLIDO:
+                hPtFONLLtimesLIDOD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sLIDO['yCent'](ptCent))
+            elif ptCent > ptMaxLIDO:
+                hPtFONLLtimesLIDOD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sLIDO['yCent'](ptMaxLIDO))
+            else:
+                hPtFONLLtimesLIDOD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sLIDO['yCent'](ptMinLIDO))
 
     hPtFONLLD[-1].Sumw2()
     hPtFONLLD[-1].Scale(1./hPtFONLLD[-1].Integral())
@@ -225,6 +243,12 @@ for histoName, pred in zip(histoDNames, modelPred):
             hPtFONLLtimesCataniaD[-1].Clone(hPtFONLLtimesCataniaD[-1].GetName().replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesCataniaD[-1].Divide(hPtFONLLtimesCataniaD[-1], hPtGenD)
         hPtWeightsFONLLtimesCataniaD[-1].Smooth(smooth)
+    if 'lido' in shapesD and shapesD['lido']['enabled']:
+        hPtFONLLtimesLIDOD[-1].Scale(1./hPtFONLLtimesLIDOD[-1].Integral())
+        hPtWeightsFONLLtimesLIDOD.append(
+            hPtFONLLtimesLIDOD[-1].Clone(hPtFONLLtimesLIDOD[-1].GetName().replace('Pt', 'PtWeights')))
+        hPtWeightsFONLLtimesLIDOD[-1].Divide(hPtFONLLtimesLIDOD[-1], hPtGenD)
+        hPtWeightsFONLLtimesLIDOD[-1].Smooth(smooth)
 
 # B meson weights
 if Bspecie:
@@ -232,6 +256,8 @@ if Bspecie:
         hPtFONLLB.append(hPtGenB.Clone(histoName))
         if 'tamu' in shapesB and shapesB['tamu']['enabled']:
             hPtFONLLtimesTAMUB.append(hPtGenB.Clone(histoName.replace('FONLL', 'FONLLtimesTAMU')))
+        if 'lido' in shapesB and shapesB['lido']['enabled']:
+            hPtFONLLtimesLIDOB.append(hPtGenB.Clone(histoName.replace('FONLL', 'FONLLtimesLIDO')))
 
         for iPt in range(1, hPtFONLLB[-1].GetNbinsX()+1):
             ptCent = hPtFONLLB[-1].GetBinCenter(iPt)
@@ -245,7 +271,7 @@ if Bspecie:
                 continue
             if 'tamu' in shapesB and shapesB['tamu']['enabled']:
                 if Bspecie != 'BsBmix':
-                    if ptMinTAMUB < ptCent < ptMaxTAMUB:
+                    if ptMinTAMUB <= ptCent <= ptMaxTAMUB:
                         hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sTAMUB['yCent'](ptCent))
                     elif ptCent > ptMaxTAMUB:
                         hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sTAMUB['yCent'](ptMaxTAMUB))
@@ -254,14 +280,21 @@ if Bspecie:
                 else:
                     ptMaxMix = min([ptMaxTAMUB, ptMaxTAMUBs])
                     ptMinMix = max([ptMinTAMUB, ptMinTAMUBs])
-                    if ptMinMix < ptCent < ptMaxMix:
+                    if ptMinMix <= ptCent <= ptMaxMix:
                         rAAMix = (sTAMUB['yCent'](ptCent) + sTAMUBs['yCent'](ptCent)) / 2
                     elif ptCent > ptMaxMix:
                         rAAMix = (sTAMUB['yCent'](ptMaxMix) + sTAMUBs['yCent'](ptMaxMix)) / 2
                     else:
                         rAAMix = (sTAMUB['yCent'](ptMinMix) + sTAMUBs['yCent'](ptMinMix)) / 2
                     hPtFONLLtimesTAMUB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * rAAMix)
-
+            if 'lido' in shapesB and shapesB['lido']['enabled']:
+                if ptMinLIDOB <= ptCent <= ptMaxLIDOB:
+                    hPtFONLLtimesLIDOB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sLIDOB['yCent'](ptCent))
+                elif ptCent > ptMaxLIDOB:
+                    hPtFONLLtimesLIDOB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sLIDOB['yCent'](ptMaxLIDOB))
+                else:
+                    hPtFONLLtimesLIDOB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sLIDOB['yCent'](ptMinLIDOB))
+ 
         hPtFONLLB[-1].Sumw2()
         hPtFONLLB[-1].Scale(1./hPtFONLLB[-1].Integral())
         hPtWeightsFONLLB.append(hPtFONLLB[-1].Clone(histoName.replace('Pt', 'PtWeights')))
@@ -273,6 +306,12 @@ if Bspecie:
                 hPtFONLLtimesTAMUB[-1].Clone(hPtFONLLtimesTAMUB[-1].GetName().replace('Pt', 'PtWeights')))
             hPtWeightsFONLLtimesTAMUB[-1].Divide(hPtFONLLtimesTAMUB[-1], hPtGenB)
             hPtWeightsFONLLtimesTAMUB[-1].Smooth(smooth)
+        if 'lido' in shapesB and shapesB['lido']['enabled']:
+            hPtFONLLtimesLIDOB[-1].Scale(1./hPtFONLLtimesLIDOB[-1].Integral())
+            hPtWeightsFONLLtimesLIDOB.append(
+                hPtFONLLtimesLIDOB[-1].Clone(hPtFONLLtimesLIDOB[-1].GetName().replace('Pt', 'PtWeights')))
+            hPtWeightsFONLLtimesLIDOB[-1].Divide(hPtFONLLtimesLIDOB[-1], hPtGenB)
+            hPtWeightsFONLLtimesLIDOB[-1].Smooth(smooth)
 
 outfile = TFile(outFileName, 'recreate')
 hPtGenD.Write()
@@ -293,10 +332,16 @@ for iHisto, _ in enumerate(hPtFONLLD):
     if 'catania' in shapesD and shapesD['catania']['enabled']:
         hPtFONLLtimesCataniaD[iHisto].Write()
         hPtWeightsFONLLtimesCataniaD[iHisto].Write()
+    if 'lido' in shapesD and shapesD['lido']['enabled']:
+        hPtFONLLtimesLIDOD[iHisto].Write()
+        hPtWeightsFONLLtimesLIDOD[iHisto].Write()
     if Bspecie:
         hPtFONLLB[iHisto].Write()
         hPtWeightsFONLLB[iHisto].Write()
         if 'tamu' in shapesB and shapesB['tamu']['enabled']:
             hPtFONLLtimesTAMUB[iHisto].Write()
             hPtWeightsFONLLtimesTAMUB[iHisto].Write()
+        if 'lido' in shapesB and shapesB['lido']['enabled']:
+            hPtFONLLtimesLIDOB[iHisto].Write()
+            hPtWeightsFONLLtimesLIDOB[iHisto].Write()
 outfile.Close()
