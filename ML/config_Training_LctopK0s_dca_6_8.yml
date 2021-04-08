@@ -42,13 +42,13 @@ ml:
             cos_p,
             cos_p_xy,
             imp_par_xy,
-            probBayes_Pi_0,
-            probBayes_Pr_0,
-            delta_mass_K0s,
+            nsigComb_Pi_0,
+            nsigComb_Pr_0,
             d_len_V0,
             KF_chi2_topo,
             imp_par_prong0,
             dca,
+            dca_V0,
         ]
         # list of training variables
 
@@ -68,7 +68,7 @@ ml:
         # list of dicts of hyperparameters (one for each pT bin)
 
     hyper_par_opt:
-        do_hyp_opt: False # whether to do the parameter optimization
+        do_hyp_opt: True # whether to do the parameter optimization
         njobs: 5 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
         nfolds: 5 # number of folds used in cross validation
         initpoints: 10 # steps of random exploration you want to perform
@@ -96,13 +96,13 @@ plots:
             cos_p,
             cos_p_xy,
             imp_par_xy,
-            probBayes_Pi_0,
-            probBayes_Pr_0,
-            delta_mass_K0s,
+            nsigComb_Pi_0,
+            nsigComb_Pr_0,
             d_len_V0,
             KF_chi2_topo,
             imp_par_prong0,
             dca,
+            dca_V0,
         ] # list of variables to plot
     train_test_log: True # use log scale for plots of train and test distributions
 

@@ -13,7 +13,7 @@ output:
         Bkg: Bkg
         Prompt: Prompt
         FD: FD
-    dir: /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/cospV0 # output dir
+    dir: /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/basic # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing
     min: [6] # list
@@ -47,7 +47,6 @@ ml:
             d_len_V0,
             KF_chi2_topo,
             imp_par_prong0,
-            cos_p_V0,
         ]
         # list of training variables
 
@@ -100,7 +99,6 @@ plots:
             d_len_V0,
             KF_chi2_topo,
             imp_par_prong0,
-            cos_p_V0,
         ] # list of variables to plot
     train_test_log: True # use log scale for plots of train and test distributions
 
