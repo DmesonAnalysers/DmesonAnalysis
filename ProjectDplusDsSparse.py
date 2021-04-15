@@ -4,6 +4,7 @@ run: python ProjectDplusDsSparse.py cfgFileName.yml cutSetFileName.yml outFileNa
                                     [--ptweights PtWeightsFileName.root histoName]
                                     [--ptweightsB PtWeightsFileName.root histoName]
                                     [--Bspecie BspecieName]
+                                    [--Bspeciesweights B0weight Bplusweight Bsweight Lbweight Otherweight]
 
 if the --ptweights argument is provided, pT weights will be applied to prompt and FD pT distributions
 if the --ptweightsB argument is provided, pT weights will be applied to FD pT distributions instead of
@@ -35,6 +36,9 @@ parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--Bspecie', metavar='text', default='all',
                     help='Flag to select b-hadron species for the FD efficiency. Options: (all, B0, B+, Bs, Lb)')
+parser.add_argument('--Bspeciesweights', type=float, nargs=5, required=False,
+                    help='values of weights for the different hadron species '
+                         '(B0weight, Bplusweight, Bsweight, Lbweight, Otherweight)')
 args = parser.parse_args()
 
 with open(args.cfgFileName, 'r') as ymlCfgFile:
@@ -55,6 +59,9 @@ if not isMC:
     if args.ptweightsB:
         print('WARNING: ptB weights will not be applied since it is not MC')
         args.ptweightsB = None
+    if args.Bspecie != 'all' or args.Bspeciesweights:
+        print('WARNING: B weights will not be applied since it is not MC')
+        args.Bspeciesweights = None
 if isRedVar:
     print(('WARNING: option for reduced number of variables in THnSparse set to true.'
            'If this is not the case, the code will work producing wrong results'))
@@ -63,7 +70,7 @@ if args.ptweightsB and not isWithBinfo:
     print('ERROR: ptB weight application cannot be applied without B info in sparses! Exit')
     sys.exit()
 
-if args.Bspecie != 'all' and not isWithBinfo:
+if (args.Bspecie != 'all' or args.Bspeciesweights) and not isWithBinfo:
     print('ERROR: you cannot select a given b-hadron species without B info in sparses! Exit')
     sys.exit()
 
@@ -183,27 +190,65 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             prompt_dict[iVar].append(hVarPrompt)
             hVarPrompt.Write()
             # apply pt weights
-            if iVar == 'Pt' and args.ptweightsB:
-                hPtBvsVarRecoD = sparseReco['RecoFD'].Projection(2, axisNum)
-                for iPtD in range(1, hPtBvsVarRecoD.GetXaxis().GetNbins()+1):
-                    for iPtB in range(1, hPtBvsVarRecoD.GetYaxis().GetNbins()+1):
-                        ptCentB = hPtBvsVarRecoD.GetYaxis().GetBinCenter(iPtB)
-                        origContent = hPtBvsVarRecoD.GetBinContent(iPtD, iPtB)
-                        origError = hPtBvsVarRecoD.GetBinError(iPtD, iPtB)
-                        weight = 0
-                        if sPtWeightsB(ptCentB) > 0:
-                            weight = sPtWeightsB(ptCentB)
-                        content = origContent * weight
-                        error = 0
-                        if origContent > 0:
-                            error = origError / origContent * content                        
-                        hPtBvsVarRecoD.SetBinContent(iPtD, iPtB, content)
-                        hPtBvsVarRecoD.SetBinError(iPtD, iPtB, error)
-                hVarFD = hPtBvsVarRecoD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
-                                                    0, hPtBvsVarRecoD.GetYaxis().GetNbins()+1, 'e')
+            if iVar == 'Pt':
+                if args.ptweightsB and args.Bspeciesweights:
+                    hPtBvsBspecievsPtD = sparseReco['RecoFD'].Projection(axisNum, 3, 2)
+                    for iPtD in range(1, hPtBvsBspecievsPtD.GetXaxis().GetNbins()+1):
+                        for iBspecie in range(1, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1):
+                            for iPtB in range(1, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1):
+                                ptCentB = hPtBvsBspecievsPtD.GetZaxis().GetBinCenter(iPtB)
+                                origContent = hPtBvsBspecievsPtD.GetBinContent(iPtD, iBspecie, iPtB)
+                                origError = hPtBvsBspecievsPtD.GetBinError(iPtD, iBspecie, iPtB)
+                                weight = args.Bspeciesweights[iBspecie-1]
+                                if sPtWeightsB(ptCentB) > 0:
+                                    weight *= sPtWeightsB(ptCentB)
+                                content = hPtBvsBspecievsPtD.GetBinContent(iPtD, iBspecie, iPtB) * weight
+                                error = 0
+                                if origContent > 0:
+                                    error = origError / origContent * content
+                                hPtBvsBspecievsPtD.SetBinContent(iPtD, iBspecie, iPtB, content)
+                                hPtBvsBspecievsPtD.SetBinError(iPtD, iBspecie, iPtB, error)
+                    hVarFD = hPtBvsBspecievsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                            0, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1,
+                                                            0, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1, 'e')
+                elif args.ptweightsB:
+                    hPtBvsPtD = sparseReco['RecoFD'].Projection(2, axisNum)
+                    for iPtD in range(1, hPtBvsPtD.GetXaxis().GetNbins()+1):
+                        for iPtB in range(1, hPtBvsPtD.GetYaxis().GetNbins()+1):
+                            ptCentB = hPtBvsPtD.GetYaxis().GetBinCenter(iPtB)
+                            origContent = hPtBvsPtD.GetBinContent(iPtD, iPtB)
+                            origError = hPtBvsPtD.GetBinError(iPtD, iPtB)
+                            weight = 0
+                            if sPtWeightsB(ptCentB) > 0:
+                                weight = sPtWeightsB(ptCentB)
+                            content = origContent * weight
+                            error = 0
+                            if origContent > 0:
+                                error = origError / origContent * content                        
+                            hPtBvsPtD.SetBinContent(iPtD, iPtB, content)
+                            hPtBvsPtD.SetBinError(iPtD, iPtB, error)
+                    hVarFD = hPtBvsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                   0, hPtBvsPtD.GetYaxis().GetNbins()+1, 'e')
+                elif args.Bspeciesweights:
+                    hBspecievsPtD = sparseReco['RecoFD'].Projection(3, axisNum)
+                    for iPtD in range(1, hBspecievsPtD.GetXaxis().GetNbins()+1):
+                        for iBspecie in range(1, hBspecievsPtD.GetYaxis().GetNbins()+1):
+                            origContent = hBspecievsPtD.GetBinContent(iPtD, iBspecie)
+                            origError = hBspecievsPtD.GetBinError(iPtD, iBspecie)
+                            weight = args.Bspeciesweights[iBspecie-1]
+                            content = hBspecievsPtD.GetBinContent(iPtD, iBspecie) * weight
+                            error = 0
+                            if origContent > 0:
+                                error = origError / origContent * content
+                            hBspecievsPtD.SetBinContent(iPtD, iBspecie, content)
+                            hBspecievsPtD.SetBinError(iPtD, iBspecie, error)
+                    hVarFD = hBspecievsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                       0, hBspecievsPtD.GetYaxis().GetNbins()+1, 'e')
+                else:
+                    hVarFD = sparseReco['RecoFD'].Projection(axisNum)
             else:
                 hVarFD = sparseReco['RecoFD'].Projection(axisNum)
-                hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             fd_dict[iVar].append(hVarFD)
             hVarFD.Write()
             if enableSecPeak:
@@ -235,7 +280,27 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         prompt_gen_list.append(hGenPtPrompt)
         hGenPtPrompt.Write()
         # apply pt weights
-        if args.ptweightsB:
+        if args.ptweightsB and args.Bspeciesweights:
+            hPtBvsBspecievsPtGenD = sparseGen['GenFD'].Projection(0, 3, 2)
+            for iPtD in range(1, hPtBvsBspecievsPtGenD.GetXaxis().GetNbins()+1):
+                for iBspecie in range(1, hPtBvsBspecievsPtGenD.GetYaxis().GetNbins()+1):
+                    for iPtB in range(1, hPtBvsBspecievsPtGenD.GetZaxis().GetNbins()+1):
+                        ptCentB = hPtBvsBspecievsPtGenD.GetZaxis().GetBinCenter(iPtB)
+                        origContent = hPtBvsBspecievsPtGenD.GetBinContent(iPtD, iBspecie, iPtB)
+                        origError = hPtBvsBspecievsPtGenD.GetBinError(iPtD, iBspecie, iPtB)
+                        weight = args.Bspeciesweights[iBspecie-1]
+                        if sPtWeightsB(ptCentB) > 0:
+                            weight *= sPtWeightsB(ptCentB)
+                        content = hPtBvsBspecievsPtGenD.GetBinContent(iPtD, iBspecie, iPtB) * weight
+                        error = 0
+                        if origContent > 0:
+                            error = origError / origContent * content
+                        hPtBvsBspecievsPtGenD.SetBinContent(iPtD, iBspecie, iPtB, content)
+                        hPtBvsBspecievsPtGenD.SetBinError(iPtD, iBspecie, iPtB, error)
+            hGenPtFD = hPtBvsBspecievsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                         0, hPtBvsBspecievsPtGenD.GetYaxis().GetNbins()+1,
+                                                         0, hPtBvsBspecievsPtGenD.GetZaxis().GetNbins()+1, 'e')
+        elif args.ptweightsB:
             hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0)
             for iPtD in range(1, hPtBvsPtGenD.GetXaxis().GetNbins()+1):
                 for iPtB in range(1, hPtBvsPtGenD.GetYaxis().GetNbins()+1):
@@ -253,6 +318,21 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                     hPtBvsPtGenD.SetBinError(iPtD, iPtB, error)
             hGenPtFD = hPtBvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                 0, hPtBvsPtGenD.GetYaxis().GetNbins()+1, 'e')
+        elif args.Bspeciesweights:
+            hBspecievsPtGenD = sparseGen['GenFD'].Projection(3, 0)
+            for iPtD in range(1, hBspecievsPtGenD.GetXaxis().GetNbins()+1):
+                for iBspecie in range(1, hBspecievsPtGenD.GetYaxis().GetNbins()+1):
+                    origContent = hBspecievsPtGenD.GetBinContent(iPtD, iBspecie)
+                    origError = hBspecievsPtGenD.GetBinError(iPtD, iBspecie)
+                    weight = args.Bspeciesweights[iBspecie-1]
+                    content = hBspecievsPtGenD.GetBinContent(iPtD, iBspecie) * weight
+                    error = 0
+                    if origContent > 0:
+                        error = origError / origContent * content
+                    hBspecievsPtGenD.SetBinContent(iPtD, iBspecie, content)
+                    hBspecievsPtGenD.SetBinError(iPtD, iBspecie, error)
+            hGenPtFD = hBspecievsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                    0, hBspecievsPtGenD.GetYaxis().GetNbins()+1, 'e')
         else:
             hGenPtFD = sparseGen['GenFD'].Projection(0)
             hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
