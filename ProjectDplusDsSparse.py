@@ -325,7 +325,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                     origContent = hBspecievsPtGenD.GetBinContent(iPtD, iBspecie)
                     origError = hBspecievsPtGenD.GetBinError(iPtD, iBspecie)
                     weight = args.Bspeciesweights[iBspecie-1]
-                    content = hBspecievsPtGenD.GetBinContent(iPtD, iBspecie) * weight
+                    content = origContent * weight
                     error = 0
                     if origContent > 0:
                         error = origError / origContent * content
