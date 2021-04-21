@@ -42,9 +42,8 @@ ml:
             cos_p,
             cos_p_xy,
             imp_par_xy,
-            probBayes_Pi_0,
-            probBayes_Pr_0,
-            delta_mass_K0s,
+            nsigComb_Pi_0,
+            nsigComb_Pr_0,
             d_len_V0,
             KF_chi2_topo,
             imp_par_prong0,
@@ -97,12 +96,12 @@ plots:
             cos_p,
             cos_p_xy,
             imp_par_xy,
-            probBayes_Pi_0,
-            probBayes_Pr_0,
-            delta_mass_K0s,
+            nsigComb_Pi_0,
+            nsigComb_Pr_0,
             d_len_V0,
             KF_chi2_topo,
             imp_par_prong0,
+            cos_p_V0,
         ] # list of variables to plot
     train_test_log: True # use log scale for plots of train and test distributions
 

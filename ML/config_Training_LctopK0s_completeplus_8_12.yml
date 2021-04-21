@@ -13,7 +13,7 @@ output:
         Bkg: Bkg
         Prompt: Prompt
         FD: FD
-    dir: /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/completeplus # output dir
+    dir: /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/completeplus2 # output dir
 
 pt_ranges: # ranges in pt to split the data in the ml training and testing
     min: [8] # list
@@ -79,9 +79,9 @@ ml:
         niter: 15 # steps for bayesian optimization
         bayes_opt_config:
             {
-                "max_depth": !!python/tuple [3, 5],
+                "max_depth": !!python/tuple [2, 4],
                 "learning_rate": !!python/tuple [0.01, 0.1],
-                "n_estimators": !!python/tuple [2000, 3000],
+                "n_estimators": !!python/tuple [500, 1500],
                 "min_child_weight": !!python/tuple [0.2, 7],
                 "subsample": !!python/tuple [0.8, 1.],
                 "colsample_bytree": !!python/tuple [0.8, 1.],

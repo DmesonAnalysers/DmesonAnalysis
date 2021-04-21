@@ -68,7 +68,7 @@ ml:
         # list of dicts of hyperparameters (one for each pT bin)
 
     hyper_par_opt:
-        do_hyp_opt: True # whether to do the parameter optimization
+        do_hyp_opt: False # whether to do the parameter optimization
         njobs: 5 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
         nfolds: 5 # number of folds used in cross validation
         initpoints: 10 # steps of random exploration you want to perform
