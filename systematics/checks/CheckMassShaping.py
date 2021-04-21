@@ -1,7 +1,7 @@
 '''
 python script for the check of the mass shaping effect
 run: python CheckMassShaping.py cfgFileName.yml cutSetFileName.yml outputPath
-                                [--tree] [--Dspecie specie] [--rebin rebin] [--fitfunc func]
+                                [--tree] [--particle specie] [--rebin rebin] [--fitfunc func]
 '''
 
 import os
@@ -27,25 +27,30 @@ parser.add_argument('cutSetFileName', metavar='text', default='cutset.yml',
 parser.add_argument('outputPath', metavar='text', default='outputPath', help='output path')
 parser.add_argument('--tree', action='store_true', default=False,
                     help='flag for imput tree/dataframe instead of sparse')
-parser.add_argument('--Dspecie', metavar='text', default='Ds',
-                    help='D-meson species, options: Ds, Dplus')
+parser.add_argument('--particle', metavar='text', default='Ds',
+                    help='particle, options: Ds, Dplus, Lc')
 parser.add_argument('--rebin', type=int, required=False, default=1, help='mass rebin (optional)')
 parser.add_argument('--fitfunc', metavar='text', default='expo',
                     help='fit function for bkg distribution, options: expo and polN, with N integer number')
 args = parser.parse_args()
 
-if args.Dspecie == 'Ds':
-    mD = TDatabasePDG.Instance().GetParticle(431).Mass()
+if args.particle == 'Ds':
+    mParticle = TDatabasePDG.Instance().GetParticle(431).Mass()
     massTitle = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
     mesonName = 'Ds'
-    mesonTitle = 'D_{s}^{+}'
-elif args.Dspecie == 'Dplus':
-    mD = TDatabasePDG.Instance().GetParticle(411).Mass()
+    particleTitle = 'D_{s}^{+}'
+elif args.particle == 'Dplus':
+    mParticle = TDatabasePDG.Instance().GetParticle(411).Mass()
     massTitle = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
     mesonName = 'Dplus'
-    mesonTitle = 'D^{+}'
+    particleTitle = 'D^{+}'
+elif args.particle == 'Lc':
+    mParticle = TDatabasePDG.Instance().GetParticle(4122).Mass()
+    massTitle = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
+    mesonName = 'Lc'
+    particleTitle = 'L_{c}^{+}'
 else:
-    print('ERROR: the D-meson specie must be Ds or Dplus! Exit')
+    print('ERROR: the particle must be Ds, Dplus or Lc! Exit')
     sys.exit()
 
 if args.fitfunc != 'expo' and 'pol' not in args.fitfunc:
@@ -144,20 +149,21 @@ else: # data from tree/dataframe
         for mass in dataFrameBkgSel['inv_mass'].to_numpy():
             hMassSel[iPt].Fill(mass)
 
-hMassSel[iPt].Rebin(args.rebin)
-hMassNoSel[iPt].Rebin(args.rebin)
-SetObjectStyle(hMassNoSel[iPt], color=kAzure+4, markers=kFullSquare)
-SetObjectStyle(hMassSel[iPt], color=kRed+1, markers=kFullCircle)
+for iPt in range(len(cutVars['Pt']['min'])):
+    hMassSel[iPt].Rebin(args.rebin)
+    hMassNoSel[iPt].Rebin(args.rebin)
+    SetObjectStyle(hMassNoSel[iPt], color=kAzure+4, markers=kFullSquare)
+    SetObjectStyle(hMassSel[iPt], color=kRed+1, markers=kFullCircle)
 
-line = TLine(mD, 0, mD, hMassSel[0].GetMaximum())
+line = TLine(mParticle, 0, mParticle, hMassSel[0].GetMaximum())
 line.SetLineColor(kGray+1)
 line.SetLineWidth(1)
 line.SetLineStyle(9)
 
 lineVsML = {}
 for var in hMassVsML[0]:
-    lineVsML[var] = TLine(mD, hMassVsML[0][var].GetYaxis().GetBinLowEdge(1),
-                          mD, hMassVsML[0][var].GetYaxis().GetBinUpEdge(hMassVsML[0][var].GetYaxis().GetNbins()))
+    lineVsML[var] = TLine(mParticle, hMassVsML[0][var].GetYaxis().GetBinLowEdge(1),
+                          mParticle, hMassVsML[0][var].GetYaxis().GetBinUpEdge(hMassVsML[0][var].GetYaxis().GetNbins()))
     lineVsML[var].SetLineColor(kBlack)
     lineVsML[var].SetLineWidth(2)
     lineVsML[var].SetLineStyle(9)
@@ -190,7 +196,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
     if iPt == 0:
         leg.AddEntry(hMassNoSel[iPt], 'no selection', 'lp')
         leg.AddEntry(hMassSel[iPt], 'ML selection', 'lp')
-        leg.AddEntry(lineNorm, f'{mesonTitle} mass', 'l')
+        leg.AddEntry(lineNorm, f'{particleTitle} mass', 'l')
 
     cMass.append(TCanvas(f'cMassPt{ptMin*10:.0f}_{ptMax*10:.0f}', '', 500, 500))
     cMass[iPt].cd().DrawFrame(minMass, 0., maxMass, hMassSelNorm.GetMaximum()*1.5, f';{massTitle}; Normalised counts')
@@ -229,7 +235,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
 
     hMassToFit = hMassSel[iPt].Clone()
     for iBin in range(hMassToFit.GetNbinsX()): #remove signal region
-        if mD-0.02 < hMassToFit.GetBinCenter(iBin+1) < mD + 0.02:
+        if mParticle-0.02 < hMassToFit.GetBinCenter(iBin+1) < mParticle + 0.02:
             hMassToFit.SetBinContent(iBin+1, 0)
     hMassToFit.Fit(fMass[iPt], 'RE0')
     hConfIntBkg.append(TH1F(f'hConfIntMassKKMCPt{ptMin}_{ptMax}', '', hMassSel[iPt].GetNbinsX(), minMass, maxMass))
@@ -239,7 +245,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
     if iPt == 0:
         legFit.AddEntry(hMassSel[iPt], 'ML selected', 'lp')
         legFit.AddEntry(hConfIntBkg[iPt], f'{args.fitfunc} fit', 'fl')
-        legFit.AddEntry(line, f'{mesonTitle} mass', 'l')
+        legFit.AddEntry(line, f'{particleTitle} mass', 'l')
 
     cMassFit.append(TCanvas(f'cMassFitPt{ptMin*10:.0f}_{ptMax*10:.0f}', '', 1200, 400))
     cMassFit[iPt].Divide(3, 1)
@@ -256,6 +262,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         obs = hMassSel[iPt].GetBinContent(iBin+1)
         exp = fMass[iPt].Eval(massCentre)
         uncObs = hMassSel[iPt].GetBinError(iBin+1)
+        # print(f'bin {iBin+1}/{hMassSel[iPt].GetNbinsX()}   obs: {obs:.2f}   exp: {exp:.2f}   uncObs: {uncObs:.2f}', flush=True) #debug info
         uncExp = hConfIntBkg[iPt].GetBinError(iBin+1)
         pval = RooStats.NumberCountingUtils.BinomialObsP(obs, exp, uncExp/exp)
         nsigma = (obs-exp)/uncObs
