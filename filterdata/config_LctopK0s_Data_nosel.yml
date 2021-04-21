@@ -1,0 +1,35 @@
+channel: LctopK0s # options [Ds, Dplus, LctopKpi, LctopK0s, LctopiL]
+
+infile:
+    isMC: 0
+    filename:
+        [
+            /data/shared/NonPromptLc/data/LHC16_deghjop/AnalysisResults_allPIDvars.root,
+            /data/shared/NonPromptLc/data/LHC16_kl/AnalysisResults_allPIDvars.root,
+            /data/shared/NonPromptLc/data/LHC17_cefhijklmor/AnalysisResults_allPIDvars.root,
+            /data/shared/NonPromptLc/data/LHC18_bdefghijklmnop/AnalysisResults_allPIDvars.root,
+        ]
+    dirname: PWGHF_D2H_NonPromptLctopK0sLoose
+    treename: treeMLLc
+
+outfile:
+    dirpath: /data/dbattistini/filtered/nosel/
+    suffix: _filter
+    treename: treeMLLc
+
+skimming:
+    pt:
+        min: [2]
+        max: [50]
+
+    preselections:
+    colstokeep: [inv_mass] #empty list if you want to keep everything
+
+singletrackvars:
+    addAODfiltervars: 0 # it adds min pt and min d0 of daughters with pt < 2
+
+missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
+    enable: 0
+    tolerance:
+        nsigTOF_Pi_0: -999.
+        nsigTOF_Pr_0: -999.

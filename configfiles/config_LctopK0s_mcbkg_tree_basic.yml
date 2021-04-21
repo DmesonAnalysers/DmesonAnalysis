@@ -1,0 +1,26 @@
+isMC: no
+filename:
+    [
+        /data/shared/NonPromptLc/MC/gen_purpose_2016/AnalysisResults_mass_shaping.root,
+        /data/shared/NonPromptLc/MC/gen_purpose_2017/AnalysisResults_mass_shaping.root,
+        /data/shared/NonPromptLc/MC/gen_purpose_2018/AnalysisResults_mass_shaping.root,
+    ]
+dirname: PWGHF_D2H_NonPromptLctopK0sLoose
+listname: coutputNonPromptLctopK0sLoose
+sparsenameAll: hMassPtCutVarsAll
+enableSecPeak: no #always no for data
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: "Lc"
+    filenameBkg:
+        [
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/basicbkg/pt2_4/Data_pT_2_4_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/basicbkg/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/basicbkg/pt6_8/Data_pT_6_8_ModelApplied.parquet.gzip,
+            /home/dbattistini/DmesonAnalysis/ML/trained_models/LctopK0s/basicbkg/pt8_12/Data_pT_8_12_ModelApplied.parquet.gzip,
+        ]
+    dirname: PWGHF_D2H_NonPromptLctopK0sLoose
+    treename: treeML
