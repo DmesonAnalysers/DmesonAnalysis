@@ -3,14 +3,13 @@ python script for the projection of D+, Ds+, and Lc hadron THnSparses
 run: python ProjectDplusDsSparse.py cfgFileName.yml cutSetFileName.yml outFileName.root
                                     [--ptweights PtWeightsFileName.root histoName]
                                     [--ptweightsB PtWeightsFileName.root histoName]
-                                    [--Bspecie BspecieName]
                                     [--Bspeciesweights B0weight Bplusweight Bsweight Lbweight Otherweight]
 
 if the --ptweights argument is provided, pT weights will be applied to prompt and FD pT distributions
 if the --ptweightsB argument is provided, pT weights will be applied to FD pT distributions instead of
 those for the prompt
-if --Bspecie is provided, the FD efficiency is computed only for D mesons coming from the decays of a given B
-Options for BspecieName: (all, B0, B+, Bs, Lb)
+if --Bspeciesweights is provided, the FD efficiency is computed reweighting the contributions from the
+different b-hadron species parsed as 5 arguments (B0, B+, Bs, Lb, other)
 It works only if Bspecie axis is present in the gen and reco sparses
 '''
 
@@ -34,8 +33,6 @@ parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=F
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
                     help='First path of the pT weights file, second name of the pT weights histogram')
-parser.add_argument('--Bspecie', metavar='text', default='all',
-                    help='Flag to select b-hadron species for the FD efficiency. Options: (all, B0, B+, Bs, Lb)')
 parser.add_argument('--Bspeciesweights', type=float, nargs=5, required=False,
                     help='values of weights for the different hadron species '
                          '(B0weight, Bplusweight, Bsweight, Lbweight, Otherweight)')
@@ -59,7 +56,7 @@ if not isMC:
     if args.ptweightsB:
         print('WARNING: ptB weights will not be applied since it is not MC')
         args.ptweightsB = None
-    if args.Bspecie != 'all' or args.Bspeciesweights:
+    if args.Bspeciesweights:
         print('WARNING: B weights will not be applied since it is not MC')
         args.Bspeciesweights = None
 if isRedVar:
@@ -70,23 +67,9 @@ if args.ptweightsB and not isWithBinfo:
     print('ERROR: ptB weight application cannot be applied without B info in sparses! Exit')
     sys.exit()
 
-if (args.Bspecie != 'all' or args.Bspeciesweights) and not isWithBinfo:
+if args.Bspeciesweights and not isWithBinfo:
     print('ERROR: you cannot select a given b-hadron species without B info in sparses! Exit')
     sys.exit()
-
-if args.Bspecie not in ('all', 'B0', 'B+', 'Bs', 'Lb'):
-    print(f'ERROR: b-hadron species {args.Bspecie} not supported! The available ones are (all, B0, B+, Bs, Lb). Exit')
-    sys.exit()
-
-BspecieBin = -1
-if args.Bspecie == 'B0':
-    BspecieBin = 1
-elif args.Bspecie == 'B+':
-    BspecieBin = 2
-elif args.Bspecie == 'Bs':
-    BspecieBin = 3
-elif args.Bspecie == 'Lb':
-    BspecieBin = 4
 
 for iFile, infilename in enumerate(infilenames):
     if iFile == 0:
@@ -162,10 +145,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             if enableSecPeak:
                 sparseReco['RecoSecPeakPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
                 sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(binMin, binMax)
-    if isMC and args.Bspecie != 'all':
-        sparseReco['RecoFD'].GetAxis(3).SetRange(BspecieBin, BspecieBin)
-        if enableSecPeak:
-            sparseReco['RecoSecPeakFD'].GetAxis(3).SetRange(BspecieBin, BspecieBin)
 
     for iVar in ('InvMass', 'Pt'):
         varName = cutVars[iVar]['name']
@@ -261,8 +240,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 fd_dict_secpeak[iVar].append(hVarFDSecPeak)
                 hVarFDSecPeak.Write()
     if isMC:
-        if args.Bspecie != 'all':
-            sparseGen['GenFD'].GetAxis(3).SetRange(BspecieBin, BspecieBin)
         binGenMin = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMin*1.0001)
         binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax*0.9999)
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
