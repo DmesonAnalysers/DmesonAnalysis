@@ -89,9 +89,9 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
             for iCutSetCol, (rawYieldUncCol, effPromptUncCol, effFDUncCol) in enumerate(\
                 zip(rawYieldUncList, effPromptUncList, effFDUncList)):
                 uncRow = np.sqrt(rawYieldUncRow**2 + effPromptUncRow**2 *
-                                 mCorrYield.item(0) + effFDUncRow**2 * mCorrYield.item(1))
+                                 mCorrYield.item(0)**2 + effFDUncRow**2 * mCorrYield.item(1)**2)
                 uncCol = np.sqrt(rawYieldUncCol**2 + effPromptUncCol**2 *
-                                 mCorrYield.item(0) + effFDUncCol**2 * mCorrYield.item(1))
+                                 mCorrYield.item(0)**2 + effFDUncCol**2 * mCorrYield.item(1)**2)
                 if corr and uncRow > 0 and uncCol > 0:
                     if uncRow < uncCol:
                         rho = uncRow / uncCol
