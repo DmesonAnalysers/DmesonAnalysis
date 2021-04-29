@@ -32,7 +32,7 @@ def FilterBitDf(dfToFilter, column, bitsToTest, logic='or'):
     - pandas dataframe to filter
     - colum with bitmap
     - list of bits to test
-    - logic to combine the bits (and, or)
+    - logic to combine the bits (and, or, not)
 
     Returns
     ----------
