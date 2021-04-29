@@ -1,7 +1,6 @@
 '''
-python script to filter tree from task output and save output trees in root (default) or parquet files for ML studies
+python script to filter tree from task output and save output trees in parquet files for ML studies
 run: python FilterTree4ML.py cfgFileName.yml
-with option --root the output files are saved into root files instead of parquet ones
 '''
 
 import sys
