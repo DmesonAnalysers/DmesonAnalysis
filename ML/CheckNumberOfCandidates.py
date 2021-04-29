@@ -5,10 +5,8 @@ run: python CheckNumberOfCandidates.py config_training_FileName.yml
 import sys
 import argparse
 import yaml
-import pandas as pd
-
 sys.path.append('..')
-from utils.DfUtils import LoadDfFromRootOrParquet
+from utils.DfUtils import LoadDfFromRootOrParquet #pylint: disable=wrong-import-position,import-error
 
 # inputs
 parser = argparse.ArgumentParser(description='Arguments to pass')
