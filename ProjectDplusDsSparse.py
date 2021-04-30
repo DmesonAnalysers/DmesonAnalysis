@@ -147,7 +147,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(binMin, binMax)
 
     for iVar in ('InvMass', 'Pt'):
-        varName = cutVars[iVar]['name']
+        varName = 'Pt' if iVar == 'Pt' else 'Mass'
         axisNum = cutVars[iVar]['axisnum']
         if 'RecoAll' in sparseReco:
             hVar = sparseReco['RecoAll'].Projection(axisNum)
@@ -203,7 +203,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                             content = origContent * weight
                             error = 0
                             if origContent > 0:
-                                error = origError / origContent * content                        
+                                error = origError / origContent * content
                             hPtBvsPtD.SetBinContent(iPtD, iPtB, content)
                             hPtBvsPtD.SetBinError(iPtD, iPtB, error)
                     hVarFD = hPtBvsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
@@ -347,7 +347,7 @@ for iPt in range(0, len(cutVars['Pt']['min']) - 1):
     ptLowLabel = cutVars['Pt']['min'][iPt] * 10
     ptHighLabel = cutVars['Pt']['max'][iPt+1] * 10
     for iVar in ('InvMass', 'Pt'):
-        varName = cutVars[iVar]['name']
+        varName = 'Pt' if iVar == 'Pt' else 'Mass'
         if 'RecoAll' in sparseReco:
             hVar_merged = MergeHists([all_dict[iVar][iPt], all_dict[iVar][iPt+1]])
             hVar_merged.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
