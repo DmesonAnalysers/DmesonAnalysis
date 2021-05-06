@@ -1,27 +1,27 @@
 input:
-    filename: /Users/fabrizio/cernbox/ALICE_WORK/Files/Trains/Run2/pp13TeV/AnalysisResults_Femto_Dplus_proton_HMV0_nosphericity.root
-    suffix: 0
+    filename: ~/cernbox/alice_work/trains/pp13TeV/AnalysisResults.root
+    suffix: 11
     prefix: HM
     HFsuffix: ''
 
 rawyields:
-    filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYieldsDplus_pp13TeV_HMV0M_central.root
+    filename: ~/cernbox/alice_work/analyses/DpFemtoHM13TeV/outputs/rawyields/RawYieldsDplus_pp13TeV_HMV0M_tight2_finebins.root
     histoname: SandBDiffNsigma/hRawYieldsSoverB_2.00sigma # 2sigma window
-    systpurity: [0.02, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ] # null if not available
+    systpurity: [0.02, 0.02, 0.02, 0.02, 0.02, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01 ] # null if not available
 
 fractions:
     beauty:
         enable: true
-        filename: /Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/fractions/datadriven/DataDrivenFraction_Dplus_pp13TeV_HMV0M_femto_central.root
+        filename: ~/cernbox/alice_work/analyses/DpFemtoHM13TeV/outputs/fractions/datadriven/DataDrivenFraction_Dplus_pp13TeV_HMV0M_femto_tight2.root
         histoname: hFDFrac
         systbeauty: [0.05, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02 ] # null if not available
     Dstar:
         enable: true
-        filename: /Users/fabrizio/cernbox/ALICE_WORK/PythiaAndPowhegStudies/pythia8/DplusFromDstar_pp5TeV_decayer_Pythia8.root
+        filename: ~/cernbox/alice_work/analyses/DpFemtoHM13TeV/outputs/fractions/dstar/DplusFromDstar_pp5TeV_decayer_Pythia8.root
         histoname: hFrac
         graphname: gFrac
 
 output:
-    directory: '/Users/fabrizio/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/fractions/purity'
-    suffix: _masswindow_2sigma_sphericity_0_1_centralcuts
+    directory: '~/cernbox/alice_work/analyses/DpFemtoHM13TeV/outputs/fractions/purity'
+    suffix: _masswindow_2sigma_sphericity_0_1_tight_2
     addTDirectory: false # to add a TDirectory in output root file named as the suffix

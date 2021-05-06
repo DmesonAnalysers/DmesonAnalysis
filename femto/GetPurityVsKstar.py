@@ -98,7 +98,6 @@ if evaluateFracFromBeauty:
 # if enabled, load fraction from Dstar
 if evaluateFracFromDstar:
     inFile = TFile.Open(DstarFracFileName)
-    inFile.ls()
     hFracFromDstar = inFile.Get(DstarFracHistoName)
     gFracFromDstar = inFile.Get(DstarFracGraphName)
     gFracFromDstar.Draw('ap')
