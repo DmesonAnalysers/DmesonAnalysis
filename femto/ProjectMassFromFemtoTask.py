@@ -22,6 +22,8 @@ parser.add_argument('--suffix', metavar='text', default='0',
                     help='suffix for directory inside task output file')
 parser.add_argument('--HFsuffix', metavar='text', default='',
                     help='HF suffix for directory inside task output file')
+parser.add_argument('--inFileNameAdd', action='append', default=None,
+                    help='additional root input file name')
 args = parser.parse_args()
 
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
@@ -30,15 +32,28 @@ cutVars = cutSetCfg['cutvars']
 
 dirName = f'{args.prefix}_CharmFemto_{args.HFsuffix}DChargedQA{args.suffix}'
 listName = f'{dirName}/{args.prefix}_CharmFemto_{args.HFsuffix}DChargedQA{args.suffix}'
-print(f'Read input file: {args.inFileName}')
+
+inFileNames = [args.inFileName]
+if args.inFileNameAdd is not None:
+    for fileName in args.inFileNameAdd:
+        inFileNames.append(fileName)
+
+hDminusMassVsPt, hDplusMassVsPt = None, None
+for iFile, fileName in enumerate(inFileNames):
+    inFile = TFile.Open(fileName)
+    inList = inFile.Get(listName)
+    if iFile == 0:
+        hDminusMassVsPt = inList.FindObject('fHistDminusInvMassPt')
+        hDplusMassVsPt = inList.FindObject('fHistDplusInvMassPt')
+    else:
+        hDminusMassVsPt.Add(inList.FindObject('fHistDminusInvMassPt'))
+        hDplusMassVsPt.Add(inList.FindObject('fHistDplusInvMassPt'))
+    print(f'Read input file: {fileName}')
+print(f'           dir: {dirName}')
 print(f'           list: {listName}')
 
-inFile = TFile.Open(args.inFileName)
-inList = inFile.Get(listName)
-hDminusMassVsPt = inList.FindObject('fHistDminusInvMassPt')
-hDplusMassVsPt = inList.FindObject('fHistDplusInvMassPt')
-hMassVsPt = hDminusMassVsPt.Clone()
-if hDminusMassVsPt.GetYaxis().GetXmin() == hDplusMassVsPt.GetXaxis().GetXmin():
+hMassVsPt = hDminusMassVsPt.Clone('hMassVsPt')
+if hDminusMassVsPt.GetXaxis().GetXmin() == hDplusMassVsPt.GetXaxis().GetXmin():
     hMassVsPt.Add(hDplusMassVsPt)
 else:
     print('WARNING: using only D- because of different binning between D+ and D- histograms!')
