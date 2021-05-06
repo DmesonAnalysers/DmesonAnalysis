@@ -39,6 +39,9 @@ elif args.centClass == 'kpp13TeVPrompt':
     cent = 'pp13TeVPrompt'
 elif args.centClass == 'kpp13TeVFD':
     cent = 'pp13TeVFD'
+else: 
+    print(f'ERROR: centrality {args.centClass} is not supported! Exit')
+    exit()
 
 gROOT.SetBatch(args.batch)
 SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, titlesize=0.045, labelsize=0.04)

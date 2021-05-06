@@ -1,8 +1,8 @@
 #!/bin/bash
 #steps to be performed
-DoDataProjection=false
+DoDataProjection=true
 DoMCProjection=true
-DoDataRawYields=false
+DoDataRawYields=true
 DoMCRawYields=false
 DoEfficiency=true
 DoAccEff=true
@@ -16,26 +16,26 @@ ProjectTree=true
 
 #PARAMETERS TO BE SET (use "" for parameters not needed)
 ################################################################################################
-Meson="Dplus" # whether it is Dplus or Ds analysis
-Cent="kpp5TeVFD" # used also to asses prompt or non-prompt and system
+Particle="Lc" # whether it is Dplus,  Ds or Lc analysis
+Cent="kpp13TeVFD" # used also to asses prompt or non-prompt and system
 
-cfgFileData="../AnalysisNonPromptDpp2017/Dplus/configfiles/inputs/config_Dplus_pp_data_tree.yml"
-cfgFileMC="../AnalysisNonPromptDpp2017/Dplus/configfiles/inputs/config_Dplus_pp_MC_tree.yml"
-cfgFileFit="../AnalysisNonPromptDpp2017/Dplus/configfiles/fit/config_Dplus_pp5TeV.yml"
+cfgFileData="configfiles/config_LctopK0s_data_tree.yml"
+cfgFileMC="configfiles/config_LctopK0s_MC_tree.yml"
+cfgFileFit="configfiles/fit/config_Lc_Fit_pp13TeV.yml"
 
-accFileName="accfiles/Acceptance_Toy_DplusKpipi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root"
-predFileName="models/fonll/feeddown/DmesonLcPredictions_502TeV_y05_FFee_BRpythia8_SepContr_PDG2020.root"
-pprefFileName=""
+accFileName="accfiles/Acceptance_Toy_LcK0Sp_yfidPtDep_etaDau09_ptDau100_promptD0FONLL13ptshape.root"
+predFileName="models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFptDepLHCb_BRpythia8_PDG2020_PromptLcMod.root"
+pprefFileName="" #"ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_6_8_12_16_24_36_50.root"
 
-PtWeightsDFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
-PtWeightsDHistoName="hPtWeightsFONLLDcent"
-PtWeightsBFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
-PtWeightsBHistoName="hPtWeightsFONLLBcent"
+# PtWeightsDFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
+# PtWeightsDHistoName="hPtWeightsFONLLDcent"
+# PtWeightsBFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
+# PtWeightsBHistoName="hPtWeightsFONLLBcent"
 
 DataDrivenFractionFileName=""
 
 #assuming cutsets config files starting with "cutset" and are .yml
-CutSetsDir="../AnalysisNonPromptDpp2017/Dplus/configfiles/cutsets/FD"
+CutSetsDir="configfiles/cutsets/LctopK0s/"
 declare -a CutSets=()
 for filename in ${CutSetsDir}/*.yml; do
     tmp_name="$(basename -- ${filename} .yml)"
@@ -44,18 +44,20 @@ for filename in ${CutSetsDir}/*.yml; do
 done
 arraylength=${#CutSets[@]}
 
-OutDirRawyields="../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape"
-OutDirEfficiency="../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape"
+OutDirRawyields="rawYields"
+OutDirEfficiency="efficiencies"
 OutDirCrossSec=""
 OutDirRaa=""
 ################################################################################################
 
-if [ ${Meson} != "Dplus" ] && [ ${Meson} != "Ds" ]; then
+if [ ${Particle} != "Dplus" ] && [ ${Particle} != "Ds" ] && [ ${Particle} != "Lc" ]; then
   echo $(tput setaf 1) ERROR: only Ds and Dplus mesons are supported! $(tput sgr0)
   exit 2
 fi
 
-if [ ${Cent} != "k010" ] && [ ${Cent} != "k3050" ] && [ ${Cent} != "k6080" ] && [ ${Cent} != "kpp5TeVFD" ] && [ ${Cent} != "kpp5TeVPrompt" ]; then
+if [ ${Cent} != "k010" ] && [ ${Cent} != "k3050" ] && [ ${Cent} != "k6080" ] && 
+[ ${Cent} != "kpp5TeVFD" ] && [ ${Cent} != "kpp5TeVPrompt" ] &&
+[ ${Cent} != "kpp13TeVPrompt" ] && [ ${Cent} != "kpp13TeVFD" ]; then
   echo $(tput setaf 1) ERROR: system ${Cent} is not supported! $(tput sgr0)
   exit 2
 fi
@@ -137,6 +139,15 @@ elif [ ${Cent} == "k3050" ]; then
 elif [ ${Cent} == "k6080" ]; then
   isPrompt=true
   System=PbPb
+elif [ ${Cent} == "kpp13TeVPrompt" ]; then
+  isPrompt=true
+  System=pp
+elif [ ${Cent} == "kpp13TeVFD" ]; then
+  isPrompt=false
+  System=pp
+else
+  echo $(tput setaf 1) ERROR: system ${Cent} is not supported! $(tput sgr0)
+  exit 2
 fi
 
 #project sparses or trees
@@ -149,7 +160,7 @@ if $DoDataProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Projecting data distributions $(tput sgr0)
-    python3 ${ProjectScript} ${cfgFileData} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml ${OutDirRawyields}/Distr_${Meson}_data${CutSets[$iCutSet]}.root
+    python3 ${ProjectScript} ${cfgFileData} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml ${OutDirRawyields}/Distr_${Particle}_data${CutSets[$iCutSet]}.root
   done
 fi
 
@@ -158,13 +169,13 @@ if $DoMCProjection; then
   do
     echo $(tput setaf 4) Projecting MC distributions $(tput sgr0)
     if [ "${PtWeightsDFileName}" == "" -o "${PtWeightsDHistoName}" == "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ]; then
-      python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root
+      python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root
     elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ]; then
         echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} $(tput sgr0)
-        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName}
+        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName}
     elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" != "" ] && [ "${PtWeightsBHistoName}" != "" ]; then
         echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} and ${PtWeightsBHistoName} ptB weights from ${PtWeightsBFileName} $(tput sgr0)
-        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName} --ptweightsB ${PtWeightsBFileName} ${PtWeightsBHistoName}
+        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName} --ptweightsB ${PtWeightsBFileName} ${PtWeightsBHistoName}
     fi
   done
 fi
@@ -173,8 +184,7 @@ fi
 if $DoMCRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo $(tput setaf 4) Extract raw yields from ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-    echo '.x GetRawYieldsDplusDs.C+('${Cent}',true, "'${OutDirEfficiency}'/Distr_'${Meson}'_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Meson}'_MC'${CutSets[$iCutSet]}'.root")' | root -l -b
+    echo $(tput setaf 4) Extract raw yields from ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
     echo '.q'
   done
 fi
@@ -182,8 +192,9 @@ fi
 if $DoDataRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo $(tput setaf 4) Extract raw yields from ${OutDirRawyields}/Distr_${Meson}_data${CutSets[$iCutSet]}.root $(tput sgr0)
-    echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Meson}'_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Meson}${CutSets[$iCutSet]}'.root")' | root -l -b
+    echo $(tput setaf 4) Extract raw yields from ${OutDirRawyields}/Distr_${Particle}_data${CutSets[$iCutSet]}.root $(tput sgr0)
+    echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root")' | root -l -b
+    echo ${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root'
     echo '.q'
   done
 fi
@@ -192,8 +203,8 @@ fi
 if $DoEfficiency; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-    python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Meson}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Meson}${CutSets[$iCutSet]}.root --batch
+    echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
+    python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root --batch
   done
 fi
 
@@ -202,7 +213,7 @@ if $DoAccEff; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Compute efficiency times acceptance $(tput sgr0)
-    python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Meson}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root --batch
+    python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root --batch
   done
 fi
 
@@ -212,9 +223,9 @@ if $DoDataDrivenCrossSection; then
   do
     echo $(tput setaf 4) Compute cross section $(tput sgr0)
     if $isPrompt; then
-      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYields${Meson}${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --prompt --${Meson} --system ${System} --energy 5.02 --batch
+      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYields${Particle}${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Particle}${CutSets[$iCutSet]}.root --prompt --${Particle} --system ${System} --energy 5.02 --batch
     else
-      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYields${Meson}${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Meson}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Meson}${CutSets[$iCutSet]}.root --FD --${Meson} --system ${System} --energy 5.02 --batch
+      python3 ComputeDataDrivenCrossSection.py ${OutDirRawyields}/RawYields${Particle}${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root ${DataDrivenFractionFileName} ${OutDirCrossSec}/CrossSection${Particle}${CutSets[$iCutSet]}.root --FD --${Particle} --system ${System} --energy 5.02 --batch
     fi
   done
 fi
@@ -222,9 +233,9 @@ fi
 #compute HFPtSpectrum
 if $DoHFPtSpec; then
   Channel=""
-  if [ ${Meson} == "Ds" ]; then 
+  if [ ${Particle} == "Ds" ]; then 
     Channel="kDsKKpi"
-  elif [ ${Meson} == "Dplus" ]; then 
+  elif [ ${Particle} == "Dplus" ]; then 
     Channel="kDplusKpipi"
   fi
   
@@ -244,7 +255,7 @@ if $DoHFPtSpec; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Compute HFPtspectrum $(tput sgr0)
-    echo '.x HFPtSpectrum.C+('${Channel}',"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYields'${Meson}${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root",kNb,'${sigma}',true,'${cc}','${year}')' | root -l -b
+    echo '.x HFPtSpectrum.C+('${Channel}',"'${predFileName}'","'${OutDirEfficiency}'/Eff_times_Acc_'${Particle}${CutSets[$iCutSet]}'.root","'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root","hRawYields","hAccEffPrompt","hAccEffFD","hEvForNorm","'${OutDirCrossSec}'/HFPtSpectrum'${Particle}${CutSets[$iCutSet]}'.root",kNb,'${sigma}',true,'${cc}','${year}')' | root -l -b
     echo '.q'
   done
 fi
@@ -254,7 +265,7 @@ if $DoHFPtSpecRaa; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Compute HFPtspectrumRaa $(tput sgr0)
-    echo '.x HFPtSpectrumRaa.C+("'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root","'${OutDirRaa}'/HFPtSpectrumRaa'${Meson}${CutSets[$iCutSet]}'.root",4,1,kNb,'${Cent}',k2018,k5dot023,1./3,3,6,false,1)' | root -l -b
+    echo '.x HFPtSpectrumRaa.C+("'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Particle}${CutSets[$iCutSet]}'.root","'${OutDirRaa}'/HFPtSpectrumRaa'${Particle}${CutSets[$iCutSet]}'.root",4,1,kNb,'${Cent}',k2018,k5dot023,1./3,3,6,false,1)' | root -l -b
     echo '.q'
   done
 fi
@@ -264,7 +275,7 @@ if $DoDmesonYield; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Compute corrected yield $(tput sgr0)
-    echo '.x ComputeDmesonYield.C+(k'${Meson}','${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Meson}${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaa'${Meson}${CutSets[$iCutSet]}'.root","","'${OutDirCrossSec}'","'${CutSets[$iCutSet]}'",1,1./3,3,false,1)' | root -l -b
+    echo '.x ComputeDmesonYield.C+(k'${Particle}','${Cent}',2,1,"'${pprefFileName}'","'${OutDirCrossSec}'/HFPtSpectrum'${Particle}${CutSets[$iCutSet]}'.root","","'${OutDirRaa}'/HFPtSpectrumRaa'${Particle}${CutSets[$iCutSet]}'.root","","'${OutDirCrossSec}'","'${CutSets[$iCutSet]}'",1,1./3,3,false,1)' | root -l -b
     echo '.q'
   done
 fi

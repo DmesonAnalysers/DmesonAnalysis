@@ -57,8 +57,10 @@ effVariationOpt = cutSetCfg['minimisation']['applyEffVariation']['option']
 applyEffVarToPrompt = cutSetCfg['minimisation']['applyEffVariation']['prompt']
 applyEffVarToFD = cutSetCfg['minimisation']['applyEffVariation']['feeddown']
 
+nEffFiles = len(cutSetCfg['efficiencies']['inputfiles'])
 if nSets != len(cutSetCfg['efficiencies']['inputfiles']):
     print('ERROR: number or raw yield files and efficiency files not consistent! Please check your config file. Exit')
+    print(f'raw yied files: {nSets}; efficiencies files: {nEffFiles}')
     sys.exit()
 
 hRawYields, hEffPrompt, hEffFD, hEv, hBkg = [], [], [], [], []

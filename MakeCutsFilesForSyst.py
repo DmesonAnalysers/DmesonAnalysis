@@ -82,21 +82,22 @@ def make_cuts():
                 yaml.dump(cutset_mod, outfile_mod, default_flow_style=False)
 
 def make_cuts_ml():
-    var_key = ['BDTout'] # ['ML_output_FD', 'ML_output_Bkg']
-    var_tag = ['BDTout'] # ['outFD', 'outBkg'] # used in file names to reduce length
-    step_variation = [{"2": 0.00005, "3": 0.00005, "4": 0.0001, "5": 0.0001, "6": 0.0002, "8": 0.0005, "12": 0.001, "16": 0.001, "24": 0.001, "36": 0.001}]
-        # {"2": 0.0001, "3": 0.0001, "4": 0.0001, "5": 0.0001, "6": 0.00005, "8": 0.0001, "12": 0.001, "16": 0.0015, "24": 0.002, "36": 0.003} 0-10%
-        # {"2": 0.00005, "3": 0.00005, "4": 0.0001, "5": 0.0001, "6": 0.0002, "8": 0.0005, "12": 0.001, "16": 0.001, "24": 0.001, "36": 0.001} 30-50%
+    var_key = ['ML_output_FD'] # ['ML_output_FD', 'ML_output_Bkg']
+    var_tag = ['outFD'] # ['outFD', 'outBkg'] # used in file names to reduce length
+    step_variation = [{"4": 0.02, "6": 0.02}]
+        # {"2": 0.0001, "3": 0.00005, "4": 0.00005, "5": 0.00005, "6": 0.0001, "8": 0.0002, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001}]
+        # {"2": 0.00005, "3": 0.00005, "4": 0.00005, "5": 0.00005, "6": 0.0001, "8": 0.0002, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001} 0-10%
+        # {"2": 0.0001, "3": 0.0001, "4": 0.0001, "5": 0.0001, "6": 0.0002, "8": 0.001, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001} 30-50%
         # [{"2": 0.01, "4": 0.01, "6": 0.01, "8": 0.01, "12": 0.01},
         #  {"2": 0.0005, "4": 0.0005, "6": 0.001, "8": 0.001, "12": 0.0005}]
-    num_step_pos = 20
-    num_step_neg = 30
+    num_step_pos = 13
+    num_step_neg = 10
     edge_to_vary = ['min'] # ['min', 'max']
 
-    in_dir = 'configfiles/cutsets/Ds/PbPb/'
-    cut_file_central = 'cutset_3050_ML_040521.yml'
-    out_dir = 'configfiles/cutsets/Ds/PbPb/syst_cuts_Ds3050_ML/'
-    out_file_tag = 'cutset_3050_ML_040521'
+    in_dir = 'configfiles/cutsets/LctopK0s/'
+    cut_file_central = 'cutset_LctopK0s_13TeV_presel_FDEn.yml'
+    out_dir = 'configfiles/cutsets/LctopK0s/'
+    out_file_tag = 'cutset_ML'
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
