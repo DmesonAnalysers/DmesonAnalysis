@@ -72,10 +72,10 @@ for iRun, run in enumerate(runs):
         for inDir in inDirs[iRun]:
             inName = os.path.join(dirName, f'{inDir}')
             outName = os.path.join(inputCfg["OutputPath"], f'{run}')
-            os.system(f'alien_cp -select {inputCfg["InputFileName"]} -y 2 -T 32 {inName} file://{outName}/')
+            os.system(f'alien_cp -T 32 {inName}/{inputCfg["InputFileName"]} file://{outName}/')
     else:
         outName = os.path.join(inputCfg["OutputPath"], f'{run}')
-        os.system(f'alien_cp -select {inputCfg["InputFileName"]} -y 2 -T 32 {dirName} file://{outName}/')
+        os.system(f'alien_cp -T 32 {dirName}/{inputCfg["InputFileName"]} file://{outName}/')
 
 # remove runs with no output
 for run in runsToRemove:
