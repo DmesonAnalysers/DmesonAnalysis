@@ -16,6 +16,7 @@ cutobjects/**/*.root
 filterdata/**/*.root
 AnalysisResults/
 optimisation/*.root
+
 # python/ML
 __pycache__
 *.pyc
@@ -29,28 +30,11 @@ __pycache__
 .DS_Store
 
 # Graphics
-RelativeSystematics.eps
 *.pdf
 *.png
 *.jpg
 *.jpeg
 
 # daniel
-notes.md
-/tutorial/
-filterdata/5TeV/**
-projections/**
-rawYields/**
-efficiencies/**
-configfiles/cutsets/LctopK0s/cutset_ML_outFD*
-comparisons/**/*.root
-.clang-format
-clean.sh
-computeFrac.sh
-crosssec.sh
-evalEfficiencies.sh
-makeProjections.sh
-makeYields.sh
-HyperParOpt*.txt
-trash/**
-*_outFD_*.yml
+steps.sh
+*.log

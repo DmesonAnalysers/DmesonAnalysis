@@ -12,15 +12,12 @@ import yaml
 import numpy as np
 import pandas as pd
 import xgboost as xgb
-import time
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
 from hipe4ml.tree_handler import TreeHandler
-sys.path.append('..')
-from utils.Misc import exec_time
 
 def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylint: disable=too-many-statements, too-many-branches
     '''
@@ -304,31 +301,39 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     print('Applying ML model to data dataframe: Done!')
 
 
-def main(): #pylint: disable=too-many-statements
-    # read config file
-    start_time = time.time()
+def main(configFile=None, doTraining=None, doApplication=None): #pylint: disable=too-many-statements
+    if configFile is None and doTraining is None and doApplication is None:
+        # read config file from ArgumentParser
+        parser = argparse.ArgumentParser(description='Arguments to pass')
+        parser.add_argument('cfgFileName', metavar='text', default='cfgFileNameML.yml', help='config file name for ml')
+        parser.add_argument("--train", help="perform only training and testing", action="store_true")
+        parser.add_argument("--apply", help="perform only application", action="store_true")
+        args = parser.parse_args()
+        doApplication = args.apply
+        doTraining = args.train
 
-    parser = argparse.ArgumentParser(description='Arguments to pass')
-    parser.add_argument('cfgFileName', metavar='text', default='cfgFileNameML.yml', help='config file name for ml')
-    parser.add_argument("--train", help="perform only training and testing", action="store_true")
-    parser.add_argument("--apply", help="perform only application", action="store_true")
-    args = parser.parse_args()
-
-    print('Loading analysis configuration: ...', end='\r')
-    with open(args.cfgFileName, 'r') as ymlCfgFile:
-        inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
-    print('Loading analysis configuration: Done!')
+        print('Loading analysis configuration: ...', end='\r')
+        with open(args.cfgFileName, 'r') as ymlCfgFile:
+            inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
+        print('Loading analysis configuration: Done!')
+    
+    elif configFile is not None and doTraining is not None and doApplication is not None:
+        # load config file from argument of function
+        print('Loading analysis configuration: ...', end='\r')
+        with open(configFile, 'r') as ymlCfgFile:
+            inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
+        print('Loading analysis configuration: Done!')
+    else:
+        print('\033[91mERROR: The chosen training/application configuration is not valid. Exit!\033[0m')
+        sys.exit()
+        
 
     print('Loading and preparing data files: ...', end='\r')
 
-    PromptHandler = TreeHandler()
-    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler()
-    DataHandler = TreeHandler()
-
-    PromptHandler.get_handler_from_large_file(inputCfg['input']['prompt'], inputCfg['input']['treename'], max_workers=8)
-    DataHandler.get_handler_from_large_file(inputCfg['input']['data'], inputCfg['input']['treename'], max_workers=8)
-    if FDHandler is not None:
-        FDHandler.get_handler_from_large_file(inputCfg['input']['FD'], inputCfg['input']['treename'], max_workers=8)
+    PromptHandler = TreeHandler(inputCfg['input']['prompt'], inputCfg['input']['treename'])
+    FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'],
+                                                                         inputCfg['input']['treename'])
+    DataHandler = TreeHandler(inputCfg['input']['data'], inputCfg['input']['treename'])
 
     if inputCfg['data_prep']['filt_bkg_mass']:
         BkgHandler = DataHandler.get_subset(inputCfg['data_prep']['filt_bkg_mass'], frac=1.,
@@ -360,12 +365,12 @@ def main(): #pylint: disable=too-many-statements
         TrainTestData, PromptDfSelForEff, FDDfSelForEff = data_prep(inputCfg, iBin, PtBin, OutPutDirPt,
                                                                     PromptHandler.get_slice(iBin), FDDfPt,
                                                                     BkgHandler.get_slice(iBin))
-        if args.apply and inputCfg['data_prep']['test_fraction'] < 1.:
+        if doApplication and inputCfg['data_prep']['test_fraction'] < 1.:
             print('\033[93mWARNING: Using only a fraction of the MC for the application! Are you sure?\033[0m')
 
         # training, testing
         #_____________________________________________
-        if not args.apply:
+        if not doApplication:
             ModelHandl = train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin)
         else:
             ModelList = inputCfg['ml']['saved_models']
@@ -380,7 +385,7 @@ def main(): #pylint: disable=too-many-statements
 
         # model application
         #_____________________________________________
-        if not args.train:
+        if not doTraining:
             appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataHandler.get_slice(iBin),
                  PromptDfSelForEff, FDDfSelForEff)
 
@@ -388,7 +393,6 @@ def main(): #pylint: disable=too-many-statements
         for data in TrainTestData:
             del data
         del PromptDfSelForEff, FDDfSelForEff
-    
-    exec_time(start_time, time.time())
 
-main()
+if __name__ == "__main__":
+    main()

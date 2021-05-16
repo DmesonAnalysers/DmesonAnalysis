@@ -218,9 +218,7 @@ for iPt in range(hRawYields[0].GetNbinsX()):
     listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD]
     listBkg = [hbkg.GetBinContent(iPt+1) for hbkg in hBkg]
     listBkgUnc = [hbkg.GetBinError(iPt+1) for hbkg in hBkg]
-    print('----->', hBkg)
-    print('----->', listBkg)
-    print('----->', listBkgUnc)
+
     if cutSetCfg['linearplot']['enable']:
         fNfdNprompt.append([])
         cLinearPlot.append(TCanvas(f'LinearPlot_Pt{iPt+1}-{iPt+2}', '', 800, 800))
@@ -270,10 +268,8 @@ for iPt in range(hRawYields[0].GetNbinsX()):
             listEffFD = ApplyVariationToList(listEffFD, relEffVariation, effVariationOpt)
 
     corrYields, covMatrixCorrYields, chiSquare, matrices = \
-        GetPromptFDYieldsAnalyticMinimisation(listEffPrompt, listEffFD, listRawYield, listBkg,
-                                              listEffPromptUnc, listEffFDUnc, listRawYieldUnc, listBkgUnc,
-                                              "SplusB")
-                                            #   cutSetCfg['minimisation']['correlated'])
+        GetPromptFDYieldsAnalyticMinimisation(listEffPrompt, listEffFD, listRawYield, listEffPromptUnc, listEffFDUnc,
+                                              listRawYieldUnc, cutSetCfg['minimisation']['correlated'])
 
     hCorrYieldPrompt.SetBinContent(iPt+1, corrYields.item(0))
     hCorrYieldPrompt.SetBinError(iPt+1, np.sqrt(covMatrixCorrYields.item(0, 0)))
