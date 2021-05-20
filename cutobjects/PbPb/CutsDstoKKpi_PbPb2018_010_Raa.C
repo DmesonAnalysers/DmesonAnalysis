@@ -1241,7 +1241,7 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Central2018_Pass3(bool fUseStrongPID =
     return analysiscuts;
 }
 
-AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_Pass3(bool fIsMC=false, double ptmin=2., double ptmax=50., int preselType=kTightQM) {
+AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_Pass3(bool fIsMC=false, double ptmin=2., double ptmax=50., int preselType=kTightQM, bool fUseStrongPID = false, double maxPtstrongPID = 8.0) {
 
     AliESDtrackCuts* esdTrackCuts=new AliESDtrackCuts();
     esdTrackCuts->SetRequireSigmaToVertex(false);
@@ -1385,7 +1385,11 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_Pass3(bool fIsMC=false, doubl
     else analysiscuts->SetTriggerMask(AliVEvent::kMB);
 
     analysiscuts->SetUsePID(true);
-    analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
+    if(fUseStrongPID) {
+      analysiscuts->SetPidOption(1); //0=kConservative,1=kStrong
+      analysiscuts->SetMaxPtStrongPid(maxPtstrongPID);
+    }
+    else analysiscuts->SetPidOption(0); //0=kConservative,1=kStrong
     if(!fIsMC)
       analysiscuts->EnableNsigmaDataDrivenCorrection(true,AliAODPidHF::kPbPb010);
 
@@ -1408,8 +1412,10 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs010_Filt2018_Pass3(bool fIsMC=false, doubl
     analysiscuts->PrintAll();
     TString triggername = "kINT7_kCentral";
     if(fIsMC) triggername = "kMB";
+    TString pidname = "";
+    if(fUseStrongPID) pidname = Form("_strongPIDpt%0.f", maxPtstrongPID);
 
-    TFile* fout=new TFile(Form("DstoKKpiCuts_010_filt_Raa_%s_pt%0.f_%0.f%s_2018pass3.root",triggername.Data(),ptmin,ptmax,preselname.Data()),"recreate");
+    TFile* fout=new TFile(Form("DstoKKpiCuts_010_filt%s_Raa_%s_pt%0.f_%0.f%s_2018pass3.root",pidname.Data(),triggername.Data(),ptmin,ptmax,preselname.Data()),"recreate");
     fout->cd();
     analysiscuts->Write();
     fout->Close();

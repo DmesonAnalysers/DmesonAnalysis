@@ -24,8 +24,8 @@ cfgFileMC="../AnalysisNonPromptDpp2017/Dplus/configfiles/inputs/config_Dplus_pp_
 cfgFileFit="../AnalysisNonPromptDpp2017/Dplus/configfiles/fit/config_Dplus_pp5TeV.yml"
 
 accFileName="accfiles/Acceptance_Toy_DplusKpipi_yfidPtDep_etaDau09_ptDau100_FONLL5ptshape.root"
-predFileName="models/D0DplusDstarPredictions_502TeV_y05_noYShift_all_191017_BDShapeCorrected.root"
-pprefFileName="" #"ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_6_8_12_16_24_36_50.root"
+predFileName="models/fonll/feeddown/DmesonLcPredictions_502TeV_y05_FFee_BRpythia8_SepContr_PDG2020.root"
+pprefFileName=""
 
 PtWeightsDFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
 PtWeightsDHistoName="hPtWeightsFONLLDcent"
