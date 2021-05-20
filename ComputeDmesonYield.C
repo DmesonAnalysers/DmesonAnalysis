@@ -24,8 +24,8 @@ enum cent{k010,k3050,k6080};
 
 // Graphical styles
 const Int_t maxPtBins = 50;
-Bool_t draw[maxPtBins]={1,1,0,1,0,1,0,0,1};
-Int_t colors[maxPtBins]={kGray+2,kMagenta+1,kMagenta,kBlue,kCyan,kGreen+2,kYellow+2,kOrange+1,kRed+1};
+Bool_t draw[maxPtBins]={1,1,1,1,1,1,1,1,1};
+Int_t colorarray[maxPtBins]={kGray+2,kMagenta+1,kMagenta,kBlue,kCyan,kGreen+2,kYellow+2,kOrange+1,kRed+1};
 Int_t lstyle[maxPtBins]={9,10,3,5,7,1,3,6,2};
 
 Bool_t PbPbDataSyst(AliHFSystErr *syst, TH1D* heff, Double_t pt, Double_t &dataSystUp, Double_t &dataSystDown);
@@ -34,7 +34,7 @@ void ComputeDmesonYield(Int_t mesonSpecie=kDs,
                         Int_t Cent=k010,
                         Int_t method=2,
                         Int_t optErrFD=1,
-                        TString filnamPPref="ppreference/Ds_ppreference_pp5TeV_noyshift_pt_1_2_3_4_5_6_8_12_16_24_FONLLextrap_pt_24_36_50_ML.root",
+                        TString filnamPPref="ppreference/Ds_ppreference_pp5TeV_noyshift_pt_1_2_3_4_5_6_8_12_16_24_FONLLextrap_pt_24_36_50_ML_AccFONLLy.root",
                         TString filnamSpectrumNb="outputs/crosssec/HFPtSpectrum_Ds_centralcuts_LHC18qr.root",
                         TString filnamSpectrumFc="",
                         TString filnamRaaNb="outputs/raa/HFPtSpectrumRaa_Ds_centralcuts_LHC18qr.root",
@@ -702,19 +702,19 @@ void ComputeDmesonYield(Int_t mesonSpecie=kDs,
 
   for(Int_t ib=0; ib<nPtBins; ib++){
     if(draw[ib] && gcb[ib]->GetN()>0){
-      gcb[ib]->SetLineColor(colors[ib]);
+      gcb[ib]->SetLineColor(colorarray[ib]);
       gcb[ib]->SetLineWidth(3);
       gcb[ib]->SetLineStyle(lstyle[ib]);
       if(first){
-	gcb[ib]->Draw("AL");
-	gcb[ib]->GetXaxis()->SetLimits(0.,1.);
-	gcb[ib]->GetXaxis()->SetTitle("#it{R}_{AA} feed-down");
-	gcb[ib]->GetYaxis()->SetTitle("#it{R}_{AA} prompt");
-	gcb[ib]->SetMinimum(0.);
-	gcb[ib]->SetMaximum(1.);
-	first=kFALSE;
+        gcb[ib]->Draw("AL");
+        gcb[ib]->GetXaxis()->SetLimits(0.,1.);
+        gcb[ib]->GetXaxis()->SetTitle("#it{R}_{AA} feed-down");
+        gcb[ib]->GetYaxis()->SetTitle("#it{R}_{AA} prompt");
+        gcb[ib]->SetMinimum(0.);
+        gcb[ib]->SetMaximum(1.);
+	      first=kFALSE;
       }else{
-	gcb[ib]->Draw("lsame");
+	      gcb[ib]->Draw("lsame");
       }
       ent=leg->AddEntry(gcb[ib],Form("%.1f<#it{p}_{T}<%.1f GeV/#it{c}",PtLims[ib],PtLims[ib+1]),"L");
     }
@@ -734,39 +734,39 @@ void ComputeDmesonYield(Int_t mesonSpecie=kDs,
   c2->SetRightMargin(0.045);
   for(Int_t ib=0; ib<nPtBins; ib++){
     if(draw[ib] && gcrbc[ib]->GetN()>0){
-      gcrbc[ib]->SetLineColor(colors[ib]);
+      gcrbc[ib]->SetLineColor(colorarray[ib]);
       gcrbc[ib]->SetLineWidth(3);
       gcrbc[ib]->SetLineStyle(lstyle[ib]);
       if(first){
-	gcrbc[ib]->Draw("AL");
-	gcrbc[ib]->GetXaxis()->SetLimits(lowHypoFdOverPrArray[ib],highHypoFdOverPrArray[ib]);
-	gcrbc[ib]->GetXaxis()->SetTitle("Hypothesis on (#it{R}_{AA} feed-down)/(#it{R}_{AA} prompt)");
-	gcrbc[ib]->GetYaxis()->SetTitleOffset(1.2);
-	gcrbc[ib]->GetXaxis()->SetTitleOffset(1.2);
-	gcrbc[ib]->GetYaxis()->SetTitleFont(43);
-	gcrbc[ib]->GetXaxis()->SetTitleFont(43);
-	gcrbc[ib]->GetYaxis()->SetTitleSize(30);
-	gcrbc[ib]->GetXaxis()->SetTitleSize(30);
-	gcrbc[ib]->GetYaxis()->SetLabelFont(43);
-	gcrbc[ib]->GetXaxis()->SetLabelFont(43);
-	gcrbc[ib]->GetYaxis()->SetLabelSize(28);
-	gcrbc[ib]->GetXaxis()->SetLabelSize(28);
-	if(!showRcbSystNorm){
-	  gcrbc[ib]->GetYaxis()->SetTitle("#it{R}_{AA} prompt");
-	  gcrbc[ib]->SetMinimum(0.);
-	  gcrbc[ib]->SetMaximum(0.8);
-	}else{
-	  gcrbc[ib]->GetYaxis()->SetTitle("Relative variation of #it{R}_{AA} prompt (%)");
-	  gcrbc[ib]->SetMinimum(-20);
-	  gcrbc[ib]->SetMaximum(20);
-	}
-	first=kFALSE;
+        gcrbc[ib]->GetXaxis()->SetLimits(lowHypoFdOverPr,highHypoFdOverPr);
+        gcrbc[ib]->GetXaxis()->SetTitle("Hypothesis on (#it{R}_{AA} feed-down)/(#it{R}_{AA} prompt)");
+        gcrbc[ib]->GetYaxis()->SetTitleOffset(1.2);
+        gcrbc[ib]->GetXaxis()->SetTitleOffset(1.2);
+        gcrbc[ib]->GetYaxis()->SetTitleFont(43);
+        gcrbc[ib]->GetXaxis()->SetTitleFont(43);
+        gcrbc[ib]->GetYaxis()->SetTitleSize(30);
+        gcrbc[ib]->GetXaxis()->SetTitleSize(30);
+        gcrbc[ib]->GetYaxis()->SetLabelFont(43);
+        gcrbc[ib]->GetXaxis()->SetLabelFont(43);
+        gcrbc[ib]->GetYaxis()->SetLabelSize(28);
+        gcrbc[ib]->GetXaxis()->SetLabelSize(28);
+        if(!showRcbSystNorm){
+          gcrbc[ib]->GetYaxis()->SetTitle("#it{R}_{AA} prompt");
+          gcrbc[ib]->SetMinimum(0.);
+          gcrbc[ib]->SetMaximum(0.8);
+        }else{
+          gcrbc[ib]->GetYaxis()->SetTitle("Relative variation of #it{R}_{AA} prompt (%)");
+          gcrbc[ib]->SetMinimum(-20);
+          gcrbc[ib]->SetMaximum(20);
+        }
+        gcrbc[ib]->Draw("AL");
+	      first=kFALSE;
       }else{
-	gcrbc[ib]->Draw("lsame");
+	      gcrbc[ib]->Draw("Lsame");
       }
       if(!showRcbSystNorm){
-	mC[ib]->SetMarkerColor(colors[ib]);
-	mC[ib]->Draw("same");
+        mC[ib]->SetMarkerColor(colorarray[ib]);
+        mC[ib]->Draw("same");
       }
     }
   }
@@ -875,6 +875,12 @@ void ComputeDmesonYield(Int_t mesonSpecie=kDs,
   if(collSyst=="p-Pb" && TMath::Abs(normToCsec-1.)>0.001){
     ymax=110000.;
     ymin=1.1;
+  }
+  else if(collSyst=="Pb-Pb" && centrality=="0-10"){
+    ymin=1E-8;
+  }
+  else if(collSyst=="Pb-Pb" && centrality=="30-50"){
+    ymin=1E-8;
   }
 
   TH2F *hempty=new TH2F("hempty","",100,0.,PtLims[nPtBins]*1.02,100,ymin,ymax);
