@@ -22,6 +22,9 @@ inputs:
         lido:
             enabled: false
             efffile: outputs/genptshape/Eff_Ds_010_FONLL_times_LIDO.root
+        lgr:
+            enabled: false
+            efffile: null
 
 outputfile:
     directory: ../../../AnalysisNonPromptDpp2017/Dplus/outputs/systematics/genptshape/
