@@ -182,12 +182,12 @@ for iPt in range(1, hTotSystPrompt.GetNbinsX()+1):
     hTotSystFD.SetBinError(iPt, 1.e-20)
     hTotSystAll.SetBinError(iPt, 1.e-20)
 
-legAverage = TLegend(0.2, 0.7, 0.4, 0.8)
+legAverage = TLegend(0.2, 0.2, 0.4, 0.3)
 legAverage.SetTextSize(0.045)
 legAverage.SetFillStyle(0)
 legAverage.AddEntry(hPtDauMeanPrompt, 'average', 'pl')
 
-leg = TLegend(0.2, 0.6, 0.4, 0.9)
+leg = TLegend(0.2, 0.2, 0.4, 0.5)
 leg.SetTextSize(0.045)
 leg.SetFillStyle(0)
 leg.AddEntry(hTotSystPrompt, 'prompt', 'pl')
