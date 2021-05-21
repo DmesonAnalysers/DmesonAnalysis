@@ -1191,8 +1191,18 @@ AliRDHFCutsDstoKKpi* MakeFileForCutsDs3050_Central2018_Pass3(bool fUseStrongPID 
         break;
 
       case 4:
-        analysiscuts->SetUseCutGeoNcrNcl(true);
-        trackCutName = "_addUseCutGeo";
+        analysiscuts->SetMinRatioSignalNOverCrossRowsTPC(0.5);
+        trackCutName = "_addRatioSignalNOverRowsTPC";
+        break;
+      
+      case 5:
+        analysiscuts->SetMinNumTPCClsForPID(40);
+        trackCutName = "_addMinClsForPIDTPC40";
+        break;
+
+      case 6:
+        analysiscuts->SetMinNumTPCClsForPID(60);
+        trackCutName = "_addMinClsForPIDTPC60";
         break;
 
       default:
