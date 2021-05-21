@@ -301,35 +301,20 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     print('Applying ML model to data dataframe: Done!')
 
 
-def main(configFile=None, doTraining=None, doApplication=None): #pylint: disable=too-many-statements
-    if configFile is None and doTraining is None and doApplication is None:
-        # read config file from ArgumentParser
-        parser = argparse.ArgumentParser(description='Arguments to pass')
-        parser.add_argument('cfgFileName', metavar='text', default='cfgFileNameML.yml', help='config file name for ml')
-        parser.add_argument("--train", help="perform only training and testing", action="store_true")
-        parser.add_argument("--apply", help="perform only application", action="store_true")
-        args = parser.parse_args()
-        doApplication = args.apply
-        doTraining = args.train
+def main(): #pylint: disable=too-many-statements
+    # read config file
+    parser = argparse.ArgumentParser(description='Arguments to pass')
+    parser.add_argument('cfgFileName', metavar='text', default='cfgFileNameML.yml', help='config file name for ml')
+    parser.add_argument("--train", help="perform only training and testing", action="store_true")
+    parser.add_argument("--apply", help="perform only application", action="store_true")
+    args = parser.parse_args()
 
-        print('Loading analysis configuration: ...', end='\r')
-        with open(args.cfgFileName, 'r') as ymlCfgFile:
-            inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
-        print('Loading analysis configuration: Done!')
-    
-    elif configFile is not None and doTraining is not None and doApplication is not None:
-        # load config file from argument of function
-        print('Loading analysis configuration: ...', end='\r')
-        with open(configFile, 'r') as ymlCfgFile:
-            inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
-        print('Loading analysis configuration: Done!')
-    else:
-        print('\033[91mERROR: The chosen training/application configuration is not valid. Exit!\033[0m')
-        sys.exit()
-        
+    print('Loading analysis configuration: ...', end='\r')
+    with open(args.cfgFileName, 'r') as ymlCfgFile:
+        inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
+    print('Loading analysis configuration: Done!')
 
     print('Loading and preparing data files: ...', end='\r')
-
     PromptHandler = TreeHandler(inputCfg['input']['prompt'], inputCfg['input']['treename'])
     FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'],
                                                                          inputCfg['input']['treename'])
@@ -365,12 +350,12 @@ def main(configFile=None, doTraining=None, doApplication=None): #pylint: disable
         TrainTestData, PromptDfSelForEff, FDDfSelForEff = data_prep(inputCfg, iBin, PtBin, OutPutDirPt,
                                                                     PromptHandler.get_slice(iBin), FDDfPt,
                                                                     BkgHandler.get_slice(iBin))
-        if doApplication and inputCfg['data_prep']['test_fraction'] < 1.:
+        if args.apply and inputCfg['data_prep']['test_fraction'] < 1.:
             print('\033[93mWARNING: Using only a fraction of the MC for the application! Are you sure?\033[0m')
 
         # training, testing
         #_____________________________________________
-        if not doApplication:
+        if not args.apply:
             ModelHandl = train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin)
         else:
             ModelList = inputCfg['ml']['saved_models']
@@ -385,7 +370,7 @@ def main(configFile=None, doTraining=None, doApplication=None): #pylint: disable
 
         # model application
         #_____________________________________________
-        if not doTraining:
+        if not args.train:
             appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataHandler.get_slice(iBin),
                  PromptDfSelForEff, FDDfSelForEff)
 
@@ -394,5 +379,4 @@ def main(configFile=None, doTraining=None, doApplication=None): #pylint: disable
             del data
         del PromptDfSelForEff, FDDfSelForEff
 
-if __name__ == "__main__":
-    main()
+main()

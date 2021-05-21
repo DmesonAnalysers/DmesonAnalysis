@@ -27,10 +27,10 @@ accFileName="accfiles/Acceptance_Toy_LcK0Sp_yfidPtDep_etaDau09_ptDau100_promptD0
 predFileName="models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFptDepLHCb_BRpythia8_PDG2020_PromptLcMod.root"
 pprefFileName="" #"ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_6_8_12_16_24_36_50.root"
 
-# PtWeightsDFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
-# PtWeightsDHistoName="hPtWeightsFONLLDcent"
-# PtWeightsBFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
-# PtWeightsBHistoName="hPtWeightsFONLLBcent"
+PtWeightsDFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
+PtWeightsDHistoName="hPtWeightsFONLLDcent"
+PtWeightsBFileName="systematics/genptshape/ptweights/pp/NonPromptDplusWeights_LHC20a7.root"
+PtWeightsBHistoName="hPtWeightsFONLLBcent"
 
 DataDrivenFractionFileName=""
 

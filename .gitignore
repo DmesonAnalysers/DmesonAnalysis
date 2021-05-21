@@ -28,13 +28,11 @@ __pycache__
 # misc
 .vscode
 .DS_Store
+*.log
 
 # Graphics
 *.pdf
 *.png
 *.jpg
 *.jpeg
-
-# daniel
-steps.sh
-*.log
+*.eps

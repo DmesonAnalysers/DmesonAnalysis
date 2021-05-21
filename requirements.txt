@@ -1,2 +1,3 @@
 hipe4ml>=0.0.10
 pyaml
+alive_progress

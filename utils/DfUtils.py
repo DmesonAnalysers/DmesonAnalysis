@@ -3,7 +3,7 @@ Script with utils methods for managment and operations on pandas dataframes
 '''
 import pandas as pd
 import uproot
-import ROOT
+from ROOT import TFile, TTree
 import numpy as np
 from alive_progress import alive_bar
 
@@ -131,8 +131,8 @@ def ConvertParquet2Root(parquetFile, outputName, treename='tree'):
 
     '''
 
-    oFile = ROOT.TFile(outputName, 'recreate')
-    tree = ROOT.TTree(treename, treename)
+    oFile = TFile(outputName, 'recreate')
+    tree = TTree(treename, treename)
 
     df = pd.read_parquet(parquetFile, engine='pyarrow')
 
@@ -147,7 +147,6 @@ def ConvertParquet2Root(parquetFile, outputName, treename='tree'):
         for i in range(len(df)):
             for iCol, colname in enumerate(list(df)):
                 data[iCol][0] = df.values[i, iCol]
-            # print(df.values[i, 0])
             tree.Fill()
             bar()
 

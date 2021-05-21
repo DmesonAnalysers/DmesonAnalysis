@@ -90,8 +90,10 @@ for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]
         SgnFunc.append(AliHFInvMassFitter.kGaus)
     elif sgn == 'k2Gaus':
         SgnFunc.append(AliHFInvMassFitter.k2Gaus)
+    elif sgn == 'k2GausSigmaRatioPar':
+        SgnFunc.append(AliHFInvMassFitter.k2GausSigmaRatioPar)
     else:
-        print('ERROR: only kGaus and k2Gaus signal functions supported! Exit')
+        print('ERROR: only kGaus, k2Gaus and k2GausSigmaRatioPar signal functions supported! Exit!')
         sys.exit()
 
 if particleName == 'Dplus':
@@ -341,6 +343,9 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                 parRawYieldSecPeak = 5
                 parMeanSecPeak = 6
                 parSigmaSecPeak = 7
+        else:
+            print("ERROR: Only kGaus and k2Gaus are supported for MC. Exit!") #TODO: add support for k2GausSigmaRatioPar
+            sys.exit()
 
         if nPtBins > 1:
             cMass[iCanv].cd(iPt-nMaxCanvases*iCanv+1)
@@ -409,8 +414,13 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
             massFitter[iPt].SetUseLikelihoodFit()
         if fixMean[iPt]:
             massFitter[iPt].SetFixGaussianMean(hMeanToFix.GetBinContent(iPt+1))
+        if fitConfig[cent]['BoundMean']:
+            massFitter[iPt].SetBoundGaussianMean(massForFit, massMin, massMax)
         else:
             massFitter[iPt].SetInitialGaussianMean(massForFit)
+        if fitConfig[cent]['FixSigmaRatio']:
+            massFitter[iPt].SetFixRatio2GausSigma(
+                hSigmaToFix.GetBinContent(iPt+1)/hSigmaToFix2.GetBinContent(iPt+1))
 
         if fixSigma[iPt]:
             if isinstance(fitConfig[cent]['SigmaMultFactor'], (float, int)):
@@ -571,6 +581,13 @@ if not args.isMC:
         canv.Write()
 for hist in hMass:
     hist.Write()
+for fitter, ptLow, ptHigh in zip(massFitter, ptMins, ptMaxs):
+    fitter.GetMassFunc().SetName(f'fTot_{ptLow}_{ptHigh}')
+    fitter.GetSignalFunc().SetName(f'fSgn_{ptLow}_{ptHigh}')
+    fitter.GetBackgroundRecalcFunc().SetName(f'fBkg_{ptLow}_{ptHigh}')
+    fitter.GetMassFunc().Write()
+    fitter.GetSignalFunc().Write()
+    fitter.GetBackgroundRecalcFunc().Write()
 hRawYields.Write()
 hRawYieldsSigma.Write()
 hRawYieldsMean.Write()
