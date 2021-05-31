@@ -1,7 +1,7 @@
 Cent010:
     Particle: 'Ds'
-    FixSigma: 0
-    SigmaFile: 'outputs/0_10/RawYieldsDs_010_central_2018.root'
+    FixSigma: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    SigmaFile: '/home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/raw_yields/RawYields_Ds_MC_010_NewCuts.root'
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
@@ -12,7 +12,7 @@ Cent010:
     Rebin: [3, 3, 3, 4, 4, 4, 4, 5, 5, 6]
     InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
     SigmaSecPeak: [0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008]
-    SigmaFileSecPeak: '/home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/raw_yields/RawYields_Ds_MC_010.root'
+    SigmaFileSecPeak: '/home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/010/ML/raw_yields/RawYields_Ds_MC_010_NewCuts.root'
     SigmaMultFactorSecPeak: 1.
     FixSigmaToFirstPeak: 1
     UseLikelihood: 1

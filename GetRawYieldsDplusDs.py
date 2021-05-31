@@ -48,6 +48,12 @@ SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, padtopmargin=0.12, optt
 
 ptMins = fitConfig[cent]['PtMin']
 ptMaxs = fitConfig[cent]['PtMax']
+fixSigma = fitConfig[cent]['FixSigma']
+fixMean = fitConfig[cent]['FixMean']
+if not isinstance(fixSigma, list):
+    fixSigma = [fixSigma for pt in ptMins]
+if not isinstance(fixMean, list):
+    fixMean = [fixMean for pt in ptMins]
 ptLims = list(ptMins)
 nPtBins = len(ptMins)
 ptLims.append(ptMaxs[-1])
@@ -125,7 +131,7 @@ SetObjectStyle(hEv, color=kBlack, markerstyle=kFullCircle)
 infile.Close()
 
 hSigmaToFix = None
-if fitConfig[cent]['FixSigma']:
+if sum(fixSigma) > 0:
     infileSigma = TFile.Open(fitConfig[cent]['SigmaFile'])
     if not infileSigma:
         sys.exit()
@@ -136,7 +142,7 @@ if fitConfig[cent]['FixSigma']:
     infileSigma.Close()
 
 hMeanToFix = None
-if fitConfig[cent]['FixMean']:
+if sum(fixMean) > 0:
     infileMean = TFile.Open(fitConfig[cent]['MeanFile'])
     if not infileMean:
         sys.exit()
@@ -381,12 +387,12 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
 
         if fitConfig[cent]['UseLikelihood']:
             massFitter[iPt].SetUseLikelihoodFit()
-        if fitConfig[cent]['FixMean']:
+        if fixMean[iPt]:
             massFitter[iPt].SetFixGaussianMean(hMeanToFix.GetBinContent(iPt+1))
         else:
             massFitter[iPt].SetInitialGaussianMean(massForFit)
 
-        if fitConfig[cent]['FixSigma']:
+        if fixSigma[iPt]:
             if isinstance(fitConfig[cent]['SigmaMultFactor'], (float, int)):
                 massFitter[iPt].SetFixGaussianSigma(
                     hSigmaToFix.GetBinContent(iPt+1)*fitConfig[cent]['SigmaMultFactor'])
