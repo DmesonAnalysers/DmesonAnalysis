@@ -1,0 +1,33 @@
+isMC: yes
+filename: ''
+dirname: ''
+listname: ''
+sparsenameAll: null
+sparsenamePrompt: fnSparseReco_fromC
+sparsenameFD: fnSparseReco_fromB
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableSecPeak: no
+sparsenamePromptSecPeak: fnSparseRecoDplus_fromC
+sparsenameFDSecPeak: fnSparseRecoDplus_fromB
+sparsenameGenPromptSecPeak: fnSparseAccDplus_fromC
+sparsenameGenFDSecPeak: fnSparseAccDplus_fromB
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: Ds #needed to define binning for invariant-mass histo
+    filenameAll: null #not needed for MC
+    filenamePrompt: [/home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/training/final_3050/pt2_4/Prompt_D2H_pT_2_4_ModelApplied.parquet.gzip,
+                     /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/training/final_3050_Tighter_4_6/pt4_6/Prompt_D2H_pT_4_6_ModelApplied.parquet.gzip,
+                     /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/training/final_3050/pt6_12/Prompt_D2H_pT_6_12_ModelApplied.parquet.gzip,
+                     /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/training/final_3050/pt12_36/Prompt_D2H_pT_12_36_ModelApplied.parquet.gzip
+                     ]
+    filenameFD: [/home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/training/final_3050/pt2_4/FD_D2H_pT_2_4_ModelApplied.parquet.gzip,
+                 /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/training/final_3050_Tighter_4_6/pt4_6/FD_D2H_pT_4_6_ModelApplied.parquet.gzip,
+                 /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/training/final_3050/pt6_12/FD_D2H_pT_6_12_ModelApplied.parquet.gzip,
+                 /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/training/final_3050/pt12_36/FD_D2H_pT_12_36_ModelApplied.parquet.gzip
+                 ]
+    dirname: ''
+    treename: ''
