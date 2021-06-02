@@ -1,12 +1,12 @@
 '''
 Script for plotting the RMS and shift of the raw-yield multi-trial distributions vs pT
-run: python PlotMultiTrialRMSvsPt MultiTrial.root RawYieldsDefault.root Output.pdf
+run: python PlotMultiTrialRMSvsPt MultiTrial.root RawYieldsDefault.root Output.root
 '''
 
 import sys
 import argparse
-from ROOT import TCanvas, TFile, TGaxis, gPad, TMath # pylint: disable=import-error,no-name-in-module
-from ROOT import kBlack, kRed # pylint: disable=import-error,no-name-in-module
+from ROOT import TCanvas, TFile, TGaxis, gPad, TMath, TLegend # pylint: disable=import-error,no-name-in-module
+from ROOT import kBlack, kRed, kBlue # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
@@ -17,7 +17,7 @@ SetGlobalStyle(padleftmargin=0.14, padrightmargin=0.14, padbottommargin=0.14, ti
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('inFileNameMultiTrial', metavar='text', default='MultiTrial.root')
 parser.add_argument('inFileNameRawYields', metavar='text', default='RawYieldsDefault.root')
-parser.add_argument('outFileName', metavar='text', default='Output.pdf')
+parser.add_argument('outFileName', metavar='text', default='Output.root')
 args = parser.parse_args()
 
 inFileRaw = TFile.Open(args.inFileNameRawYields)
@@ -25,8 +25,8 @@ hRawYields = inFileRaw.Get('hRawYields')
 hSoverB = inFileRaw.Get('hRawYieldsSoverB')
 hRawYields.SetDirectory(0)
 hSoverB.SetDirectory(0)
-SetObjectStyle(hRawYields, color=kBlack, fillstyle=0)
-SetObjectStyle(hSoverB, color=kRed+1, fillstyle=0)
+SetObjectStyle(hRawYields, color=kBlack, fillstyle=0, linewidth=3)
+SetObjectStyle(hSoverB, color=kRed+1, fillstyle=0, linewidth=3)
 inFileRaw.Close()
 
 nPtBins = hRawYields.GetNbinsX()
@@ -69,19 +69,27 @@ axisSoverB.Draw()
 hSoverB.DrawCopy('same')
 cRMS.Update()
 
-cShift = TCanvas('cShift', '', 800, 800)
-cShift.DrawFrame(hMeanShift.GetBinLowEdge(1), 0.1, ptMax, 20., ';#it{p}_{T} (GeV/#it{c}); Mean Shift (%)')
-hMeanShift.DrawCopy('same')
-cShift.Update()
-
 cSyst = TCanvas('cSyst', '', 800, 800)
 cSyst.DrawFrame(hSyst.GetBinLowEdge(1), 0.1, ptMax, 20., ';#it{p}_{T} (GeV/#it{c}); Syst (%)')
+SetObjectStyle(hRMS, color=kRed+1, fillstyle=0, linewidth=3)
+SetObjectStyle(hMeanShift, color=kBlack, fillstyle=0, linewidth=3)
+SetObjectStyle(hSyst, color=kBlue+1, fillstyle=0, linewidth=3)
+hMeanShift.DrawCopy('same')
 hSyst.DrawCopy('same')
+hRMS.DrawCopy('same')
+leg = TLegend(0.5, 0.8, 0.8, 0.95)
+leg.SetTextSize(0.04)
+leg.SetFillStyle(0)
+leg.AddEntry(hRMS, "RMS", "l")
+leg.AddEntry(hMeanShift, "Shift", "l")
+leg.AddEntry(hSyst, "#sqrt{RMS^{2} + Shift^{2}}", "l")
+leg.Draw()
 cSyst.Update()
 
-outFile = TFile(f'{args.outFileName}.root', 'recreate')
+outFile = TFile(args.outFileName, 'recreate')
 cRMS.Write()
-cShift.Write()
 cSyst.Write()
+cRMS.SaveAs(args.outFileName.replace('.root', '_RMS.pdf'))
+cSyst.SaveAs(args.outFileName.replace('.root', '_Comp.pdf'))
 
 input('Press Enter to exit')
