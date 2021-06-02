@@ -51,9 +51,9 @@ ptMaxs = fitConfig[cent]['PtMax']
 fixSigma = fitConfig[cent]['FixSigma']
 fixMean = fitConfig[cent]['FixMean']
 if not isinstance(fixSigma, list):
-    fixSigma = [fixSigma for pt in ptMins]
+    fixSigma = [fixSigma for _ in ptMins]
 if not isinstance(fixMean, list):
-    fixMean = [fixMean for pt in ptMins]
+    fixMean = [fixMean for _ in ptMins]
 ptLims = list(ptMins)
 nPtBins = len(ptMins)
 ptLims.append(ptMaxs[-1])
