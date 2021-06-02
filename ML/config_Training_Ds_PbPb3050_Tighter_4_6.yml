@@ -1,0 +1,74 @@
+input: # files to use, set FD to null for binary classification
+    prompt: ~/Ds_PbPb_data_newSplines/skimmed_data/3050_tighter_pt4_6/Prompt_DsPbPb5TeV3050NoOutlier_MLtraining_tighter_pT_4_6.parquet.gzip
+    FD: null
+    data: ~/Ds_PbPb_data_newSplines/skimmed_data/3050_tighter_pt4_6/Data_DsPbPb5TeV3050NoOutlier_tighter_pT_4_6.parquet.gzip
+    treename: null
+    
+output:
+    leg_labels: # legend labels, keep the right number of classes
+        Bkg: Background
+        Prompt: Prompt D$_s^+$
+        FD: null
+    out_labels: # output labels, keep the right number of classes
+        Bkg: Bkg
+        Prompt: Prompt
+        FD: null
+    dir: '~/DsPbPb_paper/training/final_3050_Tighter_4_6' # output dir
+
+pt_ranges: # ranges in pt to split the data in the ml training and testing
+    min: [4] # list 
+    max: [6] # list 
+
+data_prep:
+    filt_bkg_mass: inv_mass < 1.832 or inv_mass > 2.012 # pandas query to select bkg candidates
+    dataset_opt: max_signal # change how the dataset is built, options available: 'equal', 'max_signal'
+                            # 'equal' -> same number of prompt/FD/bkg (not using all the signal available)
+                            # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = bkg_mult * (n_prompt + n_FD)
+    bkg_mult: [2.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    seed_split: 42 # seed used for train_test_split(...)
+    test_fraction: 0.2 # fraction of data used for test set and efficiencies --> set to 1. if you want to apply the model to the full dataframes  
+    
+ml:
+    raw_output: False # use raw_output (True) or probability (False) as output of the model
+    roc_auc_average: 'macro' # 'macro' or 'weighted'
+    roc_auc_approach: 'ovo'  # 'ovo' or 'ovr'
+    training_columns: [cos_p, cos_p_xy, d_len, d_len_xy, norm_dl_xy, imp_par_xy, sig_vert, delta_mass_KK, cos_PiKPhi_3,
+                       max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2]
+                       # list of training variables
+
+    hyper_par: [{'max_depth':5, 'learning_rate':0.046, 'n_estimators':1099, 'min_child_weight':5.2, 'subsample':0.89, 'colsample_bytree':0.90, 'n_jobs':2, 'tree_method':hist}
+                ]
+               # list of dicts of hyperparameters (one for each pT bin)
+
+    hyper_par_opt:
+      do_hyp_opt: False # whether to do the parameter optimization
+      njobs: 10 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
+      nfolds: 5 # number of folds used in cross validation
+      initpoints: 20 # steps of random exploration you want to perform
+      niter: 30 # steps for bayesian optimization
+      bayes_opt_config: {'max_depth': !!python/tuple [3, 7],
+                        'learning_rate': !!python/tuple [0.01, 0.1],
+                        'n_estimators': !!python/tuple [300, 1200],
+                        'min_child_weight': !!python/tuple [1, 10],
+                        'subsample': !!python/tuple [0.8, 1.],
+                        'colsample_bytree': !!python/tuple [0.8, 1.]}
+                        # configuration dictionary for optimize_params_bayes()
+
+    saved_models: [~/DsPbPb_paper/training/final_3050_Tighter_4_6/pt4_6/ModelHandler_pT_4_6.pickle
+                  ] 
+                   # list of saved ModelHandler (path+file), compatible with the pt bins
+
+plots:
+    plotting_columns: [inv_mass, pt_cand, cos_p, cos_p_xy, d_len, d_len_xy, norm_dl_xy, imp_par_xy, sig_vert, delta_mass_KK, cos_PiKPhi_3,
+                       max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2]
+                       # list of variables to plot
+    train_test_log: True # use log scale for plots of train and test distributions
+
+appl: 
+    column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
+
+standalone_appl:
+    inputs: [~/Ds_PbPb_data_newSplines/skimmed_data/3050_tighter_pt4_6/Prompt_DsPbPb5TeV3050NoOutlier_D2H_tighter_pT_4_6.parquet.gzip, 
+             ~/Ds_PbPb_data_newSplines/skimmed_data/3050_tighter_pt4_6/FD_DsPbPb5TeV3050NoOutlier_D2H_tighter_pT_4_6.parquet.gzip] # list of parquet files for the model application
+    output_names: ['Prompt_D2H', 'FD_D2H'] # names for the outputs (one for each file)
+    output_dir: '~/DsPbPb_paper/training/final_3050_Tighter_4_6' # output directory

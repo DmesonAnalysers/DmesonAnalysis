@@ -12,10 +12,10 @@ shapes:
             file: ../../models/fonll/FONLL_D_pp5_y05_pt0-50_100MeVbins.txt
         tamu:
             enabled: true
-            file: ../../models/tamu/PromptDs_TAMU_RAA_5TeV_010_ImprovedCoalescence.txt
+            file: ../../models/tamu/PromptDs_TAMU_RAA_5TeV_010.txt
         phsd:
             enabled: false
-            file: ../../models/phsd/Ds_PHSD_RAA_5TeV_010_new.txt
+            file: ../../models/phsd/Ds_PHSD_RAA_5TeV_010.txt
         mc@shq:
             enabled: false
             file: ../../models/mcatshq/D_Gossiaux_RAA_5TeV_010.txt
@@ -25,6 +25,9 @@ shapes:
         lido:
             enabled: true
             file: ../../models/lido/D-meson-Raa-010.dat
+        lgr:
+            enabled: false
+            file: ../../models/lgr/RAA_Prompt_Ds_0-10__ColRad_FragCoal.dat
     B:
         fonll: # fonll is mandatory
             file: ../../models/fonll/FONLL_B_pp5_y05_pt0-150_100MeVbins.txt

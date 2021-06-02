@@ -1,7 +1,7 @@
 input: # files to use, set FD to null for binary classification
-    prompt: ~/DsPbPb_paper/input/ml/MC/Prompt_DsPbPb5TeV3050NoOutlier_MLtraining_pT_2_50.parquet.gzip
+    prompt: ~/Ds_PbPb_data_newSplines/skimmed_data/3050/Prompt_DsPbPb5TeV3050NoOutlier_MLtraining_pT_2_50.parquet.gzip
     FD: null
-    data: ~/DsPbPb_paper/input/ml/data/Data_DsPbPb5TeV3050NoOutlier_pT_2_50.parquet.gzip
+    data: ~/Ds_PbPb_data_newSplines/skimmed_data/3050/Data_DsPbPb5TeV3050NoOutlier_pT_2_50.parquet.gzip
     treename: null
     
 output:
@@ -36,10 +36,10 @@ ml:
                        max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2] 
                        # list of training variables
 
-    hyper_par: [{'max_depth':7, 'learning_rate':0.039, 'n_estimators':1098, 'min_child_weight':6.8, 'subsample':0.89, 'colsample_bytree':0.86, 'n_jobs':2, 'tree_method':hist},
-                {'max_depth':7, 'learning_rate':0.046, 'n_estimators':994, 'min_child_weight':5.7, 'subsample':0.91, 'colsample_bytree':0.88, 'n_jobs':2, 'tree_method':hist},
-                {'max_depth':7, 'learning_rate':0.041, 'n_estimators':1099, 'min_child_weight':6.6, 'subsample':0.90, 'colsample_bytree':0.86, 'n_jobs':2, 'tree_method':hist},
-                {'max_depth':5, 'learning_rate':0.040, 'n_estimators':793, 'min_child_weight':4.7, 'subsample':0.84, 'colsample_bytree':0.98, 'n_jobs':2, 'tree_method':hist}
+    hyper_par: [{'max_depth':4, 'learning_rate':0.081, 'n_estimators':833, 'min_child_weight':5.6, 'subsample':0.81, 'colsample_bytree':0.89, 'n_jobs':2, 'tree_method':hist},
+                {'max_depth':5, 'learning_rate':0.071, 'n_estimators':994, 'min_child_weight':6.0, 'subsample':0.93, 'colsample_bytree':0.96, 'n_jobs':2, 'tree_method':hist},
+                {'max_depth':5, 'learning_rate':0.06, 'n_estimators':1098, 'min_child_weight':7.3, 'subsample':0.92, 'colsample_bytree':0.89, 'n_jobs':2, 'tree_method':hist},
+                {'max_depth':4, 'learning_rate':0.081, 'n_estimators':833, 'min_child_weight':5.6, 'subsample':0.81, 'colsample_bytree':0.89, 'n_jobs':2, 'tree_method':hist}
                 ]
                # list of dicts of hyperparameters (one for each pT bin)
 
@@ -49,11 +49,11 @@ ml:
       nfolds: 5 # number of folds used in cross validation
       initpoints: 20 # steps of random exploration you want to perform
       niter: 30 # steps for bayesian optimization
-      bayes_opt_config: {'max_depth': !!python/tuple [3, 8], 
+      bayes_opt_config: {'max_depth': !!python/tuple [3, 7],
                         'learning_rate': !!python/tuple [0.01, 0.1],
-                        'n_estimators': !!python/tuple [300, 1200], 
+                        'n_estimators': !!python/tuple [300, 1200],
                         'min_child_weight': !!python/tuple [1, 10],
-                        'subsample': !!python/tuple [0.8, 1.], 
+                        'subsample': !!python/tuple [0.8, 1.],
                         'colsample_bytree': !!python/tuple [0.8, 1.]}
                         # configuration dictionary for optimize_params_bayes()
 
@@ -74,7 +74,7 @@ appl:
     column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
 
 standalone_appl:
-    inputs: [~/DsPbPb_paper/input/ml/MC/Prompt_DsPbPb5TeV3050NoOutlier_D2H_pT_2_50.parquet.gzip, 
-             ~/DsPbPb_paper/input/ml/MC/FD_DsPbPb5TeV3050NoOutlier_D2H_pT_2_50.parquet.gzip] # list of parquet files for the model application
+    inputs: [~/Ds_PbPb_data_newSplines/skimmed_data/3050/Prompt_DsPbPb5TeV3050NoOutlier_D2H_pT_2_50.parquet.gzip, 
+             ~/Ds_PbPb_data_newSplines/skimmed_data/3050/FD_DsPbPb5TeV3050NoOutlier_D2H_pT_2_50.parquet.gzip] # list of parquet files for the model application
     output_names: ['Prompt_D2H', 'FD_D2H'] # names for the outputs (one for each file)
     output_dir: '~/DsPbPb_paper/training/final_3050' # output directory

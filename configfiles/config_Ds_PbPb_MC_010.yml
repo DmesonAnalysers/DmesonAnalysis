@@ -1,7 +1,7 @@
 isMC: yes
 isReducedVariables: no
-isWithBinfo: no
-filename: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/MC/010/D2H_MLapplied/AnalysisResultsDs_MC_010_ML_LHC20g2a_Tot.root
+isWithBinfo: yes
+filename: /home/fcatalan/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/input/MC/010/D2H_MLapplied/AnalysisResultsDs_MC_010_ML_LHC20g2a_2_Tot_train1822.root
 dirname: PWGHF_D2H_InvMassDs_MLappl010
 listname: coutputDs_MLappl010
 sparsenameAll: null

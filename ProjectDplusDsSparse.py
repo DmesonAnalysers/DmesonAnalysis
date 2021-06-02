@@ -95,9 +95,6 @@ if args.ptweights:
     bins = ptWeights.axis(0).edges()
     ptCentW = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
     sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values())
-    if not args.ptweightsB:
-        sPtWeightsGenDfromB = sPtWeights
-        sPtWeightsRecoDfromB = sPtWeights
 
 if args.ptweightsB:
     ptWeightsB = uproot.open(args.ptweightsB[0])[args.ptweightsB[1]]
@@ -147,7 +144,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(binMin, binMax)
 
     for iVar in ('InvMass', 'Pt'):
-        varName = cutVars[iVar]['name']
+        varName = 'Pt' if iVar == 'Pt' else 'Mass'
         axisNum = cutVars[iVar]['axisnum']
         if 'RecoAll' in sparseReco:
             hVar = sparseReco['RecoAll'].Projection(axisNum)
@@ -203,7 +200,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                             content = origContent * weight
                             error = 0
                             if origContent > 0:
-                                error = origError / origContent * content                        
+                                error = origError / origContent * content
                             hPtBvsPtD.SetBinContent(iPtD, iPtB, content)
                             hPtBvsPtD.SetBinError(iPtD, iPtB, error)
                     hVarFD = hPtBvsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
@@ -225,6 +222,13 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                                                        0, hBspecievsPtD.GetYaxis().GetNbins()+1, 'e')
                 else:
                     hVarFD = sparseReco['RecoFD'].Projection(axisNum)
+                    if args.ptweights: # if pt weights for prompt are present apply them
+                        for iBin in range(1, hVarFD.GetNbinsX()+1):
+                            if hVarFD.GetBinContent(iBin) > 0.:
+                                relStatUnc = hVarFD.GetBinError(iBin) / hVarFD.GetBinContent(iBin)
+                                ptCent = hVarFD.GetBinCenter(iBin)
+                                hVarFD.SetBinContent(iBin, hVarFD.GetBinContent(iBin) * sPtWeights(ptCent))
+                                hVarFD.SetBinError(iBin, hVarFD.GetBinContent(iBin) * relStatUnc)
             else:
                 hVarFD = sparseReco['RecoFD'].Projection(axisNum)
             hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
@@ -312,6 +316,13 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                                                     0, hBspecievsPtGenD.GetYaxis().GetNbins()+1, 'e')
         else:
             hGenPtFD = sparseGen['GenFD'].Projection(0)
+            if args.ptweights: # if pt weights for prompt are present apply them
+                for iBin in range(1, hGenPtFD.GetNbinsX()+1):
+                    if hGenPtFD.GetBinContent(iBin) > 0:
+                        relStatUnc = hGenPtFD.GetBinError(iBin) / hGenPtFD.GetBinContent(iBin)
+                        ptCent = hGenPtFD.GetBinCenter(iBin)
+                        hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeights(ptCent))
+                        hGenPtFD.SetBinError(iBin, hGenPtFD.GetBinContent(iBin) * relStatUnc)
             hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         fd_gen_list.append(hGenPtFD)
         hGenPtFD.Write()
@@ -347,7 +358,7 @@ for iPt in range(0, len(cutVars['Pt']['min']) - 1):
     ptLowLabel = cutVars['Pt']['min'][iPt] * 10
     ptHighLabel = cutVars['Pt']['max'][iPt+1] * 10
     for iVar in ('InvMass', 'Pt'):
-        varName = cutVars[iVar]['name']
+        varName = 'Pt' if iVar == 'Pt' else 'Mass'
         if 'RecoAll' in sparseReco:
             hVar_merged = MergeHists([all_dict[iVar][iPt], all_dict[iVar][iPt+1]])
             hVar_merged.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')

@@ -319,10 +319,7 @@ if isMC:
         ptLowLabel = cutVars['Pt']['min'][iPt] * 10
         ptHighLabel = cutVars['Pt']['max'][iPt+1] * 10
         for iVar in ('InvMass', 'Pt'):
-            if iVar == 'Pt':
-                varName = iVar
-            else:
-                varName = 'Mass'
+            varName = 'Pt' if iVar == 'Pt' else 'Mass'
             hPromptMerged = MergeHists([promptDict[iVar][iPt], promptDict[iVar][iPt+1]])
             hPromptMerged.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             hPromptMerged.Write()
@@ -372,10 +369,7 @@ else:
 ptLowLabel = cutVars['Pt']['min'][0] * 10
 ptHighLabel = cutVars['Pt']['max'][-1] * 10
 for iVar in ('InvMass', 'Pt'):
-    if iVar == 'Pt':
-        varName = iVar
-    else:
-        varName = 'Mass'
+    varName = 'Pt' if iVar == 'Pt' else 'Mass'
     if not isMC:
         hAllMergedAllPt = MergeHists(allDict[iVar])
         hAllMergedAllPt.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')

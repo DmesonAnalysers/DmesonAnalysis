@@ -1,8 +1,6 @@
 '''
 Script for the computation of pT shape weights
-run: python3 ComputePtGenWeights.py inFileMC.root outFile.root
-                                    [--Dspecie Dname] [--Bspecie Bname]
-                                    [--PbPb] [--rebin] [--smooth]
+run: python3 ComputePtGenWeights.py cfgFileName.yml
 '''
 
 import sys
@@ -10,7 +8,7 @@ import argparse
 import yaml
 from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
-from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ, ReadLIDO  #pylint: disable=wrong-import-position,import-error
+from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ, ReadLIDO, ReadLGR  #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
@@ -121,6 +119,8 @@ if 'mc@shq' in shapesD and shapesD['mc@shq']['enabled']:
     sGossiaux, _, ptMinGoss, ptMaxGoss = ReadMCatsHQ(shapesD['mc@shq']['file'])
 if 'lido' in shapesD and shapesD['lido']['enabled']:
     sLIDO, _, ptMinLIDO, ptMaxLIDO = ReadLIDO(shapesD['lido']['file'])
+if 'lgr' in shapesD and shapesD['lgr']['enabled']:
+    sLGR, _, ptMinLGR, ptMaxLGR = ReadLGR(shapesD['lgr']['file'])
 
 if 'tamu' in shapesB and shapesB['tamu']['enabled']:
     if Bspecie not in ['Bplus', 'Bzero', 'Bs', 'BsBmix']:
@@ -143,11 +143,12 @@ histoBNames = ['hPtFONLLBcent', 'hPtFONLLBmin', 'hPtFONLLBmax']
 modelPred = ['yCent', 'yMin', 'yMax']
 
 hPtFONLLD, hPtFONLLB, hPtFONLLtimesTAMUD, hPtFONLLtimesTAMUB, hPtFONLLtimesPHSDD, \
-    hPtFONLLtimesGossiauxD, hPtFONLLtimesCataniaD, hPtFONLLtimesLIDOD, hPtFONLLtimesLIDOB = ([] for _ in range(9))
+    hPtFONLLtimesGossiauxD, hPtFONLLtimesCataniaD, hPtFONLLtimesLIDOD, hPtFONLLtimesLIDOB, \
+        hPtFONLLtimesLGRD = ([] for _ in range(10))
 
 hPtWeightsFONLLD, hPtWeightsFONLLB, hPtWeightsFONLLtimesTAMUD, hPtWeightsFONLLtimesTAMUB, \
     hPtWeightsFONLLtimesPHSDD, hPtWeightsFONLLtimesGossiauxD, hPtWeightsFONLLtimesCataniaD, \
-        hPtWeightsFONLLtimesLIDOD, hPtWeightsFONLLtimesLIDOB = ([] for _ in range(9))
+        hPtWeightsFONLLtimesLIDOD, hPtWeightsFONLLtimesLIDOB, hPtWeightsFONLLtimesLGRD = ([] for _ in range(10))
 
 # D meson weights
 for histoName, pred in zip(histoDNames, modelPred):
@@ -162,6 +163,8 @@ for histoName, pred in zip(histoDNames, modelPred):
         hPtFONLLtimesCataniaD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesCatania')))
     if 'lido' in shapesD and shapesD['lido']['enabled']:
         hPtFONLLtimesLIDOD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesLIDO')))
+    if 'lgr' in shapesD and shapesD['lgr']['enabled']:
+        hPtFONLLtimesLGRD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesLGR')))
 
     for iPt in range(1, hPtFONLLD[-1].GetNbinsX()+1):
         ptCent = hPtFONLLD[-1].GetBinCenter(iPt)
@@ -213,6 +216,14 @@ for histoName, pred in zip(histoDNames, modelPred):
             else:
                 hPtFONLLtimesLIDOD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sLIDO['yCent'](ptMinLIDO))
 
+        if 'lgr' in shapesD and shapesD['lgr']['enabled']:
+            if ptMinLGR <= ptCent <= ptMaxLGR:
+                hPtFONLLtimesLGRD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sLGR['yCent'](ptCent))
+            elif ptCent > ptMaxLGR:
+                hPtFONLLtimesLGRD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sLGR['yCent'](ptMaxLGR))
+            else:
+                hPtFONLLtimesLGRD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sLGR['yCent'](ptMinLGR))
+
     hPtFONLLD[-1].Sumw2()
     hPtFONLLD[-1].Scale(1./hPtFONLLD[-1].Integral())
     hPtWeightsFONLLD.append(hPtFONLLD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
@@ -248,6 +259,12 @@ for histoName, pred in zip(histoDNames, modelPred):
             hPtFONLLtimesLIDOD[-1].Clone(hPtFONLLtimesLIDOD[-1].GetName().replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesLIDOD[-1].Divide(hPtFONLLtimesLIDOD[-1], hPtGenD)
         hPtWeightsFONLLtimesLIDOD[-1].Smooth(smooth)
+    if 'lgr' in shapesD and shapesD['lgr']['enabled']:
+        hPtFONLLtimesLGRD[-1].Scale(1./hPtFONLLtimesLGRD[-1].Integral())
+        hPtWeightsFONLLtimesLGRD.append(
+            hPtFONLLtimesLGRD[-1].Clone(hPtFONLLtimesLGRD[-1].GetName().replace('Pt', 'PtWeights')))
+        hPtWeightsFONLLtimesLGRD[-1].Divide(hPtFONLLtimesLGRD[-1], hPtGenD)
+        hPtWeightsFONLLtimesLGRD[-1].Smooth(smooth)
 
 # B meson weights
 if Bspecie:
@@ -293,7 +310,7 @@ if Bspecie:
                     hPtFONLLtimesLIDOB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sLIDOB['yCent'](ptMaxLIDOB))
                 else:
                     hPtFONLLtimesLIDOB[-1].SetBinContent(iPt, sFONLLB[pred](ptCent) * sLIDOB['yCent'](ptMinLIDOB))
- 
+
         hPtFONLLB[-1].Sumw2()
         hPtFONLLB[-1].Scale(1./hPtFONLLB[-1].Integral())
         hPtWeightsFONLLB.append(hPtFONLLB[-1].Clone(histoName.replace('Pt', 'PtWeights')))
@@ -334,6 +351,9 @@ for iHisto, _ in enumerate(hPtFONLLD):
     if 'lido' in shapesD and shapesD['lido']['enabled']:
         hPtFONLLtimesLIDOD[iHisto].Write()
         hPtWeightsFONLLtimesLIDOD[iHisto].Write()
+    if 'lgr' in shapesD and shapesD['lgr']['enabled']:
+        hPtFONLLtimesLGRD[iHisto].Write()
+        hPtWeightsFONLLtimesLGRD[iHisto].Write()
     if Bspecie:
         hPtFONLLB[iHisto].Write()
         hPtWeightsFONLLB[iHisto].Write()

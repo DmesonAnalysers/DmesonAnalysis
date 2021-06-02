@@ -71,25 +71,37 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         cerr << "ERROR: only Dplus, Ds and Lc are supported! Exit";
         return -1;
     }
-    
-    bool fixSigma = static_cast<bool>(config[centname.Data()]["FixSigma"].as<int>());
+
+    vector<double> PtMin = config[centname.Data()]["PtMin"].as<vector<double>>();
+    vector<double> PtMax = config[centname.Data()]["PtMax"].as<vector<double>>();
+    vector<double> MassMin = config[centname.Data()]["MassMin"].as<vector<double>>();
+    vector<double> MassMax = config[centname.Data()]["MassMax"].as<vector<double>>();
+    vector<int> fixSigma = {};
+    try{
+        fixSigma = config[centname.Data()]["FixSigma"].as<vector<int>>();
+    } catch (const YAML::BadConversion& e) {
+        int opt = config[centname.Data()]["FixSigma"].as<int>();
+        fixSigma.assign(PtMin.size(), opt);
+    }
     string infilenameSigma = config[centname.Data()]["SigmaFile"].as<string>();
     bool isSigmaMultFromUnc = false;
     double sigmaMult = 1.;
     string sigmaMultFromUnc = "";
     try {
         sigmaMult = config[centname.Data()]["SigmaMultFactor"].as<double>();
-    } catch (const YAML::BadConversion& e)  {
+    } catch (const YAML::BadConversion& e) {
         sigmaMultFromUnc = config[centname.Data()]["SigmaMultFactor"].as<string>();
         isSigmaMultFromUnc = true;
     }
-    bool fixMean = static_cast<bool>(config[centname.Data()]["FixMean"].as<int>());
+    vector<int> fixMean = {};
+    try{
+        fixMean = config[centname.Data()]["FixMean"].as<vector<int>>();
+    } catch (const YAML::BadConversion& e) {
+        int opt = config[centname.Data()]["FixMean"].as<int>();
+        fixMean.assign(PtMin.size(), opt);
+    }
     string infilenameMean = config[centname.Data()]["MeanFile"].as<string>();
     bool UseLikelihood = config[centname.Data()]["UseLikelihood"].as<int>();
-    vector<double> PtMin = config[centname.Data()]["PtMin"].as<vector<double>>();
-    vector<double> PtMax = config[centname.Data()]["PtMax"].as<vector<double>>();
-    vector<double> MassMin = config[centname.Data()]["MassMin"].as<vector<double>>();
-    vector<double> MassMax = config[centname.Data()]["MassMax"].as<vector<double>>();
     vector<int> Rebin = config[centname.Data()]["Rebin"].as<vector<int>>();
     vector<int> InclSecPeak = config[centname.Data()]["InclSecPeak"].as<vector<int>>();
     vector<double> SigmaSecPeak = config[centname.Data()]["SigmaSecPeak"].as<vector<double>>();
@@ -247,7 +259,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     }
 
     TH1D *hSigmaToFix = NULL;
-    if(fixSigma) {
+    if(accumulate(fixSigma.begin(), fixSigma.end(), 0) > 0) {
         auto infileSigma = TFile::Open(infilenameSigma.data());
         if(!infileSigma)
             return -2;
@@ -259,7 +271,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     }
 
     TH1D *hMeanToFix = NULL;
-    if(fixMean) {
+    if(accumulate(fixMean.begin(), fixMean.end(), 0) > 0) {
         auto infileMean = TFile::Open(infilenameMean.data());
         if(!infileMean)
             return -3;
@@ -427,11 +439,11 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 massFitter->SetPolDegreeForBackgroundFit(degPol[iPt]);
             if(UseLikelihood)
                 massFitter->SetUseLikelihoodFit();
-            if(fixMean)
+            if(fixMean[iPt])
                 massFitter->SetFixGaussianMean(hMeanToFix->GetBinContent(iPt+1));
             else
                 massFitter->SetInitialGaussianMean(massForFit);
-            if(fixSigma) {
+            if(fixSigma[iPt]) {
                 if(!isSigmaMultFromUnc)
                     massFitter->SetFixGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
                 else {

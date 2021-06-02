@@ -250,7 +250,6 @@ def ReadLIDO(fileName):
     Inputs
     ----------
     - fileName: file name
-    - obs: observable (Raa or v2)
 
     Returns
     ----------
@@ -267,3 +266,25 @@ def ReadLIDO(fileName):
     splineLIDO, ptMin, ptMax = InterpolateModel(dfLIDO['pT'], dfLIDO['Raa'], dfLIDO['Raa_min'], dfLIDO['Raa_max'])
 
     return splineLIDO, dfLIDO, ptMin, ptMax
+
+
+def ReadLGR(fileName):
+    '''
+    Method to read LGR Raa files
+
+    Inputs
+    ----------
+    - fileName: file name
+
+    Returns
+    ----------
+    splineLGR: dictionary of splines with LGR predictions {yCent, yMin, yMax}
+    dfLGR: pandas dataframe with original values
+    ptMin: minimum pt for which the model is valid
+    ptMax: maximum pt for which the model is valid
+    '''
+
+    dfLGR = pd.read_csv(fileName, sep=' ')
+    splineLGR, ptMin, ptMax = InterpolateModel(dfLGR['pT'], dfLGR['RAAcent'], dfLGR['RAAmin'], dfLGR['RAAmax'])
+
+    return splineLGR, dfLGR, ptMin, ptMax

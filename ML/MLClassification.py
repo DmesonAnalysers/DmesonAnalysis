@@ -143,7 +143,7 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
     function for model training and testing
     '''
     n_classes = len(np.unique(TrainTestData[3]))
-    modelClf = xgb.XGBClassifier()
+    modelClf = xgb.XGBClassifier(use_label_encoder=False)
     TrainCols = inputCfg['ml']['training_columns']
     HyperPars = inputCfg['ml']['hyper_par'][iBin]
     if not isinstance(TrainCols, list):

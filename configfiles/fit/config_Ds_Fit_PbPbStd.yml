@@ -1,0 +1,41 @@
+Cent010:
+    Particle: 'Ds'
+    FixSigma: 0
+    SigmaFile: ''
+    SigmaMultFactor: 1.
+    FixMean: 0
+    MeanFile: ''
+    PtMin: [3, 4, 5, 6, 8, 12, 16, 24]    
+    PtMax: [4, 5, 6, 8, 12, 16, 24, 36]    
+    MassMin: [1.80, 1.80, 1.78, 1.78, 1.78, 1.78, 1.78, 1.78]    
+    MassMax: [2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
+    Rebin: [4, 4, 4, 4, 4, 4, 5, 5]
+    InclSecPeak: [1, 1, 1, 1, 1, 1, 1, 1]
+    SigmaSecPeak: [0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008]
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 1
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+
+Cent3050:
+    Particle: 'Ds'
+    FixSigma: 0
+    SigmaFile: 'outputs/3_24bin_merge/PIDvar/rawyields/RawYieldsDs_3050_central_2018.root'
+    SigmaMultFactor: 1.
+    FixMean: 0
+    MeanFile: ''
+    PtMin: [3, 4, 6, 8, 12, 16]    
+    PtMax: [4, 6, 8, 12, 16, 24]    
+    MassMin: [1.80, 1.78, 1.78, 1.78, 1.78, 1.78]    
+    MassMax: [2.10, 2.10, 2.10, 2.10, 2.10, 2.10]
+    Rebin: [4, 4, 4, 4, 4, 5]
+    InclSecPeak: [1, 1, 1, 1, 1, 1]
+    SigmaSecPeak: [0.008, 0.008, 0.008, 0.008, 0.008, 0.008]
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 1
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
