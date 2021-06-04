@@ -70,7 +70,6 @@ for iRun, run in enumerate(runs):
     print(f'\33[32mStart download of files for run {run}\33[0m')
     if not inputCfg['MergeOptions']['MergeByRun']:
         for inDir in inDirs[iRun]:
-            inName = os.path.join(dirName, f'{inDir}')
             outName = os.path.join(inputCfg["OutputPath"], f'{run}')
             os.system(f'alien_cp -select {inputCfg["InputFileName"]} -y 2 -T 32 {dirName} file://{outName}/')
     else:
