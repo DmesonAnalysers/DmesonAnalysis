@@ -1,7 +1,7 @@
 '''
 python script for the computation of the production cross section of prompt or feed-down D
 run: python ComputeDataDrivenCrossSection.py rawYieldFile.root effAccFile.root fracFile.root outFile.root
-            [--prompt] [--FD] [--Dplus] [--Ds] [--Lc] [--system] [--energy] [--batch] [--corr] [--uncorr] [--anticorr]
+            [--prompt] [--FD] [--Dplus] [--Ds] [--Lc] [--system] [--energy] [--batch] [--propOpt corr|uncorr|anticorr]
 prompt or FD and Dplus, Ds or Lc must be specified
 '''
 
@@ -38,7 +38,7 @@ groupParticle.add_argument("--Lc", action='store_true', help='flag to compute Lc
 
 args = parser.parse_args()
 
-propOpt = 'corr' if args.prompt else 'uncorr'
+propOpt = 'corr' if args.FD else 'uncorr'
 if args.propOpt in ['corr', 'uncorr', 'anticorr']:
     propOpt = args.propOpt
 elif args.propOpt is not None:
