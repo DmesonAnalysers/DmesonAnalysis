@@ -18,6 +18,9 @@ pp5TeVPrompt:
     UseLikelihood: 1
     BkgFunc: ['kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
     SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: ""
+    BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
 
 pp5TeVFD:
     Particle: 'Ds'
@@ -39,4 +42,6 @@ pp5TeVFD:
     UseLikelihood: 1
     BkgFunc: ['kExpo', 'kExpo', 'kExpo', 'kExpo']
     SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus']
-
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: ""
+    BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]

@@ -1,13 +1,14 @@
 '''
 python script for the computation of the production cross section of prompt or feed-down D
 run: python ComputeDataDrivenCrossSection.py rawYieldFile.root effAccFile.root fracFile.root outFile.root
-                                             [--prompt] [--FD] [--Dplus] [--Ds] [--system] [--energy] [--batch]
-prompt or FD and Dplus or Ds must be specified
+            [--prompt] [--FD] [--Dplus] [--Ds] [--Lc] [--system] [--energy] [--batch] [--propOpt corr|uncorr|anticorr]
+prompt or FD and Dplus, Ds or Lc must be specified
 '''
 
 import sys
 import argparse
 import numpy as np
+# Define arguments (systematic uncertainties from AliHFSystErr)
 from ROOT import TFile, TCanvas, TLegend, TGraphErrors, gROOT  # pylint: disable=import-error,no-name-in-module
 from ROOT import AliHFSystErr  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import ComputeCrossSection, GetPromptFDFractionCutSet
@@ -23,14 +24,27 @@ parser.add_argument('outFileName', metavar='text', default='outFile.root', help=
 parser.add_argument('--system', metavar='text', default='pp', help='collision system (pp, pPb, PbPb)')
 parser.add_argument('--energy', metavar='text', default='5.02', help='energy (5.02)')
 parser.add_argument('--centrality', metavar='text', default='010', help='centrality (010, 3050)')
-parser.add_argument("--prompt", action='store_true', help='flag to compute prompt cross section', default=False)
-parser.add_argument("--FD", action='store_true', help='flag to compute FD cross section', default=False)
-parser.add_argument("--Dplus", action='store_true', help='flag to compute D+ cross section', default=False)
-parser.add_argument("--Ds", action='store_true', help='flag to compute Ds cross section', default=False)
 parser.add_argument("--batch", action='store_true', help='suppress video output', default=False)
+parser.add_argument('--propOpt', metavar='text', default=None)
+
+groupComponent = parser.add_mutually_exclusive_group(required=True)
+groupComponent.add_argument("--prompt", action='store_true', help='flag to compute prompt cross section', default=False)
+groupComponent.add_argument("--FD", action='store_true', help='flag to compute FD cross section', default=False)
+
+groupParticle = parser.add_mutually_exclusive_group(required=True)
+groupParticle.add_argument("--Dplus", action='store_true', help='flag to compute D+ cross section', default=False)
+groupParticle.add_argument("--Ds", action='store_true', help='flag to compute Ds cross section', default=False)
+groupParticle.add_argument("--Lc", action='store_true', help='flag to compute Lc cross section', default=False)
+
 args = parser.parse_args()
 
-# Define arguments (systematic uncertainties from AliHFSystErr)
+propOpt = 'corr' if args.FD else 'uncorr'
+if args.propOpt in ['corr', 'uncorr', 'anticorr']:
+    propOpt = args.propOpt
+elif args.propOpt is not None:
+    print('ERROR: wrong setting for propOpt. Options are corr, uncorr and anticorr! Exit')
+    sys.exit()
+
 systErr = AliHFSystErr()
 systErr.SetIsDataDrivenFDAnalysis(True)
 
@@ -44,6 +58,9 @@ if args.system == 'pp':
             systErr.SetIs5TeVAnalysis(True)
         sigmaMB = 50.87e+3 # ub
         lumiUnc = 0.021
+    elif args.energy == '13':
+        sigmaMB = 57.8e+3 # ub
+        lumiUnc = 0.05
     else:
         print(f'Energy {args.energy} not implemented! Exit')
         sys.exit()
@@ -59,19 +76,13 @@ elif args.system == 'PbPb':
     systErr.SetRunNumber(18)
     sigmaMB = 1. # yields in case of PbPb
 
-if args.Dplus and args.Ds:
-    print('ERROR: not possible to select more than one meson at the same time! Exit')
-    sys.exit()
-elif args.Dplus:
+if args.Dplus:
     systErr.Init(2)
 elif args.Ds:
     systErr.Init(4)
+elif args.Lc:
+    systErr.Init(5)
 else:
-    print('ERROR: Dplus or Ds must be specified! Exit')
-    sys.exit()
-
-if args.prompt and args.FD:
-    print('ERROR: not possible to select prompt and FD at the same time! Exit')
     sys.exit()
 
 # load input file
@@ -156,13 +167,10 @@ for iPt in range(hCrossSection.GetNbinsX()):
         frac = fracPromptFD[1]
         uncFrac = uncFracPromptFD[1]
 
-    if args.FD:
-        crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
-                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., 'corr')
-    else:
-        # TODO: check if uncorrelated is the right option or anti-correlated is better
-        crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
-                                                    ptMax - ptMin, 1., sigmaMB, nEv, 1., 'uncorr')
+    # TODO: check if uncorrelated is the right option or anti-correlated is better
+    crossSec, crossSecUnc = ComputeCrossSection(rawYield, rawYieldUnc, frac, uncFrac, effAcc,
+                                                ptMax - ptMin, 1., sigmaMB, nEv, 1.,
+                                                propOpt) # TODO:check this
 
     hCrossSection.SetBinContent(iPt+1, crossSec)
     hCrossSection.SetBinError(iPt+1, crossSecUnc)

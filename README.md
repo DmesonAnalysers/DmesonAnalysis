@@ -12,6 +12,7 @@ The code in this repository requires to have installed:
 - [AliPhysics](https://github.com/alisw/AliPhysics)
 - [hipe4ml](https://github.com/hipe4ml/hipe4ml)(>=0.0.10 or installed from dev branch)
 - [pyaml](https://pypi.org/project/pyaml)
+- [alive_progress](https://github.com/rsalmei/alive-progress)
 
 ## Documentation
 https://dmesonanalysers.github.io/DmesonAnalysis
