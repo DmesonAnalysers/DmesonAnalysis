@@ -103,12 +103,13 @@ elif particleName == 'Ds':
 elif particleName == 'Lc':
     massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
 else:
-    print(f"ERROR: the particle \'{particleName}\' is not supported! Choose between Dplus, Ds and Lc. Exit ")
+    print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dplus, Ds and Lc. Exit!')
     sys.exit()
 
 # load inv-mass histos
 infile = TFile.Open(args.inFileName)
 if not infile or not infile.IsOpen():
+    print(f'ERROR: file "{args.inFileName}" cannot be opened! Exit!')
     sys.exit()
 
 hMass, hMassForFit = [], []
@@ -136,6 +137,7 @@ hSigmaToFix = None
 if sum(fixSigma) > 0:
     infileSigma = TFile.Open(fitConfig[cent]['SigmaFile'])
     if not infileSigma:
+        print(f'ERROR: file "{infileSigma}" cannot be opened! Exit!')
         sys.exit()
     hSigmaToFix = infileSigma.Get('hRawYieldsSigma')
     hSigmaToFix.SetDirectory(0)
@@ -147,6 +149,7 @@ if fitConfig[cent]['FixSigmaRatio']:
     # load sigma of first gaussian
     infileSigma = TFile.Open(fitConfig[cent]['SigmaRatioFile'])
     if not infileSigma:
+        print(f'ERROR: file "{infileSigma}" cannot be opened! Exit!')
         sys.exit()
     hSigmaToFix = infileSigma.Get('hRawYieldsSigma')
     hSigmaToFix.SetDirectory(0)
@@ -156,6 +159,7 @@ if fitConfig[cent]['FixSigmaRatio']:
     # load sigma of second gaussian
     infileSigma2 = TFile.Open(fitConfig[cent]['SigmaRatioFile'])
     if not infileSigma2:
+        print(f'ERROR: file "{infileSigma2}" cannot be opened! Exit!')
         sys.exit()
     hSigmaToFix2 = infileSigma2.Get('hRawYieldsSigma2')
     hSigmaToFix2.SetDirectory(0)
@@ -167,6 +171,7 @@ hMeanToFix = None
 if sum(fixMean) > 0:
     infileMean = TFile.Open(fitConfig[cent]['MeanFile'])
     if not infileMean:
+        print(f'ERROR: file "{infileMean}" cannot be opened! Exit!')
         sys.exit()
     hMeanToFix = infileMean.Get('hRawYieldsMean')
     hMeanToFix.SetDirectory(0)
@@ -180,6 +185,7 @@ infileSigmaSecPeak = None
 if fitConfig[cent]['SigmaFileSecPeak']:
     infileSigmaSecPeak = TFile.Open(fitConfig[cent]['SigmaFileSecPeak'])
 if fitConfig[cent]['FixSigmaToFirstPeak'] and not infileSigmaSecPeak:
+    print(f'ERROR: file "{fitConfig[cent]["SigmaFileSecPeak"]}" cannot be opened! Exit!')
     sys.exit()
 if infileSigmaSecPeak:
     hSigmaFirstPeakMC = infileSigmaSecPeak.Get("hRawYieldsSigma")
