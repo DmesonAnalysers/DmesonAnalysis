@@ -33,6 +33,10 @@ hPromptFrac = hEffAccPrompt.Clone('hPromptFrac')
 hFDFrac = hEffAccFD.Clone('hFDFrac')
 hPromptFrac.SetTitle(';#it{p}_{T} (GeV/#it{c}); #it{f}_{prompt}')
 hFDFrac.SetTitle(';#it{p}_{T} (GeV/#it{c}); #it{f}_{FD}')
+hPromptFracCorr = hEffAccPrompt.Clone('hPromptFracCorr')
+hFDFracCorr = hEffAccFD.Clone('hFDFracCorr')
+hPromptFracCorr.SetTitle(';#it{p}_{T} (GeV/#it{c}); corrected #it{f}_{prompt}')
+hFDFracCorr.SetTitle(';#it{p}_{T} (GeV/#it{c}); corrected #it{f}_{FD}')
 
 for iPt in range(hEffAccPrompt.GetNbinsX()):
     ptMin = hEffAccPrompt.GetBinLowEdge(iPt+1)
@@ -54,10 +58,17 @@ for iPt in range(hEffAccPrompt.GetNbinsX()):
     fracPromptFD, uncFracPromptFD = GetPromptFDFractionCutSet(effAccPrompt, effAccFD, corrYieldPrompt, corrYieldFD,
                                                               covPromptPrompt, covFDFD, covPromptFD)
 
+    fracPromptFDcorr, uncFracPromptFDcorr = GetPromptFDFractionCutSet(1., 1., corrYieldPrompt, corrYieldFD,
+                                                                      covPromptPrompt, covFDFD, covPromptFD)
+
     hPromptFrac.SetBinContent(iPt+1, fracPromptFD[0])
     hPromptFrac.SetBinError(iPt+1, uncFracPromptFD[0])
     hFDFrac.SetBinContent(iPt+1, fracPromptFD[1])
     hFDFrac.SetBinError(iPt+1, uncFracPromptFD[1])
+    hPromptFracCorr.SetBinContent(iPt+1, fracPromptFDcorr[0])
+    hPromptFracCorr.SetBinError(iPt+1, uncFracPromptFDcorr[0])
+    hFDFracCorr.SetBinContent(iPt+1, fracPromptFDcorr[1])
+    hFDFracCorr.SetBinError(iPt+1, uncFracPromptFDcorr[1])
 
 SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14)
 
@@ -79,6 +90,13 @@ hFDFrac.Draw('same')
 legFrac.Draw()
 cFrac.Update()
 
+cFracNaturalFrac = TCanvas('cFracNaturalFrac', '', 800, 800)
+cFracNaturalFrac.DrawFrame(hPromptFracCorr.GetBinLowEdge(1), 0., ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); corrected fraction')
+hPromptFracCorr.Draw('same')
+hFDFracCorr.Draw('same')
+legFrac.Draw()
+cFracNaturalFrac.Update()
+
 cEff = TCanvas('cEff', '', 800, 800)
 cEff.DrawFrame(hPromptFrac.GetBinLowEdge(1), 1.e-4, ptMax, 1., ';#it{p}_{T} (GeV/#it{c}); (Acc#times#font[152]{e})')
 cEff.SetLogy()
@@ -92,7 +110,10 @@ hEffAccPrompt.Write()
 hEffAccFD.Write()
 hPromptFrac.Write()
 hFDFrac.Write()
+hPromptFracCorr.Write()
+hFDFracCorr.Write()
 cFrac.Write()
+cFracNaturalFrac.Write()
 cEff.Write()
 outFile.Close()
 
