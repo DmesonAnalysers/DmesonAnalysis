@@ -1,0 +1,4 @@
+inputfiles: [~/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/3050/ML/check_PIDdistr/pt2_4/Prompt_D2H_forPIDdistr_pT_2_4_ModelApplied.parquet.gzip,
+             ~/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/3050/ML/check_PIDdistr/pt4_6/Prompt_D2H_forPIDdistr_pT_4_6_ModelApplied.parquet.gzip,
+             ~/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/3050/ML/check_PIDdistr/pt6_12/Prompt_D2H_forPIDdistr_pT_6_12_ModelApplied.parquet.gzip,
+             ~/Desktop/Analyses/PbPb2018/Ds_wML/final/raa/pass3/output/3050/ML/check_PIDdistr/pt12_36/Prompt_D2H_forPIDdistr_pT_12_36_ModelApplied.parquet.gzip]
