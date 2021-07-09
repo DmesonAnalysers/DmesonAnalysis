@@ -154,7 +154,8 @@ for iFile, (inFileName, objName, objType, scale, normalize, color, marker, fills
                 unc = hUncToCompare[iFile].GetBinError(iBin)
                 cent = hUncToCompare[iFile].GetBinContent(iBin)
                 if compareRelUnc:
-                    hUncToCompare[iFile].SetBinContent(iBin, unc/cent)
+                    unctocomp = unc/cent if cent != 0 else 0
+                    hUncToCompare[iFile].SetBinContent(iBin, unctocomp)
                 else:
                     hUncToCompare[iFile].SetBinContent(iBin, unc)
                 hUncToCompare[iFile].SetBinError(iBin, 1.e-20)
