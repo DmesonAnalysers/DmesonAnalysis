@@ -1,6 +1,6 @@
 '''
 python script for the optimisation of the working point using TTrees or pandas dataframes as input
-run: python ScanSelectionTree.py cfgFileName.yml outFileName.root
+run: python ScanSelectionsTree.py cfgFileName.yml outFileName.root
 '''
 
 import sys
@@ -9,6 +9,7 @@ import time
 import itertools
 import numpy as np
 import yaml
+from alive_progress import alive_bar
 from ROOT import TFile, TH1F, TH2F, TF1, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
@@ -57,6 +58,7 @@ else:
 fractionstokeep = inputCfg['infiles']['background']['fractiontokeep']
 
 # load cut values to scan
+specifier = inputCfg['specifier']
 ptMins = inputCfg['ptmin']
 ptMaxs = inputCfg['ptmax']
 if not isinstance(ptMins, list):
@@ -80,9 +82,15 @@ else:
 
 cutVars = inputCfg['cutvars']
 cutRanges, upperLowerCuts, varNames = [], [], []
+
+for iPt in range(len(ptMaxs)):
+    cutRanges.append([])
+
+    for var in cutVars:
+        cutRanges[iPt].append(np.arange(cutVars[var]['min'][iPt], cutVars[var]['max'][iPt] +
+                                   cutVars[var]['step'][iPt] / 10, cutVars[var]['step'][iPt]).tolist())
+
 for var in cutVars:
-    cutRanges.append(np.arange(cutVars[var]['min'], cutVars[var]['max'] +
-                               cutVars[var]['step'] / 10, cutVars[var]['step']).tolist())
     if cutVars[var]['upperlowercut'] == 'Upper':
         upperLowerCuts.append('<')
     else:
@@ -179,9 +187,11 @@ varsName4Tuple = (':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:EffAccPr
                   ':SignifError:SoverBError:' + ':'.join(estNames.keys()))
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
-totSets = 1
-for cutRange in cutRanges:
-    totSets *= len(cutRange)
+totSets = [1 for i in range(len(ptMaxs))]
+
+for iPt in range(len(ptMaxs)):
+    for cutRange in cutRanges[iPt]:
+        totSets[iPt] *= len(cutRange)
 print(f'Total number of sets per pT bin: {totSets}')
 
 SetGlobalStyle(padleftmargin=0.12, padrightmargin=0.2, padbottommargin=0.15, padtopmargin=0.075,
@@ -279,130 +289,131 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
     for iParCut, (ParCutMin, ParCutMax) in enumerate(zip(ParCutMins, ParCutMaxs)):
         if len(varNames) == 1:
             for est in estNames:
-                minVar = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
-                maxVar = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
-                nBinsVar = int((maxVar - minVar) / cutVars[varNames[0]]['step'])
+                minVar = cutVars[varNames[0]]['min'][iPt] - cutVars[varNames[0]]['step'][iPt] / 2
+                maxVar = cutVars[varNames[0]]['max'][iPt] + cutVars[varNames[0]]['step'][iPt] / 2
+                nBinsVar = int((maxVar - minVar) / cutVars[varNames[0]]['step'][iPt])
                 hEstimVsCut[iPt][est] = TH1F(f'h{est}VsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
                                              f';{varNames[0]};{estNames[est]}', nBinsVar, minVar, maxVar)
                 SetObjectStyle(hEstimVsCut[iPt][est], color=kBlack, marker=kFullCircle, linewidth=1)
         elif len(varNames) == 2:
             for est in estNames:
-                minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
-                minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[1]]['step'] / 2
-                maxVar0 = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
-                maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[1]]['step'] / 2
-                nBinsVar0 = int((maxVar0 - minVar0) / cutVars[varNames[0]]['step'])
-                nBinsVar1 = int((maxVar1 - minVar1) / cutVars[varNames[1]]['step'])
+                minVar0 = cutVars[varNames[0]]['min'][iPt] - cutVars[varNames[0]]['step'][iPt] / 2
+                minVar1 = cutVars[varNames[1]]['min'][iPt] - cutVars[varNames[1]]['step'][iPt] / 2
+                maxVar0 = cutVars[varNames[0]]['max'][iPt] + cutVars[varNames[0]]['step'][iPt] / 2
+                maxVar1 = cutVars[varNames[1]]['max'][iPt] + cutVars[varNames[1]]['step'][iPt] / 2
+                nBinsVar0 = int((maxVar0 - minVar0) / cutVars[varNames[0]]['step'][iPt])
+                nBinsVar1 = int((maxVar1 - minVar1) / cutVars[varNames[1]]['step'][iPt])
                 hEstimVsCut[iPt][est] = TH2F(f'h{est}VsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
                                              f';{varNames[0]};{varNames[1]};{estNames[est]}',
                                              nBinsVar0, minVar0, maxVar0, nBinsVar1, minVar1, maxVar1)
         startTime = time.time()
-        for iSet, cutSet in enumerate(itertools.product(*cutRanges)):
-            for iCut, (cut, upperLower, varName) in enumerate(zip(cutSet, upperLowerCuts, varNames)):
-                if iCut == 0:
-                    selToApply = f'{varName}{upperLower}{cut}'
+        with alive_bar(totSets[iPt]) as bar:
+            for iSet, cutSet in enumerate(itertools.product(*cutRanges[iPt])):
+                for iCut, (cut, upperLower, varName) in enumerate(zip(cutSet, upperLowerCuts, varNames)):
+                    if iCut == 0:
+                        selToApply = f'{varName}{upperLower}{cut}'
+                    else:
+                        selToApply += f' & {varName}{upperLower}{cut}'
+                if ParCutsName and EnableParCuts:
+                    selToApply += f' & {ParCutMin} < {ParCutsName} < {ParCutMax}'
+
+                bar()
+
+                dfPromptPtSel = dfPromptPt.query(selToApply)
+                dfFDPtSel = dfFDPt.query(selToApply)
+                dfBkgPtSel = dfBkgPt.query(selToApply)
+                effPrompt, effPromptUnc = ComputeEfficiency(len(dfPromptPtSel), nTotPrompt,
+                                                            np.sqrt(len(dfPromptPtSel)), np.sqrt(nTotPrompt))
+                effFD, effFDUnc = ComputeEfficiency(len(dfFDPtSel), nTotFD, np.sqrt(len(dfFDPtSel)), np.sqrt(nTotFD))
+                effTimesAccPrompt = effPrompt * preselEffPrompt * acc
+                effTimesAccFD = effFD * preselEffFD * acc
+                fPrompt, fFD = GetPromptFDFractionFc(effTimesAccPrompt, effTimesAccFD,
+                                                    crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
+                hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 200,
+                                min(dfBkgPtSel['inv_mass']), max(dfBkgPtSel['inv_mass']))
+                for mass in dfBkgPtSel['inv_mass'].to_numpy():
+                    hMassBkg.Fill(mass)
+
+                # expected signal, BR already included in cross section
+                if inputCfg['expectedSignalFrom'] == 'prompt':
+                    expSignal = GetExpectedSignal(crossSecPrompt, ptMax-ptMin, 1., effTimesAccPrompt,
+                                                fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
+                elif inputCfg['expectedSignalFrom'] == 'feeddown':
+                    expSignal = GetExpectedSignal(crossSecFD, ptMax-ptMin, 1., effTimesAccFD,
+                                                fFD[0], 1., 1., nExpEv, sigmaMB, Taa, RaaFD)
+
+                # expected background
+                bkgConfig = inputCfg['infiles']['background']
+                outDirFitSBPt[iPt].cd()
+                expBkg = 0.
+                errExpBkg = 0.
+                if bkgConfig['isMC']:
+                    expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromMC(hMassBkg, mean, sigma)
                 else:
-                    selToApply += f' & {varName}{upperLower}{cut}'
-            if ParCutsName and EnableParCuts:
-                selToApply += f' & {ParCutMin} < {ParCutsName} < {ParCutMax}'
+                    expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
+                                                                            bkgConfig['nSigma'], mean, sigma,
+                                                                            meanSecPeak, sigmaSecPeak)
+                hMassBkg.Write()
+                expBkg *= nExpEv / bkgConfig['nEvents'] / fractionstokeep[iPt]
+                errExpBkg *= nExpEv / bkgConfig['nEvents'] / fractionstokeep[iPt]
 
-            if (iSet+1) % 100 == 0:
-                print(f'Time elapsed to test up to cut set number {iSet+1}: {time.time()-startTime:.2f}s', end='\r')
+                if inputCfg['infiles']['background']['corrfactor']['filename']:
+                    inFile = TFile.Open(inputCfg['infiles']['background']['corrfactor']['filename'])
+                    hBkgCorrFactor = inFile.Get(inputCfg['infiles']['background']['corrfactor']['histoname'])
+                    expBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
+                    errExpBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
 
-            dfPromptPtSel = dfPromptPt.query(selToApply)
-            dfFDPtSel = dfFDPt.query(selToApply)
-            dfBkgPtSel = dfBkgPt.query(selToApply)
-            effPrompt, effPromptUnc = ComputeEfficiency(len(dfPromptPtSel), nTotPrompt,
-                                                        np.sqrt(len(dfPromptPtSel)), np.sqrt(nTotPrompt))
-            effFD, effFDUnc = ComputeEfficiency(len(dfFDPtSel), nTotFD, np.sqrt(len(dfFDPtSel)), np.sqrt(nTotFD))
-            effTimesAccPrompt = effPrompt * preselEffPrompt * acc
-            effTimesAccFD = effFD * preselEffFD * acc
-            fPrompt, fFD = GetPromptFDFractionFc(effTimesAccPrompt, effTimesAccFD,
-                                                 crossSecPrompt, crossSecFD, RaaPrompt, RaaFD)
-            hMassBkg = TH1F(f'hMassBkg_pT{ptMin}-{ptMax}_cutSet{iSet}', ';#it{M} (GeV/#it{c});Counts', 200,
-                            min(dfBkgPtSel['inv_mass']), max(dfBkgPtSel['inv_mass']))
-            for mass in dfBkgPtSel['inv_mass'].to_numpy():
-                hMassBkg.Fill(mass)
+                # S/B and significance
+                expSoverB = 0.
+                expSignif = 0.
+                errS = 0. # TODO: think how to define a meaningful error on the estimated signal and propagate it
+                errSoverB = 0.
+                errSignif = 0.
+                if expBkg > 0:
+                    expSoverB = expSignal / expBkg
+                    expSignif = expSignal / np.sqrt(expSignal + expBkg)
+                    errSoverB = expSoverB * errExpBkg / expBkg
+                    errSignif = expSignif * 0.5 * errExpBkg / (expSignal + expBkg)
 
-            # expected signal, BR already included in cross section
-            if inputCfg['expectedSignalFrom'] == 'prompt':
-                expSignal = GetExpectedSignal(crossSecPrompt, ptMax-ptMin, 1., effTimesAccPrompt,
-                                              fPrompt[0], 1., 1., nExpEv, sigmaMB, Taa, RaaPrompt)
-            elif inputCfg['expectedSignalFrom'] == 'feeddown':
-                expSignal = GetExpectedSignal(crossSecFD, ptMax-ptMin, 1., effTimesAccFD,
-                                              fFD[0], 1., 1., nExpEv, sigmaMB, Taa, RaaFD)
+                # Efficiency
+                EffAccFDError = np.sqrt((effFDUnc/effFD)**2
+                                        + (preselEffFDUnc/preselEffFD)**2
+                                        + (accUnc/acc)**2)*effTimesAccFD
+                EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2
+                                            + (preselEffPromptUnc/preselEffPrompt)**2
+                                            + (accUnc/acc)**2)*effTimesAccPrompt
 
-            # expected background
-            bkgConfig = inputCfg['infiles']['background']
-            outDirFitSBPt[iPt].cd()
-            expBkg = 0.
-            errExpBkg = 0.
-            if bkgConfig['isMC']:
-                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromMC(hMassBkg, mean, sigma)
-            else:
-                expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
-                                                                          bkgConfig['nSigma'], mean, sigma,
-                                                                          meanSecPeak, sigmaSecPeak)
-            hMassBkg.Write()
-            expBkg *= nExpEv / bkgConfig['nEvents'] / fractionstokeep[iPt]
-            errExpBkg *= nExpEv / bkgConfig['nEvents'] / fractionstokeep[iPt]
-
-            if inputCfg['infiles']['background']['corrfactor']['filename']:
-                inFile = TFile.Open(inputCfg['infiles']['background']['corrfactor']['filename'])
-                hBkgCorrFactor = inFile.Get(inputCfg['infiles']['background']['corrfactor']['histoname'])
-                expBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
-                errExpBkg *= hBkgCorrFactor.GetBinContent(hBkgCorrFactor.FindBin(ptCent))
-
-            # S/B and significance
-            expSoverB = 0.
-            expSignif = 0.
-            errS = 0. # TODO: think how to define a meaningful error on the estimated signal and propagate it
-            errSoverB = 0.
-            errSignif = 0.
-            if expBkg > 0:
-                expSoverB = expSignal / expBkg
-                expSignif = expSignal / np.sqrt(expSignal + expBkg)
-                errSoverB = expSoverB * errExpBkg / expBkg
-                errSignif = expSignif * 0.5 * errExpBkg / (expSignal + expBkg)
-
-            # Efficiency
-            EffAccFDError = np.sqrt((effFDUnc/effFD)**2
-                                    + (preselEffFDUnc/preselEffFD)**2
-                                    + (accUnc/acc)**2)*effTimesAccFD
-            EffAccPromptError = np.sqrt((effPromptUnc/effPrompt)**2
-                                        + (preselEffPromptUnc/preselEffPrompt)**2
-                                        + (accUnc/acc)**2)*effTimesAccPrompt
-
-            tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, EffAccPromptError, EffAccFDError,
-                                       errS, errExpBkg, errSignif, errSoverB, expSignif, expSoverB, expSignal, expBkg,
-                                       effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
-            tSignif.Fill(np.array(tupleForNtuple, 'f'))
-            estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'S': expSignal, 'B': expBkg,
-                         'EffAccPrompt': effTimesAccPrompt, 'EffAccFD': effTimesAccFD,
-                         'fPrompt': fPrompt[0], 'fFD': fFD[0]}
-            estValuesErr = {'SignifError': errSignif, 'SoverBError': errSoverB, 'SError': errS, 'BError': errExpBkg,
-                            'EffAccPromptError': EffAccPromptError, 'EffAccFDError': EffAccFDError}
-            if len(varNames) == 1:
-                binVar = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
-                for est in estValues:
-                    hEstimVsCut[iPt][est].SetBinContent(binVar, estValues[est])
-                    if f'{est}Error' in estValuesErr:
-                        hEstimVsCut[iPt][est].SetBinError(binVar, estValuesErr[f'{est}Error'])
-            if len(varNames) == 2:
-                binVar0 = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
-                binVar1 = hEstimVsCut[iPt]['Signif'].GetYaxis().FindBin(cutSet[1])
-                for est in estValues:
-                    hEstimVsCut[iPt][est].SetBinContent(binVar0, binVar1, estValues[est])
+                tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, EffAccPromptError, EffAccFDError,
+                                        errS, errExpBkg, errSignif, errSoverB, expSignif, expSoverB, expSignal, expBkg,
+                                        effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
+                tSignif.Fill(np.array(tupleForNtuple, 'f'))
+                estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'S': expSignal, 'B': expBkg,
+                            'EffAccPrompt': effTimesAccPrompt, 'EffAccFD': effTimesAccFD,
+                            'fPrompt': fPrompt[0], 'fFD': fFD[0]}
+                estValuesErr = {'SignifError': errSignif, 'SoverBError': errSoverB, 'SError': errS, 'BError': errExpBkg,
+                                'EffAccPromptError': EffAccPromptError, 'EffAccFDError': EffAccFDError}
+                if len(varNames) == 1:
+                    binVar = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
+                    for est in estValues:
+                        hEstimVsCut[iPt][est].SetBinContent(binVar, estValues[est])
+                        if f'{est}Error' in estValuesErr:
+                            hEstimVsCut[iPt][est].SetBinError(binVar, estValuesErr[f'{est}Error'])
+                if len(varNames) == 2:
+                    binVar0 = hEstimVsCut[iPt]['Signif'].GetXaxis().FindBin(cutSet[0])
+                    binVar1 = hEstimVsCut[iPt]['Signif'].GetYaxis().FindBin(cutSet[1])
+                    for est in estValues:
+                        hEstimVsCut[iPt][est].SetBinContent(binVar0, binVar1, estValues[est])
 
         if ParCutsName != 'Integral':
             print(f'Time elapsed to test cut sets for pT bin {ptMin}-{ptMax} '
-                  f'and {ParCutsName} bin {ParCutMin}-{ParCutMax}: {time.time()-startTime:.2f}s')
+                  f'and {ParCutsName} bin {ParCutMin}-{ParCutMax}: {time.time()-startTime:.2f}s          ')
         else:
-            print(f'Time elapsed to test cut sets for pT bin {ptMin}-{ptMax}: {time.time()-startTime:.2f}s')
+            print(f'Time elapsed to test cut sets for pT bin {ptMin}-{ptMax}: {time.time()-startTime:.2f}s            ')
         # plots
         outDirPlotsPt[iPt].mkdir(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
         cSignifVsRest.append(TCanvas(f'cSignifVsRest_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
-                                     '', 800, 1000))
+                                     f'cSignifVsRest_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                                     800, 1000))
         cSignifVsRest[counter].Divide(2, 4)
         for iPad, est in enumerate(estNames):
             if est != 'Signif':
@@ -429,7 +440,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         if 1 <= len(varNames) <= 2:
             if len(varNames) == 1:
                 cEstimVsCut.append(TCanvas(
-                    f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', '', 800, 1000))
+                    f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                    f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}', 800, 1000))
                 cEstimVsCut[counter].Divide(2, 4)
                 for iPad, est in enumerate(hEstimVsCut[iPt]):
                     hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar, tSignif.GetMinimum(est)*0.8,
@@ -446,13 +458,14 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                     hEstimVsCut[iPt][est].Write()
             elif len(varNames) == 2:
                 cEstimVsCut.append(TCanvas(f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
-                                           '', 800, 1000))
+                                           f'cEstimVsCut_pT{ptMin}-{ptMax}_{ParCutsName}{ParCutMin}-{ParCutMax}',
+                                           800, 1000))
                 cEstimVsCut[counter].Divide(2, 4)
                 for iPad, est in enumerate(hEstimVsCut[iPt]):
-                    minVar0 = cutVars[varNames[0]]['min'] - cutVars[varNames[0]]['step'] / 2
-                    minVar1 = cutVars[varNames[1]]['min'] - cutVars[varNames[1]]['step'] / 2
-                    maxVar0 = cutVars[varNames[0]]['max'] + cutVars[varNames[0]]['step'] / 2
-                    maxVar1 = cutVars[varNames[1]]['max'] + cutVars[varNames[1]]['step'] / 2
+                    minVar0 = cutVars[varNames[0]]['min'][iPt] - cutVars[varNames[0]]['step'][iPt] / 2
+                    minVar1 = cutVars[varNames[1]]['min'][iPt] - cutVars[varNames[1]]['step'][iPt] / 2
+                    maxVar0 = cutVars[varNames[0]]['max'][iPt] + cutVars[varNames[0]]['step'][iPt] / 2
+                    maxVar1 = cutVars[varNames[1]]['max'][iPt] + cutVars[varNames[1]]['step'][iPt] / 2
                     hFrame = cEstimVsCut[counter].cd(iPad+1).DrawFrame(minVar0, minVar1, maxVar0, maxVar1,
                                                                        f';{varNames[0]};{varNames[1]};{estNames[est]}')
                     if 'Eff' in est:
@@ -469,6 +482,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             cEstimVsCut[counter].Modified()
             outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
             cEstimVsCut[counter].Write()
+
+            cEstimVsCut[counter].Print(f'scan_{specifier}_pT{ptMin}_{ptMax}.pdf', "pdf")
         counter += 1
 outFile.cd()
 tSignif.Write()
