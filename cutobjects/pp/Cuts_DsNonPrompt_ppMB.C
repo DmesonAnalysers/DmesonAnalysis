@@ -28,13 +28,12 @@ AliRDHFCutsDstoKKpi *MakeFileForCutsDspp5TeV_TreeML(bool fIsMC = false, bool fIs
     esdTrackCuts->SetMinDCAToVertexXY(0.);
     esdTrackCuts->SetPtRange(0.3, 1.e10);
 
-    const int nptbins = 2;
+    const int nptbins = 1;
     float *ptbins;
     ptbins = new float[nptbins + 1];
 
     ptbins[0] = 1.;
-    ptbins[1] = 6.;
-    ptbins[2] = 50.;
+    ptbins[1] = 50.;
 
     const int nvars = 20;
     float **anacutsval;
@@ -139,7 +138,7 @@ AliRDHFCutsDstoKKpi *MakeFileForCutsDspp5TeV_TreeML(bool fIsMC = false, bool fIs
 
     analysiscuts->PrintAll();
     analysiscuts->PrintTrigger();
-    TString filename = Form("DstoKKpiCuts_pp_nonprompt_loose%s_%s%s.root", PIDsuffix.Data(), triggername.Data(), QAsuffix.Data());
+    TString filename = Form("DstoKKpiCuts_pp_loose%s_%s%s.root", PIDsuffix.Data(), triggername.Data(), QAsuffix.Data());
     TFile *fout = new TFile(filename.Data(), "recreate");
     fout->cd();
     analysiscuts->Write();
