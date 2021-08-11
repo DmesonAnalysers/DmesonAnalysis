@@ -1,0 +1,32 @@
+channel: Dstar # options [Ds, Dplus, Dstar, LctopKpi, LctopK0s, LctopiL]
+
+infile:
+    isMC: 1
+    filename: [~/alice/data/raw/2016/AnalysisResults_Dstar_MCtrain_2016.root]
+    dirname: PWGHF_D2H_TreeDstartoD0piLoose
+    treename: treeMLD
+
+outfile:
+    dirpath: '~/alice/data/filtered'
+    suffix: _Dstar_MCtrain_2016
+    treename: treeMLD
+    
+skimming:
+    pt:
+        min: [0]
+        max: [50]
+    preselections: nsigComb_Pi_0 < 25 and nsigComb_Pi_1 < 50 and nsigComb_Pi_2 < 80 and nsigComb_K_0 < 35 and nsigComb_K_1 < 40 and nsigComb_K_2 < 35  #null if you don't want to apply preselections
+    colstokeep: [inv_mass, pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, dca, imp_par_xy,  max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2, nsigTPC_Pi_0, nsigTPC_K_0, nsigTPC_Pi_1, nsigTPC_K_1, nsigTPC_Pi_2, nsigTPC_K_2, nsigTOF_Pi_0, nsigTOF_K_0, nsigTOF_Pi_1, nsigTOF_K_1, nsigTOF_Pi_2, nsigTOF_K_2, delta_mass_D0, angle_D0dkpPisoft, cos_t_star] #empty list if you want to keep everything
+
+singletrackvars:
+    addAODfiltervars: 0 # it adds min pt and min d0 of daughters with pt < 2
+
+missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
+    enable: 0
+    toreplace:
+        nsigTOF_Pi_0: -999.
+        nsigTOF_K_0: -999.
+        nsigTOF_Pi_1: -999.
+        nsigTOF_K_1: -999.
+        nsigTOF_Pi_2: -999.
+        nsigTOF_K_2: -999.
