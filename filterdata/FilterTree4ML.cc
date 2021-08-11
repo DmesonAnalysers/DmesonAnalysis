@@ -27,7 +27,7 @@ using std::endl;
 //______________________________________________________________________________________________
 
 //______________________________________________________________________________________________
-void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
+void FilterTree4ML(TString cfgFileName="config_Dstar_data_skim_pp5TeV.yml")
 {
     // Common bits
     const int bitSignal       = BIT(0);
@@ -55,7 +55,7 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
         return;
     }
 
-    vector<string> channels = {"Ds", "Dplus", "LctopKpi", "LctopK0s", "LctopLi"};
+    vector<string> channels = {"Ds", "Dplus", "Dstar", "LctopKpi", "LctopK0s", "LctopLi"};
     string channel = config["channel"].as<string>();
     if (std::find(channels.begin(), channels.end(), channel) == channels.end()) {
         cerr << "Error: only Ds, Dplus, LctopKpi, LctopK0s, and LctopiL channels are implemented! Exit" << endl;
@@ -155,6 +155,11 @@ void FilterTree4ML(TString cfgFileName="config_skim_Dplus_pp5TeV.yml")
                 bitsForSel["FD_sec_peak"]           = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSecPeakDs, bitFD, bitRefl);
             }
             else if(channel == "Dplus") {
+                bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
+                bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl);
+                bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl);
+            }
+             else if(channel == "Dstar") {
                 bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
                 bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl);
                 bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl);
