@@ -1,0 +1,28 @@
+input: # files to use
+    files: [~/alice/data/filtered/Data_Dstarpp13TeV_pT_0_50.root,
+            ~/alice/data/filtered/Prompt_Dstarpp13TeV_pT_0_50.root,    
+            ~/alice/data/filtered/FD_Dstarpp13TeV_pT_0_50.root
+            ]
+    treename: treeMLD
+
+queries: ['pt_cand>0',
+           'pt_cand>0',
+           'pt_cand>0' ] #list of additional queries
+
+
+output:
+    leg_labels: ['Background', 'Prompt D$^*+$', 'Non-prompt D$*+$'] # legend labels
+    colors: ['black', 'red', 'blue']
+    dir: '/home/luca/Desktop/CERNinternship/CheckDistributions' # output dir
+
+pt_ranges: # ranges in pt to split the data for the comparison
+    min: [0.1,0.1,0.1,0.1,0.1,0.1] # list
+    max: [50,50,50,50,50,50] # list
+
+plotting_columns: ['nsigComb_Pi_0','nsigComb_K_0','nsigComb_Pi_1','nsigComb_K_1','nsigComb_Pi_2','nsigComb_K_2'] 
+                   # list of variables to plot
+
+plot_lim_min: [[0.,0.,0.,0.,0., 0.]] # n*1 matrix
+plot_lim_max: [[50,50,50,50,100, 50]] # n*1 matrix
+
+xaxes_label: ['nsigComb_Pi_0','nsigComb_K_0','nsigComb_Pi_1','nsigComb_K_1','nsigComb_Pi_2','nsigComb_K_2']
