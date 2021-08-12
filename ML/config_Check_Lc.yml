@@ -5,6 +5,7 @@ input: # files to use
             ~/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
             ~/DmesonAnalysis/ML/trained_models/LctopK0s/default/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
         ]
+    dirname: ""
     treename: null
 
 queries: ["ML_output_Bkg < 0.03"] #list of additional queries

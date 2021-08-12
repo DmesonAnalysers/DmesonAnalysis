@@ -27,9 +27,10 @@ def main():
 
     print('Loading data files: ...', end='\r')
     DfList = []
+    inDirName = inputCfg['input']['dirname']
     inTreeName = inputCfg['input']['treename']
     for filePath in inputCfg['input']['files']:
-        DfList.append(LoadDfFromRootOrParquet(filePath, "", inTreeName))
+        DfList.append(LoadDfFromRootOrParquet(filePath, inDirName, inTreeName))
 
     print('Loading data files: Done!')
 

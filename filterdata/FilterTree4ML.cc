@@ -83,12 +83,12 @@ void FilterTree4ML(TString cfgFileName="config_Dstar_data_skim_pp5TeV.yml")
 
     const vector<double> PtMin = config["skimming"]["pt"]["min"].as<vector<double>>();
     const vector<double> PtMax = config["skimming"]["pt"]["max"].as<vector<double>>();
-    
+
     ROOT::EnableImplicitMT(32); // tell ROOT to go parallel
-    
+
     for(uint iPtBin = 0; iPtBin < PtMin.size(); iPtBin++){
         ROOT::RDataFrame dataFrame(Form("%s/%s", inDirName.data(), inTreeName.data()), inFileNames);
-        
+
         if(colsToKeep.size() == 0)
         {
             colsToKeep = dataFrame.GetColumnNames();
@@ -112,7 +112,7 @@ void FilterTree4ML(TString cfgFileName="config_Dstar_data_skim_pp5TeV.yml")
             vector<float> ptVec = {pt0, pt1, pt2};
             return *std::min_element(ptVec.begin(), ptVec.end());
         };
-        auto d0MinFormula = [](float pt0, float pt1, float pt2, float d00, float d01, float d02) 
+        auto d0MinFormula = [](float pt0, float pt1, float pt2, float d00, float d01, float d02)
         {
             vector<float> ptVec = {pt0, pt1, pt2};
             vector<float> d0Vec = {fabs(d00), fabs(d01), fabs(d02)};
