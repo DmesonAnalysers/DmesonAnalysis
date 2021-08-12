@@ -1,8 +1,9 @@
 input: # files to use
-    files: [~/alice/data/filtered/Data_Dstarpp13TeV_pT_0_50.root,
-            ~/alice/data/filtered/Prompt_Dstarpp13TeV_pT_0_50.root,    
-            ~/alice/data/filtered/FD_Dstarpp13TeV_pT_0_50.root
+    files: [~/alice/data/filtered/Data__Dstar_Data_2016_1_pT_0_50.root,
+            ~/alice/data/filtered/Prompt_Dstar_MCtrain_2016_pT_0_50.root,    
+            ~/alice/data/filtered/FD_Dstar_MCtrain_2016_pT_0_50.root
             ]
+    dirname: ""
     treename: treeMLD
 
 queries: ['pt_cand>0',

@@ -3,6 +3,7 @@ input: # files to use
             ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/Prompt_LHC20a8_pT_1_50.parquet.gzip,
             ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/MC/MC_comp/FD_LHC20a8_pT_1_50.parquet.gzip
             ]
+    dirname: ""
     treename: null
 
 queries: ['d_len <= 0.5 and (inv_mass < 1.832 or inv_mass > 2.012)',
@@ -11,7 +12,7 @@ queries: ['d_len <= 0.5 and (inv_mass < 1.832 or inv_mass > 2.012)',
 
 
 output:
-    leg_labels: ['Background', 'Prompt D$_s^+$', 'Non-prompt D$_s^+$'] # legend labels
+    leg_labels: ['Background', 'Prompt D$^*$', 'Non-prompt D$^*$'] # legend labels
     colors: ['black', 'red', 'blue']
     dir: '/home/fcatalan/cernbox/Analyses/' # output dir
 
