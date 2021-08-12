@@ -12,7 +12,7 @@ queries: ['pt_cand>0',
 
 
 output:
-    leg_labels: ['Background', 'Prompt D$^*+$', 'Non-prompt D$*+$'] # legend labels
+    leg_labels: ['Background', 'Prompt D$^{*+}$', 'Non-prompt D$^{*+}$'] # legend labels
     colors: ['black', 'red', 'blue']
     dir: '/home/luca/Desktop/CERNinternship/CheckDistributions' # output dir
 
