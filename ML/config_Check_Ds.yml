@@ -12,7 +12,7 @@ queries: ['d_len <= 0.5 and (inv_mass < 1.832 or inv_mass > 2.012)',
 
 
 output:
-    leg_labels: ['Background', 'Prompt D$^*$', 'Non-prompt D$^*$'] # legend labels
+    leg_labels: ['Background', 'Prompt D$^s$', 'Non-prompt D$^s$'] # legend labels
     colors: ['black', 'red', 'blue']
     dir: '/home/fcatalan/cernbox/Analyses/' # output dir
 
