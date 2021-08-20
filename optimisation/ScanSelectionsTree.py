@@ -387,8 +387,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                            effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
                 tSignif.Fill(np.array(tupleForNtuple, 'f'))
                 estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'S': expSignal, 'B': expBkg,
-                            'EffAccPrompt': effTimesAccPrompt, 'EffAccFD': effTimesAccFD,
-                            'fPrompt': fPrompt[0], 'fFD': fFD[0]}
+                             'EffAccPrompt': effTimesAccPrompt, 'EffAccFD': effTimesAccFD,
+                             'fPrompt': fPrompt[0], 'fFD': fFD[0]}
                 estValuesErr = {'SignifError': errSignif, 'SoverBError': errSoverB, 'SError': errS, 'BError': errExpBkg,
                                 'EffAccPromptError': EffAccPromptError, 'EffAccFDError': EffAccFDError}
                 if len(varNames) == 1:
