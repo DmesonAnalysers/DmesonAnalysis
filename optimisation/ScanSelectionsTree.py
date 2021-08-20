@@ -188,7 +188,7 @@ tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
 totSets = [1 for _ in enumerate(ptMaxs)]
 
-for iPt in range(len(ptMaxs)):
+for iPt, _ in enumerate(ptMaxs):
     for cutRange in cutRanges[iPt]:
         totSets[iPt] *= len(cutRange)
 print(f'Total number of sets per pT bin: {totSets}')
