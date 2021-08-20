@@ -383,7 +383,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                                             + (accUnc/acc)**2)*effTimesAccPrompt
 
                 tupleForNtuple = cutSet + (ptMin, ptMax, ParCutMin, ParCutMax, EffAccPromptError, EffAccFDError,
-                                        errS, errExpBkg, errSignif, errSoverB, expSignif, expSoverB, expSignal, expBkg,
+                                           errS, errExpBkg, errSignif, errSoverB, expSignif, expSoverB, expSignal, expBkg,
                                         effTimesAccPrompt, effTimesAccFD, fPrompt[0], fFD[0])
                 tSignif.Fill(np.array(tupleForNtuple, 'f'))
                 estValues = {'Signif': expSignif, 'SoverB': expSoverB, 'S': expSignal, 'B': expBkg,
