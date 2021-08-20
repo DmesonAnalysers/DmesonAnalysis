@@ -1,6 +1,6 @@
-# D<sub>s</sub><sup>+</sup>, D<sup>+</sup>-meson, and Λ<sub>c</sub><sup>+</sup> Analysis code
+# D<sub>s</sub><sup>+</sup>, D<sup>+</sup>, D<sup>*+</sup>-meson, and Λ<sub>c</sub><sup>+</sup> Analysis code
 
-Code for the measurement of D<sub>s</sub><sup>+</sup>, D<sup>+</sup>-meson, and Λ<sub>c</sub><sup>+</sup>-baryon p<sub>T</sub>-differential yields starting from the outputs of the [AliPhysics](https://github.com/alisw/AliPhysics) tasks [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx), [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx), and [AliAnalysisTaskSENonPromptLc.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSENonPromptLc.cxx), using rectangular or ML selections
+Code for the measurement of D<sub>s</sub><sup>+</sup>, D<sup>+</sup>, D<sup>*+</sup>-meson, and Λ<sub>c</sub><sup>+</sup>-baryon p<sub>T</sub>-differential yields starting from the outputs of the [AliPhysics](https://github.com/alisw/AliPhysics) tasks [AliAnalysisTaskSEDs.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDs.cxx), [AliAnalysisTaskSEDplus.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSEDplus.cxx), and [AliAnalysisTaskSENonPromptLc.cxx](https://github.com/alisw/AliPhysics/blob/master/PWGHF/vertexingHF/vHFML/AliAnalysisTaskSENonPromptLc.cxx), using rectangular or ML selections
 
 ## Run analysis tasks
 
