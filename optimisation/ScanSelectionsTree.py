@@ -58,7 +58,6 @@ else:
 fractionstokeep = inputCfg['infiles']['background']['fractiontokeep']
 
 # load cut values to scan
-specifier = inputCfg['specifier']
 ptMins = inputCfg['ptmin']
 ptMaxs = inputCfg['ptmax']
 if not isinstance(ptMins, list):
@@ -483,7 +482,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
             outDirPlotsPt[iPt].cd(f'{ParCutsName}{ParCutMin}-{ParCutMax}')
             cEstimVsCut[counter].Write()
 
-            cEstimVsCut[counter].Print(f'scan_{specifier}_pT{ptMin}_{ptMax}.pdf', "pdf")
+            cEstimVsCut[counter].Print(f'scan_pT{ptMin}_{ptMax}.pdf', "pdf")
         counter += 1
 outFile.cd()
 tSignif.Write()
