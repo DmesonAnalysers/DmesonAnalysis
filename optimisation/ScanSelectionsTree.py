@@ -186,7 +186,7 @@ varsName4Tuple = (':'.join(cutVars) + ':PtMin:PtMax:ParCutMin:ParCutMax:EffAccPr
                   ':SignifError:SoverBError:' + ':'.join(estNames.keys()))
 tSignif = TNtuple('tSignif', 'tSignif', varsName4Tuple)
 
-totSets = [1 for i in range(len(ptMaxs))]
+totSets = [1 for _ in enumerate(ptMaxs)]
 
 for iPt in range(len(ptMaxs)):
     for cutRange in cutRanges[iPt]:
