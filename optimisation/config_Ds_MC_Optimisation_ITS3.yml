@@ -107,15 +107,15 @@ dfparametercuts:
 cutvars:
     ML_output_Bkg:
         axisnum: null
-        min: 0.
-        max: 2.
-        step: 0.2
+        min: [0.]
+        max: [2.]
+        step: [0.2]
         upperlowercut: Upper
     ML_output_FD:
         axisnum: null
-        min: -2.
-        max: 0.
-        step: 0.1
+        min: [-2.]
+        max: [0.]
+        step: [0.1]
         upperlowercut: Lower
 
 
