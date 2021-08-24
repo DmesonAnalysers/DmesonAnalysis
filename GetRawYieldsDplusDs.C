@@ -36,6 +36,7 @@ double SingleGaus(double *m, double *pars);
 double DoublePeakSingleGaus(double *x, double *pars);
 double DoubleGaus(double *m, double *pars);
 double DoublePeakDoubleGaus(double *m, double *pars);
+double DoubleGausSigmaRatio(double *m, double *pars);
 void SetHistoStyle(TH1 *histo, int color=kBlack, double markersize=1.);
 void SetStyle();
 void DivideCanvas(TCanvas* c, int nPtBins);
@@ -84,6 +85,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         fixSigma.assign(PtMin.size(), opt);
     }
     string infilenameSigma = config[centname.Data()]["SigmaFile"].as<string>();
+    bool fixSigmaRatio = config[centname.Data()]["FixSigmaRatio"].as<int>();
+    string infilenameSigmaRatio = config[centname.Data()]["SigmaRatioFile"].as<string>();
     bool isSigmaMultFromUnc = false;
     double sigmaMult = 1.;
     string sigmaMultFromUnc = "";
@@ -100,6 +103,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         int opt = config[centname.Data()]["FixMean"].as<int>();
         fixMean.assign(PtMin.size(), opt);
     }
+    bool boundMean = config[centname.Data()]["BoundMean"].as<int>();
     string infilenameMean = config[centname.Data()]["MeanFile"].as<string>();
     bool UseLikelihood = config[centname.Data()]["UseLikelihood"].as<int>();
     vector<int> Rebin = config[centname.Data()]["Rebin"].as<vector<int>>();
@@ -154,9 +158,11 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
             SgnFunc[iPt] = AliHFInvMassFitter::kGaus;
         else if(sgnfunc[iPt] == "k2Gaus")
             SgnFunc[iPt] = AliHFInvMassFitter::k2Gaus;
+        else if(sgnfunc[iPt] == "k2GausSigmaRatioPar")
+            SgnFunc[iPt] = AliHFInvMassFitter::k2GausSigmaRatioPar;
         else
         {
-            cerr << "ERROR: only kGaus and k2Gaus signal functions supported! Exit" << endl;
+            cerr << "ERROR: only kGaus, k2Gaus and k2GausSigmaRatioPar signal functions supported! Exit" << endl;
             return -1;
         }
     }
@@ -194,6 +200,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     //define output histos
     auto hRawYields = new TH1D("hRawYields",";#it{p}_{T} (GeV/#it{c});raw yield",nPtBins,PtLims);
     auto hRawYieldsSigma = new TH1D("hRawYieldsSigma",";#it{p}_{T} (GeV/#it{c});width (GeV/#it{c}^{2})",nPtBins,PtLims);
+    auto hRawYieldsSigmaRatio = new TH1D("hRawYieldsSigmaRatio",";#it{p}_{T} (GeV/#it{c});ratio #sigma_{1}/#sigma_{2}",nPtBins,PtLims);
     auto hRawYieldsSigma2 = new TH1D("hRawYieldsSigma2",";#it{p}_{T} (GeV/#it{c});width (GeV/#it{c}^{2})",nPtBins,PtLims);
     auto hRawYieldsMean = new TH1D("hRawYieldsMean",";#it{p}_{T} (GeV/#it{c});mean (GeV/#it{c}^{2})",nPtBins,PtLims);
     auto hRawYieldsFracGaus2 = new TH1D("hRawYieldsFracGaus2",";#it{p}_{T} (GeV/#it{c});second-gaussian fraction",nPtBins,PtLims);
@@ -236,6 +243,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     SetHistoStyle(hRawYieldsSecondPeakTrue,kRed+1);
     SetHistoStyle(hRelDiffRawYieldsFitTrue);
     SetHistoStyle(hRelDiffRawYieldsSecondPeakFitTrue,kRed+1);
+    SetHistoStyle(hRawYieldsSigmaRatio,kRed+1);
 
     // additional S, B, S/B, and significance histos for different Nsigma values (filled only in case of data)
     const int nMassWindows = 6;
@@ -260,8 +268,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     TH1D *hSigmaToFix = NULL;
     if(accumulate(fixSigma.begin(), fixSigma.end(), 0) > 0) {
-        auto infileSigma = TFile::Open(infilenameSigma.data());
-        if(!infileSigma)
+            auto infileSigma = TFile::Open(infilenameSigma.data());
+            if(!infileSigma)
             return -2;
         hSigmaToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigma"));
         hSigmaToFix->SetDirectory(0);
@@ -270,10 +278,30 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         infileSigma->Close();
     }
 
+    TH1D *hSigmaToFix1 = NULL;
+    TH1D *hSigmaToFix2 = NULL;
+    if(fixSigmaRatio) {
+        std::cout<<"Load sigma ratio from file " << infilenameSigmaRatio.data()<<std::endl;
+            auto infileSigmaRatio = TFile::Open(infilenameSigmaRatio.data());
+            if(!infileSigmaRatio)
+            return -2;
+        hSigmaToFix1 = static_cast<TH1D*>(infileSigmaRatio->Get("hRawYieldsSigma"));
+        hSigmaToFix1->SetDirectory(0);
+        if(static_cast<unsigned int>(hSigmaToFix1->GetNbinsX()) != nPtBins)
+            cout << "WARNING: Different number of bins for this analysis and histo for fix sigma ratio" << endl;
+
+        hSigmaToFix2 = static_cast<TH1D*>(infileSigmaRatio->Get("hRawYieldsSigma2"));
+        hSigmaToFix2->SetDirectory(0);
+        if(static_cast<unsigned int>(hSigmaToFix2->GetNbinsX()) != nPtBins)
+            cout << "WARNING: Different number of bins for this analysis and histo for fix sigma ratio" << endl;
+        
+        infileSigmaRatio->Close();
+    }
+
     TH1D *hMeanToFix = NULL;
     if(accumulate(fixMean.begin(), fixMean.end(), 0) > 0) {
-        auto infileMean = TFile::Open(infilenameMean.data());
-        if(!infileMean)
+            auto infileMean = TFile::Open(infilenameMean.data());
+            if(!infileMean)
             return -3;
         hMeanToFix = static_cast<TH1D*>(infileMean->Get("hRawYieldsMean"));
         hMeanToFix->SetDirectory(0);
@@ -284,7 +312,18 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     TH1D *hSigmaFirstPeakMC = NULL;
     TH1D *hSigmaToFixSecPeak = NULL;
-    auto infileSigmaSecPeak = TFile::Open(infilenameSigmaSecPeak.data());
+    
+    bool InclSecPeakGlobal = false;
+    for(int isp:InclSecPeak){
+        if(isp != 0){
+            InclSecPeakGlobal = true;
+            break;
+        }
+    }
+    TFile *infileSigmaSecPeak = NULL;
+    if(InclSecPeakGlobal){
+        infileSigmaSecPeak = TFile::Open(infilenameSigmaSecPeak.data());
+    }
     if(!infileSigmaSecPeak && fixSigmaToFirstPeak)
         return -2;
     if(infileSigmaSecPeak) {
@@ -343,7 +382,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         SetHistoStyle(hMassForFit[iPt], kBlack, markerSize);
 
         if(isMC) { //MC
-            int parRawYield = 0, parMean = 1., parSigma1 = 2; //always the same
+            int parRawYield = 0, parMean = 1., parSigma1 = 2, parSigmaRatio = 3; //always the same
             int parSigma2 = -1, parFrac2Gaus = -1, parRawYieldSecPeak = -1, parMeanSecPeak = -1, parSigmaSecPeak = -1;
             TF1* massFunc = NULL;
             if(SgnFunc[iPt]==AliHFInvMassFitter::kGaus) {
@@ -373,6 +412,13 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                     parMeanSecPeak = 6;
                     parSigmaSecPeak = 7;
                 }
+            }
+            else if(SgnFunc[iPt]==AliHFInvMassFitter::k2GausSigmaRatioPar){
+                massFunc = new TF1(Form("massFunc%d",iPt),DoubleGausSigmaRatio,MassMin[iPt],MassMax[iPt],5);
+                massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),
+                                        massForFit,0.010,2,0.5);
+                massFunc->SetParLimits(3, 1, 1e6);
+                massFunc->SetParLimits(4, 0, 1);
             }
 
             if(nPtBins>1)
@@ -432,6 +478,16 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 hRawYieldsFracGaus2->SetBinContent(iPt+1,frac2gaus);
                 hRawYieldsFracGaus2->SetBinError(iPt+1,frac2gauserr);
             }
+            else if(SgnFunc[iPt]==AliHFInvMassFitter::k2GausSigmaRatioPar) {
+                double sigmaRatio1_2 = massFunc->GetParameter(parSigmaRatio);
+                double sigmaRatio1_2err = massFunc->GetParError(parSigmaRatio);
+                double sigma2 = sigma/sigmaRatio1_2;
+                double sigma2err =0; //todo: add error propagation (correlation?)
+                hRawYieldsSigmaRatio->SetBinContent(iPt+1,sigmaRatio1_2);
+                hRawYieldsSigmaRatio->SetBinError(iPt+1,sigmaRatio1_2err);
+                hRawYieldsSigma2->SetBinContent(iPt+1,sigma2);
+                hRawYieldsSigma2->SetBinError(iPt+1,sigma2err);
+            }
         }
         else { //data
             auto massFitter = new AliHFInvMassFitter(hMassForFit[iPt] ,MassMin[iPt], MassMax[iPt], BkgFunc[iPt], SgnFunc[iPt]);
@@ -441,6 +497,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 massFitter->SetUseLikelihoodFit();
             if(fixMean[iPt])
                 massFitter->SetFixGaussianMean(hMeanToFix->GetBinContent(iPt+1));
+            if(boundMean)
+                massFitter->SetBoundGaussianMean(massForFit, MassMin[iPt], MassMax[iPt]);
             else
                 massFitter->SetInitialGaussianMean(massForFit);
             if(fixSigma[iPt]) {
@@ -460,6 +518,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                     massFitter->SetInitialGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
                 else
                     massFitter->SetInitialGaussianSigma(0.008);
+            }
+            if(fixSigmaRatio){
+                massFitter->SetFixRatio2GausSigma(
+                hSigmaToFix1->GetBinContent(iPt+1)/hSigmaToFix2->GetBinContent(iPt+1));
             }
 
             if(InclSecPeak[iPt] && particle==kDs) {
@@ -548,6 +610,17 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 hRawYieldsSigma2->SetBinError(iPt+1,sigma2err);
                 hRawYieldsFracGaus2->SetBinContent(iPt+1,frac2gaus);
                 hRawYieldsFracGaus2->SetBinError(iPt+1,frac2gauserr);
+            }
+            else if (SgnFunc[iPt]==AliHFInvMassFitter::k2GausSigmaRatioPar){
+                int parRatioSigma = fTotFunc->GetNpar()-1;
+                double sigmaRatio1_2 = fTotFunc->GetParameter(parRatioSigma);
+                double sigmaRatio1_2err = fTotFunc->GetParError(parRatioSigma);
+                double sigma2 = sigma/sigmaRatio1_2;
+                double sigma2err =0; //todo: add error propagation (correlation?)
+                hRawYieldsSigmaRatio->SetBinContent(iPt+1,sigmaRatio1_2);
+                hRawYieldsSigmaRatio->SetBinError(iPt+1,sigmaRatio1_2err);
+                hRawYieldsSigma2->SetBinContent(iPt+1,sigma2);
+                hRawYieldsSigma2->SetBinError(iPt+1,sigma2err);
             }
 
             if(InclSecPeak[iPt] && particle==kDs) {
@@ -643,6 +716,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     hRawYieldsSecondPeakTrue->Write();
     hRelDiffRawYieldsFitTrue->Write();
     hRelDiffRawYieldsSecondPeakFitTrue->Write();
+    hRawYieldsSigmaRatio->Write();
     hEv->Write();
     if(!isMC)
     {
@@ -696,6 +770,13 @@ double DoubleGaus(double *m, double *pars) {
     double norm = pars[0], mean = pars[1], sigma1 = pars[2], sigma1_2 = pars[3], fg = pars[4];
 
     return norm*((1-fg)*TMath::Gaus(m[0],mean,sigma1,true)+fg*TMath::Gaus(m[0],mean,sigma1_2,true));
+}
+
+//__________________________________________________________________________________________________________________
+double DoubleGausSigmaRatio(double *m, double *pars) {
+    double norm = pars[0], mean = pars[1], sigma1 = pars[2], sigma1OverSigma2 = pars[3], fg = pars[4];
+
+    return norm*((1-fg)*TMath::Gaus(m[0],mean,sigma1,true)+fg*TMath::Gaus(m[0],mean,sigma1/sigma1OverSigma2,true));
 }
 
 //__________________________________________________________________________________________________________________
