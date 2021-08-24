@@ -275,8 +275,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     TH1D *hSigmaToFix = NULL;
     if(accumulate(fixSigma.begin(), fixSigma.end(), 0) > 0) {
-        auto infileSigma = TFile::Open(infilenameSigma.data());
-        if(!infileSigma)
+            auto infileSigma = TFile::Open(infilenameSigma.data());
+            if(!infileSigma)
             return -2;
         hSigmaToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigma"));
         hSigmaToFix->SetDirectory(0);
@@ -307,8 +307,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     TH1D *hMeanToFix = NULL;
     if(accumulate(fixMean.begin(), fixMean.end(), 0) > 0) {
-        auto infileMean = TFile::Open(infilenameMean.data());
-        if(!infileMean)
+            auto infileMean = TFile::Open(infilenameMean.data());
+            if(!infileMean)
             return -3;
         hMeanToFix = static_cast<TH1D*>(infileMean->Get("hRawYieldsMean"));
         hMeanToFix->SetDirectory(0);
@@ -530,6 +530,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                         massFitter->SetInitialGaussianSigma(0.001);
                     else
                         massFitter->SetInitialGaussianSigma(0.008);
+            }
+            if(fixSigmaRatio){
+                massFitter->SetFixRatio2GausSigma(
+                hSigmaToFix1->GetBinContent(iPt+1)/hSigmaToFix2->GetBinContent(iPt+1));
             }
             if(fixSigmaRatio){
                 massFitter->SetFixRatio2GausSigma(
