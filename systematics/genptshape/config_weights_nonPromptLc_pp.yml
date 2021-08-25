@@ -1,0 +1,47 @@
+meson:
+    Dspecie: Lc
+    Bspecie: Lb # options: ['Bs', 'Bplus', 'Bzero', 'Lb', 'BsBmix']
+
+inputMC:
+    filename: ../../lcres/systematics/genptshape/AnalysisResults.root
+    suffixCF: null # only for CF outputs otherwise null
+
+shapes:
+    D:
+        fonll: # fonll is mandatory
+            file: ../../models/fonll/FONLL_D_pp13_y05_PromptLcMod.txt
+        tamu:
+            enabled: false
+            file: null
+        phsd:
+            enabled: false
+            file: null
+        mc@shq:
+            enabled: false
+            file: null
+        catania:
+            enabled: false
+            file: null
+        lido:
+            enabled: false
+            file: null
+        lgr:
+            enabled: false
+            file: null
+    B:
+        fonll: # fonll is mandatory
+            file: ../../models/fonll/FONLL_B_pp13_y05_Mod.txt
+        tamu:
+            enabled: false
+            file:
+                B: null
+                Bs: null
+        lido:
+            enabled: false
+            file: null
+
+options:
+    rebin: 1
+    smooth: 100
+
+outputfile: ptweights/Lcpp/PtWeigths_NonPromptLc_LHC20l3a_Lb.root
