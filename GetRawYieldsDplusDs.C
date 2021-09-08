@@ -28,7 +28,7 @@
 using namespace std;
 
 enum {k010, k3050, k6080, kpp5TeVPrompt, kpp5TeVFD, kpp13TeVPrompt, kpp13TeVFD};
-enum {kDplus, kDs, kLc};
+enum {kDplus, kDs, kLc, kDstar};
 
 //__________________________________________________________________________________________________________________
 int GetRawYieldsDplusDs(int cent = k010, bool isMC = false, TString infilename = "InvMassSpectraDplus_010_PbPb2015cuts.root", TString cfgfilename = "Dplus/config_Dplus_Fit.yml", TString outFileName = "RawYieldsDplus_010_PbPb2015cuts.root");
@@ -67,8 +67,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         particle=kDs;
     } else if (ParticleName=="Lc"){
         particle=kLc;
+    } else if (ParticleName=="Dstar"){
+        particle=kDstar;
     } else{
-        cerr << "ERROR: only Dplus, Ds and Lc are supported! Exit";
+        cerr << "ERROR: only Dplus, Ds, Dstar and Lc are supported! Exit";
         return -1;
     }
 
@@ -143,9 +145,13 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 return -1;
             }
         }
+        else if(bkgfunc[iPt] == "kPow")
+            BkgFunc[iPt] = AliHFInvMassFitter::kPow;
+        else if(bkgfunc[iPt] == "kPowEx")
+            BkgFunc[iPt] = AliHFInvMassFitter::kPowEx;
         else
         {
-            cerr << "ERROR: only kExpo, kLin, kPol2, kPol3, and kPol4 background functions supported! Exit" << endl;
+            cerr << "ERROR: only kExpo, kLin, kPol2, kPol3, and kPol4, kPow and kPowEx background functions supported! Exit" << endl;
             return -1;
         }
         
@@ -165,6 +171,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     if(particle==kDplus) massaxistit = "#it{M}(K#pi#pi) (GeV/#it{c}^{2})";
     else if(particle==kDs) massaxistit = "#it{M}(KK#pi) (GeV/#it{c}^{2})";
     else if(particle==kLc) massaxistit = "#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})";
+    else if (particle==kDstar) massaxistit = "#it{M}(pi^{+}) (GeV/#it{c}^{2})";
     
     //load inv-mass histos
     auto infile = TFile::Open(infilename.Data());
@@ -302,11 +309,13 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     double massDplus = TDatabasePDG::Instance()->GetParticle(411)->Mass();
     double massDs = TDatabasePDG::Instance()->GetParticle(431)->Mass();
     double massLc = TDatabasePDG::Instance()->GetParticle(4122)->Mass();
+    double dmassDstar = TDatabasePDG::Instance()->GetParticle(413)->Mass() - TDatabasePDG::Instance()->GetParticle(421)->Mass();
     double massForFit = -1.;
     
     if(particle==kDplus) massForFit = massDplus;
     else if (particle==kDs) massForFit = massDs;
     else if (particle==kLc) massForFit = massLc;
+    else if (particle==kDstar) massForFit = dmassDstar;
 
     TH1F* hMassForFit[nPtBins];
 
@@ -459,7 +468,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 if(hSigmaToFix)
                     massFitter->SetInitialGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
                 else
-                    massFitter->SetInitialGaussianSigma(0.008);
+                    massFitter->SetInitialGaussianSigma(0.001);
             }
 
             if(InclSecPeak[iPt] && particle==kDs) {

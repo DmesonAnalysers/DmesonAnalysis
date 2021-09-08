@@ -12,7 +12,7 @@ import yaml
 from alive_progress import alive_bar
 from ROOT import TFile, TH1F, TH2F, TF1, TCanvas, TNtuple, TDirectoryFile  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRainBow, kBlack, kFullCircle  # pylint: disable=import-error,no-name-in-module
-sys.path.append('..')
+sys.path.insert(0, '..')
 from utils.AnalysisUtils import ComputeEfficiency, GetPromptFDFractionFc, GetExpectedBkgFromSideBands  #pylint: disable=wrong-import-position,import-error
 from utils.AnalysisUtils import  GetExpectedBkgFromMC, GetExpectedSignal  #pylint: disable=wrong-import-position,import-error
 from utils.FitUtils import SingleGaus #pylint: disable=wrong-import-position,import-error
@@ -60,6 +60,9 @@ fractionstokeep = inputCfg['infiles']['background']['fractiontokeep']
 # load cut values to scan
 ptMins = inputCfg['ptmin']
 ptMaxs = inputCfg['ptmax']
+
+minMass=inputCfg['minMass']
+maxMass=inputCfg['maxMass']
 if not isinstance(ptMins, list):
     ptMins = [ptMins]
 if not isinstance(ptMaxs, list):
@@ -95,6 +98,7 @@ for var in cutVars:
     else:
         upperLowerCuts.append('>')
     varNames.append(var)
+    
 
 # load preselection efficiency
 if inputCfg['infiles']['preseleff']['filename']:
@@ -351,7 +355,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
                 else:
                     expBkg, errExpBkg, hMassBkg = GetExpectedBkgFromSideBands(hMassBkg, bkgConfig['fitFunc'],
                                                                             bkgConfig['nSigma'], mean, sigma,
-                                                                            meanSecPeak, sigmaSecPeak)
+                                                                            meanSecPeak, sigmaSecPeak, minMass, maxMass)
                 hMassBkg.Write()
                 expBkg *= nExpEv / bkgConfig['nEvents'] / fractionstokeep[iPt]
                 errExpBkg *= nExpEv / bkgConfig['nEvents'] / fractionstokeep[iPt]
