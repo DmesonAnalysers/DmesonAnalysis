@@ -312,7 +312,7 @@ def GetPromptFDFractionCutSet(accEffPrompt, accEffFD, corrYieldPrompt, corrYield
 
 
 def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0., sigma=0.,
-                                meanSecPeak=0., sigmaSecPeak=0.):
+                                meanSecPeak=0., sigmaSecPeak=0., minmass=None, maxmass=None):
     '''
     Helper method to get the expected bkg from side-bands, using maximum-likelihood and
     background functions defined only on the sidebands
@@ -341,9 +341,15 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0
 
     if numEntriesSB <= 5: # check to have some entries in the histogram before fitting
         return 0., 0., hMassData
+    if minmass == None:
+        minMass = hMassData.GetBinLowEdge(1)
+    else:
+        minMass=minmass 
+    if maxmass == None:
+        maxMass = hMassData.GetBinLowEdge(hMassData.GetNbinsX()) + hMassData.GetBinWidth(1)
+    else:
+        maxMass=maxmass
 
-    minMass = hMassData.GetBinLowEdge(1)
-    maxMass = hMassData.GetBinLowEdge(hMassData.GetNbinsX()) + hMassData.GetBinWidth(1)
     bkgFuncCreator = BkgFitFuncCreator(bkgFunc, minMass, maxMass, nSigmaForSB, mean, sigma, meanSecPeak, sigmaSecPeak)
     funcBkgSB = bkgFuncCreator.GetSideBandsFunc(hMassData.Integral('width'))
     fit = hMassData.Fit(funcBkgSB, 'LRQ+')

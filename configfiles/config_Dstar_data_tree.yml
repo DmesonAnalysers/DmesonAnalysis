@@ -1,0 +1,26 @@
+isMC: no
+filename:  [ ~/Desktop/Ali50xl_copy/data/raw/2016/AnalysisResults_Dstar_Data_2016_1.root,
+             ~/Desktop/Ali50xl_copy/data/raw/2016/AnalysisResults_Dstar_Data_2016_2.root,
+             ~/Desktop/Ali50xl_copy/data/raw/2017/AnalysisResults_Dstar_Data_2017.root,
+             ~/Desktop/Ali50xl_copy/data/raw/2018/AnalysisResults_Dstar_Data_2018.root
+           ]
+
+dirname: PWGHF_D2H_TreeDstartoD0piLoose
+listname: coutputTreeDstartoD0piLoose
+sparsenameAll: null
+enableSecPeak: no #always no for data
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: Dstar #needed to define binning for invariant-mass histo
+    filenameAll: [~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt2_3/Data_pT_2_3_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt3_5/Data_pT_3_5_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt5_7/Data_pT_5_7_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt7_12/Data_pT_7_12_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt12_50/Data_pT_12_50_ModelApplied.parquet.gzip
+                  ]
+    dirname: PWGHF_D2H_TreeDstartoD0piLoose
+    treename: treeMLD

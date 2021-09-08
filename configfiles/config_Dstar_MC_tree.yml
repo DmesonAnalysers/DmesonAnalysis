@@ -1,0 +1,41 @@
+isMC: yes
+filename: [ ~/Desktop/Ali50xl_copy/data/raw/2016/AnalysisResults_Dstar_MCeff_2016.root,
+            ~/Desktop/Ali50xl_copy/data/raw/2017/AnalysisResults_Dstar_MCeff_2017.root,
+            ~/Desktop/Ali50xl_copy/data/raw/2018/AnalysisResults_Dstar_MCeff_2018.root
+           ]
+
+dirname: PWGHF_D2H_TreeDstartoD0piLoose
+listname: coutputTreeDstartoD0piLoose
+sparsenameAll: null
+sparsenamePrompt: fnSparseAcc_fromC
+sparsenameFD: fnSparseAcc_fromB
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableSecPeak: no
+sparsenamePromptSecPeak: null
+sparsenameFDSecPeak: null
+sparsenameGenPromptSecPeak: null
+sparsenameGenFDSecPeak: null
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models
+tree:
+  particle: "Dstar"
+  filenameAll: null #not needed for MC
+  filenamePrompt:  [~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt1_2/Prompt_pT_1_2_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt2_3/Prompt_pT_2_3_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt3_5/Prompt_pT_3_5_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt5_7/Prompt_pT_5_7_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt7_12/Prompt_pT_7_12_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt12_50/Prompt_pT_12_50_ModelApplied.parquet.gzip
+                      ]
+  filenameFD: [ ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt1_2/FD_pT_1_2_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt2_3/FD_pT_2_3_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt3_5/FD_pT_3_5_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt5_7/FD_pT_5_7_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt7_12/FD_pT_7_12_ModelApplied.parquet.gzip,
+                    ~/Desktop/Ali50xl_copy/ml_training_out/BayesFinal_appl/pt12_50/FD_pT_12_50_ModelApplied.parquet.gzip
+                ]
+  dirname: PWGHF_D2H_TreeDstartoD0piLoose
+  treename: treeMLD
