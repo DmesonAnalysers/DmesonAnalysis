@@ -61,8 +61,8 @@ fractionstokeep = inputCfg['infiles']['background']['fractiontokeep']
 ptMins = inputCfg['ptmin']
 ptMaxs = inputCfg['ptmax']
 
-minMass=inputCfg['minMass']
-maxMass=inputCfg['maxMass']
+minMass = inputCfg['minMass']
+maxMass = inputCfg['maxMass']
 if not isinstance(ptMins, list):
     ptMins = [ptMins]
 if not isinstance(ptMaxs, list):
