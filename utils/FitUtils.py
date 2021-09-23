@@ -256,8 +256,8 @@ class BkgFitFuncCreator:
         ----------
         - x: function variable
         - par: function parameters
-        par[0]: normalisation (integral of background)
-        par[1]: expo slope
+            par[0]: normalisation (integral of background)
+            par[1]: expo slope
         '''
         mPi = TDatabasePDG.Instance().GetParticle(211).Mass()
 
