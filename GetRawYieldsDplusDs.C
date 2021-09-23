@@ -468,7 +468,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 if(hSigmaToFix)
                     massFitter->SetInitialGaussianSigma(hSigmaToFix->GetBinContent(iPt+1)*sigmaMult);
                 else
-                    massFitter->SetInitialGaussianSigma(0.001);
+                    if(particle == kDstar)
+                        massFitter->SetInitialGaussianSigma(0.001);
+                    else
+                        massFitter->SetInitialGaussianSigma(0.008);
             }
 
             if(InclSecPeak[iPt] && particle==kDs) {

@@ -169,6 +169,8 @@ class BkgFitFuncCreator:
         if self.secPeakMass > 0. and self.secPeakDelta > 0.:
             self.removeSecPeak = True
 
+        self.mPi = TDatabasePDG.Instance().GetParticle(211).Mass()
+
     def _ExpoIntegralNorm(self, x, par):
         '''
         Exponential function normalized to its integral.
@@ -250,8 +252,8 @@ class BkgFitFuncCreator:
 
     def _ExpoPowIntegralNorm(self, x, par):
         '''
-        Exponential times power law function normalized to its integral.
- 
+        Exponential times power law function normalized to its integral for D* background.
+
         Parameters
         ----------
         - x: function variable
@@ -259,9 +261,8 @@ class BkgFitFuncCreator:
             par[0]: normalisation (integral of background)
             par[1]: expo slope
         '''
-        mPi = TDatabasePDG.Instance().GetParticle(211).Mass()
 
-        return par[0] * TMath.Sqrt(x[0] - mPi) * TMath.Exp(-1. * par[1] * (x[0] - mPi))
+        return par[0] * TMath.Sqrt(x[0] - self.mPi) * TMath.Exp(-1. * par[1] * (x[0] - self.mPi))
 
 
     def _SideBandsFunc(self, x, par):

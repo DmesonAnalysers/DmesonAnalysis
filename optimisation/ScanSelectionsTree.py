@@ -90,7 +90,8 @@ for iPt in range(len(ptMaxs)):
 
     for var in cutVars:
         cutRanges[iPt].append(np.arange(cutVars[var]['min'][iPt], cutVars[var]['max'][iPt] +
-                                        cutVars[var]['step'][iPt] / 10, cutVars[var]['step'][iPt]).tolist())
+                                        cutVars[var]['step'][iPt] / 10,
+                                        cutVars[var]['step'][iPt]).tolist())
 
 for var in cutVars:
     if cutVars[var]['upperlowercut'] == 'Upper':
@@ -98,7 +99,6 @@ for var in cutVars:
     else:
         upperLowerCuts.append('>')
     varNames.append(var)
-    
 
 # load preselection efficiency
 if inputCfg['infiles']['preseleff']['filename']:
