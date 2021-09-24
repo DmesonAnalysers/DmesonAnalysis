@@ -59,6 +59,9 @@ BkgCorrFactor:
     filename: null # set null if no MC bkg correction is needed
     histoname: null
 
+minMass: null
+maxMass: null
+
 ptmin: [2]
 ptmax: [4]
 
