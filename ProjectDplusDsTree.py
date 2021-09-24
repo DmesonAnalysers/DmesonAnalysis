@@ -1,5 +1,5 @@
 '''
-python script for the projection of D+, Ds+ and Lc particles TTrees
+python script for the projection of D+, Ds+, D*+ and Lc particles TTrees
 run: python ProjectDplusDsTree.py cfgFileName.yml cutSetFileName.yml outFileName.root
                                   [--ptweights PtWeightsFileName.root histoName]
                                   [--ptweightsB PtWeightsFileName.root histoName]
@@ -71,14 +71,20 @@ if particle == 'Ds':
     mD = TDatabasePDG.Instance().GetParticle(431).Mass()
 elif particle == 'Dplus':
     mD = TDatabasePDG.Instance().GetParticle(411).Mass()
+elif particle == 'Dstar':
+    mD = TDatabasePDG.Instance().GetParticle(413).Mass() - TDatabasePDG.Instance().GetParticle(421).Mass()
 elif particle == 'Lc':
     mD = TDatabasePDG.Instance().GetParticle(4122).Mass()
 else:
-    print('Error: only Dplus, Ds particles and Lc supported. Exit!')
+    print('Error: only Dplus, Ds, Dstar particles and Lc supported. Exit!')
     sys.exit()
 massBins = 500
-massLimLow = mD - 0.25
-massLimHigh = mD + 0.25
+if particle == 'Dstar':
+    massLimLow = mD - 0.01
+    massLimHigh = mD + 0.03
+else:
+    massLimLow = mD - 0.25
+    massLimHigh = mD + 0.25
 
 # selections to be applied
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
@@ -181,6 +187,7 @@ if isMC:
         bins = multWeights.axis(0).edges()
         multCent = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
         sMultWeights = InterpolatedUnivariateSpline(multCent, multWeights.values())
+        dataFramePrompt['mult_weights'] = ApplySplineFuncToColumn(dataFramePrompt, 'n_trkl', sMultWeights, 0, bins[-1])
         dataFrameFD['mult_weights'] = ApplySplineFuncToColumn(dataFrameFD, 'n_trkl', sMultWeights, 0, bins[-1])
 
     for (cuts, ptMin, ptMax) in zip(selToApply, cutVars['Pt']['min'], cutVars['Pt']['max']):

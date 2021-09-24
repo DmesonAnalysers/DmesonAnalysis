@@ -1,0 +1,83 @@
+input: # files to use, set FD to null for binary classification
+    prompt: [ ~/alice/data/filtered/Prompt_Dstar_MCeff_2016_pT_0_50.root
+               ]
+    FD:  [ ~/alice/data/filtered/FD_Dstar_MCeff_2016_pT_0_50.root
+              ]
+    data: [ 
+              ~/alice/data/filtered/Data__Dstar_Data_2016_2_pT_0_50.root
+              
+               ]
+    treename: treeMLD
+              
+
+output:
+    leg_labels: # legend labels, keep the right number of classes
+        Bkg: Background
+        Prompt: Prompt D$^{*+}$
+        FD: Feed-down D$^{*+}$
+    out_labels: # output labels, keep the right number of classes
+        Bkg: Bkg
+        Prompt: Prompt
+        FD: FD
+    dir: '~/Desktop/ml_training_out/Bayes2016appl' # output dir
+
+pt_ranges: # ranges in pt to split the data in the ml training and testing
+    min: [1, 2, 3, 5, 12] # list
+    max: [2, 3, 5, 12, 50] # list
+
+data_prep:
+    filt_bkg_mass: inv_mass > .16 # pandas query to select bkg candidates
+    dataset_opt: max_signal  # change how the dataset is built, options available: 'equal', 'max_signal'
+                        # 'equal' -> same number of prompt/FD/bkg (not using all the signal available)
+                        # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = 2 * (n_prompt + n_FD)
+    bkg_mult: [2., 1., 0.5, 0.3, 0.2] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    seed_split: 42 # seed used for train_test_split(...)
+    test_fraction: 1 # fraction of data used for test set and efficiencies     
+
+ml:
+    raw_output: False # use raw_output (True) of probability (False) as output of the model
+    roc_auc_average: 'macro' # 'macro' or 'weighted'
+    roc_auc_approach: 'ovo'  # 'ovo' or 'ovr'
+    training_columns: [ d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, dca, imp_par_xy,  max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0,
+                         nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2, delta_mass_D0, cos_t_star] 
+                       # list of training variables
+
+    hyper_par: [{'max_depth':3, 'learning_rate':0.0238, 'n_estimators':1028, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':4, 'learning_rate':0.0210, 'n_estimators':1282, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':4, 'learning_rate':0.0210, 'n_estimators':1282, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':4, 'learning_rate':0.0210, 'n_estimators':1282, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':4, 'learning_rate':0.0210, 'n_estimators':1282, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                
+                ]
+                # list of dicts of hyperparameters (one for each pT bin)
+
+    hyper_par_opt:
+      do_hyp_opt: False # whether to do the parameter optimization
+      njobs: 3 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
+      nfolds: 5 # number of folds used in cross validation
+      initpoints: 5 # steps of random exploration you want to perform
+      niter: 5 # steps for bayesian optimization
+      bayes_opt_config: {'max_depth': !!python/tuple [2, 5], 
+                        'learning_rate': !!python/tuple [0.02, 0.1]}
+                        # configuration dictionary for optimize_params_bayes()
+    
+    saved_models: [ ~/Desktop/ml_training_out/Bayes2/pt1_2/ModelHandler_pT_1_2.pickle,
+                    ~/Desktop/ml_training_out/Bayes2/pt2_3/ModelHandler_pT_2_3.pickle,
+                    ~/Desktop/ml_training_out/Bayes2/pt3_5/ModelHandler_pT_3_5.pickle,   
+                    ~/Desktop/ml_training_out/Bayes2/pt5_12/ModelHandler_pT_5_12.pickle,
+                    ~/Desktop/ml_training_out/Bayes2/pt12_50/ModelHandler_pT_12_50.pickle] # list of saved ModelHandler (path+file), compatible with the pt bins
+
+
+plots:
+    plotting_columns: [inv_mass, pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, dca, imp_par_xy,  max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0,
+                         nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pi_2, nsigComb_K_2, delta_mass_D0, cos_t_star] 
+                       # list of variables to plot
+    train_test_log: True # use log scale for plots of train and test distributions
+  
+appl: 
+    column_to_save_list: [inv_mass, pt_cand] # list of variables saved in the dataframes with the applied models
+
+standalone_appl:
+    inputs: [] # list of parquet files for the model application
+    output_names: [] # names for the outputs (one for each file)
+    output_dir: null # output directory

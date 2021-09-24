@@ -76,6 +76,9 @@ Taa: 1.
 
 expectedSignalFrom: "feeddown" # Choice between: 'prompt' or 'feeddown'
 
+minMass: null
+maxMass: null
+
 ptmin: [2, 4, 6, 8]
 ptmax: [4, 6, 8, 12]
 

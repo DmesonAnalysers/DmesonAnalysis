@@ -82,8 +82,12 @@ for iPt, (bkg, sgn) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]
         if len(ptMins) > 1 and inclSecPeak[iPt] == 1:
             print('ERROR: Pol3 and Pol4 fits work only with one bin if you have the secondary peak! Exit!')
             sys.exit()
+    elif bkg == 'kPow':
+        BkgFunc.append(AliHFInvMassFitter.kPow)
+    elif bkg == 'kPowEx':
+        BkgFunc.append(AliHFInvMassFitter.kPowEx)
     else:
-        print('ERROR: only kExpo, kLin, kPol2, kPol3, and kPol4 background functions supported! Exit')
+        print('ERROR: only kExpo, kLin, kPol2, kPol3, kPol4, kPow, and kPowEx background functions supported! Exit')
         sys.exit()
 
     if sgn == 'kGaus':
@@ -102,8 +106,10 @@ elif particleName == 'Ds':
     massAxisTit = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
 elif particleName == 'Lc':
     massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
+elif particleName == 'Dstar':
+    massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'
 else:
-    print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dplus, Ds and Lc. Exit!')
+    print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dplus, Ds, Dstar, and Lc. Exit!')
     sys.exit()
 
 # load inv-mass histos
@@ -279,11 +285,14 @@ for iS, sigma in enumerate(nSigma4SandB):
 massDplus = TDatabasePDG.Instance().GetParticle(411).Mass()
 massDs = TDatabasePDG.Instance().GetParticle(431).Mass()
 massLc = TDatabasePDG.Instance().GetParticle(4122).Mass()
+massDstar = TDatabasePDG.Instance().GetParticle(413).Mass() - TDatabasePDG.Instance().GetParticle(421).Mass()
 
-if fitConfig[cent]['Particle'] == 'Dplus':
+if particleName == 'Dplus':
     massForFit=massDplus
-elif fitConfig[cent]['Particle'] == 'Ds':
+elif particleName == 'Ds':
     massForFit = massDs
+elif particleName == 'Dstar':
+    massForFit = massDstar
 else:
     massForFit = massLc
 
@@ -446,7 +455,10 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                 massFitter[iPt].SetInitialGaussianSigma(
                     hSigmaToFix.GetBinContent(iPt+1)*fitConfig[cent]['SigmaMultFactor'])
             else:
-                massFitter[iPt].SetInitialGaussianSigma(0.008)
+                if particleName == 'Dstar':
+                    massFitter[iPt].SetInitialGaussianSigma(0.001)
+                else:
+                    massFitter[iPt].SetInitialGaussianSigma(0.008)
 
         if secPeak and particleName == 'Ds':
             if hSigmaToFixSecPeak:

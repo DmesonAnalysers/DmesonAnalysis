@@ -1,0 +1,55 @@
+
+pp13TeVPrompt:
+    Particle: "Dstar"
+    FixSigma: 0
+    SigmaFile: ""
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: ""
+    SigmaMultFactor: 1. #float or MinusUnc, PlusUnc
+    FixMean: 0
+    BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
+    MeanFile: ""
+    PtMin: [1., 2., 3., 5., 7., 12]
+    PtMax: [2., 3., 5., 7., 12., 50]
+    MassMin: [0.1396, 0.1396, 0.1396, 0.1396, 0.1396,0.1396]
+    MassMax: [0.16, 0.16, 0.16, 0.16, 0.16, 0.16]
+    Rebin: [4, 4, 4, 4, 4, 4]
+    InclSecPeak: [0, 0, 0, 0, 0, 0] # Ds only
+    SigmaSecPeak: [0, 0, 0, 0, 0, 0] # Ds only
+    SigmaFileSecPeak: 0 # Ds only
+    SigmaMultFactorSecPeak: 0 # Ds only
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 0
+    BkgFunc: ["kPowEx", "kPowEx", "kPowEx", "kPowEx", "kPowEx", "kPowEx" ]
+    SgnFunc: ["kGaus", "kGaus", "kGaus", "kGaus", "kGaus", "kGaus"]
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: "rawYields/ry_mc_basic_PromptEn.root"
+    
+
+pp13TeVFD:
+    Particle: "Dstar"
+    FixSigma: 1
+    SigmaFile: "~/Desktop/Ali50xl_copy/Projections/RawYield_MaxSig.root"
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: ""
+    SigmaMultFactor: 1. #float or MinusUnc, PlusUnc
+    FixMean: 0
+    BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
+    MeanFile: ""
+    PtMin: [1., 2., 3., 5., 7., 12]
+    PtMax: [2., 3., 5., 7., 12., 50]
+    MassMin: [0.14, 0.14,0.14, 0.14,0.14, 0.14]
+    MassMax: [0.16, 0.16, 0.16, 0.16, 0.16, 0.16]
+    Rebin: [6, 6, 6, 6, 6, 6]
+    InclSecPeak: [0, 0, 0, 0, 0, 0] # Ds only
+    SigmaSecPeak: [0, 0, 0, 0, 0, 0] # Ds only
+    SigmaFileSecPeak: 0 # Ds only
+    SigmaMultFactorSecPeak: 0 # Ds only
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 0
+    BkgFunc: ["kPowEx", "kPowEx", "kPowEx", "kPowEx", "kPowEx", "kPowEx" ]
+    SgnFunc: ["kGaus", "kGaus", "kGaus", "kGaus", "kGaus", "kGaus"]
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: "rawYields/ry_mc_basic_PromptEn.root"
+    
+    

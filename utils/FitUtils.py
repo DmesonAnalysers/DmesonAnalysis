@@ -2,7 +2,7 @@
 Module with function definitions and fit utils
 '''
 
-from ROOT import TMath, TF1, kBlue, kGreen # pylint: disable=import-error,no-name-in-module
+from ROOT import TMath, TF1, kBlue, kGreen, TDatabasePDG # pylint: disable=import-error,no-name-in-module
 
 def SingleGaus(x, par):
     '''
@@ -114,6 +114,7 @@ def ExpoPowLaw(x, par):
     return par[0] * TMath.Sqrt(x[0] - par[1]) * TMath.Exp(-1. * par[2] * (x[0] - par[1]))
 
 
+
 # pylint: disable=too-many-instance-attributes
 class BkgFitFuncCreator:
     '''
@@ -135,14 +136,16 @@ class BkgFitFuncCreator:
                   'pol0': '_Pol0IntegralNorm',
                   'pol1': '_Pol1IntegralNorm',
                   'pol2': '_Pol2IntegralNorm',
-                  'pol3': '_Pol3IntegralNorm'
+                  'pol3': '_Pol3IntegralNorm',
+                  'expopow': '_ExpoPowIntegralNorm'
                   }
 
     __numPar = {'expo': 2,
                 'pol0': 1,
                 'pol1': 2,
                 'pol2': 3,
-                'pol3': 4
+                'pol3': 4,
+                'expopow': 2
                 }
 
     def __init__(self, funcName, minMass, maxMass, numSigmaSideBands=0., peakMass=0.,
@@ -165,6 +168,8 @@ class BkgFitFuncCreator:
             self.removePeak = True
         if self.secPeakMass > 0. and self.secPeakDelta > 0.:
             self.removeSecPeak = True
+
+        self.mPi = TDatabasePDG.Instance().GetParticle(211).Mass()
 
     def _ExpoIntegralNorm(self, x, par):
         '''
@@ -244,6 +249,21 @@ class BkgFitFuncCreator:
         thirdTerm = par[2] * (x[0]**2 - 1 / 3. * (self.maxMass**3 - self.minMass**3) / (self.maxMass - self.minMass))
         fourthTerm = par[3] * (x[0]**3 - 1 / 4. * (self.maxMass**4 - self.minMass**4) / (self.maxMass - self.minMass))
         return firstTerm + secondTerm + thirdTerm + fourthTerm
+
+    def _ExpoPowIntegralNorm(self, x, par):
+        '''
+        Exponential times power law function normalized to its integral for D* background.
+
+        Parameters
+        ----------
+        - x: function variable
+        - par: function parameters
+            par[0]: normalisation (integral of background)
+            par[1]: expo slope
+        '''
+
+        return par[0] * TMath.Sqrt(x[0] - self.mPi) * TMath.Exp(-1. * par[1] * (x[0] - self.mPi))
+
 
     def _SideBandsFunc(self, x, par):
         '''
