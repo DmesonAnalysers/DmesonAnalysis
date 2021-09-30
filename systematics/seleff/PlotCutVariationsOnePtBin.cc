@@ -436,6 +436,8 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         gRawYieldVsCutSet[iPt]->Write();
         gEffFDVsCutSet[iPt]->Write();
         gEffPromptVsCutSet[iPt]->Write();
+        gFDFracVsCutSet[iPt]->Write();
+        gPromptFracVsCutSet[iPt]->Write();
         gSignificanceVsCutSet[iPt]->Write();
         gSoverBVsCutSet[iPt]->Write();
         gCrossSectionCent[iPt]->Write();
