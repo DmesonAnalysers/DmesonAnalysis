@@ -275,8 +275,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     TH1D *hSigmaToFix = NULL;
     if(accumulate(fixSigma.begin(), fixSigma.end(), 0) > 0) {
-            auto infileSigma = TFile::Open(infilenameSigma.data());
-            if(!infileSigma)
+        auto infileSigma = TFile::Open(infilenameSigma.data());
+        if(!infileSigma)
             return -2;
         hSigmaToFix = static_cast<TH1D*>(infileSigma->Get("hRawYieldsSigma"));
         hSigmaToFix->SetDirectory(0);
