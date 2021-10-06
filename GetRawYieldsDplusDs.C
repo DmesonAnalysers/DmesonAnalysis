@@ -300,8 +300,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     TH1D *hMeanToFix = NULL;
     if(accumulate(fixMean.begin(), fixMean.end(), 0) > 0) {
-            auto infileMean = TFile::Open(infilenameMean.data());
-            if(!infileMean)
+        auto infileMean = TFile::Open(infilenameMean.data());
+        if(!infileMean)
             return -3;
         hMeanToFix = static_cast<TH1D*>(infileMean->Get("hRawYieldsMean"));
         hMeanToFix->SetDirectory(0);
