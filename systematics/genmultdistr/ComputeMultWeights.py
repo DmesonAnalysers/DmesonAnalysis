@@ -17,6 +17,10 @@ parser.add_argument('inConfigData', metavar='text', default='config_data.yml',
                     help='config file name with root input files for data')
 parser.add_argument('outFileName', metavar='text', default='outFile.root',
                     help='output root file name')
+parser.add_argument('--centMin', type=float, default=-1,
+                    help='minimum centrality (percentile)')
+parser.add_argument('--centMax', type=float, default=101,
+                    help='maximum centrality (percentile)')
 args = parser.parse_args()
 
 with open(args.inConfigMC, 'r') as ymlCfgFile:
@@ -39,17 +43,45 @@ for inpt in inFileNames:
         inFile = TFile.Open(fileName)
         inDir = inFile.Get(inDirNames[inpt])
         inList = inDir.Get(inListNames[inpt])
-        if iFile == 0:
-            hNtrkl[inpt] = inList.FindObject('hSPDMult')
-            hNtrklCand[inpt] = inList.FindObject('hSPDMultCand')
-            hNtrklCandInMass[inpt] = inList.FindObject('hSPDMultCandInMass')
-            if not hNtrkl[inpt] or not hNtrklCand[inpt] or not hNtrklCandInMass[inpt]:
-                print('ERROR: sparse without multiplicity histograms! Exit')
-                sys.exit()
+        if inList.FindObject('hSPDMult'):
+            if iFile == 0:
+                hNtrkl[inpt] = inList.FindObject('hSPDMult')
+                hNtrklCand[inpt] = inList.FindObject('hSPDMultCand')
+                hNtrklCandInMass[inpt] = inList.FindObject('hSPDMultCandInMass')
+                if not hNtrkl[inpt] or not hNtrklCand[inpt] or not hNtrklCandInMass[inpt]:
+                    print('ERROR: sparse without multiplicity histograms! Exit')
+                    sys.exit()
+            else:
+                hNtrkl[inpt].Add(inList.FindObject('hSPDMult'))
+                hNtrklCand[inpt].Add(inList.FindObject('hSPDMultCand'))
+                hNtrklCandInMass[inpt].Add(inList.FindObject('hSPDMultCandInMass'))
         else:
-            hNtrkl[inpt].Add(inList.FindObject('hSPDMult'))
-            hNtrklCand[inpt].Add(inList.FindObject('hSPDMultCand'))
-            hNtrklCandInMass[inpt].Add(inList.FindObject('hSPDMultCandInMass'))
+            if iFile == 0:
+                hTmp = inList.FindObject('hSPDMultVsCent')
+                if 'MC' not in inpt:
+                    binCentMin = hTmp.GetXaxis().FindBin(args.centMin)
+                    binCentMax = hTmp.GetXaxis().FindBin(args.centMax)
+                else:
+                    binCentMin = -1
+                    binCentMax = -1
+                hNtrkl[inpt] = hTmp.ProjectionY('hSPDMult', binCentMin, binCentMax).Clone()
+                hTmp = inList.FindObject('hSPDMultVsCentCand')
+                hNtrklCand[inpt] = hTmp.ProjectionY('hSPDMultCand', binCentMin, binCentMax).Clone()
+                hTmp = inList.FindObject('hSPDMultVsCentCandInMass')
+                hNtrklCandInMass[inpt] = hTmp.ProjectionY('hSPDMultCandInMass', binCentMin, binCentMax).Clone()
+                if not hNtrkl[inpt] or not hNtrklCand[inpt] or not hNtrklCandInMass[inpt]:
+                    print('ERROR: sparse without multiplicity histograms! Exit')
+                    sys.exit()
+                hNtrkl[inpt].SetDirectory(0)
+                hNtrklCand[inpt].SetDirectory(0)
+                hNtrklCandInMass[inpt].SetDirectory(0)
+            else:
+                hTmp = inList.FindObject('hSPDMultVsCent')
+                hNtrkl[inpt].Add(hTmp.ProjectionY('hSPDMult', binCentMin, binCentMax).Clone())
+                hTmp = inList.FindObject('hSPDMultVsCentCand')
+                hNtrklCand[inpt].Add(hTmp.ProjectionY('hSPDMultCand', binCentMin, binCentMax).Clone())
+                hTmp = inList.FindObject('hSPDMultVsCentCandInMass')
+                hNtrklCandInMass[inpt].Add(hTmp.ProjectionY('hSPDMultCandInMass', binCentMin, binCentMax).Clone())
 
     hNtrkl[inpt].SetName(f'hNtrkl{inpt}')
     hNtrklCand[inpt].SetName(f'hNtrklCand{inpt}')
