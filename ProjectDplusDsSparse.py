@@ -33,10 +33,17 @@ parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=F
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
                     help='First path of the pT weights file, second name of the pT weights histogram')
+parser.add_argument('--multweights', metavar=('text', 'text'), nargs=2, required=False,
+                    help='First path of the mult weights file, second name of the mult weights histogram')
 parser.add_argument('--Bspeciesweights', type=float, nargs=5, required=False,
                     help='values of weights for the different hadron species '
                          '(B0weight, Bplusweight, Bsweight, Lbweight, Otherweight)')
 args = parser.parse_args()
+
+#TODO: add support for application of 2D weights
+if args.multweights and (args.ptweights or args.ptweightsB):
+    print('ERROR: simultaneous application of pT and multiplicity weights not supported! Exit')
+    sys.exit()
 
 with open(args.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
@@ -101,6 +108,12 @@ if args.ptweightsB:
     bins = ptWeightsB.axis(0).edges()
     ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
     sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
+
+if args.multweights:
+    multWeigths = uproot.open(args.multweights[0])[args.multweights[1]]
+    bins = multWeigths.axis(0).edges()
+    multCent = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
+    sMultWeights = InterpolatedUnivariateSpline(multCent, multWeigths.values())
 
 with open(args.cutSetFileName, 'r') as ymlCutSetFile:
     cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
@@ -220,6 +233,30 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                             hBspecievsPtD.SetBinError(iPtD, iBspecie, error)
                     hVarFD = hBspecievsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                        0, hBspecievsPtD.GetYaxis().GetNbins()+1, 'e')
+                elif args.multweights:
+                    print('WARNING: assuming axis 3 for Ntracklets, please check that it\'s the case in your sparses!')
+                    for orig in ['FD', 'Prompt']:
+                        hMultvsPtD = sparseReco[f'Reco{orig}'].Projection(3, axisNum)
+                        for iPtD in range(1, hMultvsPtD.GetXaxis().GetNbins()+1):
+                            for iMult in range(1, hMultvsPtD.GetYaxis().GetNbins()+1):
+                                multCent = hMultvsPtD.GetYaxis().GetBinCenter(iMult)
+                                origContent = hMultvsPtD.GetBinContent(iPtD, iMult)
+                                origError = hMultvsPtD.GetBinError(iPtD, iMult)
+                                weight = 0
+                                if sMultWeights(multCent) > 0:
+                                    weight = sMultWeights(multCent)
+                                content = origContent * weight
+                                error = 0
+                                if origContent > 0:
+                                    error = origError / origContent * content
+                                hMultvsPtD.SetBinContent(iPtD, iMult, content)
+                                hMultvsPtD.SetBinError(iPtD, iMult, error)
+                        if orig == 'FD':
+                            hVarFD = hMultvsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                            0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e')
+                        else:
+                            hVarPrompt = hMultvsPtD.ProjectionX(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                                0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e')
                 else:
                     hVarFD = sparseReco['RecoFD'].Projection(axisNum)
                     if args.ptweights: # if pt weights for prompt are present apply them
@@ -314,6 +351,31 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                     hBspecievsPtGenD.SetBinError(iPtD, iBspecie, error)
             hGenPtFD = hBspecievsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                     0, hBspecievsPtGenD.GetYaxis().GetNbins()+1, 'e')
+        elif args.multweights:
+            print('WARNING: assuming axis 3 for Ntracklets, please check that it\'s the case in your sparses!')
+            hMultvsPtGenD = {}
+            for orig in ['FD', 'Prompt']:
+                hMultvsPtGenD = sparseGen[f'Gen{orig}'].Projection(3, 0)
+                for iPtD in range(1, hMultvsPtGenD.GetXaxis().GetNbins()+1):
+                    for iMult in range(1, hMultvsPtGenD.GetYaxis().GetNbins()+1):
+                        multCent = hMultvsPtGenD.GetYaxis().GetBinCenter(iMult)
+                        origContent = hMultvsPtGenD.GetBinContent(iPtD, iMult)
+                        origError = hMultvsPtGenD.GetBinError(iPtD, iMult)
+                        weight = 0
+                        if sMultWeights(multCent) > 0:
+                            weight = sMultWeights(multCent)
+                        content = origContent * weight
+                        error = 0
+                        if origContent > 0:
+                            error = origError / origContent * content
+                        hMultvsPtGenD.SetBinContent(iPtD, iMult, content)
+                        hMultvsPtGenD.SetBinError(iPtD, iMult, error)
+                if orig == 'FD':
+                    hGenPtFD = hMultvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                         0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
+                else:
+                    hGenPtPrompt = hMultvsPtGenD.ProjectionX(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                             0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
         else:
             hGenPtFD = sparseGen['GenFD'].Projection(0)
             if args.ptweights: # if pt weights for prompt are present apply them
