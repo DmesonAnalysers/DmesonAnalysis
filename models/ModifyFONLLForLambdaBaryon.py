@@ -22,9 +22,16 @@ parser.add_argument('--BRpKpi', type=float, default=0.0623,
                     help='BR for Lc -> pKpi channel. It is convenient to have the same as for FD')
 parser.add_argument('--BRpK0s', type=float, default=0.0159*0.6920,
                     help='BR for Lc -> pK0s channel. It is convenient to have the same as for FD')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('--Lc', action='store_true', default=False)
+group.add_argument('--Lb', action='store_true', default=False)
+
 args = parser.parse_args()
 
 if 'root' in args.inFileName:
+    if args.Lb:
+        print('\033[91mERROR: Modification for Lb only available on txt files. exit \033[0m')
+        sys.exit()
     FONLLVar = ['central', 'min', 'max']
     hPromptD0, hPromptLcpK0s, hPromptLcpKpi, hPromptLcpiL = ({} for _ in range(4))
     inFile = TFile.Open(args.inFileName)
@@ -42,7 +49,7 @@ if 'root' in args.inFileName:
             hPromptLcpK0s[var].SetBinContent(iPt, factor * crossSec * args.BRpK0s)
             hPromptLcpKpi[var].SetBinContent(iPt, factor * crossSec * args.BRpKpi)
 
-    outFileName = args.inFileName.replace('.root', '_PromptLcMod.root')
+    outFileName = args.inFileName.replace('.root', '_Mod.root')
     os.system(f'cp {args.inFileName} {outFileName}')
 
     outFile = TFile.Open(outFileName, 'update')
@@ -94,8 +101,14 @@ elif '.txt' in args.inFileName:
     ptCent = dfFONLL['pt'].to_numpy()
     for col in dfFONLL.columns:
         if 'pt' not in col:
-            dfFONLL[col] = dfFONLL.apply(
-                lambda row: row[col] * (0.11 + 4.68735e-01 * TMath.Gaus(row['pt'], 1, 4.90037)), axis=1)
+            if args.Lc:
+                dfFONLL[col] = dfFONLL.apply(
+                    lambda row: row[col] * (0.11 + 4.68735e-01 * TMath.Gaus(row['pt'], 1, 4.90037)), axis=1)
+            if args.Lb:
+                dfFONLL[col] = dfFONLL.apply(
+                    lambda row: row[col] * (7.93e-2 +
+                                            TMath.Exp(-1.022 - 0.107 * (
+                                                row['pt'] if row['pt'] > 4 else 4))), axis=1)
 
     crossSecLc = dfFONLL['central'].to_numpy().copy()
 
@@ -107,7 +120,7 @@ elif '.txt' in args.inFileName:
     SetObjectStyle(gLc, color=kRed+1, markerstyle=kOpenCircle)
     SetObjectStyle(gD, color=kAzure+1, markerstyle=kFullDiamond)
 
-    dfFONLL.to_csv(args.inFileName.replace('.txt', '_PromptLcMod.txt'), sep=' ', float_format='%.3f', index=False)
+    dfFONLL.to_csv(args.inFileName.replace('.txt', '_Mod.txt'), sep=' ', float_format='%.3f', index=False)
 
     # test that Lc/D0 is the expected one
     cCrossSec = TCanvas('cCrossSec', '', 800, 800)
