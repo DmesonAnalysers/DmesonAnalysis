@@ -166,7 +166,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             all_dict[iVar].append(hVar)
             hVar.Write()
         if isMC:
-            hVarPrompt = sparseReco['RecoPrompt'].Projection(axisNum)
+            if (iVar == 'Pt' and not args.multweights) or iVar != 'Pt':
+                hVarPrompt = sparseReco['RecoPrompt'].Projection(axisNum)
             # apply pt weights
             if iVar == 'Pt' and args.ptweights:
                 for iBin in range(1, hVarPrompt.GetNbinsX()+1):
@@ -175,9 +176,10 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                         ptCent = hVarPrompt.GetBinCenter(iBin)
                         hVarPrompt.SetBinContent(iBin, hVarPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
                         hVarPrompt.SetBinError(iBin, hVarPrompt.GetBinContent(iBin) * relStatUnc)
-            hVarPrompt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-            prompt_dict[iVar].append(hVarPrompt)
-            hVarPrompt.Write()
+            if (iVar == 'Pt' and not args.multweights) or iVar != 'Pt':
+                hVarPrompt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+                prompt_dict[iVar].append(hVarPrompt)
+                hVarPrompt.Write()
             # apply pt weights
             if iVar == 'Pt':
                 if args.ptweightsB and args.Bspeciesweights:
@@ -234,9 +236,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                     hVarFD = hBspecievsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                        0, hBspecievsPtD.GetYaxis().GetNbins()+1, 'e')
                 elif args.multweights:
-                    print('WARNING: assuming axis 3 for Ntracklets, please check that it\'s the case in your sparses!')
+                    print('WARNING: assuming axis 4 for Ntracklets in reco sparse, please check that it\'s the case in your sparses!')
                     for orig in ['FD', 'Prompt']:
-                        hMultvsPtD = sparseReco[f'Reco{orig}'].Projection(3, axisNum)
+                        hMultvsPtD = sparseReco[f'Reco{orig}'].Projection(4, axisNum)
                         for iPtD in range(1, hMultvsPtD.GetXaxis().GetNbins()+1):
                             for iMult in range(1, hMultvsPtD.GetYaxis().GetNbins()+1):
                                 multCent = hMultvsPtD.GetYaxis().GetBinCenter(iMult)
@@ -257,6 +259,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                         else:
                             hVarPrompt = hMultvsPtD.ProjectionX(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                                 0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e')
+                            prompt_dict[iVar].append(hVarPrompt)
+                            hVarPrompt.Write()
                 else:
                     hVarFD = sparseReco['RecoFD'].Projection(axisNum)
                     if args.ptweights: # if pt weights for prompt are present apply them
@@ -285,18 +289,19 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax*0.9999)
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
-        hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
-        # apply pt weights
-        if args.ptweights:
-            for iBin in range(1, hGenPtPrompt.GetNbinsX()+1):
-                if hGenPtPrompt.GetBinContent(iBin) > 0:
-                    relStatUnc = hGenPtPrompt.GetBinError(iBin) / hGenPtPrompt.GetBinContent(iBin)
-                    ptCent = hGenPtPrompt.GetBinCenter(iBin)
-                    hGenPtPrompt.SetBinContent(iBin, hGenPtPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
-                    hGenPtPrompt.SetBinError(iBin, hGenPtPrompt.GetBinContent(iBin) * relStatUnc)
-        hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-        prompt_gen_list.append(hGenPtPrompt)
-        hGenPtPrompt.Write()
+        if not args.multweights:
+            hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
+            # apply pt weights
+            if args.ptweights:
+                for iBin in range(1, hGenPtPrompt.GetNbinsX()+1):
+                    if hGenPtPrompt.GetBinContent(iBin) > 0:
+                        relStatUnc = hGenPtPrompt.GetBinError(iBin) / hGenPtPrompt.GetBinContent(iBin)
+                        ptCent = hGenPtPrompt.GetBinCenter(iBin)
+                        hGenPtPrompt.SetBinContent(iBin, hGenPtPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
+                        hGenPtPrompt.SetBinError(iBin, hGenPtPrompt.GetBinContent(iBin) * relStatUnc)
+            hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            prompt_gen_list.append(hGenPtPrompt)
+            hGenPtPrompt.Write()
         # apply pt weights
         if args.ptweightsB and args.Bspeciesweights:
             hPtBvsBspecievsPtGenD = sparseGen['GenFD'].Projection(0, 3, 2)
@@ -352,7 +357,7 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hGenPtFD = hBspecievsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                     0, hBspecievsPtGenD.GetYaxis().GetNbins()+1, 'e')
         elif args.multweights:
-            print('WARNING: assuming axis 3 for Ntracklets, please check that it\'s the case in your sparses!')
+            print('WARNING: assuming axis 3 for Ntracklets in gen sparse, please check that it\'s the case in your sparses!')
             hMultvsPtGenD = {}
             for orig in ['FD', 'Prompt']:
                 hMultvsPtGenD = sparseGen[f'Gen{orig}'].Projection(3, 0)
@@ -376,6 +381,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 else:
                     hGenPtPrompt = hMultvsPtGenD.ProjectionX(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                              0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
+                    prompt_gen_list.append(hGenPtPrompt)
+                    hGenPtPrompt.Write()
         else:
             hGenPtFD = sparseGen['GenFD'].Projection(0)
             if args.ptweights: # if pt weights for prompt are present apply them
