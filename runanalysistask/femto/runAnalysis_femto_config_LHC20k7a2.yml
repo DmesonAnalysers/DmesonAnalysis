@@ -1,5 +1,5 @@
-runtype: grid #local, test, grid
-pathtolocalAOD: ../AODfiles/LHC20g11a
+runtype: local #local, test, grid
+pathtolocalAOD: AODfiles/
 datadir: /alice/sim/2020/LHC20k7a2/
 datapattern: AOD235
 gridworkdir: DplusFemtoGenCheck
@@ -15,6 +15,7 @@ task:
         infile: alien:///alice/cern.ch/user/f/fgrosa/CutObjects/pp13TeVHM/DplustoKpipiCuts_pp_femto_loose_kHighMultV0.root
         objname: AnalysisCuts
     triggermask: AliVEvent::kINT7
+    pdglight: 2212
     applyML:
         doapplyML: 0
         configfile: ''

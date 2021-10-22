@@ -1,5 +1,5 @@
 runtype: local #local, test, grid
-pathtolocalAOD: '../AODfiles/LHC18l'
+pathtolocalAOD: AODfiles/
 datadir: /alice/data/2018/LHC18l/
 datapattern: pass1/AOD234
 gridworkdir: DplusFemto
@@ -13,6 +13,7 @@ task:
         infile: alien:///alice/cern.ch/user/f/fgrosa/CutObjects/pp13TeVHM/DplustoKpipiCuts_pp_femto_loose_kHighMultV0.root
         objname: AnalysisCuts
     triggermask: AliVEvent::kINT7
+    pdglight: 2212
     applyML:
         doapplyML: 1
         configfile: config_DplusFemto_applyML_test2.yml

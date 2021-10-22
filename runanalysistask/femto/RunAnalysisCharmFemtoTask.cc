@@ -66,6 +66,8 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
     string triggerMask = config["task"]["triggermask"].as<string>();
     bool applyML = static_cast<bool>(config["task"]["applyML"]["doapplyML"].as<int>());
     string confFileML = config["task"]["applyML"]["configfile"].as<string>();
+    int pdgLight = config["task"]["pdglight"].as<int>();
+    std::cout << pdgLight << std::endl;
 
     bool useMLselectorTask = static_cast<bool>(config["task"]["applyML"]["MLselector"]["enable"].as<int>());
     string MLSelcutFileName = config["task"]["applyML"]["MLselector"]["infile"].as<string>();
@@ -100,7 +102,7 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
         taskMLSel = reinterpret_cast<AliAnalysisTaskSECharmHadronMLSelector*>(gInterpreter->ProcessLine(Form(".x %s(\"%s\", \"%s\", AliAnalysisTaskSECharmHadronMLSelector::kDplustoKpipi, \"%s\", \"""\", %s)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskCharmHadronMLSelector.C"), MLSelcutFileName.data(), MLSelconfFileML.data(), MLSelcutObjName.data(), triggerMask.data())));
     }
 
-    AliAnalysisTaskCharmingFemto *task = reinterpret_cast<AliAnalysisTaskCharmingFemto*>(gInterpreter->ProcessLine(Form(".x %s(%d, false, \"%s\", 0, \"%s\", \"%s\", %d, \"%s\", 0)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGCF/FEMTOSCOPY/macros/AddTaskCharmingFemto.C"), isRunOnMC, triggerMask.data(), cutFileName.data(), cutObjName.data(), applyML, confFileML.data())));
+    AliAnalysisTaskCharmingFemto *task = reinterpret_cast<AliAnalysisTaskCharmingFemto*>(gInterpreter->ProcessLine(Form(".x %s(%d, true, \"%s\", AliAnalysisTaskCharmingFemto::kDplustoKpipi, \"%s\", \"%s\", \"""\", %d, \"%s\", 0, AliAnalysisTaskCharmingFemto::kSignal, %d)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGCF/FEMTOSCOPY/macros/AddTaskAnyCharmingFemto.C"), isRunOnMC, triggerMask.data(), cutFileName.data(), cutObjName.data(), applyML, confFileML.data(), pdgLight)));
     if(useMLselectorTask)
         task->SetIsDependentOnMLSelector();
 
