@@ -1,0 +1,116 @@
+inputs: # MB is mandatory, the others can be different
+    MB:
+        label: 'MB'
+        default: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_MB.root
+        directory: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/systematics/rawyields/MB/
+        files: [
+            DplusFraction_pp13TeV_MB_2gaus.root,
+            DplusFraction_pp13TeV_MB_lin.root,
+            DplusFraction_pp13TeV_MB_pol2.root,
+            DplusFraction_pp13TeV_MB_2gaus_lin.root,
+            DplusFraction_pp13TeV_MB_2gaus_pol2.root,
+            DplusFraction_pp13TeV_MB_binning2.root,
+            DplusFraction_pp13TeV_MB_binning3.root,
+            DplusFraction_pp13TeV_MB_binning5.root,
+            DplusFraction_pp13TeV_MB_binning6.root,
+            DplusFraction_pp13TeV_MB_massrange1.root,
+            DplusFraction_pp13TeV_MB_massrange2.root,
+            DplusFraction_pp13TeV_MB_massrange3.root,
+            DplusFraction_pp13TeV_MB_massrange4.root,
+            DplusFraction_pp13TeV_MB_massrange5.root,
+            DplusFraction_pp13TeV_MB_massrange6.root,
+            DplusFraction_pp13TeV_MB_massrange7.root,
+            DplusFraction_pp13TeV_MB_massrange8.root,
+            DplusFraction_pp13TeV_MB_massrange9.root,
+            DplusFraction_pp13TeV_MB_massrange10.root,
+            DplusFraction_pp13TeV_MB_massrange11.root,
+            DplusFraction_pp13TeV_MB_massrange12.root
+            ]
+    highmult:
+        label: '0#minus0.1%'
+        corr: false
+        default: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_HM.root
+        directory: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/systematics/rawyields/HM/
+        files: [
+            DplusFraction_pp13TeV_HM_2gaus.root,
+            DplusFraction_pp13TeV_HM_lin.root,
+            DplusFraction_pp13TeV_HM_pol2.root,
+            DplusFraction_pp13TeV_HM_2gaus_lin.root,
+            DplusFraction_pp13TeV_HM_2gaus_pol2.root,
+            DplusFraction_pp13TeV_HM_binning2.root,
+            DplusFraction_pp13TeV_HM_binning3.root,
+            DplusFraction_pp13TeV_HM_binning5.root,
+            DplusFraction_pp13TeV_HM_binning6.root,
+            DplusFraction_pp13TeV_HM_massrange1.root,
+            DplusFraction_pp13TeV_HM_massrange2.root,
+            DplusFraction_pp13TeV_HM_massrange3.root,
+            DplusFraction_pp13TeV_HM_massrange4.root,
+            DplusFraction_pp13TeV_HM_massrange5.root,
+            DplusFraction_pp13TeV_HM_massrange6.root,
+            DplusFraction_pp13TeV_HM_massrange7.root,
+            DplusFraction_pp13TeV_HM_massrange8.root,
+            DplusFraction_pp13TeV_HM_massrange9.root,
+            DplusFraction_pp13TeV_HM_massrange10.root,
+            DplusFraction_pp13TeV_HM_massrange11.root,
+            DplusFraction_pp13TeV_HM_massrange12.root
+            ]
+    mult030:
+        label: '0#minus30%'
+        corr: true
+        default: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_030.root
+        directory: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/systematics/rawyields/030/
+        files: [
+            DplusFraction_pp13TeV_030_2gaus.root,
+            DplusFraction_pp13TeV_030_lin.root,
+            DplusFraction_pp13TeV_030_pol2.root,
+            DplusFraction_pp13TeV_030_2gaus_lin.root,
+            DplusFraction_pp13TeV_030_2gaus_pol2.root,
+            DplusFraction_pp13TeV_030_binning2.root,
+            DplusFraction_pp13TeV_030_binning3.root,
+            DplusFraction_pp13TeV_030_binning5.root,
+            DplusFraction_pp13TeV_030_binning6.root,
+            DplusFraction_pp13TeV_030_massrange1.root,
+            DplusFraction_pp13TeV_030_massrange2.root,
+            DplusFraction_pp13TeV_030_massrange3.root,
+            DplusFraction_pp13TeV_030_massrange4.root,
+            DplusFraction_pp13TeV_030_massrange5.root,
+            DplusFraction_pp13TeV_030_massrange6.root,
+            DplusFraction_pp13TeV_030_massrange7.root,
+            DplusFraction_pp13TeV_030_massrange8.root,
+            DplusFraction_pp13TeV_030_massrange9.root,
+            DplusFraction_pp13TeV_030_massrange10.root,
+            DplusFraction_pp13TeV_030_massrange11.root,
+            DplusFraction_pp13TeV_030_massrange12.root
+            ]
+    mult30100:
+        label: '30#minus100%'
+        corr: true
+        default: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_30100.root
+        directory: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/systematics/rawyields/30100/
+        files: [
+            DplusFraction_pp13TeV_30100_2gaus.root,
+            DplusFraction_pp13TeV_30100_lin.root,
+            DplusFraction_pp13TeV_30100_pol2.root,
+            DplusFraction_pp13TeV_30100_2gaus_lin.root,
+            DplusFraction_pp13TeV_30100_2gaus_pol2.root,
+            DplusFraction_pp13TeV_30100_binning2.root,
+            DplusFraction_pp13TeV_30100_binning3.root,
+            DplusFraction_pp13TeV_30100_binning5.root,
+            DplusFraction_pp13TeV_30100_binning6.root,
+            DplusFraction_pp13TeV_30100_massrange1.root,
+            DplusFraction_pp13TeV_30100_massrange2.root,
+            DplusFraction_pp13TeV_30100_massrange3.root,
+            DplusFraction_pp13TeV_30100_massrange4.root,
+            DplusFraction_pp13TeV_30100_massrange5.root,
+            DplusFraction_pp13TeV_30100_massrange6.root,
+            DplusFraction_pp13TeV_30100_massrange7.root,
+            DplusFraction_pp13TeV_30100_massrange8.root,
+            DplusFraction_pp13TeV_30100_massrange9.root,
+            DplusFraction_pp13TeV_30100_massrange10.root,
+            DplusFraction_pp13TeV_30100_massrange11.root,
+            DplusFraction_pp13TeV_30100_massrange12.root
+            ]
+
+output:
+    directory: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/systematics/rawyields
+    filewoext: DplusFraction_SystUnc_RawYields_pp13TeV
