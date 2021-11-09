@@ -34,7 +34,10 @@ groupComponent.add_argument("--FD", action='store_true', help='flag to compute F
 groupParticle = parser.add_mutually_exclusive_group(required=True)
 groupParticle.add_argument("--Dplus", action='store_true', help='flag to compute D+ cross section', default=False)
 groupParticle.add_argument("--Ds", action='store_true', help='flag to compute Ds cross section', default=False)
-groupParticle.add_argument("--Lc", action='store_true', help='flag to compute Lc cross section', default=False)
+groupParticle.add_argument(
+    "--Lc2pK0s", action='store_true', help='flag to compute Lc->pK0s cross section',default=False)
+groupParticle.add_argument(
+    "--Lc2pKpi", action='store_true', help='flag to compute Lc->pKpi cross section', default=False)
 
 args = parser.parse_args()
 
@@ -52,15 +55,16 @@ if args.system == 'pp':
     axisTitle = ';#it{p}_{T} (GeV/#it{c}); d#sigma/d#it{p}_{T} #times BR (#mub GeV^{-1} #it{c})'
     histoName = 'CrossSection'
     systErr.SetCollisionType(0)
-    systErr.SetRunNumber(17)
     if args.energy == '5.02':
+        systErr.SetRunNumber(17)
         if args.Dplus:
             systErr.SetIs5TeVAnalysis(True)
         sigmaMB = 50.87e+3 # ub
         lumiUnc = 0.021
     elif args.energy == '13':
-        sigmaMB = 57.8e+3 # ub
-        lumiUnc = 0.05
+        systErr.SetRunNumber(18)
+        sigmaMB = 57.95e+3 # ub
+        lumiUnc = 0.016
     else:
         print(f'Energy {args.energy} not implemented! Exit')
         sys.exit()
@@ -80,8 +84,10 @@ if args.Dplus:
     systErr.Init(2)
 elif args.Ds:
     systErr.Init(4)
-elif args.Lc:
+elif args.Lc2pKpi:
     systErr.Init(5)
+elif args.Lc2pK0s:
+    systErr.Init(6)
 else:
     sys.exit()
 
