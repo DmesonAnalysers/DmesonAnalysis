@@ -535,10 +535,6 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 massFitter->SetFixRatio2GausSigma(
                 hSigmaToFix1->GetBinContent(iPt+1)/hSigmaToFix2->GetBinContent(iPt+1));
             }
-            if(fixSigmaRatio){
-                massFitter->SetFixRatio2GausSigma(
-                hSigmaToFix1->GetBinContent(iPt+1)/hSigmaToFix2->GetBinContent(iPt+1));
-            }
 
             if(InclSecPeak[iPt] && particle==kDs) {
                 if (hSigmaToFixSecPeak) {
