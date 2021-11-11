@@ -75,26 +75,26 @@ for iMult, mult in enumerate(multClasses):
             inDir = cfg['inputs'][mult]['directory']
         inFile = TFile.Open(os.path.join(inDir, file))
         hFracNonPrompt[mult].append(inFile.Get('hFDFracCorr'))
-        hFracNonPrompt[mult][-1].SetDirectory(0)
-        hFracNonPrompt[mult][-1].SetName(f'hFracNonPrompt_{mult}_{iVar}')
+        hFracNonPrompt[mult][iVar].SetDirectory(0)
+        hFracNonPrompt[mult][iVar].SetName(f'hFracNonPrompt_{mult}_{iVar}')
         hFracPrompt[mult].append(inFile.Get('hPromptFracCorr'))
-        hFracPrompt[mult][-1].SetDirectory(0)
-        hFracPrompt[mult][-1].SetName(f'hFracPrompt_{mult}_{iVar}')
+        hFracPrompt[mult][iVar].SetDirectory(0)
+        hFracPrompt[mult][iVar].SetName(f'hFracPrompt_{mult}_{iVar}')
         stepColor = int(np.round(40/len(inFileNames)))
         SetObjectStyle(hFracNonPrompt[mult][-1], color=kRainBow+stepColor*iVar)
         SetObjectStyle(hFracPrompt[mult][-1], color=kRainBow+stepColor*iVar)
         inFile.Close()
         if mult != 'MB':
-            hRatioFracPrompt[mult].append(hFracPrompt[mult][-1].Clone(f'hRatioFracNonPrompt_{mult}_{iVar}'))
-            hRatioFracNonPrompt[mult].append(hFracNonPrompt[mult][-1].Clone(f'hRatioFracPrompt_{mult}_{iVar}'))
-            hRatioFracPrompt[mult][-1].Divide(hFracPrompt['MB'][-1])
-            hRatioFracNonPrompt[mult][-1].Divide(hFracNonPrompt['MB'][-1])
+            hRatioFracPrompt[mult].append(hFracPrompt[mult][iVar].Clone(f'hRatioFracPrompt_{mult}_{iVar}'))
+            hRatioFracNonPrompt[mult].append(hFracNonPrompt[mult][iVar].Clone(f'hRatioFracNonPrompt_{mult}_{iVar}'))
+            hRatioFracPrompt[mult][iVar].Divide(hFracPrompt['MB'][iVar])
+            hRatioFracNonPrompt[mult][iVar].Divide(hFracNonPrompt['MB'][iVar])
             if corr[mult]:
-                for iPt in range(1, hRatioFracPrompt[mult][-1].GetNbinsX()+1):
-                    uncMult = hFracPrompt[mult][-1].GetBinError(iPt)
-                    uncMB = hFracPrompt['MB'][-1].GetBinError(iPt)
-                    valmult = hFracPrompt[mult][-1].GetBinContent(iPt)
-                    valMB = hFracPrompt['MB'][-1].GetBinContent(iPt)
+                for iPt in range(1, hRatioFracPrompt[mult][iVar].GetNbinsX()+1):
+                    uncMult = hFracPrompt[mult][iVar].GetBinError(iPt)
+                    uncMB = hFracPrompt['MB'][iVar].GetBinError(iPt)
+                    valmult = hFracPrompt[mult][iVar].GetBinContent(iPt)
+                    valMB = hFracPrompt['MB'][iVar].GetBinContent(iPt)
                     rho = uncMult / uncMB
                     if rho > 1.:
                         rho = 1. / rho
@@ -102,12 +102,12 @@ for iMult, mult in enumerate(multClasses):
                         uncMult**2 / valMB**2 + valmult**2 / valMB**4 * uncMB**2 -
                         2 * rho * valmult / valMB**3 * uncMult * uncMB
                     )
-                    hRatioFracPrompt[mult][-1].SetBinError(iPt, uncRatio)
+                    hRatioFracPrompt[mult][iVar].SetBinError(iPt, uncRatio)
 
-                    uncMult = hFracNonPrompt[mult][-1].GetBinError(iPt)
-                    uncMB = hFracNonPrompt['MB'][-1].GetBinError(iPt)
-                    valmult = hFracNonPrompt[mult][-1].GetBinContent(iPt)
-                    valMB = hFracNonPrompt['MB'][-1].GetBinContent(iPt)
+                    uncMult = hFracNonPrompt[mult][iVar].GetBinError(iPt)
+                    uncMB = hFracNonPrompt['MB'][iVar].GetBinError(iPt)
+                    valmult = hFracNonPrompt[mult][iVar].GetBinContent(iPt)
+                    valMB = hFracNonPrompt['MB'][iVar].GetBinContent(iPt)
                     rho = uncMult / uncMB
                     if rho > 1.:
                         rho = 1. / rho
@@ -115,7 +115,7 @@ for iMult, mult in enumerate(multClasses):
                         uncMult**2 / valMB**2 + valmult**2 / valMB**4 * uncMB**2 -
                         2 * rho * valmult / valMB**3 * uncMult * uncMB
                     )
-                    hRatioFracNonPrompt[mult][-1].SetBinError(iPt, uncRatio)
+                    hRatioFracNonPrompt[mult][iVar].SetBinError(iPt, uncRatio)
 
     hSystPrompt[mult] = hFracPrompt[mult][0].Clone(f'hSystPrompt_mult{mult}')
     hSystNonPrompt[mult] = hFracNonPrompt[mult][0].Clone(f'hSystPrompt_mult{mult}')
@@ -216,10 +216,10 @@ for iMult, mult in enumerate(multClasses):
             if mult != 'MB':
                 ratio = hRatioFracPrompt[mult][iVar].GetBinContent(iPt+1) / hRatioFracPrompt[mult][0].GetBinContent(iPt+1)
                 hDistrRatioFracPrompt[mult][iPt].Fill(ratio)
-                gRatioFracPromptVsTrial[mult][-1].SetPoint(iVar, iVar, ratio)
+                gRatioFracPromptVsTrial[mult][iPt].SetPoint(iVar, iVar, ratio)
                 ratio = hRatioFracNonPrompt[mult][iVar].GetBinContent(iPt+1) / hRatioFracNonPrompt[mult][0].GetBinContent(iPt+1)
                 hDistrRatioFracNonPrompt[mult][iPt].Fill(ratio)
-                gRatioFracNonPromptVsTrial[mult][-1].SetPoint(iVar, iVar, ratio)
+                gRatioFracNonPromptVsTrial[mult][iPt].SetPoint(iVar, iVar, ratio)
 
         rmsPrompt[mult].append(hDistrFracPrompt[mult][iPt].GetRMS())
         rmsNonPrompt[mult].append(hDistrFracNonPrompt[mult][iPt].GetRMS())
@@ -251,7 +251,7 @@ lat.SetTextFont(42)
 lat.SetTextColor(kBlack)
 
 # plot fractions
-cNonPromptFracs = TCanvas('cNonPromptFracs', '', 1920, 1080)
+cNonPromptFracs = TCanvas('cNonPromptFracs', '', 800, 800)
 DivideCanvas(cNonPromptFracs, len(multClasses))
 for iMult, mult in enumerate(multClasses):
     cNonPromptFracs.cd(iMult+1).DrawFrame(
@@ -267,7 +267,7 @@ for iMult, mult in enumerate(multClasses):
 cNonPromptFracs.Modified()
 cNonPromptFracs.Update()
 
-cPromptFracs = TCanvas('cPromptFracs', '', 1920, 1080)
+cPromptFracs = TCanvas('cPromptFracs', '', 800, 800)
 DivideCanvas(cPromptFracs, len(multClasses))
 for iMult, mult in enumerate(multClasses):
     cPromptFracs.cd(iMult+1).DrawFrame(
