@@ -1,0 +1,20 @@
+inputs:
+    denominator: 
+        file: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_MB.root
+        label: MB
+        title: MB
+        color: kGrey+2
+    numerator: 
+        files: [
+            /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_HM.root,
+            /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_030.root,
+            /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_30100.root
+        ]
+        corr: [false, true, true]
+        labels: ['00dot1', '030', '30100']
+        titles: ['0#minus0.1%', '0#minus30%', '30#minus100%']
+        colors: [kRed+1, kOrange+7, kAzure+4]
+
+output:
+    directory: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction 
+    filewoext: DplusFractions_pp13TeV_vs_mult
