@@ -30,6 +30,7 @@ outExtensions = inputCfg['output']['extensions']
 
 objTypes = inputCfg['options']['ROOTobject']
 scales = inputCfg['options']['scale']
+lambdaParams = inputCfg['options']['lambdaParams']
 normalizes = inputCfg['options']['normalize']
 colors = inputCfg['options']['colors']
 markers = inputCfg['options']['markers']
@@ -65,6 +66,7 @@ uncCompLogY = inputCfg['options']['canvas']['errcomp']['logy']
 avoidLeg = inputCfg['options']['legend']['avoid']
 xLegLimits = inputCfg['options']['legend']['xlimits']
 yLegLimits = inputCfg['options']['legend']['ylimits']
+legHeader = inputCfg['options']['legend']['header']
 legNames = inputCfg['options']['legend']['titles']
 legOpt = inputCfg['options']['legend']['options']
 legTextSize = inputCfg['options']['legend']['textsize']
@@ -77,10 +79,12 @@ leg = TLegend(xLegLimits[0], yLegLimits[0], xLegLimits[1], yLegLimits[1])
 leg.SetFillStyle(0)
 leg.SetTextSize(legTextSize)
 leg.SetNColumns(ncolumns)
+if legHeader is not None:
+    leg.SetHeader(legHeader, "C")
 
 hToCompare, hRatioToCompare, hUncToCompare = [], [], []
-for iFile, (inFileName, objName, objType, scale, normalize, color, marker, fillstyle, fillalpha) in \
-    enumerate(zip(inFileNames, objNames, objTypes, scales, normalizes, colors, markers, fillstyles, fillalphas)):
+for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, marker, fillstyle, fillalpha) in \
+    enumerate(zip(inFileNames, objNames, objTypes, scales, lambdaParams, normalizes, colors, markers, fillstyles, fillalphas)):
     if inDirName:
         inFileName = join(inDirName, inFileName)
     inFile = TFile.Open(inFileName)
@@ -111,8 +115,24 @@ for iFile, (inFileName, objName, objType, scale, normalize, color, marker, fills
                 print('WARNING: you are both scaling and normalizing the histogram, check if it makes sense!')
             hToCompare[iFile].Scale(1. / hToCompare[iFile].Integral())
         hToCompare[iFile].Scale(scale)
+
+        # apply scaling using lambda parameters
+        for iBin in range(hToCompare[iFile].GetNbinsX()):
+            bc = hToCompare[iFile].GetBinContent(iBin+1)
+            hToCompare[iFile].SetBinContent(iBin+1, (bc -1) * lambdaParam +1)
+            hToCompare[iFile].SetBinError(iBin+1, hToCompare[iFile].GetBinError() * lambdaParam)
     else:
         ScaleGraph(hToCompare[iFile], scale)
+        
+        # apply scaling using lambda parameters
+        for iBin in range(hToCompare[iFile].GetN()):
+            bc = hToCompare[iFile].GetPointY(iBin)
+            hToCompare[iFile].SetPointY(iBin, (bc -1) * lambdaParam +1)
+            hToCompare[iFile].SetPointError(iBin,
+                hToCompare[iFile].GetErrorXlow(iBin),
+                hToCompare[iFile].GetErrorXhigh(iBin),
+                hToCompare[iFile].GetErrorYlow(iBin) * lambdaParam,
+                hToCompare[iFile].GetErrorYhigh(iBin) * lambdaParam)
     if doRatio:
         if 'TH' in objType:
             if drawRatioUnc:
@@ -176,12 +196,20 @@ for iFile, (inFileName, objName, objType, scale, normalize, color, marker, fills
 
 ratios, RMS, shift = [], [], []
 if doRatio and displayRMS:
-    for iBin in range(hRatioToCompare[1].GetNbinsX()):
+    if 'TH' in objType:
+        nPoints=hRatioToCompare[1].GetNbinsX()
+    else:
+        nPoints=hRatioToCompare[1].GetN()
+    for iBin in range(nPoints):
         ratios.append([])
         for iFile, _ in enumerate(inFileNames):
             if iFile == 0:
                 continue
-            ratios[iBin].append(hRatioToCompare[iFile].GetBinContent(iBin+1))
+            if 'TH' in objType:
+                ratios[iBin].append(hRatioToCompare[iFile].GetBinContent(iBin+1))
+            else:
+                ratios[iBin].append(hRatioToCompare[iFile].GetPointY(iBin))
+
         aRatios = np.array(ratios[iBin])
         RMS.append(np.std(aRatios))
         shift.append(np.mean(aRatios))

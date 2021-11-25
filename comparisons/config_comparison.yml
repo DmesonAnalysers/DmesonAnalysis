@@ -18,6 +18,7 @@ output:
 options:
     ROOTobject: [TH1, TH1, TH1, TH1, TH1, TH1, TH1, TH1, TH1] # TH1 or TGraph: no need to specify TH1F, TH1D or TGraphErrors, TGraphAsymmErrors
     scale: [1., 1., 1., 1., 1., 1., 1., 1., 1.]
+    lambdaParams: [1., 1., 1., 1., 1., 1., 1., 1., 1.] # counts -> (counts - 1) * lambda + 1
     normalize: [false, false, false, false, false, false, false, false, false] # divide histogram by its area
     colors: [kBlack, kRed+1, kAzure+4, kGreen+2, kOrange+7, kMagenta+1, kBlue, kCyan+3, kSpring-5]
     markers: [kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle, kFullCircle]
@@ -42,6 +43,7 @@ options:
         avoid: false #set true to avoid the legend in the final plot
         xlimits: [0.2, 0.6]
         ylimits: [0.6, 0.9]
+        header: null
         titles: [central, narrow left, narrow right, narrow left and right, wide left, wide right, wide left and right, alt step 1, alt step 2]
         options: [lp, lp, lp, lp, lp, lp, lp, lp, lp]
         textsize: 0.045
