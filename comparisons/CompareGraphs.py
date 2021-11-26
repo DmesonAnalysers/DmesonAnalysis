@@ -84,7 +84,9 @@ if legHeader is not None:
 
 hToCompare, hRatioToCompare, hUncToCompare = [], [], []
 for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, marker, fillstyle, fillalpha) in \
-    enumerate(zip(inFileNames, objNames, objTypes, scales, lambdaParams, normalizes, colors, markers, fillstyles, fillalphas)):
+    enumerate(
+        zip(inFileNames, objNames, objTypes, scales, lambdaParams, normalizes, colors, markers, fillstyles, fillalphas)
+    ):
     if inDirName:
         inFileName = join(inDirName, inFileName)
     inFile = TFile.Open(inFileName)
