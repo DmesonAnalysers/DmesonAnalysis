@@ -201,7 +201,7 @@ if doRatio and displayRMS:
     if 'TH' in objType:
         nPoints = hRatioToCompare[1].GetNbinsX()
     else:
-        nPoints=hRatioToCompare[1].GetN()
+        nPoints = hRatioToCompare[1].GetN()
     for iBin in range(nPoints):
         ratios.append([])
         for iFile, _ in enumerate(inFileNames):
