@@ -80,7 +80,7 @@ leg.SetFillStyle(0)
 leg.SetTextSize(legTextSize)
 leg.SetNColumns(ncolumns)
 if legHeader is not None:
-    leg.SetHeader(legHeader, "C")
+    leg.SetHeader(legHeader, 'C')
 
 hToCompare, hRatioToCompare, hUncToCompare = [], [], []
 for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, marker, fillstyle, fillalpha) in \
