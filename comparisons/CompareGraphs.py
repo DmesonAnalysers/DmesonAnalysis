@@ -199,7 +199,7 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
 ratios, RMS, shift = [], [], []
 if doRatio and displayRMS:
     if 'TH' in objType:
-        nPoints=hRatioToCompare[1].GetNbinsX()
+        nPoints = hRatioToCompare[1].GetNbinsX()
     else:
         nPoints=hRatioToCompare[1].GetN()
     for iBin in range(nPoints):
