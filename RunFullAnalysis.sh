@@ -53,7 +53,7 @@ OutDirCrossSec=""
 OutDirRaa=""
 ################################################################################################
 
-if [ ${Particle} != "Dplus" ] && [ ${Particle} != "Ds" ] && [ ${Particle} != "Lc" ]; then
+if [ ${Particle} != "Dplus" ] && [ ${Particle} != "D0" ]&& [ ${Particle} != "Ds" ] && [ ${Particle} != "Lc" ]; then
   echo $(tput setaf 1) ERROR: only Ds and Dplus mesons are supported! $(tput sgr0)
   exit 2
 fi
@@ -247,6 +247,8 @@ if $DoHFPtSpec; then
     Channel="kDsKKpi"
   elif [ ${Particle} == "Dplus" ]; then 
     Channel="kDplusKpipi"
+  elif [ ${Particle} == "D0" ]; then
+    Channel="kD0Kpi"
   fi
   
   cc=""

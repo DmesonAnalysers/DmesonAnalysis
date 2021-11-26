@@ -1,0 +1,50 @@
+pp13TeVPrompt:
+    Particle: 'D0'
+    FixSigma: 0
+    SigmaFile: ''
+    SigmaMultFactor: 1.
+    FixMean: 0
+    MeanFile: ''
+    EnableRef: true
+    PtMin: [  1.0, 2.0, 4.0, 6.0, 8.0, 12.]
+    PtMax: [  2.0, 4.0, 6.0, 8.0, 12., 24.]
+    MassMin: [ 1.72, 1.72, 1.72, 1.72, 1.72, 1.72]
+    MassMax: [ 2.05, 2.05, 2.05, 2.05, 2.15, 2.05 ]
+    Rebin: [ 4, 4, 4, 4, 4, 4 ]
+    InclSecPeak: [ 0, 0, 0, 0, 0, 0]
+    SigmaSecPeak: []
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 1
+    BkgFunc: [ 'kPol3', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: ""
+    BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
+
+pp13TeVFD:
+    Particle: 'D0'
+    FixSigma: 0
+    SigmaFile: ''
+    SigmaMultFactor: 1.
+    FixMean: 0
+    MeanFile: ''
+    EnableRef: true
+    PtMin: [ 1, 2, 4, 6, 8, 12]
+    PtMax: [ 2, 4, 6, 8, 12, 24]
+    MassMin: [ 1.72, 1.72, 1.72, 1.72, 1.72, 1.72]
+    MassMax: [ 2.05, 2.05, 2.05, 2.05, 2.05, 2.05 ]
+    Rebin: [ 8, 8, 8, 8, 8, 8 ]
+    InclSecPeak: [0, 0, 0, 0, 0, 0 ]
+    SigmaSecPeak: []
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 1
+    BkgFunc: [ 'kPol2', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: ""
+    BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
+

@@ -1,6 +1,7 @@
 '''
-Script for fitting D+ and Ds+ invariant-mass spectra
+Script for fitting D+, D0 and Ds+ invariant-mass spectra
 run: python GetRawYieldsDsDplus.py fitConfigFileName.yml centClass inputFileName.root outFileName.root
+Add reflection file: python GetRawYieldsDsDplus.py fitConfigFileName.yml centClass inputFileName.root refFileName.root outFileName.root
 '''
 
 import sys
@@ -17,6 +18,7 @@ parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('fitConfigFileName', metavar='text', default='config_Ds_Fit.yml')
 parser.add_argument('centClass', metavar='text', default='')
 parser.add_argument('inFileName', metavar='text', default='')
+parser.add_argument('refFileName', metavar='text', default='')
 parser.add_argument('outFileName', metavar='text', default='')
 parser.add_argument('--isMC', action='store_true', default=False)
 parser.add_argument('--batch', help='suppress video output', action='store_true')
@@ -50,6 +52,10 @@ ptMins = fitConfig[cent]['PtMin']
 ptMaxs = fitConfig[cent]['PtMax']
 fixSigma = fitConfig[cent]['FixSigma']
 fixMean = fitConfig[cent]['FixMean']
+if 'EnableRef' not in fitConfig[cent]:
+  enableRef = False
+else:
+  enableRef = fitConfig[cent]['EnableRef']
 if not isinstance(fixSigma, list):
     fixSigma = [fixSigma for _ in ptMins]
 if not isinstance(fixMean, list):
@@ -108,6 +114,8 @@ elif particleName == 'Lc':
     massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
 elif particleName == 'Dstar':
     massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'
+elif particleName == 'D0':
+    massAxisTit = '#it{M}(K#pi) (GeV/#it{c}^{2})'
 else:
     print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dplus, Ds, Dstar, and Lc. Exit!')
     sys.exit()
@@ -117,12 +125,26 @@ infile = TFile.Open(args.inFileName)
 if not infile or not infile.IsOpen():
     print(f'ERROR: file "{args.inFileName}" cannot be opened! Exit!')
     sys.exit()
+infileref = TFile.Open(args.refFileName)
+if enableRef and not (infileref and infileref.IsOpen()):
+    print(f'ERROR: file "{args.refFileName}" cannot be opened! Exit!')
+    sys.exit()
 
+if enableRef:
+    hRel, hSig, hMassForRel, hMassForSig  = [], [], [], []
 hMass, hMassForFit = [], []
 for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
     if not args.isMC:
         hMass.append(infile.Get('hMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
         hMass[iPt].SetDirectory(0)
+        if enableRef:
+            hRel.append(infileref.Get('hVarReflMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
+            hSig.append(infileref.Get('hFDMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
+            hSig[iPt].Add(infileref.Get('hPromptMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
+            hRel[iPt].SetDirectory(0)
+            hSig[iPt].SetDirectory(0)
+            hRel[iPt].Sumw2()
+            hSig[iPt].Sumw2()
     else:
         hMass.append(infile.Get('hPromptMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
         hMass[iPt].Add(infile.Get('hFDMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
@@ -286,6 +308,7 @@ massDplus = TDatabasePDG.Instance().GetParticle(411).Mass()
 massDs = TDatabasePDG.Instance().GetParticle(431).Mass()
 massLc = TDatabasePDG.Instance().GetParticle(4122).Mass()
 massDstar = TDatabasePDG.Instance().GetParticle(413).Mass() - TDatabasePDG.Instance().GetParticle(421).Mass()
+massD0 = TDatabasePDG.Instance().GetParticle(421).Mass()
 
 if particleName == 'Dplus':
     massForFit=massDplus
@@ -293,6 +316,8 @@ elif particleName == 'Ds':
     massForFit = massDs
 elif particleName == 'Dstar':
     massForFit = massDstar
+elif particleName == 'D0':
+    massForFit = massD0
 else:
     massForFit = massLc
 
@@ -322,6 +347,11 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
     hMassForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};'
                                f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
     hMassForFit[iPt].SetName(f'MassForFit{iPt}')
+    if not args.isMC and enableRef:
+        hMassForRel.append(TH1F())
+        hMassForSig.append(TH1F())
+        AliVertexingHFUtils.RebinHisto(hRel[iPt], reb).Copy(hMassForRel[iPt])
+        AliVertexingHFUtils.RebinHisto(hSig[iPt], reb).Copy(hMassForSig[iPt])
     if nPtBins < 15:
         markerSize = 1.
     else:
@@ -472,6 +502,14 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                     massFitter[iPt].IncludeSecondGausPeak(massDplus, False, sigmaRatioMC * sigmaFirstPeak, True)
             else:
                 massFitter[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig[cent]['SigmaSecPeak'][iPt], True)
+        if enableRef:
+            r_over_s = hMassForSig[iPt].Integral(hMassForSig[iPt].FindBin(massMin * 1.0001), hMassForSig[iPt].FindBin(massMax * 0.999))
+            r_over_s = hMassForRel[iPt].Integral(
+                                        hMassForRel[iPt].FindBin(massMin * 1.0001),
+                                        hMassForRel[iPt].FindBin(massMax * 0.999)) \
+                                        / r_over_s
+            massFitter[iPt].SetFixReflOverS(r_over_s)
+            massFitter[iPt].SetTemplateReflections(hRel[iPt], "2gaus", massMin, massMax);
         massFitter[iPt].MassFitter(False)
 
         rawyield = massFitter[iPt].GetRawYield()

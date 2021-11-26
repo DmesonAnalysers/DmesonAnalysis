@@ -1,0 +1,109 @@
+infiles:
+    signal:
+        prompt:
+            filename: [            ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt1_2/Prompt_pT_1_2_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt2_4/Prompt_pT_2_4_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt4_6/Prompt_pT_4_6_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt6_8/Prompt_pT_6_8_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt8_12/Prompt_pT_8_12_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt12_24/Prompt_pT_12_24_ModelApplied.parquet.gzip,
+
+            ]
+            dirname: null
+            treename: null
+        feeddown:
+            filename: [           ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt1_2/FD_pT_1_2_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt2_4/FD_pT_2_4_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt4_6/FD_pT_4_6_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt6_8/FD_pT_6_8_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt8_12/FD_pT_8_12_ModelApplied.parquet.gzip,
+                ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt12_24/FD_pT_12_24_ModelApplied.parquet.gzip,
+            ]
+            dirname: null
+            treename: null
+    secpeak: # only for Ds
+        prompt:
+            filename: null
+            dirname: null
+            treename: null
+        feeddown:
+            filename: null
+            dirname: null
+            treename: null
+        mean: 0 # fixed values of mean and sigma, used if histogram is not provided
+        sigma: 0
+    background:
+        filename: [
+            ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip,
+            ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt2_4/Data_pT_2_4_ModelApplied.parquet.gzip,
+            ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
+            ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt6_8/Data_pT_6_8_ModelApplied.parquet.gzip,
+            ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt8_12/Data_pT_8_12_ModelApplied.parquet.gzip,
+            ../../AnalysisNonPromptD013TeVpp/D0/ML_2016_tree/pt12_24/Data_pT_12_24_ModelApplied.parquet.gzip,
+            ]
+        dirname: null
+        treename: parquettree
+        nEvents: 550000000 # number of events for bkg in dataframe
+        fractiontokeep: [0.1, 0.1, 0.2, 0.3, 1, 1]
+        isMC: false # if false bkg from SB
+        fitFunc: expo # fit function for bkg from SB, e.g. pol1, pol2, expo
+        nSigma: 4 # number of sigma from signal region, used to select SB
+        corrfactor:
+            filename: null # set null if no MC bkg correction is needed
+            histoname: null
+
+    preseleff: 
+        filename: ../efficiencies_D0/Efficiency_D0_D0_pp13TeV_presel.root
+        prompthistoname: hEffPrompt
+        feeddownhistoname: hEffFD
+    acceptance: ../accfiles/Acceptance_Toy_D0Kpi_yfidPtDep_etaDau09_ptDau100_feeddownDFONLL13ptshape_FONLLy.root
+
+ppRefFile: null
+
+predictions:
+    crosssec:
+        filename: ../models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFptDepLHCb_BRpythia8_PDG2020.root
+        histonames: 
+            prompt: hD0Kpipred_max
+            feeddown: hD0KpifromBpred_max_corr
+    Raa: 
+        prompt: 1. # can either be a fixed value or a text file
+        feeddown: 1. # can either be a fixed value or a text file
+        model: null
+
+nExpectedEvents: 1800000000
+sigmaMB: 57.95e+9 #pb
+Taa: 1.
+
+expectedSignalFrom: 'feeddown' # Choice between: 'prompt' or 'feeddown'
+
+ptmin: [ 2 ]
+ptmax: [ 4 ]
+
+dfparametercuts:
+    name: null 
+    min: null
+    max: null
+    enable: False  # enable cuts over df column query over each df and relative scan histos 
+
+cutvars:
+    ML_output_Bkg:
+        axisnum: null
+        min: [0.05, 0.005, 0.005, 0.005, 0.005, 0.005]
+        max: [ 0.2, 0.2, 0.3, 0.3, 0.5, 0.5]
+        step: [0.15, 0.005, 0.005, 0.005, 0.005, 0.005]
+        upperlowercut: Upper
+    #ML_output_Prompt:
+    #    axisnum: null
+    #    min: [0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
+    #    max: [0.5, 0.5, 0.55, 0.55, 0.6, 0.65]
+    #    step: [0.005, 0.005, 0.005, 0.005, 0.005, 0.005]
+    #    upperlowercut: Lower
+    ML_output_FD:
+        axisnum: null
+        min: [0.7, 0.33, 0.33, 0.33, 0.3, 0.3]
+        max: [0.98, 0.98, 0.98, 0.98, 0.9, 0.9]
+        step: [0.28, 0.005, 0.005, 0.005, 0.005, 0.005]
+        upperlowercut: Lower
+
+

@@ -1,0 +1,21 @@
+isMC: no
+filename: /Users/zbiao/noprompt_study/DmesonAnalysis/filterdata/data_mc/data.root
+dirname: PWGHF_D2H_TreeD0toKpiLoose
+listname: coutputTreeD0toKpiLoose
+sparsenameAll: hMassPtCutVarsAll
+enableSecPeak: no #always no for data
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: D0 #needed to define binning for invariant-mass histo
+    filenameAll: [/Users/zbiao/noprompt_study/AnalysisNonPromptD013TeVpp/D0/ML_tree/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip,
+        /Users/zbiao/noprompt_study/AnalysisNonPromptD013TeVpp/D0/ML_tree/pt2_4/Data_pT_2_4_ModelApplied.parquet.gzip,
+            /Users/zbiao/noprompt_study/AnalysisNonPromptD013TeVpp/D0/ML_tree/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
+                /Users/zbiao/noprompt_study/AnalysisNonPromptD013TeVpp/D0/ML_tree/pt6_8/Data_pT_6_8_ModelApplied.parquet.gzip,
+                    /Users/zbiao/noprompt_study/AnalysisNonPromptD013TeVpp/D0/ML_tree/pt8_12/Data_pT_8_12_ModelApplied.parquet.gzip,
+                        /Users/zbiao/noprompt_study/AnalysisNonPromptD013TeVpp/D0/ML_tree/pt12_24/Data_pT_12_24_ModelApplied.parquet.gzip,
+                 ]
+    dirname: null
+    treename: parquettree

@@ -1,0 +1,14 @@
+isMC: no
+filename: [filterdata/final_app/DATA_MB.root]
+isReducedVariables: no
+isWithBinfo: no
+dirname: PWGHF_D2H_TreeD0toKpiLoose_MB
+listname: coutputTreeD0toKpiLoose_MB
+sparsenameAll: fnSparseReco_all
+enableRef: no 
+enableSecPeak: no #always no for data
+normname: NormalizationCounter
+histoevname: hNEvents
+shiftForRedVariables: 7
+#info for trees (files can be different if trees are filtered or with applied ML models)
+
