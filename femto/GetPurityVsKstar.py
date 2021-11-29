@@ -108,10 +108,24 @@ if evaluateFracFromDstar:
 
 # load corr histos
 corrNames = ['Particle0_Particle2', 'Particle1_Particle3', 'Particle0_Particle3', 'Particle1_Particle2']
-corrTitles = {'Particle0_Particle2': 'p - D^{+}',
-              'Particle0_Particle3': 'p - D^{#font[122]{-}}',
-              'Particle1_Particle2': '#bar{p} - D^{+}',
-              'Particle1_Particle3': '#bar{p} - D^{#font[122]{-}}'}
+if cfg['input']['channel'] == 'Dp':
+    corrTitles = {'Particle0_Particle2': 'p - D^{+}',
+                'Particle0_Particle3': 'p - D^{#font[122]{-}}',
+                'Particle1_Particle2': '#bar{p} - D^{+}',
+                'Particle1_Particle3': '#bar{p} - D^{#font[122]{-}}'}
+elif cfg['input']['channel'] == 'DK':
+    corrTitles = {'Particle0_Particle2': 'K^{+} - D^{+}',
+                'Particle0_Particle3': 'K^{+} - D^{#font[122]{-}}',
+                'Particle1_Particle2': 'K^{-} - D^{+}',
+                'Particle1_Particle3': 'K^{-} - D^{#font[122]{-}}'}
+elif cfg['input']['channel'] == 'Dpi':
+    corrTitles = {'Particle0_Particle2': '#pi^{+} - D^{+}',
+                'Particle0_Particle3': '#pi^{+} - D^{#font[122]{-}}',
+                'Particle1_Particle2': '#pi^{-} - D^{+}',
+                'Particle1_Particle3': '#pi^{-} - D^{#font[122]{-}}'}
+else:
+    print('ERROR: Channel not implemented! Choose between Dp, DK, Dpi. Exit')
+    sys.exit()
 
 inFile = TFile.Open(inFileName)
 listName = f'{prefix}_CharmFemto{HFsuffix}_ResultQA{suffix}/{prefix}_CharmFemto{HFsuffix}_ResultQA{suffix}'
@@ -171,7 +185,7 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
         suffix = 'DpPr'
     else:
         suffix = 'DmPr'
-    gAverageSoverB[corrName] = TGraphAsymmErrors(0)
+    gAverageSoverB[corrName] = TGraphAsymmErrors(1)
     gAverageSoverB[corrName].SetNameTitle(f'gAverageSoverB_{suffix}', ';#it{k}* (GeV/#it{c}); #LT S/B #GT')
     gSoverBAvPt[corrName] = TGraphAsymmErrors(0)
     gSoverBAvPt[corrName].SetNameTitle(f'gSoverBAvPt_{suffix}',
@@ -380,6 +394,8 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
                 hSEPairFromDstarVsPt[corrName][iK].SetBinContent(iPt+1, DstarCounts[iPt])
                 hSEPairFromDstarVsPt[corrName][iK].SetBinError(iPt+1, DstarCountsUnc[iPt])
             else:
+                DstarFrac.append(0.)
+                DstarFracUnc.append(0.)
                 DstarCounts.append(0.)
                 DstarCountsUnc.append(0.)
                 hSEPairFromDstarVsPt[corrName][iK].SetBinContent(iPt+1, 0.)
@@ -401,7 +417,7 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
 
         fracBeauty, fracBeautyUnc = ComputeWeightedAverage(bFrac, sgnCounts, bFracUnc, sgnCountsUnc)
         # propagate syst unc as pT correlated
-        if systBeauty is not None:
+        if evaluateFracFromBeauty and systBeauty is not None:
             fracBeautyAvSysLow, _ = ComputeWeightedAverage(np.multiply(bFrac, (1-np.array(systBeauty[:len(bFrac)]))),
                                                            sgnCounts, bFracUnc, sgnCountsUnc)
             fracBeautyAvSysHigh, _ = ComputeWeightedAverage(np.multiply(bFrac, (1+np.array(systBeauty[:len(bFrac)]))),
@@ -414,21 +430,22 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
                 print('WARNING: asymmetric f_nonprompt systematics, might be unexpected')
 
         fracDstar, fracDstarUnc = ComputeWeightedAverage(DstarFrac, sgnCounts, DstarFracUnc, sgnCountsUnc)
-        fracDstarAvSysLow, _ = ComputeWeightedAverage(np.add(DstarFrac, -np.array(DstarFracSysLow)),
-                                                      sgnCounts, DstarFracUnc, sgnCountsUnc)
-        fracDstarAvSysHigh, _ = ComputeWeightedAverage(np.add(DstarFrac, DstarFracSysHigh),
-                                                       sgnCounts, DstarFracUnc, sgnCountsUnc)
-        fracDstarAvSysLow = fracDstar - fracDstarAvSysLow
-        fracDstarAvSysHigh = fracDstarAvSysHigh - fracDstar
+        if evaluateFracFromDstar:
+            fracDstarAvSysLow, _ = ComputeWeightedAverage(np.add(DstarFrac, -np.array(DstarFracSysLow)),
+                                                        sgnCounts, DstarFracUnc, sgnCountsUnc)
+            fracDstarAvSysHigh, _ = ComputeWeightedAverage(np.add(DstarFrac, DstarFracSysHigh),
+                                                        sgnCounts, DstarFracUnc, sgnCountsUnc)
+            fracDstarAvSysLow = fracDstar - fracDstarAvSysLow
+            fracDstarAvSysHigh = fracDstarAvSysHigh - fracDstar
 
-        kStar = (kStarMax+kStarMin) / 2
-        kStarDelta = (kStarMax-kStarMin) / 2
+            kStar = (kStarMax+kStarMin) / 2
+            kStarDelta = (kStarMax-kStarMin) / 2
 
-        gBeautyFrac[corrName].SetPoint(iK, kStar, fracBeauty)
-        gDstarFrac[corrName].SetPoint(iK, kStar, fracDstar)
+            gBeautyFrac[corrName].SetPoint(iK, kStar, fracBeauty)
+            gDstarFrac[corrName].SetPoint(iK, kStar, fracDstar)
 
-        gBeautyFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracBeautyUnc, fracBeautyUnc)
-        gDstarFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracDstarUnc, fracDstarUnc)
+            gBeautyFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracBeautyUnc, fracBeautyUnc)
+            gDstarFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracDstarUnc, fracDstarUnc)
 
         if iK == 0: # only for k* < 200 MeV/c^2
             hFractions[corrName].SetBinContent(1, purity)
@@ -442,9 +459,10 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
             gFractionsSyst[corrName].SetPoint(2, 3, fracDstar)
             if systPurity is not None:
                 gFractionsSyst[corrName].SetPointError(0, 0.3, 0.3, puritySystUncLow, puritySystUncHigh)
-            if systBeauty is not None:
+            if evaluateFracFromBeauty and systBeauty is not None:
                 gFractionsSyst[corrName].SetPointError(1, 0.3, 0.3, fracBeautySysHigh, fracBeautySysLow)
-            gFractionsSyst[corrName].SetPointError(2, 0.3, 0.3, fracDstarAvSysLow, fracDstarAvSysHigh)
+            if evaluateFracFromDstar:
+                gFractionsSyst[corrName].SetPointError(2, 0.3, 0.3, fracDstarAvSysLow, fracDstarAvSysHigh)
 
 # plots
 legSoverB = TLegend(0.18, 0.7, 0.5, 0.85)
@@ -630,9 +648,10 @@ for iPad, corrName in enumerate(['Particle0_Particle2_plus_Particle1_Particle3',
     hFrameBeautyFrac.GetYaxis().SetDecimals()
     SetObjectStyle(hSEPairSignalVsPtReb[corrName][0], markerstyle=kOpenCircle)
     hSEPairSignalVsPtReb[corrName][0].DrawCopy('esame')
-    hBeautyFracToDraw = hFracFromB.Clone()
-    hBeautyFracToDraw.Scale(maxSEPair / maxBeautyFrac)
-    hBeautyFracToDraw.DrawCopy('esame')
+    if evaluateFracFromBeauty:
+        hBeautyFracToDraw = hFracFromB.Clone()
+        hBeautyFracToDraw.Scale(maxSEPair / maxBeautyFrac)
+        hBeautyFracToDraw.DrawCopy('esame')
     kStar, avBeautyFrac, BeautyFracavPt = ctypes.c_double(), ctypes.c_double(), ctypes.c_double()
     gBeautyFrac[corrName].GetPoint(0, kStar, avBeautyFrac)
     gBeautyFrac[corrName].GetPoint(0, kStar, BeautyFracavPt)
@@ -676,13 +695,14 @@ for iPad, corrName in enumerate(['Particle0_Particle2_plus_Particle1_Particle3',
     hFrameDstarFrac.GetYaxis().SetDecimals()
     hSEPairSignalVsPtReb[corrName][0].DrawCopy('esame')
     SetObjectStyle(hSEPairSignalVsPtReb[corrName][0], color=kRed+1, fillstyle=0)
-    hDstarFracToDraw = hFracFromDstar.Clone()
-    for iPt in range(hDstarFracToDraw.GetNbinsX()):
-        hDstarFracToDraw.SetBinContent(iPt+1, hFracFromDstar.GetBinContent(iPt+1) * (1-hFracFromB.GetBinContent(iPt+1)))
-    hDstarFracToDraw.SetBinContent(1, -1000.)
-    SetObjectStyle(hDstarFracToDraw, color=kGreen+2, fillstyle=0)    
-    hDstarFracToDraw.Scale(maxSEPair / maxDstarFrac)
-    hDstarFracToDraw.DrawCopy('esame')
+    if evaluateFracFromDstar:
+        hDstarFracToDraw = hFracFromDstar.Clone()
+        for iPt in range(hDstarFracToDraw.GetNbinsX()):
+            hDstarFracToDraw.SetBinContent(iPt+1, hFracFromDstar.GetBinContent(iPt+1) * (1-hFracFromB.GetBinContent(iPt+1)))
+        hDstarFracToDraw.SetBinContent(1, -1000.)
+        SetObjectStyle(hDstarFracToDraw, color=kGreen+2, fillstyle=0)    
+        hDstarFracToDraw.Scale(maxSEPair / maxDstarFrac)
+        hDstarFracToDraw.DrawCopy('esame')
     kStar, avDstarFrac, DstarFracavPt = ctypes.c_double(), ctypes.c_double(), ctypes.c_double()
     gDstarFrac[corrName].GetPoint(0, kStar, avDstarFrac)
     gDstarFrac[corrName].GetPoint(0, kStar, DstarFracavPt)

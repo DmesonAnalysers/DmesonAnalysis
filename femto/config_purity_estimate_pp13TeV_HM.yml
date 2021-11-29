@@ -1,4 +1,5 @@
 input:
+    channel: 'Dp'
     filename: ~/cernbox/alice_work/trains/pp13TeV/AnalysisResults.root
     suffix: 11
     prefix: HM
