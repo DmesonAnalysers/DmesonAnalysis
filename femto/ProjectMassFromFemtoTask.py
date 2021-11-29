@@ -5,9 +5,9 @@ python script for the projection of the D-meson mass spectrum from femto task
 import sys
 import argparse
 import yaml
-from ROOT import TFile, TH1F # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 from utils.AnalysisUtils import MergeHists #pylint: disable=wrong-import-position,import-error
+from ROOT import TFile, TH1F # pylint: disable=import-error,no-name-in-module
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('inFileName', metavar='text', default='inFileName.root',
@@ -22,6 +22,8 @@ parser.add_argument('--suffix', metavar='text', default='0',
                     help='suffix for directory inside task output file')
 parser.add_argument('--HFsuffix', metavar='text', default='',
                     help='HF suffix for directory inside task output file')
+parser.add_argument('--HFsuffixNorm', metavar='text', default='',
+                    help='HF normalisation suffix for directory inside task output file')
 parser.add_argument('--inFileNameAdd', action='append', default=None,
                     help='additional root input file name')
 args = parser.parse_args()
@@ -70,8 +72,8 @@ hPt.append(MergeHists(hPt))
 hMass[-1].SetName(f'hMass_{cutVars["Pt"]["min"][0]*10:.0f}_{cutVars["Pt"]["max"][-1]*10:.0f}')
 hPt[-1].SetName(f'hPt{cutVars["Pt"]["min"][0]*10:.0f}_{cutVars["Pt"]["max"][-1]*10:.0f}')
 
-dirName = f'{args.prefix}_CharmFemto_QA0'
-listName = f'{dirName}/{args.prefix}_CharmFemto_QA0'
+dirName = f'{args.prefix}_CharmFemto_{args.HFsuffixNorm}QA0'
+listName = f'{dirName}/{args.prefix}_CharmFemto_{args.HFsuffixNorm}QA0'
 
 inListEvents = inFile.Get(listName)
 inListAliEventCuts = inListEvents.FindObject('AliEventCuts')
