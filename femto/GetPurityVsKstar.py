@@ -109,20 +109,20 @@ if evaluateFracFromDstar:
 # load corr histos
 corrNames = ['Particle0_Particle2', 'Particle1_Particle3', 'Particle0_Particle3', 'Particle1_Particle2']
 if cfg['input']['channel'] == 'Dp':
-    corrTitles = {'Particle0_Particle2': 'p - D^{+}',
-                'Particle0_Particle3': 'p - D^{#font[122]{-}}',
-                'Particle1_Particle2': '#bar{p} - D^{+}',
-                'Particle1_Particle3': '#bar{p} - D^{#font[122]{-}}'}
+    corrTitles = {'Particle0_Particle2': 'p #minus D^{+}',
+                'Particle0_Particle3': 'p #minus D^{#minus}',
+                'Particle1_Particle2': '#bar{p} #minus D^{+}',
+                'Particle1_Particle3': '#bar{p} #minus D^{#minus}'}
 elif cfg['input']['channel'] == 'DK':
-    corrTitles = {'Particle0_Particle2': 'K^{+} - D^{+}',
-                'Particle0_Particle3': 'K^{+} - D^{#font[122]{-}}',
-                'Particle1_Particle2': 'K^{-} - D^{+}',
-                'Particle1_Particle3': 'K^{-} - D^{#font[122]{-}}'}
+    corrTitles = {'Particle0_Particle2': 'K^{+} #minus D^{+}',
+                'Particle0_Particle3': 'K^{+} #minus D^{#minus}',
+                'Particle1_Particle2': 'K^{#minus} #minus D^{+}',
+                'Particle1_Particle3': 'K^{#minus} #minus D^{#minus}'}
 elif cfg['input']['channel'] == 'Dpi':
-    corrTitles = {'Particle0_Particle2': '#pi^{+} - D^{+}',
-                'Particle0_Particle3': '#pi^{+} - D^{#font[122]{-}}',
-                'Particle1_Particle2': '#pi^{-} - D^{+}',
-                'Particle1_Particle3': '#pi^{-} - D^{#font[122]{-}}'}
+    corrTitles = {'Particle0_Particle2': '#pi^{+} #minus D^{+}',
+                'Particle0_Particle3': '#pi^{+} #minus D^{#minus}',
+                'Particle1_Particle2': '#pi^{#minus} #minus D^{+}',
+                'Particle1_Particle3': '#pi^{#minus} #minus D^{#minus}'}
 else:
     print('ERROR: Channel not implemented! Choose between Dp, DK, Dpi. Exit')
     sys.exit()
