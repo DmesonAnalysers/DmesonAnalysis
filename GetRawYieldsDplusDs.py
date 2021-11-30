@@ -8,7 +8,7 @@ import argparse
 import ctypes
 import numpy as np
 import yaml
-from ROOT import TFile, TCanvas, TH1D, TH1F, TMath, TF1, TDatabasePDG, TDirectoryFile, AliHFInvMassFitter, AliVertexingHFUtils # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TH1D, TH1F, TF1, TDatabasePDG, TDirectoryFile, AliHFInvMassFitter, AliVertexingHFUtils # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, kBlack, kRed, kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
