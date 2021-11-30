@@ -516,7 +516,10 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
             hRawYieldsBkgDiffSigma[iS].SetBinContent(iPt+1,bkg.value)
             hRawYieldsBkgDiffSigma[iS].SetBinError(iPt+1,bkgerr.value)
             hRawYieldsSoverBDiffSigma[iS].SetBinContent(iPt+1,sgn.value/bkg.value)
-            hRawYieldsSoverBDiffSigma[iS].SetBinError(iPt+1,sgn.value/bkg.value*TMath.Sqrt(sgnerr.value/sgn.value*sgnerr.value/sgn.value+bkgerr.value/bkg.value*bkgerr.value/bkg.value))
+            hRawYieldsSoverBDiffSigma[iS].SetBinError(
+                iPt+1,
+                sgn.value/bkg.value*np.sqrt(sgnerr.value**2/sgn.value**2+bkgerr.value**2/bkg.value**2)
+            )
             hRawYieldsSignifDiffSigma[iS].SetBinContent(iPt+1,signif.value)
             hRawYieldsSignifDiffSigma[iS].SetBinError(iPt+1,signiferr.value)
         
