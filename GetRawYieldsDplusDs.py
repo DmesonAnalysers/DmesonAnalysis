@@ -421,7 +421,6 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
             hRawYieldsFracGaus2.SetBinError(iPt+1, frac2gauserr)
 
     else:  # data
-        print(bkgStr, type(bkgStr))
         massFitter.append(AliHFInvMassFitter(hMassForFit[iPt], massMin, massMax, bkgEnum, sgnEnum))
         if degPol[iPt] > 0:
             massFitter[iPt].SetPolDegreeForBackgroundFit(degPol[iPt])
