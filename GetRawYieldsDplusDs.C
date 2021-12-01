@@ -1,5 +1,5 @@
 //___________________________________________________________________________________//
-// Macro for fitting D+ and Ds+ invariant-mass spectra                               //
+// Macro for fitting D+, D0 and Ds+ invariant-mass spectra                               //
 // Main Function: GetRawYieldsDplusDs                                                //
 //___________________________________________________________________________________//
 
@@ -28,10 +28,10 @@
 using namespace std;
 
 enum {k010, k3050, k6080, kpp5TeVPrompt, kpp5TeVFD, kpp13TeVPrompt, kpp13TeVFD};
-enum {kDplus, kDs, kLc, kDstar};
+enum {kDplus, kD0, kDs, kLc, kDstar};
 
 //__________________________________________________________________________________________________________________
-int GetRawYieldsDplusDs(int cent = k010, bool isMC = false, TString infilename = "InvMassSpectraDplus_010_PbPb2015cuts.root", TString cfgfilename = "Dplus/config_Dplus_Fit.yml", TString outFileName = "RawYieldsDplus_010_PbPb2015cuts.root");
+int GetRawYieldsDplusDs(int cent = k010, bool isMC = false, TString infilename = "InvMassSpectraDplus_010_PbPb2015cuts.root", TString refFileName = "Distr_D0_MC_D0_pp13TeV_FD0.root", TString cfgfilename = "Dplus/config_Dplus_Fit.yml", TString outFileName = "RawYieldsDplus_010_PbPb2015cuts.root");
 double SingleGaus(double *m, double *pars);
 double DoublePeakSingleGaus(double *x, double *pars);
 double DoubleGaus(double *m, double *pars);
@@ -42,7 +42,7 @@ void SetStyle();
 void DivideCanvas(TCanvas* c, int nPtBins);
 
 //__________________________________________________________________________________________________________________
-int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfilename, TString outFileName) {
+int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFileName, TString cfgfilename, TString outFileName) {
     SetStyle();
 
     //load config
@@ -66,12 +66,14 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         particle=kDplus;
     } else if (ParticleName=="Ds"){
         particle=kDs;
+    } else if (ParticleName=="D0"){
+        particle=kD0;
     } else if (ParticleName=="Lc"){
         particle=kLc;
     } else if (ParticleName=="Dstar"){
         particle=kDstar;
     } else{
-        cerr << "ERROR: only Dplus, Ds, Dstar and Lc are supported! Exit";
+        cerr << "ERROR: only Dplus, Ds, D0, Dstar and Lc are supported! Exit";
         return -1;
     }
 
@@ -105,6 +107,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         int opt = config[centname.Data()]["FixMean"].as<int>();
         fixMean.assign(PtMin.size(), opt);
     }
+  
+    bool enableRef = config[centname.Data()]["EnableRef"].as<int>();
     bool boundMean = config[centname.Data()]["BoundMean"].as<int>();
     string infilenameMean = config[centname.Data()]["MeanFile"].as<string>();
     bool UseLikelihood = config[centname.Data()]["UseLikelihood"].as<int>();
@@ -175,6 +179,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
 
     TString massaxistit = "";
     if(particle==kDplus) massaxistit = "#it{M}(K#pi#pi) (GeV/#it{c}^{2})";
+    else if(particle==kD0) massaxistit = "#it{M}(K#pi) (GeV/#it{c}^{2})";
     else if(particle==kDs) massaxistit = "#it{M}(KK#pi) (GeV/#it{c}^{2})";
     else if(particle==kLc) massaxistit = "#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})";
     else if (particle==kDstar) massaxistit = "#it{M}(pi^{+}) (GeV/#it{c}^{2})";
@@ -182,12 +187,22 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     //load inv-mass histos
     auto infile = TFile::Open(infilename.Data());
     if(!infile || !infile->IsOpen()) return -1;
+    auto infileref = TFile::Open(refFileName.Data());
+    if(!infileref || !infileref->IsOpen()) return -1;
+    TH1F* hMassSig[nPtBins];
+    TH1F* hMassRef[nPtBins];
     TH1F* hMass[nPtBins];
     TH1F* hEv = NULL;
 
     for(unsigned int iPt=0; iPt<nPtBins; iPt++) {
-        if(!isMC)
+        if(!isMC) {
             hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10)));
+            if (enableRef){
+                hMassRef[iPt] = static_cast<TH1F*>(infileref->Get(Form("hVarReflMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10)));
+                hMassSig[iPt] = static_cast<TH1F*>(infileref->Get(Form("hFDMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10)));
+                hMassSig[iPt]->Add(static_cast<TH1F*>(infileref->Get(Form("hPromptMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10))));
+          }
+        }
         else {
             hMass[iPt] = static_cast<TH1F*>(infile->Get(Form("hPromptMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10)));
             hMass[iPt]->Add(static_cast<TH1F*>(infile->Get(Form("hFDMass_%0.f_%0.f",PtMin[iPt]*10,PtMax[iPt]*10))));
@@ -347,16 +362,20 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
     //fit histos
     double massDplus = TDatabasePDG::Instance()->GetParticle(411)->Mass();
     double massDs = TDatabasePDG::Instance()->GetParticle(431)->Mass();
+    double massD0 = TDatabasePDG::Instance()->GetParticle(421)->Mass();
     double massLc = TDatabasePDG::Instance()->GetParticle(4122)->Mass();
     double dmassDstar = TDatabasePDG::Instance()->GetParticle(413)->Mass() - TDatabasePDG::Instance()->GetParticle(421)->Mass();
     double massForFit = -1.;
     
     if(particle==kDplus) massForFit = massDplus;
     else if (particle==kDs) massForFit = massDs;
+    else if (particle==kD0) massForFit = massD0;
     else if (particle==kLc) massForFit = massLc;
     else if (particle==kDstar) massForFit = dmassDstar;
 
     TH1F* hMassForFit[nPtBins];
+    TH1F* hMassForRel[nPtBins];
+    TH1F* hMassForSig[nPtBins];
 
     int canvSize[2] = {1920, 1080};
     if(nPtBins == 1)
@@ -385,6 +404,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
         TString pttitle = Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c}",PtMin[iPt],PtMax[iPt]);
         hMassForFit[iPt]->SetTitle(Form("%s;%s;Counts per %0.f MeV/#it{c}^{2}",pttitle.Data(),massaxistit.Data(),hMassForFit[iPt]->GetBinWidth(1)*1000));
         hMassForFit[iPt]->SetName(Form("MassForFit%d",iPt));
+        if(enableRef){
+            hMassForRel[iPt]=reinterpret_cast<TH1F*>(AliVertexingHFUtils::RebinHisto(hMassRef[iPt],Rebin[iPt]));
+            hMassForSig[iPt]=reinterpret_cast<TH1F*>(AliVertexingHFUtils::RebinHisto(hMassSig[iPt],Rebin[iPt]));
+        }
         double markerSize = 1.;
         if(nPtBins>15)
             markerSize = 0.5;
@@ -401,7 +424,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 }
                 else {
                     massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakSingleGaus,MassMin[iPt],MassMax[iPt],6);
-                    massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
+                    if(particle==kDplus)massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
+                    if(particle==kD0)massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massD0,0.010);
                     parRawYieldSecPeak = 3;
                     parMeanSecPeak = 4;
                     parSigmaSecPeak = 5;
@@ -416,7 +440,9 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 }
                 else {
                     massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakDoubleGaus,MassMin[iPt],MassMax[iPt],8);
-                    massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
+                    if(particle==kDplus)massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
+                    if(particle==kD0)massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massD0,0.010);
+
                     parRawYieldSecPeak = 5;
                     parMeanSecPeak = 6;
                     parSigmaSecPeak = 7;
@@ -549,6 +575,13 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString cfgfile
                 } else {
                     massFitter->IncludeSecondGausPeak(massDplus, false, SigmaSecPeak[iPt], true);
                 }
+            }
+          
+            if(enableRef) {
+                double rOverS = hMassForSig[iPt]->Integral(hMassForSig[iPt]->FindBin(MassMin[iPt] * 1.0001), hMassForSig[iPt]->FindBin(MassMax[iPt] * 0.999));
+                rOverS = hMassForRel[iPt]->Integral(hMassForRel[iPt]->FindBin(MassMin[iPt] * 1.0001), hMassForRel[iPt]->FindBin(MassMax[iPt] * 0.999)) / rOverS;
+                massFitter->SetFixReflOverS(rOverS);
+                massFitter->SetTemplateReflections(hMassRef[iPt], "2gaus", MassMin[iPt], MassMax[iPt]);
             }
 
             massFitter->MassFitter(false);

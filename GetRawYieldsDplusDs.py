@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('fitConfigFileName', metavar='text', default='config_Ds_Fit.yml')
 parser.add_argument('centClass', metavar='text', default='')
 parser.add_argument('inFileName', metavar='text', default='')
-parser.add_argument('refFileName', metavar='text', default='')
+parser.add_argument('--refFileName', metavar='text', default='')
 parser.add_argument('outFileName', metavar='text', default='')
 parser.add_argument('--isMC', action='store_true', default=False)
 parser.add_argument('--batch', help='suppress video output', action='store_true')
@@ -53,9 +53,9 @@ ptMaxs = fitConfig[cent]['PtMax']
 fixSigma = fitConfig[cent]['FixSigma']
 fixMean = fitConfig[cent]['FixMean']
 if 'EnableRef' not in fitConfig[cent]:
-  enableRef = False
+    enableRef = False
 else:
-  enableRef = fitConfig[cent]['EnableRef']
+    enableRef = fitConfig[cent]['EnableRef']
 if not isinstance(fixSigma, list):
     fixSigma = [fixSigma for _ in ptMins]
 if not isinstance(fixMean, list):
@@ -125,13 +125,13 @@ infile = TFile.Open(args.inFileName)
 if not infile or not infile.IsOpen():
     print(f'ERROR: file "{args.inFileName}" cannot be opened! Exit!')
     sys.exit()
-infileref = TFile.Open(args.refFileName)
-if enableRef and not (infileref and infileref.IsOpen()):
-    print(f'ERROR: file "{args.refFileName}" cannot be opened! Exit!')
-    sys.exit()
-
 if enableRef:
-    hRel, hSig, hMassForRel, hMassForSig  = [], [], [], []
+    infileref = TFile.Open(args.refFileName)
+    if not (infileref and infileref.IsOpen()):
+        print(f'ERROR: file "{args.refFileName}" cannot be opened! Exit!')
+        sys.exit()
+
+hRel, hSig, hMassForRel, hMassForSig  = [], [], [], []
 hMass, hMassForFit = [], []
 for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
     if not args.isMC:
@@ -369,8 +369,12 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                 massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010)
             else:
                 massFunc = TF1(f'massFunc{iPt}', DoublePeakSingleGaus, massMin, massMax, 6)
-                massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010,
-                                       hMassForFit[iPt].Integral() * binWidth, massDplus, 0.010)
+                if(particleName == 'Dplus'):
+                    massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010,
+                                           hMassForFit[iPt].Integral() * binWidth, massDplus, 0.010)
+                if(particleName == 'D0'):
+                    massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010,
+                                           hMassForFit[iPt].Integral() * binWidth, massD0, 0.010)
                 parRawYieldSecPeak = 3
                 parMeanSecPeak = 4
                 parSigmaSecPeak = 5
@@ -383,8 +387,12 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
                 massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9)
             else:
                 massFunc = TF1(f'massFunc{iPt}', DoublePeakDoubleGaus, massMin, massMax, 8)
-                massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9,
-                                       hMassForFit[iPt].Integral() * binWidth, massDplus, 0.010)
+                if(particleName == 'Dplus'):
+                    massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9,
+                                           hMassForFit[iPt].Integral() * binWidth, massDplus, 0.010)
+                if(particleName == 'D0'):
+                    massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9,
+                                           hMassForFit[iPt].Integral() * binWidth, massD0, 0.010)
                 parRawYieldSecPeak = 5
                 parMeanSecPeak = 6
                 parSigmaSecPeak = 7
@@ -503,12 +511,15 @@ for iPt, (hM, ptMin, ptMax, reb, sgn, bkg, secPeak, massMin, massMax) in enumera
             else:
                 massFitter[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig[cent]['SigmaSecPeak'][iPt], True)
         if enableRef:
-            r_over_s = hMassForSig[iPt].Integral(hMassForSig[iPt].FindBin(massMin * 1.0001), hMassForSig[iPt].FindBin(massMax * 0.999))
-            r_over_s = hMassForRel[iPt].Integral(
-                                        hMassForRel[iPt].FindBin(massMin * 1.0001),
-                                        hMassForRel[iPt].FindBin(massMax * 0.999)) \
-                                        / r_over_s
-            massFitter[iPt].SetFixReflOverS(r_over_s)
+            rOverS = hMassForSig[iPt].Integral(
+                hMassForSig[iPt].FindBin(massMin * 1.0001),
+                hMassForSig[iPt].FindBin(massMax * 0.999)
+            )
+            rOverS = hMassForRel[iPt].Integral(
+                hMassForRel[iPt].FindBin(massMin * 1.0001),
+                hMassForRel[iPt].FindBin(massMax * 0.999)
+            ) / rOverS
+            massFitter[iPt].SetFixReflOverS(rOverS)
             massFitter[iPt].SetTemplateReflections(hRel[iPt], "2gaus", massMin, massMax);
         massFitter[iPt].MassFitter(False)
 

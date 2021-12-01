@@ -111,7 +111,8 @@ if isMC:
     elif 'Dstar' in channel:
         bitsForSel = {'bkg': [bitBkg], 'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD]}
     elif 'D0' in channel:
-        bitsForSel = {'bkg': [bitBkg], 'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD], 'prompt_sig_refl': [bitSignal, bitPrompt, bitRefl], 'FD_sig_refl': [bitSignal, bitFD, bitRefl]}
+        bitsForSel = {'bkg': [bitBkg], 'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD],
+                      'prompt_sig_refl': [bitSignal, bitPrompt, bitRefl], 'FD_sig_refl': [bitSignal, bitFD, bitRefl]}
     elif 'LctopKpi' in channel:
         bitsForSel = {'bkg': [bitBkg],
                       'prompt_sig_nonreso': [bitSignal, bitLcNonRes, bitPrompt],

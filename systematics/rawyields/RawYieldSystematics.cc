@@ -77,13 +77,17 @@ int RawYieldSystematics(TString cfgFileName) {
     std::string mesonName = config["meson"].as<std::string>();    
     double massDs = TDatabasePDG::Instance()->GetParticle(431)->Mass();
     double massDplus = TDatabasePDG::Instance()->GetParticle(411)->Mass();
+    double massD0 = TDatabasePDG::Instance()->GetParticle(421)->Mass();
+
     double mass = -1;
     if(mesonName == "Ds")
         mass = massDs;
     else if(mesonName == "Dplus")
         mass = massDplus;
+    else if(mesonName == "D0")
+        mass = massD0;
     else {
-        std::cerr << "ERROR: you must specify if it is D+ or Ds+! Exit." << std::endl;
+        std::cerr << "ERROR: you must specify if it is D+ ,D0 or Ds+! Exit." << std::endl;
         return -1;
     }
 
