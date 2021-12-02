@@ -22,6 +22,7 @@ pp13TeVPrompt:
     FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
     SigmaRatioFile: ""
     BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
+    EnableRef: false
 
 pp13TeVFD:
     Particle: 'D0'
@@ -30,7 +31,6 @@ pp13TeVFD:
     SigmaMultFactor: 1.
     FixMean: 0
     MeanFile: ''
-    EnableRef: true
     PtMin: [ 1, 2, 4, 6, 8, 12]
     PtMax: [ 2, 4, 6, 8, 12, 24]
     MassMin: [ 1.72, 1.72, 1.72, 1.72, 1.72, 1.72]
@@ -47,4 +47,4 @@ pp13TeVFD:
     FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
     SigmaRatioFile: ""
     BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
-
+    EnableRef: false

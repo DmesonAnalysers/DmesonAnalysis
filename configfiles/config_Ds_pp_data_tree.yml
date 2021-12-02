@@ -3,6 +3,7 @@ filename: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/inputs/data/AnalysisResults_Dspp
 dirname: PWGHF_D2H_InvMassDs_TreeCreator
 listname: coutputDs_TreeCreator
 sparsenameAll: fnSparse
+enableRef: no #always no for data
 enableSecPeak: no #always no for data
 normname: NormalizationCounter
 histoevname: hNEvents

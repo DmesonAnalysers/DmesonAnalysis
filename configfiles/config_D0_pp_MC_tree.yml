@@ -8,6 +8,7 @@ sparsenamePrompt: null
 sparsenameFD: null
 sparsenameGenPrompt: fnSparseAcc_fromC
 sparsenameGenFD: fnSparseAcc_fromB
+enableRef: no #reflection for D0
 enableSecPeak: no #no second peak for D+
 sparsenamePromptSecPeak: null
 sparsenameFDSecPeak: null

@@ -3,6 +3,7 @@ filename: /Users/zbiao/noprompt_study/DmesonAnalysis/filterdata/data_mc/data.roo
 dirname: PWGHF_D2H_TreeD0toKpiLoose
 listname: coutputTreeD0toKpiLoose
 sparsenameAll: hMassPtCutVarsAll
+enableRef: no #always no for data
 enableSecPeak: no #always no for data
 normname: NormalizationCounter
 histoevname: hNEvents

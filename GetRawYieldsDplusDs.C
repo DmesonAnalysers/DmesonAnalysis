@@ -108,7 +108,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
         fixMean.assign(PtMin.size(), opt);
     }
   
-    bool enableRef = config[centname.Data()]["EnableRef"].as<int>();
+    bool enableRef = config[centname.Data()]["EnableRef"].as<bool>();
     bool boundMean = config[centname.Data()]["BoundMean"].as<int>();
     string infilenameMean = config[centname.Data()]["MeanFile"].as<string>();
     bool UseLikelihood = config[centname.Data()]["UseLikelihood"].as<int>();
@@ -187,8 +187,12 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
     //load inv-mass histos
     auto infile = TFile::Open(infilename.Data());
     if(!infile || !infile->IsOpen()) return -1;
-    auto infileref = TFile::Open(refFileName.Data());
-    if(!infileref || !infileref->IsOpen()) return -1;
+    TFile* infileref = NULL;
+    if(enableRef){
+        infileref = TFile::Open(refFileName.Data());
+        if(!infileref || !infileref->IsOpen()) return -1;
+    }
+
     TH1F* hMassSig[nPtBins];
     TH1F* hMassRef[nPtBins];
     TH1F* hMass[nPtBins];
@@ -424,8 +428,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
                 }
                 else {
                     massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakSingleGaus,MassMin[iPt],MassMax[iPt],6);
-                    if(particle==kDplus)massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
-                    if(particle==kD0)massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massD0,0.010);
+                    massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
                     parRawYieldSecPeak = 3;
                     parMeanSecPeak = 4;
                     parSigmaSecPeak = 5;
@@ -440,9 +443,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
                 }
                 else {
                     massFunc = new TF1(Form("massFunc%d",iPt),DoublePeakDoubleGaus,MassMin[iPt],MassMax[iPt],8);
-                    if(particle==kDplus)massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
-                    if(particle==kD0)massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massD0,0.010);
-
+                    massFunc->SetParameters(hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massForFit,0.010,0.030,0.9,hMassForFit[iPt]->Integral()*hMassForFit[iPt]->GetBinWidth(1),massDplus,0.010);
                     parRawYieldSecPeak = 5;
                     parMeanSecPeak = 6;
                     parSigmaSecPeak = 7;
@@ -579,7 +580,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
           
             if(enableRef) {
                 double rOverS = hMassForSig[iPt]->Integral(hMassForSig[iPt]->FindBin(MassMin[iPt] * 1.0001), hMassForSig[iPt]->FindBin(MassMax[iPt] * 0.999));
-                rOverS = hMassForRel[iPt]->Integral(hMassForRel[iPt]->FindBin(MassMin[iPt] * 1.0001), hMassForRel[iPt]->FindBin(MassMax[iPt] * 0.999)) / rOverS;
+                rOverS /= hMassForRel[iPt]->Integral(hMassForRel[iPt]->FindBin(MassMin[iPt] * 1.0001), hMassForRel[iPt]->FindBin(MassMax[iPt] * 0.999));
                 massFitter->SetFixReflOverS(rOverS);
                 massFitter->SetTemplateReflections(hMassRef[iPt], "2gaus", MassMin[iPt], MassMax[iPt]);
             }

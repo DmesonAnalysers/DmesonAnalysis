@@ -7,7 +7,7 @@ listname: coutputTreeD0toKpiLoose_MB
 sparsenameAll: null
 sparsenamePrompt: fnSparseReco_fromC
 sparsenameFD: fnSparseReco_fromB
-enableRef: yes #no second peak for D+
+enableRef: no #reflection for D0
 sparsenameRefl: fnSparseReco_refl
 sparsenameGenPrompt: fnSparseAcc_fromC
 sparsenameGenFD: fnSparseAcc_fromB

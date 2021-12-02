@@ -5,7 +5,7 @@ isWithBinfo: no
 dirname: PWGHF_D2H_TreeD0toKpiLoose_MB
 listname: coutputTreeD0toKpiLoose_MB
 sparsenameAll: fnSparseReco_all
-enableRef: no 
+enableRef: no #always no for data
 enableSecPeak: no #always no for data
 normname: NormalizationCounter
 histoevname: hNEvents
