@@ -1,0 +1,49 @@
+isMC: yes
+filename: [filterdata/pbpb/PbPb_MC.root]
+dirname: PWGHF_D2H_TreeD0toKpiLoose
+listname: coutputTreeD0toKpiLoose
+isWithBinfo: yes
+sparsenameAll: null
+sparsenamePrompt: null
+sparsenameFD: null
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableRef: no #reflection for D0
+enableSecPeak: no #no second peak for D+
+sparsenamePromptSecPeak: null
+sparsenameFDSecPeak: null
+sparsenameGenPromptSecPeak: null
+sparsenameGenFDSecPeak: null
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: D0 #needed to define binning for invariant-mass histo
+    filenameAll: null #not needed for MC
+    filenamePrompt: [  ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt1_2/Prompt_pT_1_2_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt2_3/Prompt_pT_2_3_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt3_4/Prompt_pT_3_4_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt4_5/Prompt_pT_4_5_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt5_6/Prompt_pT_5_6_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt6_7/Prompt_pT_6_7_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt7_8/Prompt_pT_7_8_ModelApplied.parquet.gzip,
+                      ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt8_10/Prompt_pT_8_10_ModelApplied.parquet.gzip,
+                     ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt10_12/Prompt_pT_10_12_ModelApplied.parquet.gzip,
+                     ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt12_16/Prompt_pT_12_16_ModelApplied.parquet.gzip,
+                     ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt16_24/Prompt_pT_16_24_ModelApplied.parquet.gzip
+                   ]
+    filenameFD: [      ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt1_2/FD_pT_1_2_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt2_3/FD_pT_2_3_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt3_4/FD_pT_3_4_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt4_5/FD_pT_4_5_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt5_6/FD_pT_5_6_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt6_7/FD_pT_6_7_ModelApplied.parquet.gzip,
+                       ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt7_8/FD_pT_7_8_ModelApplied.parquet.gzip,
+                      ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt8_10/FD_pT_8_10_ModelApplied.parquet.gzip,
+                     ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt10_12/FD_pT_10_12_ModelApplied.parquet.gzip,
+                     ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt12_16/FD_pT_12_16_ModelApplied.parquet.gzip,
+                     ../AnalysisNonPromptD013TeVpp/D0/ML_PbPb/pt16_24/FD_pT_16_24_ModelApplied.parquet.gzip
+                   ]
+    dirname: PWGHF_D2H_TreeD0toKpiLoose
+    treename: treeMLD

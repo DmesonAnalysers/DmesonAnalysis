@@ -21,6 +21,7 @@ pp13TeVPrompt:
     UseLikelihood: 0
     BkgFunc: ["kPol2", "kPol2", "kPol2", "kPol2"]
     SgnFunc: ["kGaus", "kGaus", "kGaus", "kGaus"]
+    EnableRef: false
 
 pp13TeVFD:
     Particle: "Lc"
@@ -45,3 +46,4 @@ pp13TeVFD:
     UseLikelihood: 0
     BkgFunc: ["kPol2", "kPol2", "kPol2", "kPol2"]
     SgnFunc: ["kGaus", "kGaus", "kGaus", "kGaus"]
+    EnableRef: false

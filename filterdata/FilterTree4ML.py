@@ -39,8 +39,8 @@ with open(args.configfile, 'r') as ymlCfgFile:
     cfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 
 channel = cfg['channel']
-if channel not in ['Ds', 'Dplus', 'Dstar', 'LctopKpi', 'LctopK0s', 'LctopiL']:
-    print('Error: only Ds, Dplus, Dstar, LctopKpi, LctopK0s, and LctopiL channels are implemented! Exit')
+if channel not in ['Ds', 'D0', 'Dplus', 'Dstar', 'LctopKpi', 'LctopK0s', 'LctopiL']:
+    print('Error: only Ds, D0, Dplus, Dstar, LctopKpi, LctopK0s, and LctopiL channels are implemented! Exit')
     sys.exit()
 
 inFileNames = cfg['infile']['filename']
@@ -110,6 +110,9 @@ if isMC:
         bitsForSel = {'bkg': [bitBkg], 'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD]}
     elif 'Dstar' in channel:
         bitsForSel = {'bkg': [bitBkg], 'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD]}
+    elif 'D0' in channel:
+        bitsForSel = {'bkg': [bitBkg], 'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD],
+                      'prompt_sig_refl': [bitSignal, bitPrompt, bitRefl], 'FD_sig_refl': [bitSignal, bitFD, bitRefl]}
     elif 'LctopKpi' in channel:
         bitsForSel = {'bkg': [bitBkg],
                       'prompt_sig_nonreso': [bitSignal, bitLcNonRes, bitPrompt],

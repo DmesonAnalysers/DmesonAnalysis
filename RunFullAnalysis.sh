@@ -53,7 +53,7 @@ OutDirCrossSec=""
 OutDirRaa=""
 ################################################################################################
 
-if [ ${Particle} != "Dplus" ] && [ ${Particle} != "Ds" ] && [ ${Particle} != "Lc" ]; then
+if [ ${Particle} != "Dplus" ] && [ ${Particle} != "D0" ]&& [ ${Particle} != "Ds" ] && [ ${Particle} != "Lc" ]; then
   echo $(tput setaf 1) ERROR: only Ds and Dplus mesons are supported! $(tput sgr0)
   exit 2
 fi
@@ -204,8 +204,13 @@ if $DoDataRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Extract raw yields from ${OutDirRawyields}/Distr_${Particle}_data${CutSets[$iCutSet]}.root $(tput sgr0)
-    echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root")' | root -l -b
-    echo '.q'
+    if [ ${Particle} != "D0" ]; then
+      echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root")' | root -l -b
+      echo '.q'
+    else
+      echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root","'${OutDirEfficiency}'/Distr_'${Particle}'_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root")' | root -l -b
+      echo '.q'
+      fi
   done
 fi
 
@@ -247,6 +252,8 @@ if $DoHFPtSpec; then
     Channel="kDsKKpi"
   elif [ ${Particle} == "Dplus" ]; then 
     Channel="kDplusKpipi"
+  elif [ ${Particle} == "D0" ]; then
+    Channel="kD0Kpi"
   fi
   
   cc=""

@@ -38,7 +38,7 @@ groupParticle.add_argument(
     "--Lc2pK0s", action='store_true', help='flag to compute Lc->pK0s cross section',default=False)
 groupParticle.add_argument(
     "--Lc2pKpi", action='store_true', help='flag to compute Lc->pKpi cross section', default=False)
-
+groupParticle.add_argument("--D0", action='store_true', help='flag to compute D0 cross section', default=False)
 args = parser.parse_args()
 
 propOpt = 'corr' if args.FD else 'uncorr'
@@ -82,6 +82,8 @@ elif args.system == 'PbPb':
 
 if args.Dplus:
     systErr.Init(2)
+elif args.D0:
+    systErr.Init(1)
 elif args.Ds:
     systErr.Init(4)
 elif args.Lc2pKpi:

@@ -3,6 +3,7 @@ filename: ~/cernbox/ALICE_WORK/Files/Trains/Run2/LHC17pq/AnalysisResults_Dplus_L
 dirname: PWG3_D2H_InvMassDplus
 listname: coutputDplusLoose_kINT70100
 sparsenameAll: hMassPtCutVarsAll
+enableRef: no #always no for data
 enableSecPeak: no #always no for data
 normname: coutputDplusNormLoose_kINT70100
 histoevname: fHistNEvents

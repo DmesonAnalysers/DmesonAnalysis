@@ -1,0 +1,23 @@
+isMC: yes
+filename: [filterdata/final_app/MC_MB.root]
+isReducedVariables: no
+isWithBinfo: no
+dirname: PWGHF_D2H_TreeD0toKpiLoose_MB
+listname: coutputTreeD0toKpiLoose_MB
+sparsenameAll: null
+sparsenamePrompt: fnSparseReco_fromC
+sparsenameFD: fnSparseReco_fromB
+enableRef: no #reflection for D0
+sparsenameRefl: fnSparseReco_refl
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableSecPeak: no #no second peak for D+
+sparsenamePromptSecPeak: null
+sparsenameFDSecPeak: null
+sparsenameGenPromptSecPeak: null
+sparsenameGenFDSecPeak: null
+normname: NormalizationCounter
+histoevname: hNEvents
+shiftForRedVariables: 7 # dependent on the sparse defined in the AliPhysics task
+
+

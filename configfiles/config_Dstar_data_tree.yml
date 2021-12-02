@@ -8,6 +8,7 @@ filename:  [ ~/Desktop/Ali50xl_copy/data/raw/2016/AnalysisResults_Dstar_Data_201
 dirname: PWGHF_D2H_TreeDstartoD0piLoose
 listname: coutputTreeDstartoD0piLoose
 sparsenameAll: null
+enableRef: no #always no for data
 enableSecPeak: no #always no for data
 normname: NormalizationCounter
 histoevname: hNEvents

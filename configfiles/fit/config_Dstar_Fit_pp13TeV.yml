@@ -24,7 +24,8 @@ pp13TeVPrompt:
     SgnFunc: ["kGaus", "kGaus", "kGaus", "kGaus", "kGaus", "kGaus"]
     FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
     SigmaRatioFile: "rawYields/ry_mc_basic_PromptEn.root"
-    
+    EnableRef: false
+
 
 pp13TeVFD:
     Particle: "Dstar"
@@ -51,5 +52,5 @@ pp13TeVFD:
     SgnFunc: ["kGaus", "kGaus", "kGaus", "kGaus", "kGaus", "kGaus"]
     FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
     SigmaRatioFile: "rawYields/ry_mc_basic_PromptEn.root"
-    
-    
+    EnableRef: false
+

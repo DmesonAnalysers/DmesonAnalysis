@@ -51,6 +51,7 @@ with open(args.cfgFileName, 'r') as ymlCfgFile:
 infilenames = inputCfg['filename']
 if not isinstance(infilenames, list):
     infilenames = [infilenames]
+enableRef = inputCfg['enableRef']
 enableSecPeak = inputCfg['enableSecPeak']
 isMC = inputCfg['isMC']
 isRedVar = inputCfg['isReducedVariables']
@@ -125,6 +126,7 @@ prompt_dict = {'InvMass': [], 'Pt': []}
 fd_dict = {'InvMass': [], 'Pt': []}
 prompt_gen_list = []
 fd_gen_list = []
+refl_dict = {'InvMass': [], 'Pt': []}
 prompt_dict_secpeak = {'InvMass': [], 'Pt': []}
 fd_dict_secpeak = {'InvMass': [], 'Pt': []}
 prompt_gen_list_secpeak = []
@@ -152,6 +154,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         if isMC:
             sparseReco['RecoPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
             sparseReco['RecoFD'].GetAxis(axisNum).SetRange(binMin, binMax)
+            if enableRef:
+                sparseReco['RecoRefl'].GetAxis(axisNum).SetRange(binMin, binMax)
             if enableSecPeak:
                 sparseReco['RecoSecPeakPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
                 sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(binMin, binMax)
@@ -275,6 +279,11 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             fd_dict[iVar].append(hVarFD)
             hVarFD.Write()
+            if enableRef:
+                hVarRefl = sparseReco['RecoRefl'].Projection(axisNum)
+                hVarRefl.SetName(f'hVarRefl{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+                refl_dict[iVar].append(hVarRefl)
+                hVarRefl.Write()
             if enableSecPeak:
                 hVarPromptSecPeak = sparseReco['RecoSecPeakPrompt'].Projection(axisNum)
                 hVarPromptSecPeak.SetName(f'hPromptSecPeak{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
@@ -419,6 +428,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         if isMC:
             sparseReco['RecoPrompt'].GetAxis(axisNum).SetRange(-1, -1)
             sparseReco['RecoFD'].GetAxis(axisNum).SetRange(-1, -1)
+            if enableRef:
+                sparseReco['RecoRefl'].GetAxis(axisNum).SetRange(-1, -1)
             if enableSecPeak:
                 sparseReco['RecoSecPeakPrompt'].GetAxis(axisNum).SetRange(-1, -1)
                 sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(-1, -1)
@@ -439,6 +450,10 @@ for iPt in range(0, len(cutVars['Pt']['min']) - 1):
             hVarFD_merged = MergeHists([fd_dict[iVar][iPt], fd_dict[iVar][iPt+1]])
             hVarFD_merged.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             hVarFD_merged.Write()
+            if enableRef:
+                hVarRef_merged = MergeHists([refl_dict[iVar][iPt], refl_dict[iVar][iPt+1]])
+                hVarRef_merged.SetName(f'hVarRef_merged{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+                hVarRef_merged.Write()
             if enableSecPeak:
                 hVarPrompt_secpeak_merged = MergeHists([prompt_dict_secpeak[iVar][iPt],
                                                         prompt_dict_secpeak[iVar][iPt+1]])
@@ -478,6 +493,10 @@ for iVar in ('InvMass', 'Pt'):
         hVarFD_merged_allPt = MergeHists(fd_dict[iVar])
         hVarFD_merged_allPt.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         hVarFD_merged_allPt.Write()
+        if enableRef:
+            hVarRef_merged = MergeHists([refl_dict[iVar][iPt], refl_dict[iVar][iPt+1]])
+            hVarRef_merged.SetName(f'hVarRef_merged{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            hVarRef_merged.Write()
         if enableSecPeak:
             hVarPrompt_secpeak_merged_allPt = MergeHists(prompt_dict_secpeak[iVar])
             hVarPrompt_secpeak_merged_allPt.SetName(f'hPromptSecPeak{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')

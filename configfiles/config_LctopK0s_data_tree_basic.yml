@@ -9,6 +9,7 @@ filename:
 dirname: PWGHF_D2H_NonPromptLctopK0sLoose
 listname: coutputNonPromptLctopK0sLoose
 sparsenameAll: hMassPtCutVarsAll
+enableRef: no #always no for data
 enableSecPeak: no #always no for data
 normname: NormalizationCounter
 histoevname: hNEvents

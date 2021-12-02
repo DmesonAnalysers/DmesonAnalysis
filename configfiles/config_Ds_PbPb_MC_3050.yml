@@ -9,6 +9,7 @@ sparsenamePrompt: fnSparseReco_fromC
 sparsenameFD: fnSparseReco_fromB
 sparsenameGenPrompt: fnSparseAcc_fromC
 sparsenameGenFD: fnSparseAcc_fromB
+enableRef: no #reflection for D0
 enableSecPeak: yes
 sparsenamePromptSecPeak: fnSparseRecoDplus_fromC
 sparsenameFDSecPeak: fnSparseRecoDplus_fromB

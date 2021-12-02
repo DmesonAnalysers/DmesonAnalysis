@@ -61,6 +61,14 @@ def LoadSparseFromTask(infilename, inputCfg):
         if not sparsesGen['GenFD']:
             print(f'ERROR: sparse {inputCfg["sparsenameGenFD"]} not found!')
             return None, None
+        
+        if inputCfg['enableRef']:
+            if inputCfg['sparsenameRefl'] is not None:
+                sparses['RecoRefl'] = inlistData.FindObject(inputCfg['sparsenameRefl'])
+            if not sparses['RecoRefl']:
+                print(f'ERROR: sparse {inputCfg["sparsenameRefl"]} not found!')
+                return None, None
+
         if inputCfg['enableSecPeak']:
             if inputCfg['sparsenamePromptSecPeak'] is not None:
                 sparses['RecoSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenamePromptSecPeak'])

@@ -55,10 +55,10 @@ void FilterTree4ML(TString cfgFileName="config_Dstar_data_skim_pp5TeV.yml")
         return;
     }
 
-    vector<string> channels = {"Ds", "Dplus", "Dstar", "LctopKpi", "LctopK0s", "LctopLi"};
+    vector<string> channels = {"Ds", "D0", "Dplus", "Dstar", "LctopKpi", "LctopK0s", "LctopLi"};
     string channel = config["channel"].as<string>();
     if (std::find(channels.begin(), channels.end(), channel) == channels.end()) {
-        cerr << "Error: only Ds, Dplus, LctopKpi, LctopK0s, and LctopiL channels are implemented! Exit" << endl;
+        cerr << "Error: only Ds, D0, Dplus, LctopKpi, LctopK0s, and LctopiL channels are implemented! Exit" << endl;
         return;
     }
 
@@ -158,6 +158,13 @@ void FilterTree4ML(TString cfgFileName="config_Dstar_data_skim_pp5TeV.yml")
                 bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
                 bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl);
                 bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl);
+            }
+            else if(channel == "D0") {
+                bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);
+                bitsForSel["prompt_sig"]            = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitPrompt, bitRefl);
+                bitsForSel["FD_sig"]                = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) == 0", bitSignal, bitFD, bitRefl);
+                bitsForSel["prompt_sig_refl"]       = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitPrompt, bitRefl);
+                bitsForSel["FD_sig_refl"]           = Form("(cand_type & %d) > 0 && (cand_type & %d) > 0 && (cand_type & %d) > 0", bitSignal, bitFD, bitRefl);
             }
              else if(channel == "Dstar") {
                 bitsForSel["bkg"]                   = Form("(cand_type & %d) > 0", bitBkg);

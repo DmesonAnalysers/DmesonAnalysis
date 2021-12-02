@@ -1,0 +1,80 @@
+input: # files to use, set FD to null for binary classification
+    prompt: ../../AnalysisNonPromptD05TeVPbPb/D0/mc/Prompt_D0PbPb5TeV_MC_pT_0_30.root
+    FD: ../../AnalysisNonPromptD05TeVPbPb/D0/mc/FD_D0PbPb5TeV_MC_pT_0_30.root
+    data: ../../AnalysisNonPromptD013TeVpp/D0/data_tree/Data_D0pp13TeV_data_pT_0_30.root
+    treename: treeMLD
+   
+
+output:
+    leg_labels: # legend labels, keep the right number of classes
+        Bkg: Background
+        Prompt: Prompt D$^0$
+        FD: Feed-down D$^0$
+    out_labels: # output labels, keep the right number of classes
+        Bkg: Bkg
+        Prompt: Prompt
+        FD: FD
+    dir: '../../AnalysisNonPromptD013TeVpp/D0/ML_tree' # output dir
+
+pt_ranges: # ranges in pt to split the data in the ml training and testing
+    min: [1, 2, 4, 6, 8,  12] # list
+    max: [2, 4, 6, 8, 12, 24] # list
+
+data_prep:
+    filt_bkg_mass: 1.65 < inv_mass < 1.8 or 1.95 < inv_mass < 2.1 # pandas query to select bkg candidates
+    dataset_opt: equal  # change how the dataset is built, options available: 'equal', 'max_signal'
+                        # 'equal' -> same number of prompt/FD/bkg (not using all the signal available)
+                        # 'max_signal' -> try to use all the signal (prompt and FD) + add n_bkg = 2 * (n_prompt + n_FD)
+    bkg_mult: [1., 1., 1., 1., 1., 1.] # list of multipliers for (nPrompt + nFD) used to determine nCandBkg in the 'max_signal' option
+    seed_split: 42 # seed used for train_test_split(...)
+    test_fraction: 1 # fraction of data used for test set and efficiencies
+
+ml:
+    raw_output: False # use raw_output (True) of probability (False) as output of the model
+    roc_auc_average: 'macro' # 'macro' or 'weighted'
+    roc_auc_approach: 'ovo'  # 'ovo' or 'ovr'
+    training_columns: [ d_len_xy, norm_dl_xy, cos_p_xy, imp_par_xy, max_norm_d0d0exp, cos_t_star,imp_par_prod, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1]
+                       # list of training variables
+
+    hyper_par: [{'max_depth':5, 'learning_rate':0.11, 'n_estimators':807, 'min_child_weight':5.12, 'colsample':0.96, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':4, 'learning_rate':0.11, 'n_estimators':807, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':4, 'learning_rate':0.12, 'n_estimators':807, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':4, 'learning_rate':0.11, 'n_estimators':806, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':3, 'learning_rate':0.085, 'n_estimators':650, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist},
+                {'max_depth':2, 'learning_rate':0.04, 'n_estimators':500, 'min_child_weight':5, 'colsample':0.9, 'n_jobs':4, 'tree_method':hist}]
+                # list of dicts of hyperparameters (one for each pT bin)
+
+    hyper_par_opt:
+      do_hyp_opt: False # whether to do the parameter optimization
+      njobs: -1 # number of parallel jobs used in hyper-parameter optimization, -1. to use all
+      nfolds: 5 # number of folds used in cross validation
+      initpoints: 5 # steps of random exploration you want to perform
+      niter: 5 # steps for bayesian optimization
+      bayes_opt_config: {'max_depth': [2, 5],
+                        'learning_rate': [0.01, 0.2],
+                        'n_estimators': [300, 1500],
+                        'min_child_weight': [1, 10],
+                        'subsample': [0.8, 1.],
+                        'colsample_bytree': [0.8, 1.]}
+                        # configuration dictionary for optimize_params_bayes()
+    
+    saved_models: [    ../../AnalysisNonPromptD013TeVpp/D0/ML/pt1_2/ModelHandler_pT_1_2.pickle,
+                       ../../AnalysisNonPromptD013TeVpp/D0/ML/pt2_4/ModelHandler_pT_2_4.pickle,
+                       ../../AnalysisNonPromptD013TeVpp/D0/ML/pt4_6/ModelHandler_pT_4_6.pickle,
+                       ../../AnalysisNonPromptD013TeVpp/D0/ML/pt6_8/ModelHandler_pT_6_8.pickle,
+                       ../../AnalysisNonPromptD013TeVpp/D0/ML/pt8_12/ModelHandler_pT_8_12.pickle,
+                       ../../AnalysisNonPromptD013TeVpp/D0/ML/pt12_24/ModelHandler_pT_12_24.pickle,
+                   ] # list of saved ModelHandler (path+file), compatible with the pt bins
+
+plots:
+    plotting_columns: [inv_mass, pt_cand, d_len_xy, norm_dl_xy, cos_p_xy, imp_par_xy, max_norm_d0d0exp, cos_t_star,imp_par_prod, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pi_1, nsigComb_K_1]
+                       # list of variables to plot
+    train_test_log: True # use log scale for plots of train and test distributions
+  
+appl: 
+    column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
+
+standalone_appl:
+    inputs: [] # list of parquet files for the model application
+    output_names: [] # names for the outputs (one for each file)
+    output_dir: null # output directory

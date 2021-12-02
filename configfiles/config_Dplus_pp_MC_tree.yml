@@ -7,6 +7,7 @@ sparsenamePrompt: hMassPtCutVarPrompt
 sparsenameFD: hMassPtCutVarsBfeed
 sparsenameGenPrompt: hMCAccPrompt
 sparsenameGenFD: hMCAccBFeed
+enableRef: no #reflection for D0
 enableSecPeak: no #no second peak for D+
 sparsenamePromptSecPeak: null
 sparsenameFDSecPeak: null
