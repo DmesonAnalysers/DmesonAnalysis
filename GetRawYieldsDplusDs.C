@@ -28,7 +28,7 @@
 using namespace std;
 
 enum {k010, k3050, k6080, kpp5TeVPrompt, kpp5TeVFD, kpp13TeVPrompt, kpp13TeVFD};
-enum {kDplus, kD0, kDs, kLc, kDstar};
+enum {kDplus, kD0, kDs, kLctopKpi, kLctopK0s, kDstar};
 
 //__________________________________________________________________________________________________________________
 int GetRawYieldsDplusDs(int cent = k010, bool isMC = false, TString infilename = "InvMassSpectraDplus_010_PbPb2015cuts.root", TString refFileName = "Distr_D0_MC_D0_pp13TeV_FD0.root", TString cfgfilename = "Dplus/config_Dplus_Fit.yml", TString outFileName = "RawYieldsDplus_010_PbPb2015cuts.root");
@@ -68,8 +68,10 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
         particle=kDs;
     } else if (ParticleName=="D0"){
         particle=kD0;
-    } else if (ParticleName=="Lc"){
-        particle=kLc;
+    } else if (ParticleName=="LctopKpi"){
+        particle=kLctopKpi;
+    } else if (ParticleName=="LctopK0s"){
+        particle=kLctopK0s;
     } else if (ParticleName=="Dstar"){
         particle=kDstar;
     } else{
