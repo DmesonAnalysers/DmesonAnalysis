@@ -38,6 +38,8 @@ parser.add_argument('--multweights', metavar=('text', 'text'), nargs=2, required
 parser.add_argument('--Bspeciesweights', type=float, nargs=5, required=False,
                     help='values of weights for the different hadron species '
                          '(B0weight, Bplusweight, Bsweight, Lbweight, Otherweight)')
+parser.add_argument('--LctopKpireso', type=int, required=False, default=None,
+                    help='values to project single LctopKpi resonant channel')
 args = parser.parse_args()
 
 #TODO: add support for application of 2D weights
@@ -151,6 +153,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         binMax = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['max'][iPt] * 0.9999)
         if 'RecoAll' in sparseReco:
             sparseReco['RecoAll'].GetAxis(axisNum).SetRange(binMin, binMax)
+            if args.LctopKpireso:
+                sparseReco['RecoAll'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
         if isMC:
             sparseReco['RecoPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
             sparseReco['RecoFD'].GetAxis(axisNum).SetRange(binMin, binMax)
@@ -159,6 +163,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             if enableSecPeak:
                 sparseReco['RecoSecPeakPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
                 sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(binMin, binMax)
+            if args.LctopKpireso:
+                sparseReco['RecoPrompt'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+                sparseReco['RecoFD'].GetAxis(3).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
 
     for iVar in ('InvMass', 'Pt'):
         varName = 'Pt' if iVar == 'Pt' else 'Mass'
@@ -298,6 +305,10 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax*0.9999)
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
+        if args.LctopKpireso:
+            sparseGen['GenPrompt'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+            sparseGen['GenFD'].GetAxis(3).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+
         if not args.multweights:
             hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
             # apply pt weights
