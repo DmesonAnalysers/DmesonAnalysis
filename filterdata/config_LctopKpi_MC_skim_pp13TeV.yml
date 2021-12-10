@@ -1,0 +1,32 @@
+channel: LctopKpi # options [Ds, Dplus, LctopKpi, LctopK0s, LctopiL]
+
+infile:
+    isMC: 1
+    filename: [~/hdd_stefano_seagate/cernbox/Research/postdocPD_HF/Lc_NonPrompt_analysis/D2H_trains/MC/training/trains_3162_3163_3164/AnalysisResults_LHC20l1c_pp13_2016.root]
+    dirname: PWGHF_D2H_NonPromptLctopKpiLoose
+    treename: treeMLLc
+
+outfile:
+    dirpath: '../../D2H_trains/MC/training/trains_3162_3163_3164/analysis'
+    suffix: _npLcpp13TeV_filtered_LHC20l1c
+    treename: treeMLLc
+
+skimming:
+    pt:
+        min: [2]
+        max: [16]
+    preselections: nsigComb_Pi_0 > 0 and nsigComb_Pi_1 > 0 and nsigComb_Pi_2 > 0 and nsigComb_K_0 > 0 and nsigComb_K_1 > 0 and nsigComb_K_2 > 0 and nsigComb_Pr_0 > 0 and nsigComb_Pr_1 > 0 and nsigComb_Pr_2 > 0 #null if you don't want to apply preselections
+    colstokeep: [inv_mass, pt_cand, d_len, d_len_xy, norm_dl_xy, cos_p, cos_p_xy, imp_par_xy, dca, sig_vert, max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_K_0, nsigComb_Pr_0, nsigComb_Pi_1, nsigComb_K_1, nsigComb_Pr_1, nsigComb_Pi_2, nsigComb_K_2, nsigComb_Pr_2] #empty list if you want to keep everything
+
+    missingvalues: # values in dataframe to be replaced with NaN (only possible with python script)
+    enable: 0
+    toreplace:
+        nsigTOF_Pi_0: -999.
+        nsigTOF_K_0: -999.
+        nsigTOF_Pr_0: -999.
+        nsigTOF_Pi_1: -999.
+        nsigTOF_K_1: -999.
+        nsigTOF_Pr_1: -999.
+        nsigTOF_Pi_2: -999.
+        nsigTOF_K_2: -999.
+        nsigTOF_Pr_2: -999.

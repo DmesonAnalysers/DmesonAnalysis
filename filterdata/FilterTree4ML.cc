@@ -27,7 +27,7 @@ using std::endl;
 //______________________________________________________________________________________________
 
 //______________________________________________________________________________________________
-void FilterTree4ML(TString cfgFileName="config_Dstar_data_skim_pp5TeV.yml")
+void FilterTree4ML(TString cfgFileName="config_LctopKpi_MC_train_pp13TeV.yml")
 {
     // Common bits
     const int bitSignal       = BIT(0);
