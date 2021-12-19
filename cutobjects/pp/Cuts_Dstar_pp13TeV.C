@@ -133,7 +133,14 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_TreeML_MB(bool fIsMC = fals
 
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentOff); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");
-    analysiscuts->SetTriggerMask(AliVEvent::kINT7);
+    if(triggername.EqualTo("kINT7"))
+        analysiscuts->SetTriggerMask(AliVEvent::kINT7);
+    else if(triggername.EqualTo("kHighMultV0"))
+        analysiscuts->SetTriggerMask(AliVEvent::kHighMultV0);
+    else {
+        std::cout << "ERROR, trigger name " << triggername.Data() << " not supported! Exit" << std::endl;
+        return nullptr;
+    }
     if (fIsMC)
         analysiscuts->SetTriggerMask(AliVEvent::kMB);
 
