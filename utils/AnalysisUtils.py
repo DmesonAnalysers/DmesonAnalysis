@@ -827,7 +827,7 @@ def RescaleForFiducialAcceptance(histo):
 
     Parameters
     ----------
-    - histo: TH1 with effAcc
+    - histo: TH1 with efficiency times acceptance
     '''
     for iBin in range(1, histo.GetNbinsX()+1):
         pt = histo.GetBinCenter(iBin)
