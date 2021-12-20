@@ -341,11 +341,11 @@ def GetExpectedBkgFromSideBands(hMassData, bkgFunc='pol2', nSigmaForSB=4, mean=0
 
     if numEntriesSB <= 5: # check to have some entries in the histogram before fitting
         return 0., 0., hMassData
-    if minmass == None:
+    if minmass is None:
         minMass = hMassData.GetBinLowEdge(1)
     else:
-        minMass=minmass 
-    if maxmass == None:
+        minMass = minmass
+    if maxmass is None:
         maxMass = hMassData.GetBinLowEdge(hMassData.GetNbinsX()) + hMassData.GetBinWidth(1)
     else:
         maxMass=maxmass
@@ -816,3 +816,26 @@ def ComputeWeightedAverage(values, weights, uncValues, uncWeights=None):
     unc = np.sqrt(sumOfDerToVal + sumOfDerToWeight)
 
     return average, unc
+
+
+def RescaleForFiducialAcceptance(histo):
+    '''
+    Helper method to divide the hAccEff histograms by the fiducial acceptance 2*y_fid, where
+
+        y_fid = -0.2/15 * pT^2 + 1.9/15 * pT + 0.5  for pT < 5. GeV/c
+              = 0.8                                 for pT > 5. GeV/c
+
+    Parameters
+    ----------
+    - histo: TH1 with effAcc
+    '''
+    for iBin in range(1, histo.GetNbinsX()+1):
+        pt = histo.GetBinCenter(iBin)
+        yFid = 0.8
+        if pt < 5.:
+            yFid = -0.2/15 * pt**2 + 1.9/15 * pt + 0.5
+
+        accEff = histo.GetBinContent(iBin)
+        accEffUnc = histo.GetBinError(iBin)
+        histo.SetBinContent(iBin, accEff / (2 * yFid))
+        histo.SetBinError(iBin, accEffUnc / (2 * yFid))
