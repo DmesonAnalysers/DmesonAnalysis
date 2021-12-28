@@ -1,0 +1,47 @@
+meson:
+    Dspecie: Dplus
+    Bspecie: Bzero # options: ['Bs', 'Bplus', 'Bzero', 'Lb', 'BsBmix']
+
+inputMC:
+    filename: ptweights/pp/MCPtShape_LHC20f4a.root
+    suffixCF: null # only for CF outputs otherwise null
+
+shapes:
+    D:
+        fonll: # fonll is mandatory
+            file: ../../models/fonll/FONLL_Dplus_pp13_y05.txt
+        tamu:
+            enabled: false
+            file: null
+        phsd:
+            enabled: false
+            file: null
+        mc@shq:
+            enabled: false
+            file: null
+        catania:
+            enabled: false
+            file: null
+        lido:
+            enabled: false
+            file: null
+        lgr:
+            enabled: false
+            file: null
+    B:
+        fonll: # fonll is mandatory
+            file: ../../models/fonll/FONLL_B_pp13_y05.txt
+        tamu:
+            enabled: false
+            file:
+                B: null
+                Bs: null
+        lido:
+            enabled: false
+            file: null
+
+options:
+    rebin: 2
+    smooth: 1000
+
+outputfile: ptweights/pp/PtWeigths_NonPromptDplus_LHC20f4.root
