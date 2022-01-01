@@ -7,13 +7,63 @@ inputs:
     numerator: 
         files: [
             /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_HM.root,
-            /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_030.root,
+            /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_0dot130.root,
             /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction/DplusFraction_pp13TeV_30100.root
         ]
         corr: [false, true, true]
-        labels: ['00dot1', '030', '30100']
-        titles: ['0#minus0.1%', '0#minus30%', '30#minus100%']
+        labels: ['00dot1', '0dot130', '30100']
+        titles: ['0#minus0.1%', '0.1#minus30%', '30#minus100%']
         colors: [kRed+1, kOrange+7, kAzure+4]
+
+systematics:
+    fractions:
+        denominator:
+            rawyield: [0.06, 0.03, 0.02, 0.02, 0.03, 0.06]
+            cutsets: [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]
+            multweights: [0.05, 0.02, 0.01, 0.00, 0.00, 0.00]
+            ptweights: [0.00, 0.00, 0.00, 0.00, 0.00, 0.00]
+        numerator:
+            rawyield: [
+                [0.06, 0.03, 0.02, 0.02, 0.03, 0.06],
+                [0.06, 0.03, 0.02, 0.02, 0.03, 0.06],
+                [0.06, 0.03, 0.02, 0.02, 0.03, 0.06]
+            ]
+            cutsets: [
+                [0.05, 0.05, 0.04, 0.05, 0.05, 0.05],
+                [0.05, 0.04, 0.04, 0.05, 0.05, 0.05],
+                [0.01, 0.08, 0.08, 0.06, 0.06, 0.06]
+            ]
+            multweights: [
+                [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+                [0.01, 0.01, 0.00, 0.00, 0.00, 0.00],
+                [0.15, 0.04, 0.02, 0.01, 0.00, 0.00]
+            ]
+            ptweights: [
+                [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+                [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+                [0.00, 0.00, 0.00, 0.00, 0.00, 0.00]
+            ]
+    ratios:
+        rawyield: [
+            [0.07, 0.04, 0.02, 0.02, 0.04, 0.05],
+            [0.07, 0.04, 0.02, 0.02, 0.04, 0.05],
+            [0.07, 0.04, 0.02, 0.02, 0.04, 0.05]
+        ]
+        cutsets: [
+            [0.04, 0.04, 0.04, 0.04, 0.03, 0.03],
+            [0.02, 0.02, 0.02, 0.02, 0.03, 0.03],
+            [0.09, 0.04, 0.04, 0.05, 0.05, 0.05]
+        ]
+        multweights: [
+            [0.05, 0.02, 0.01, 0.01, 0.01, 0.01],
+            [0.03, 0.02, 0.01, 0.01, 0.00, 0.00],
+            [0.09, 0.02, 0.01, 0.01, 0.00, 0.00]
+        ]
+        ptweights: [
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00],
+            [0.00, 0.00, 0.00, 0.00, 0.00, 0.00]
+        ]
 
 output:
     directory: /Users/fgrosa/cernbox/alice_work/analyses/np_Dplus_vsmult_pp13TeV/outputs/fraction 
