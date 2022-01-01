@@ -18,6 +18,7 @@ import argparse
 import yaml
 import uproot
 from scipy.interpolate import InterpolatedUnivariateSpline
+from alive_progress import alive_bar
 from ROOT import TFile, TH1F  # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadSparseFromTask, LoadNormObjFromTask
 from utils.AnalysisUtils import MergeHists
@@ -42,9 +43,8 @@ parser.add_argument('--LctopKpireso', type=int, required=False, default=None,
                     help='values to project single LctopKpi resonant channel')
 args = parser.parse_args()
 
-#TODO: add support for application of 2D weights
-if args.multweights and (args.ptweights or args.ptweightsB):
-    print('ERROR: simultaneous application of pT and multiplicity weights not supported! Exit')
+if args.Bspeciesweights and args.multweights:
+    print('ERROR: simultaneous application of multiplicity and B-specie weights not supported! Exit')
     sys.exit()
 
 with open(args.cfgFileName, 'r') as ymlCfgFile:
@@ -154,7 +154,8 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         if 'RecoAll' in sparseReco:
             sparseReco['RecoAll'].GetAxis(axisNum).SetRange(binMin, binMax)
             if args.LctopKpireso:
-                sparseReco['RecoAll'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+                # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+                sparseReco['RecoAll'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1)
         if isMC:
             sparseReco['RecoPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
             sparseReco['RecoFD'].GetAxis(axisNum).SetRange(binMin, binMax)
@@ -164,8 +165,9 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                 sparseReco['RecoSecPeakPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
                 sparseReco['RecoSecPeakFD'].GetAxis(axisNum).SetRange(binMin, binMax)
             if args.LctopKpireso:
-                sparseReco['RecoPrompt'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
-                sparseReco['RecoFD'].GetAxis(3).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+                # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+                sparseReco['RecoPrompt'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1)
+                sparseReco['RecoFD'].GetAxis(3).SetRange(args.LctopKpireso+1, args.LctopKpireso+1)
 
     for iVar in ('InvMass', 'Pt'):
         varName = 'Pt' if iVar == 'Pt' else 'Mass'
@@ -177,23 +179,126 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             all_dict[iVar].append(hVar)
             hVar.Write()
         if isMC:
-            if (iVar == 'Pt' and not args.multweights) or iVar != 'Pt':
+            if iVar != 'Pt':
                 hVarPrompt = sparseReco['RecoPrompt'].Projection(axisNum)
-            # apply pt weights
-            if iVar == 'Pt' and args.ptweights:
-                for iBin in range(1, hVarPrompt.GetNbinsX()+1):
-                    if hVarPrompt.GetBinContent(iBin) > 0.:
-                        relStatUnc = hVarPrompt.GetBinError(iBin) / hVarPrompt.GetBinContent(iBin)
-                        ptCent = hVarPrompt.GetBinCenter(iBin)
-                        hVarPrompt.SetBinContent(iBin, hVarPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
-                        hVarPrompt.SetBinError(iBin, hVarPrompt.GetBinContent(iBin) * relStatUnc)
-            if (iVar == 'Pt' and not args.multweights) or iVar != 'Pt':
-                hVarPrompt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-                prompt_dict[iVar].append(hVarPrompt)
-                hVarPrompt.Write()
-            # apply pt weights
-            if iVar == 'Pt':
-                if args.ptweightsB and args.Bspeciesweights:
+                hVarFD = sparseReco['RecoFD'].Projection(axisNum)
+            else:
+                if not args.ptweights and not args.ptweightsB:
+                    if not args.multweights:
+                        hVarPrompt = sparseReco['RecoPrompt'].Projection(axisNum)
+                        hVarFD = sparseReco['RecoFD'].Projection(axisNum)
+                    else:
+                        print('WARNING: assuming axis 4 for Ntracklets in reco sparse,'
+                              ' please check that it\'s the case in your sparses!')
+                        for orig in ['FD', 'Prompt']:
+                            hMultvsPtD = sparseReco[f'Reco{orig}'].Projection(4, axisNum)
+                            for iPtD in range(1, hMultvsPtD.GetXaxis().GetNbins()+1):
+                                for iMult in range(1, hMultvsPtD.GetYaxis().GetNbins()+1):
+                                    multCent = hMultvsPtD.GetYaxis().GetBinCenter(iMult)
+                                    origContent = hMultvsPtD.GetBinContent(iPtD, iMult)
+                                    origError = hMultvsPtD.GetBinError(iPtD, iMult)
+                                    weight = 0
+                                    if sMultWeights(multCent) > 0:
+                                        weight = sMultWeights(multCent)
+                                    content = origContent * weight
+                                    error = 0
+                                    if origContent > 0:
+                                        error = origError / origContent * content
+                                    hMultvsPtD.SetBinContent(iPtD, iMult, content)
+                                    hMultvsPtD.SetBinError(iPtD, iMult, error)
+                            if orig == 'FD':
+                                hVarFD = hMultvsPtD.ProjectionX(
+                                    f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                    0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e'
+                                )
+                            else:
+                                hVarPrompt = hMultvsPtD.ProjectionX(
+                                    f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                    0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e'
+                                )
+                if args.ptweights:
+                    if not args.multweights:
+                        hVarPrompt = sparseReco['RecoPrompt'].Projection(axisNum)
+                        for iBin in range(1, hVarPrompt.GetNbinsX()+1):
+                            if hVarPrompt.GetBinContent(iBin) > 0.:
+                                relStatUnc = hVarPrompt.GetBinError(iBin) / hVarPrompt.GetBinContent(iBin)
+                                ptCent = hVarPrompt.GetBinCenter(iBin)
+                                hVarPrompt.SetBinContent(iBin, hVarPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
+                                hVarPrompt.SetBinError(iBin, hVarPrompt.GetBinContent(iBin) * relStatUnc)
+                    else:
+                        # mult vs. pt weights
+                        print('WARNING: assuming axis 4 for Ntracklets in reco sparse,'
+                              ' please check that it\'s the case in your sparses!')
+                        hMultvsPtD = sparseReco['RecoPrompt'].Projection(4, axisNum)
+                        for iPtD in range(1, hMultvsPtD.GetXaxis().GetNbins()+1):
+                            ptCent = hMultvsPtD.GetXaxis().GetBinCenter(iPtD)
+                            for iMult in range(1, hMultvsPtD.GetYaxis().GetNbins()+1):
+                                multCent = hMultvsPtD.GetYaxis().GetBinCenter(iMult)
+                                origContent = hMultvsPtD.GetBinContent(iPtD, iMult)
+                                origError = hMultvsPtD.GetBinError(iPtD, iMult)
+                                weight = 0
+                                if sMultWeights(multCent) > 0 and sPtWeights(ptCent) > 0:
+                                    weight = sMultWeights(multCent) * sPtWeights(ptCent)
+                                content = origContent * weight
+                                error = 0
+                                if origContent > 0:
+                                    error = origError / origContent * content
+                                hMultvsPtD.SetBinContent(iPtD, iMult, content)
+                                hMultvsPtD.SetBinError(iPtD, iMult, error)
+                                hVarPrompt = hMultvsPtD.ProjectionX(
+                                    f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                    0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e'
+                                )
+                if args.ptweightsB and not args.Bspeciesweights:
+                    if not args.multweights:
+                        hPtBvsPtD = sparseReco['RecoFD'].Projection(2, axisNum)
+                        for iPtD in range(1, hPtBvsPtD.GetXaxis().GetNbins()+1):
+                            for iPtB in range(1, hPtBvsPtD.GetYaxis().GetNbins()+1):
+                                ptCentB = hPtBvsPtD.GetYaxis().GetBinCenter(iPtB)
+                                origContent = hPtBvsPtD.GetBinContent(iPtD, iPtB)
+                                origError = hPtBvsPtD.GetBinError(iPtD, iPtB)
+                                weight = 0
+                                if sPtWeightsB(ptCentB) > 0:
+                                    weight = sPtWeightsB(ptCentB)
+                                content = origContent * weight
+                                error = 0
+                                if origContent > 0:
+                                    error = origError / origContent * content
+                                hPtBvsPtD.SetBinContent(iPtD, iPtB, content)
+                                hPtBvsPtD.SetBinError(iPtD, iPtB, error)
+                        hVarFD = hPtBvsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                       0, hPtBvsPtD.GetYaxis().GetNbins()+1, 'e')
+                    else:
+                        # mult vs ptB weights
+                        print('WARNING: assuming axis 4 for Ntracklets in reco sparse,'
+                              ' please check that it\'s the case in your sparses!')
+                        print('WARNING: this projection will take very long, be patient!')
+                        hMultvsPtBvsPtD = sparseReco['RecoFD'].Projection(axisNum, 2, 4)
+                        totBins = hMultvsPtBvsPtD.GetXaxis().GetNbins() * \
+                            hMultvsPtBvsPtD.GetYaxis().GetNbins() * \
+                                hMultvsPtBvsPtD.GetZaxis().GetNbins()
+                        with alive_bar(totBins) as bar:
+                            for iPtD in range(1, hMultvsPtBvsPtD.GetXaxis().GetNbins()+1):
+                                for iPtB in range(1, hMultvsPtBvsPtD.GetYaxis().GetNbins()+1):
+                                    ptCentB = hMultvsPtBvsPtD.GetYaxis().GetBinCenter(iPtB)
+                                    for iMult in range(1, hMultvsPtBvsPtD.GetZaxis().GetNbins()+1):
+                                        multCent = hMultvsPtBvsPtD.GetZaxis().GetBinCenter(iMult)
+                                        origContent = hMultvsPtBvsPtD.GetBinContent(iPtD, iPtB, iMult)
+                                        origError = hMultvsPtBvsPtD.GetBinError(iPtD, iPtB, iMult)
+                                        weight = 0
+                                        if sPtWeightsB(ptCentB) > 0 and sMultWeights(multCent) > 0:
+                                            weight = sPtWeightsB(ptCentB) * sMultWeights(multCent)
+                                        content = origContent * weight
+                                        error = 0
+                                        if origContent > 0:
+                                            error = origError / origContent * content
+                                        hMultvsPtBvsPtD.SetBinContent(iPtD, iPtB, iMult, content)
+                                        hMultvsPtBvsPtD.SetBinError(iPtD, iPtB, iMult, error)
+                                        bar()
+                        hVarFD = hMultvsPtBvsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                             0, hMultvsPtBvsPtD.GetYaxis().GetNbins()+1,
+                                                             0, hMultvsPtBvsPtD.GetZaxis().GetNbins()+1, 'e')
+                elif args.ptweightsB and args.Bspeciesweights:
                     hPtBvsBspecievsPtD = sparseReco['RecoFD'].Projection(axisNum, 3, 2)
                     for iPtD in range(1, hPtBvsBspecievsPtD.GetXaxis().GetNbins()+1):
                         for iBspecie in range(1, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1):
@@ -213,24 +318,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                     hVarFD = hPtBvsBspecievsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                             0, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1,
                                                             0, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1, 'e')
-                elif args.ptweightsB:
-                    hPtBvsPtD = sparseReco['RecoFD'].Projection(2, axisNum)
-                    for iPtD in range(1, hPtBvsPtD.GetXaxis().GetNbins()+1):
-                        for iPtB in range(1, hPtBvsPtD.GetYaxis().GetNbins()+1):
-                            ptCentB = hPtBvsPtD.GetYaxis().GetBinCenter(iPtB)
-                            origContent = hPtBvsPtD.GetBinContent(iPtD, iPtB)
-                            origError = hPtBvsPtD.GetBinError(iPtD, iPtB)
-                            weight = 0
-                            if sPtWeightsB(ptCentB) > 0:
-                                weight = sPtWeightsB(ptCentB)
-                            content = origContent * weight
-                            error = 0
-                            if origContent > 0:
-                                error = origError / origContent * content
-                            hPtBvsPtD.SetBinContent(iPtD, iPtB, content)
-                            hPtBvsPtD.SetBinError(iPtD, iPtB, error)
-                    hVarFD = hPtBvsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
-                                                   0, hPtBvsPtD.GetYaxis().GetNbins()+1, 'e')
                 elif args.Bspeciesweights:
                     hBspecievsPtD = sparseReco['RecoFD'].Projection(3, axisNum)
                     for iPtD in range(1, hBspecievsPtD.GetXaxis().GetNbins()+1):
@@ -246,43 +333,40 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                             hBspecievsPtD.SetBinError(iPtD, iBspecie, error)
                     hVarFD = hBspecievsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                        0, hBspecievsPtD.GetYaxis().GetNbins()+1, 'e')
-                elif args.multweights:
-                    print('WARNING: assuming axis 4 for Ntracklets in reco sparse, please check that it\'s the case in your sparses!')
-                    for orig in ['FD', 'Prompt']:
-                        hMultvsPtD = sparseReco[f'Reco{orig}'].Projection(4, axisNum)
-                        for iPtD in range(1, hMultvsPtD.GetXaxis().GetNbins()+1):
-                            for iMult in range(1, hMultvsPtD.GetYaxis().GetNbins()+1):
-                                multCent = hMultvsPtD.GetYaxis().GetBinCenter(iMult)
-                                origContent = hMultvsPtD.GetBinContent(iPtD, iMult)
-                                origError = hMultvsPtD.GetBinError(iPtD, iMult)
-                                weight = 0
-                                if sMultWeights(multCent) > 0:
-                                    weight = sMultWeights(multCent)
-                                content = origContent * weight
-                                error = 0
-                                if origContent > 0:
-                                    error = origError / origContent * content
-                                hMultvsPtD.SetBinContent(iPtD, iMult, content)
-                                hMultvsPtD.SetBinError(iPtD, iMult, error)
-                        if orig == 'FD':
-                            hVarFD = hMultvsPtD.ProjectionX(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
-                                                            0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e')
-                        else:
-                            hVarPrompt = hMultvsPtD.ProjectionX(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
-                                                                0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e')
-                            prompt_dict[iVar].append(hVarPrompt)
-                            hVarPrompt.Write()
-                else:
-                    hVarFD = sparseReco['RecoFD'].Projection(axisNum)
-                    if args.ptweights: # if pt weights for prompt are present apply them
+                elif args.ptweights: # if pt weights for prompt are present apply them
+                    if not args.multweights:
                         for iBin in range(1, hVarFD.GetNbinsX()+1):
                             if hVarFD.GetBinContent(iBin) > 0.:
                                 relStatUnc = hVarFD.GetBinError(iBin) / hVarFD.GetBinContent(iBin)
                                 ptCent = hVarFD.GetBinCenter(iBin)
                                 hVarFD.SetBinContent(iBin, hVarFD.GetBinContent(iBin) * sPtWeights(ptCent))
                                 hVarFD.SetBinError(iBin, hVarFD.GetBinContent(iBin) * relStatUnc)
-            else:
-                hVarFD = sparseReco['RecoFD'].Projection(axisNum)
+                    else:
+                        print('WARNING: assuming axis 4 for Ntracklets in reco sparse,'
+                              ' please check that it\'s the case in your sparses!')
+                        hMultvsPtD = sparseReco['RecoFD'].Projection(4, axisNum)
+                        for iPtD in range(1, hMultvsPtD.GetXaxis().GetNbins()+1):
+                            ptCent = hMultvsPtD.GetXaxis().GetBinCenter(iPtD)
+                            for iMult in range(1, hMultvsPtD.GetYaxis().GetNbins()+1):
+                                multCent = hMultvsPtD.GetYaxis().GetBinCenter(iMult)
+                                origContent = hMultvsPtD.GetBinContent(iPtD, iMult)
+                                origError = hMultvsPtD.GetBinError(iPtD, iMult)
+                                weight = 0
+                                if sMultWeights(multCent) > 0 and sPtWeights(ptCent) > 0:
+                                    weight = sMultWeights(multCent) * sPtWeights(ptCent)
+                                content = origContent * weight
+                                error = 0
+                                if origContent > 0:
+                                    error = origError / origContent * content
+                                hMultvsPtD.SetBinContent(iPtD, iMult, content)
+                                hMultvsPtD.SetBinError(iPtD, iMult, error)
+                                hVarFD = hMultvsPtD.ProjectionX(
+                                    f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                    0, hMultvsPtD.GetYaxis().GetNbins()+1, 'e'
+                                )
+            hVarPrompt.SetName(f'hPrompt{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            prompt_dict[iVar].append(hVarPrompt)
+            hVarPrompt.Write()
             hVarFD.SetName(f'hFD{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
             fd_dict[iVar].append(hVarFD)
             hVarFD.Write()
@@ -306,24 +390,120 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
         if args.LctopKpireso:
-            sparseGen['GenPrompt'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
-            sparseGen['GenFD'].GetAxis(3).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+            # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+            sparseGen['GenPrompt'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1)
+            sparseGen['GenFD'].GetAxis(3).SetRange(args.LctopKpireso+1, args.LctopKpireso+1)
 
-        if not args.multweights:
-            hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
-            # apply pt weights
-            if args.ptweights:
+        if not args.ptweights and not args.ptweightsB:
+            if not args.multweights:
+                hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
+                hGenPtFD = sparseGen['GenFD'].Projection(0)
+            else:
+                print('WARNING: assuming axis 3 for Ntracklets in gen sparse,'
+                      ' please check that it\'s the case in your sparses!')
+                hMultvsPtGenD = {}
+                for orig in ['FD', 'Prompt']:
+                    hMultvsPtGenD = sparseGen[f'Gen{orig}'].Projection(3, 0)
+                    for iPtD in range(1, hMultvsPtGenD.GetXaxis().GetNbins()+1):
+                        for iMult in range(1, hMultvsPtGenD.GetYaxis().GetNbins()+1):
+                            multCent = hMultvsPtGenD.GetYaxis().GetBinCenter(iMult)
+                            origContent = hMultvsPtGenD.GetBinContent(iPtD, iMult)
+                            origError = hMultvsPtGenD.GetBinError(iPtD, iMult)
+                            weight = 0
+                            if sMultWeights(multCent) > 0:
+                                weight = sMultWeights(multCent)
+                            content = origContent * weight
+                            error = 0
+                            if origContent > 0:
+                                error = origError / origContent * content
+                            hMultvsPtGenD.SetBinContent(iPtD, iMult, content)
+                            hMultvsPtGenD.SetBinError(iPtD, iMult, error)
+                    if orig == 'FD':
+                        hGenPtFD = hMultvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                             0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
+                    else:
+                        hGenPtPrompt = hMultvsPtGenD.ProjectionX(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                                 0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
+        # apply pt weights
+        if args.ptweights:
+            if not args.multweights:
+                hGenPtPrompt = sparseGen['GenPrompt'].Projection(0)
                 for iBin in range(1, hGenPtPrompt.GetNbinsX()+1):
                     if hGenPtPrompt.GetBinContent(iBin) > 0:
                         relStatUnc = hGenPtPrompt.GetBinError(iBin) / hGenPtPrompt.GetBinContent(iBin)
                         ptCent = hGenPtPrompt.GetBinCenter(iBin)
                         hGenPtPrompt.SetBinContent(iBin, hGenPtPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
                         hGenPtPrompt.SetBinError(iBin, hGenPtPrompt.GetBinContent(iBin) * relStatUnc)
-            hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
-            prompt_gen_list.append(hGenPtPrompt)
-            hGenPtPrompt.Write()
-        # apply pt weights
-        if args.ptweightsB and args.Bspeciesweights:
+            else:
+                print('WARNING: assuming axis 3 for Ntracklets in gen sparse,'
+                      ' please check that it\'s the case in your sparses!')
+                hMultvsPtGenD = sparseGen['GenPrompt'].Projection(3, 0)
+                for iPtD in range(1, hMultvsPtGenD.GetXaxis().GetNbins()+1):
+                    ptCent = hMultvsPtGenD.GetXaxis().GetBinCenter(iPtD)
+                    for iMult in range(1, hMultvsPtGenD.GetYaxis().GetNbins()+1):
+                        multCent = hMultvsPtGenD.GetYaxis().GetBinCenter(iMult)
+                        origContent = hMultvsPtGenD.GetBinContent(iPtD, iMult)
+                        origError = hMultvsPtGenD.GetBinError(iPtD, iMult)
+                        weight = 0
+                        if sPtWeights(ptCent) > 0 and sMultWeights(multCent) > 0:
+                            weight = sPtWeights(ptCent) * sMultWeights(multCent)
+                        content = hMultvsPtGenD.GetBinContent(iPtD, iMult) * weight
+                        error = 0
+                        if origContent > 0:
+                            error = origError / origContent * content
+                        hMultvsPtGenD.SetBinContent(iPtD, iMult, content)
+                        hMultvsPtGenD.SetBinError(iPtD, iMult, error)
+                hGenPtPrompt = hMultvsPtGenD.ProjectionX(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                         0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
+        if args.ptweightsB and not args.Bspeciesweights:
+            if not args.multweights:
+                hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0)
+                for iPtD in range(1, hPtBvsPtGenD.GetXaxis().GetNbins()+1):
+                    for iPtB in range(1, hPtBvsPtGenD.GetYaxis().GetNbins()+1):
+                        ptCentB = hPtBvsPtGenD.GetYaxis().GetBinCenter(iPtB)
+                        origContent = hPtBvsPtGenD.GetBinContent(iPtD, iPtB)
+                        origError = hPtBvsPtGenD.GetBinError(iPtD, iPtB)
+                        weight = 0
+                        if sPtWeightsB(ptCent) > 0:
+                            weight = sPtWeightsB(ptCentB)
+                        content = hPtBvsPtGenD.GetBinContent(iPtD, iPtB) * weight
+                        error = 0
+                        if origContent > 0:
+                            error = origError / origContent * content
+                        hPtBvsPtGenD.SetBinContent(iPtD, iPtB, content)
+                        hPtBvsPtGenD.SetBinError(iPtD, iPtB, error)
+                hGenPtFD = hPtBvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                    0, hPtBvsPtGenD.GetYaxis().GetNbins()+1, 'e')
+            else:
+                print('WARNING: assuming axis 3 for Ntracklets in gen sparse,'
+                     ' please check that it\'s the case in your sparses!')
+                print('WARNING: this projection will take very long, be patient!')
+                hMultvsPtBvsPtGenD = sparseGen['GenFD'].Projection(0, 2, 3)
+                totBins = hMultvsPtBvsPtGenD.GetXaxis().GetNbins() * \
+                    hMultvsPtBvsPtGenD.GetYaxis().GetNbins() * \
+                        hMultvsPtBvsPtGenD.GetZaxis().GetNbins()
+                with alive_bar(totBins) as bar:
+                    for iPtD in range(1, hMultvsPtBvsPtGenD.GetXaxis().GetNbins()+1):
+                        for iPtB in range(1, hMultvsPtBvsPtGenD.GetYaxis().GetNbins()+1):
+                            ptCentB = hMultvsPtBvsPtGenD.GetYaxis().GetBinCenter(iPtB)
+                            for iMult in range(1, hMultvsPtBvsPtGenD.GetZaxis().GetNbins()+1):
+                                multCent = hMultvsPtBvsPtGenD.GetZaxis().GetBinCenter(iMult)
+                                origContent = hMultvsPtBvsPtGenD.GetBinContent(iPtD, iPtB, iMult)
+                                origError = hMultvsPtBvsPtGenD.GetBinError(iPtD, iPtB, iMult)
+                                weight = 0
+                                if sPtWeightsB(ptCentB) > 0 and sMultWeights(multCent) > 0:
+                                    weight = sPtWeightsB(ptCentB) * sMultWeights(multCent)
+                                content = origContent * weight
+                                error = 0
+                                if origContent > 0:
+                                    error = origError / origContent * content
+                                hMultvsPtBvsPtGenD.SetBinContent(iPtD, iPtB, iMult, content)
+                                hMultvsPtBvsPtGenD.SetBinError(iPtD, iPtB, iMult, error)
+                                bar()
+                hGenPtFD = hMultvsPtBvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                          0, hMultvsPtBvsPtGenD.GetYaxis().GetNbins()+1,
+                                                          0, hMultvsPtBvsPtGenD.GetZaxis().GetNbins()+1, 'e')
+        elif args.ptweightsB and args.Bspeciesweights:
             hPtBvsBspecievsPtGenD = sparseGen['GenFD'].Projection(0, 3, 2)
             for iPtD in range(1, hPtBvsBspecievsPtGenD.GetXaxis().GetNbins()+1):
                 for iBspecie in range(1, hPtBvsBspecievsPtGenD.GetYaxis().GetNbins()+1):
@@ -343,24 +523,6 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
             hGenPtFD = hPtBvsBspecievsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                          0, hPtBvsBspecievsPtGenD.GetYaxis().GetNbins()+1,
                                                          0, hPtBvsBspecievsPtGenD.GetZaxis().GetNbins()+1, 'e')
-        elif args.ptweightsB:
-            hPtBvsPtGenD = sparseGen['GenFD'].Projection(2, 0)
-            for iPtD in range(1, hPtBvsPtGenD.GetXaxis().GetNbins()+1):
-                for iPtB in range(1, hPtBvsPtGenD.GetYaxis().GetNbins()+1):
-                    ptCentB = hPtBvsPtGenD.GetYaxis().GetBinCenter(iPtB)
-                    origContent = hPtBvsPtGenD.GetBinContent(iPtD, iPtB)
-                    origError = hPtBvsPtGenD.GetBinError(iPtD, iPtB)
-                    weight = 0
-                    if sPtWeightsB(ptCentB) > 0:
-                        weight = sPtWeightsB(ptCentB)
-                    content = hPtBvsPtGenD.GetBinContent(iPtD, iPtB) * weight
-                    error = 0
-                    if origContent > 0:
-                        error = origError / origContent * content
-                    hPtBvsPtGenD.SetBinContent(iPtD, iPtB, content)
-                    hPtBvsPtGenD.SetBinError(iPtD, iPtB, error)
-            hGenPtFD = hPtBvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
-                                                0, hPtBvsPtGenD.GetYaxis().GetNbins()+1, 'e')
         elif args.Bspeciesweights:
             hBspecievsPtGenD = sparseGen['GenFD'].Projection(3, 0)
             for iPtD in range(1, hBspecievsPtGenD.GetXaxis().GetNbins()+1):
@@ -376,43 +538,40 @@ for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['ma
                     hBspecievsPtGenD.SetBinError(iPtD, iBspecie, error)
             hGenPtFD = hBspecievsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
                                                     0, hBspecievsPtGenD.GetYaxis().GetNbins()+1, 'e')
-        elif args.multweights:
-            print('WARNING: assuming axis 3 for Ntracklets in gen sparse, please check that it\'s the case in your sparses!')
-            hMultvsPtGenD = {}
-            for orig in ['FD', 'Prompt']:
-                hMultvsPtGenD = sparseGen[f'Gen{orig}'].Projection(3, 0)
-                for iPtD in range(1, hMultvsPtGenD.GetXaxis().GetNbins()+1):
-                    for iMult in range(1, hMultvsPtGenD.GetYaxis().GetNbins()+1):
-                        multCent = hMultvsPtGenD.GetYaxis().GetBinCenter(iMult)
-                        origContent = hMultvsPtGenD.GetBinContent(iPtD, iMult)
-                        origError = hMultvsPtGenD.GetBinError(iPtD, iMult)
-                        weight = 0
-                        if sMultWeights(multCent) > 0:
-                            weight = sMultWeights(multCent)
-                        content = origContent * weight
-                        error = 0
-                        if origContent > 0:
-                            error = origError / origContent * content
-                        hMultvsPtGenD.SetBinContent(iPtD, iMult, content)
-                        hMultvsPtGenD.SetBinError(iPtD, iMult, error)
-                if orig == 'FD':
-                    hGenPtFD = hMultvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
-                                                         0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
-                else:
-                    hGenPtPrompt = hMultvsPtGenD.ProjectionX(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
-                                                             0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
-                    prompt_gen_list.append(hGenPtPrompt)
-                    hGenPtPrompt.Write()
-        else:
-            hGenPtFD = sparseGen['GenFD'].Projection(0)
-            if args.ptweights: # if pt weights for prompt are present apply them
+        elif args.ptweights: # if pt weights for prompt are present apply them
+            if not args.multweights:
+                hGenPtFD = sparseGen['GenFD'].Projection(0)
                 for iBin in range(1, hGenPtFD.GetNbinsX()+1):
                     if hGenPtFD.GetBinContent(iBin) > 0:
                         relStatUnc = hGenPtFD.GetBinError(iBin) / hGenPtFD.GetBinContent(iBin)
                         ptCent = hGenPtFD.GetBinCenter(iBin)
                         hGenPtFD.SetBinContent(iBin, hGenPtFD.GetBinContent(iBin) * sPtWeights(ptCent))
                         hGenPtFD.SetBinError(iBin, hGenPtFD.GetBinContent(iBin) * relStatUnc)
-            hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+            else:
+                print('WARNING: assuming axis 3 for Ntracklets in gen sparse,'
+                      ' please check that it\'s the case in your sparses!')
+                hMultvsPtGenD = sparseGen['GenFD'].Projection(3, 0)
+                for iPtD in range(1, hMultvsPtGenD.GetXaxis().GetNbins()+1):
+                    ptCent = hMultvsPtGenD.GetXaxis().GetBinCenter(iPtD)
+                    for iMult in range(1, hMultvsPtGenD.GetYaxis().GetNbins()+1):
+                        multCent = hMultvsPtGenD.GetYaxis().GetBinCenter(iMult)
+                        origContent = hMultvsPtGenD.GetBinContent(iPtD, iMult)
+                        origError = hMultvsPtGenD.GetBinError(iPtD, iMult)
+                        weight = 0
+                        if sPtWeightsB(ptCentB) > 0:
+                            weight = sPtWeightsB(ptCentB)
+                        content = hMultvsPtGenD.GetBinContent(iPtD, iMult) * weight
+                        error = 0
+                        if origContent > 0:
+                            error = origError / origContent * content
+                        hMultvsPtGenD.SetBinContent(iPtD, iMult, content)
+                        hMultvsPtGenD.SetBinError(iPtD, iMult, error)
+                hGenPtFD = hMultvsPtGenD.ProjectionX(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}',
+                                                     0, hMultvsPtGenD.GetYaxis().GetNbins()+1, 'e')
+        hGenPtPrompt.SetName(f'hPromptGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
+        prompt_gen_list.append(hGenPtPrompt)
+        hGenPtPrompt.Write()
+        hGenPtFD.SetName(f'hFDGenPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}')
         fd_gen_list.append(hGenPtFD)
         hGenPtFD.Write()
         if enableSecPeak:
