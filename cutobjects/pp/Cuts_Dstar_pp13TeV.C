@@ -12,11 +12,11 @@
 
 //____________________________________________________________________________________________________//
 // Methods:
-// 1) MakeFileForCutsDstarpp13TeV_TreeML_MB --> loose cuts for 2021 analysis
+// 1) MakeFileForCutsDstarpp13TeV_TreeML_Polarization --> loose cuts for 2021 analysis
 //____________________________________________________________________________________________________//
 
 //__________________________________________________________________________________________
-AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_TreeML_MB(bool fIsMC = false, TString triggername="kINT7")
+AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_TreeML_Polarization(bool fIsMC = false, TString triggername="kINT7")
 {
 
     AliESDtrackCuts *esdTrackCuts = new AliESDtrackCuts();
@@ -37,14 +37,13 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_TreeML_MB(bool fIsMC = fals
     esdTrackCutsSoftPi->SetEtaRange(-0.8, +0.8);
     esdTrackCutsSoftPi->SetPtRange(0.05, 1.e10);
 
-    const int nptbins = 3;
+    const int nptbins = 2;
     float *ptbins;
     ptbins = new float[nptbins + 1];
 
-    ptbins[0] = 0.;
-    ptbins[1] = 1.;
-    ptbins[2] = 5.;
-    ptbins[3] = 50.;
+    ptbins[0] = 3.;
+    ptbins[1] = 5.;
+    ptbins[2] = 50.;
 
     const int nvars = 16;
     float **anacutsval;
@@ -88,26 +87,19 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_TreeML_MB(bool fIsMC = fals
         anacutsval[13][ipt] = 0.5;   //theta, angle between the pi_s and decay plane of the D0 [rad]
     }
 
-    //pT 0-1
+    //pT 3-5
     anacutsval[0][0] = 0.05;  //minv
-    anacutsval[8][0] = 0.70;  //cosp
-    anacutsval[12][0] = 0.5;  //PtMax of pi_s
-    anacutsval[14][0] = 0.70; //cospxy
+    anacutsval[8][0] = 0.75;  //cosp
+    anacutsval[12][0] = 1.;   //PtMax of pi_s
+    anacutsval[14][0] = 0.75; //cosp
     anacutsval[15][0] = 1;    //NormDecayLenghtXY
 
-    //pT 1-5
-    anacutsval[0][1] = 0.05;  //minv
-    anacutsval[8][1] = 0.75;  //cosp
-    anacutsval[12][1] = 1.;   //PtMax of pi_s
-    anacutsval[14][1] = 0.75; //cosp
-    anacutsval[15][1] = 1;    //NormDecayLenghtXY
-
     //pT 5-50
-    anacutsval[0][2] = 0.10;  //minv
-    anacutsval[8][2] = 0.80;  //cosp
-    anacutsval[12][2] = 100.; //PtMax of pi_s
-    anacutsval[14][2] = 0.80; //cospxy
-    anacutsval[15][2] = 2;    //NormDecayLenghtXY
+    anacutsval[0][1] = 0.10;  //minv
+    anacutsval[8][1] = 0.80;  //cosp
+    anacutsval[12][1] = 100.; //PtMax of pi_s
+    anacutsval[14][1] = 0.80; //cospxy
+    anacutsval[15][1] = 2;    //NormDecayLenghtXY
 
 
     AliRDHFCutsDStartoKpipi *analysiscuts = new AliRDHFCutsDStartoKpipi();
@@ -137,18 +129,20 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_TreeML_MB(bool fIsMC = fals
         analysiscuts->SetTriggerMask(AliVEvent::kINT7);
     else if(triggername.EqualTo("kHighMultV0"))
         analysiscuts->SetTriggerMask(AliVEvent::kHighMultV0);
+    else if(triggername.EqualTo("kINT7kHighMultV0"))
+        analysiscuts->SetTriggerMask((AliVEvent::kHighMultV0 | AliVEvent::kINT7));
+    else if(triggername.EqualTo("kMB"))
+        analysiscuts->SetTriggerMask(AliVEvent::kMB);
     else {
         std::cout << "ERROR, trigger name " << triggername.Data() << " not supported! Exit" << std::endl;
         return nullptr;
     }
-    if (fIsMC)
-        analysiscuts->SetTriggerMask(AliVEvent::kMB);
 
     analysiscuts->SetOptPileup(AliRDHFCuts::kRejectMVPileupEvent);
     analysiscuts->SetRemoveDaughtersFromPrim(true);
     analysiscuts->SetMinVtxContr(1);
 
-    analysiscuts->SetMinPtCandidate(0.);
+    analysiscuts->SetMinPtCandidate(3.);
     analysiscuts->SetMaxPtCandidate(50.);
 
     std::cout << "This is the object I'm going to save:" << nptbins << std::endl;
