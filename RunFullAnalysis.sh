@@ -30,6 +30,7 @@ cfgFileMCNonRes="configfiles/config_LctopKpi_NonRes_MC_tree_basic.yml"
 cfgFileMCKStar="configfiles/config_LctopKpi_KStar_MC_tree_basic.yml"
 cfgFileMCDelta="configfiles/config_LctopKpi_Delta_MC_tree_basic.yml"
 cfgFileMCLambda1520="configfiles/config_LctopKpi_Lambda1520_MC_tree_basic.yml"
+LctopKpi_reso_channel=('' '_NonRes' '_KStar' '_Delta' '_Lambda1520')
 
 accFileName="accfiles/Acceptance_Toy_LcpKpi_yfidPtDep_etaDau09_ptDau100_promptD0FONLL13ptshape_FONLLy.root"
 predFileName="models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFptDepLHCb_BRpythia8_PDG2020_PromptLcMod.root"
@@ -258,16 +259,9 @@ if $DoEfficiency; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     if [ ${Particle} == "LctopKpi" ]; then
-      echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-      python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root --batch
-      echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_NonRes_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-      python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_NonRes_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}_NonRes${CutSets[$iCutSet]}.root --batch
-      echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_KStar_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-      python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_KStar_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}_KStar${CutSets[$iCutSet]}.root --batch
-      echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_Delta_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-      python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_Delta_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}_Delta${CutSets[$iCutSet]}.root --batch
-      echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_Lambda1520_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-      python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_Lambda1520_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}_Lambda1520${CutSets[$iCutSet]}.root --batch
+      for Channel in "${LctopKpi_reso_channel[@]}";
+        echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}${Channel}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
+        python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}${Channel}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${Channel}${CutSets[$iCutSet]}.root --batch
     elif [ ${Particle} != "LctopKpi" ]; then
       echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
       python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root --batch
@@ -280,12 +274,9 @@ if $DoAccEff; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     if [ ${Particle} == "LctopKpi" ]; then
-      echo $(tput setaf 4) Compute efficiency times acceptance $(tput sgr0)
-      python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root --batch
-      python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}_NonRes${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}_NonRes${CutSets[$iCutSet]}.root --batch
-      python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}_KStar${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}_KStar${CutSets[$iCutSet]}.root --batch
-      python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}_Delta${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Delta${CutSets[$iCutSet]}.root --batch
-      python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}_Lambda1520${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Lambda1520${CutSets[$iCutSet]}.root --batch
+    for Channel in "${LctopKpi_reso_channel[@]}";
+      echo $(tput setaf 4) Compute efficiency times acceptance ${Particle} ${Channel} $(tput sgr0)
+      python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${Channel}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${Channel}${CutSets[$iCutSet]}.root --batch
     elif [ ${Particle} != "LctopKpi" ]; then
       echo $(tput setaf 4) Compute efficiency times acceptance $(tput sgr0)
       python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root --batch
@@ -299,8 +290,6 @@ if $DoAccEffRw; then
     if [ ${Particle} == "LctopKpi" ]; then
       echo $(tput setaf 4) Compute re-weighted efficiency times acceptance $(tput sgr0)
       python3 ComputeEffAccWeightedAvg.py ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_NonRes${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_KStar${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Delta${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Lambda1520${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}_rw.root
-      #echo '.x ComputeEffAccWeightedAvg.C+('${OutDirEfficiency}','${Particle}','${CutSets[$iCutSet]}' ,"Eff_times_Acc_'${Particle}${CutSets[$iCutSet]}'_rw.root")' | root -l -b
-      #echo '.q'
     elif [ ${Particle} != "LctopKpi" ]; then
       echo $(tput setaf 4) This is not LctopKpi --> not computing average efficiency re-weighted with BR $(tput sgr0)
     fi
