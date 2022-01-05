@@ -183,7 +183,8 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
     if(particle==kDplus) massaxistit = "#it{M}(K#pi#pi) (GeV/#it{c}^{2})";
     else if(particle==kD0) massaxistit = "#it{M}(K#pi) (GeV/#it{c}^{2})";
     else if(particle==kDs) massaxistit = "#it{M}(KK#pi) (GeV/#it{c}^{2})";
-    else if(particle==kLc) massaxistit = "#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})";
+    else if(particle==kLctopKpi) massaxistit = "#it{M}(pK#pi) (GeV/#it{c}^{2})";
+    else if(particle==kLctopK0s) massaxistit = "#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})";
     else if (particle==kDstar) massaxistit = "#it{M}(pi^{+}) (GeV/#it{c}^{2})";
     
     //load inv-mass histos
@@ -376,7 +377,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
     if(particle==kDplus) massForFit = massDplus;
     else if (particle==kDs) massForFit = massDs;
     else if (particle==kD0) massForFit = massD0;
-    else if (particle==kLc) massForFit = massLc;
+    else if (particle==kLctopKpi || particle==kLctopK0s) massForFit = massLc;
     else if (particle==kDstar) massForFit = dmassDstar;
 
     TH1F* hMassForFit[nPtBins];
