@@ -68,10 +68,7 @@ bitPrompt = 2
 bitFD = 3
 bitRefl = 4
 #define specific bits for Lc->pKpi resonant channel
-bitLcNonRes = 9
-bitLcLambda1520 = 10
-bitLcKStar = 11
-bitLcDelta = 12
+bitsLcResonance = [9, 10, 11, 12] # ['NonRes', 'Lambda1520', 'KStar', 'Delta']
 
 # define mass binning
 particle = inputCfg['tree']['particle']
@@ -155,14 +152,8 @@ if isMC:
     if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only prompt and not reflected
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
-        if args.LctopKpireso == 1:
-            dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitLcNonRes], 'and')
-        if args.LctopKpireso == 2:
-            dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitLcKStar], 'and')
-        if args.LctopKpireso == 3:
-            dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitLcDelta], 'and')
-        if args.LctopKpireso == 4:
-            dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitLcLambda1520], 'and')
+        if args.LctopKpireso in range(1, 5):
+            dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitsLcResonance[args.LctopKpireso]], 'and')
     dataFramePrompt.reset_index(inplace=True)
 
     dataFrameFD = LoadDfFromRootOrParquet(inputCfg['tree']['filenameFD'], inputCfg['tree']['dirname'],
@@ -170,14 +161,8 @@ if isMC:
     if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and not reflected
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
-        if args.LctopKpireso == 1:
-            dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitLcNonRes], 'and')
-        if args.LctopKpireso == 2:
-            dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitLcKStar], 'and')
-        if args.LctopKpireso == 3:
-            dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitLcDelta], 'and')
-        if args.LctopKpireso == 4:
-            dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitLcLambda1520], 'and')
+        if args.LctopKpireso in range(1, 5):
+            dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitsLcResonance[args.LctopKpireso]], 'and')
     dataFrameFD.reset_index(inplace=True)
 
     # compute pt weights
