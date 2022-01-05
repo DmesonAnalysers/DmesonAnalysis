@@ -3,10 +3,13 @@ Script for the combination of efficiency and acceptance factors
 run: python ComputeEffAccWeightedAvg.py effFileAll.root effFileNonRes.root effFileKStar.root effFileDelta.root effFileLambda1520.root outFileName.root
 '''
 
+import sys
 import argparse
+import ctypes
 import numpy as np
 from ROOT import gROOT, TFile, TCanvas, TLegend  # pylint: disable=import-error,no-name-in-module
-from ROOT import kBlack, kFullDiamond, kRed, kAzure, kFullCircle, kOpenSquare  # pylint: disable=import-error,no-name-in-module
+from ROOT import kBlack, kRed, kAzure  # pylint: disable=import-error,no-name-in-module
+from ROOT import kFullDiamond, kOpenDiamond, kFullTriangleUp, kOpenTriangleUp, kFullStar, kOpenStar, kFullCircle, kOpenCircle, kFullSquare, kOpenSquare, kFullCross, kOpenCross # pylint: disable=import-error,no-name-in-module
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
 parser = argparse.ArgumentParser(description='Arguments')
@@ -22,49 +25,74 @@ args = parser.parse_args()
 gROOT.SetBatch(args.batch)
 SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, titlesize=0.045, labelsize=0.04)
 
-effFileAll = TFile.Open(args.effFileAll)
-hEffAllPrompt = effFileAll.Get('hAccEffPrompt')
-hEffAllFD = effFileAll.Get('hAccEffFD')
-SetObjectStyle(hEffAllPrompt, color=kRed+1, markerstyle=kFullCircle)
-SetObjectStyle(hEffAllFD, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+inputFile = [args.effFileAll, args.effFileNonRes, args.effFileKStar, args.effFileDelta, args.effFileLambda1520]
+colorMarkerPrompt = [kBlack, kRed, kRed, kRed, kRed]
+colorMarkerFD = [kBlack, kAzure, kAzure, kAzure, kAzure]
+styleMarkerPrompt = [kFullDiamond, kFullSquare, kFullStar, kFullTriangleUp, kFullCross]
+styleMarkerFD = [kOpenDiamond, kOpenSquare, kOpenStar, kOpenTriangleUp, kOpenCross]
+hEffPrompt, hEffFD = [], []
 
-effFileNonRes = TFile.Open(args.effFileNonRes)
-hEffNonResPrompt = effFileNonRes.Get('hAccEffPrompt')
-hEffNonResFD = effFileNonRes.Get('hAccEffFD')
-SetObjectStyle(hEffNonResPrompt, color=kRed+1, markerstyle=kFullCircle)
-SetObjectStyle(hEffNonResFD, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+for iReso, fileName, in enumerate(inputFile):
+    print(iReso)
+    infile = TFile.Open(fileName)
+    hEffPrompt.append(infile.Get('hAccEffPrompt'))
+    hEffFD.append(infile.Get('hAccEffFD'))
+    hEffPrompt[iReso].SetDirectory(0)
+    hEffFD[iReso].SetDirectory(0)
+    SetObjectStyle(hEffPrompt[iReso], color=colorMarkerPrompt[iReso], markerstyle=styleMarkerPrompt[iReso])
+    SetObjectStyle(hEffFD[iReso], color=colorMarkerFD[iReso], markerstyle=styleMarkerFD[iReso], markersize=1.5, linewidh=2, linestyle=7)
+    
+ptMin = hEffPrompt[0].GetBinLowEdge(1)
+ptMax = hEffPrompt[0].GetBinLowEdge(hEffPrompt[0].GetNbinsX()) + hEffPrompt[0].GetBinWidth(hEffPrompt[0].GetNbinsX())
 
-effFileKStar = TFile.Open(args.effFileKStar)
-hEffKStarPrompt = effFileKStar.Get('hAccEffPrompt')
-hEffKStarFD = effFileKStar.Get('hAccEffFD')
-SetObjectStyle(hEffKStarPrompt, color=kRed+1, markerstyle=kFullCircle)
-SetObjectStyle(hEffKStarFD, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+cEffPrompt = TCanvas('cEffPrompt', '', 800, 800)
+cEffPrompt.DrawFrame(ptMin, 1.e-5, ptMax, 1.,
+               ';#it{p}_{T} (GeV/#it{c});(Acc #times #epsilon);')
+cEffPrompt.SetLogy()
+for histo in hEffPrompt:
+    histo.Draw('same')
 
-effFileDelta = TFile.Open(args.effFileDelta)
-hEffDeltaPrompt = effFileDelta.Get('hAccEffPrompt')
-hEffDeltaFD = effFileDelta.Get('hAccEffFD')
-SetObjectStyle(hEffDeltaPrompt, color=kRed+1, markerstyle=kFullCircle)
-SetObjectStyle(hEffDeltaFD, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+cEffFD = TCanvas('cEffFD', '', 800, 800)
+cEffFD.DrawFrame(ptMin, 1.e-5, ptMax, 1.,
+               ';#it{p}_{T} (GeV/#it{c});(Acc #times #epsilon);')
+cEffFD.SetLogy()
+for histo in hEffFD:
+    histo.Draw('same')
 
-effFileLambda1520 = TFile.Open(args.effFileLambda1520)
-hEffLambda1520Prompt = effFileLambda1520.Get('hAccEffPrompt')
-hEffLambda1520FD = effFileLambda1520.Get('hAccEffFD')
-SetObjectStyle(hEffLambda1520Prompt, color=kRed+1, markerstyle=kFullCircle)
-SetObjectStyle(hEffLambda1520FD, color=kAzure+4, markerstyle=kOpenSquare, markersize=1.5, linewidh=2, linestyle=7)
+outFileNamePDF = args.outFileName.replace('.root', '')
+cEffPrompt.SaveAs('%s_prompt.pdf' % (outFileNamePDF))
+cEffFD.SaveAs('%s_FD.pdf' % (outFileNamePDF))
 
+hEffCw = hEffPrompt[0].Clone("hAccEffPrompt")
+hEffBw = hEffFD[0].Clone("hAccEffFD")
 
-hEffCw = hEffAllPrompt.Clone("hAccEffPrompt")
-hEffBw = hEffAllFD.Clone("hAccEffFD")
-
-BR = [3.5 * 1e-02, 1.96 * 0.667 * 1e-02, 1.08 * 1e-02, 2.2 * 0.225 * 1e-02]
-
-
-nPtBins = hEffNonResPrompt.GetNbinsX()
+BR = [6.28 * 1e-02, 3.5 * 1e-02, 1.96 * 0.667 * 1e-02, 1.08 * 1e-02, 2.2 * 0.225 * 1e-02]
+#effC, wC = 0,0
+nPtBins = hEffPrompt[0].GetNbinsX()
 for iPt in range(nPtBins):
-    hEffCw.SetBinContent(iPt+1, ((hEffNonResPrompt.GetBinContent(iPt+1)*BR[0])+(hEffKStarPrompt.GetBinContent(iPt+1)*BR[1])+(hEffDeltaPrompt.GetBinContent(iPt+1)*BR[2])+(hEffLambda1520Prompt.GetBinContent(iPt+1)*BR[3]))/(BR[0]+BR[1]+BR[2]+BR[3]))
-    hEffCw.SetBinError(iPt+1, hEffAllPrompt.GetBinError(iPt+1))
-    hEffBw.SetBinContent(iPt+1, ((hEffNonResFD.GetBinContent(iPt+1)*BR[0])+(hEffKStarFD.GetBinContent(iPt+1)*BR[1])+(hEffDeltaFD.GetBinContent(iPt+1)*BR[2])+(hEffLambda1520FD.GetBinContent(iPt+1)*BR[3]))/(BR[0]+BR[1]+BR[2]+BR[3]))
-    hEffBw.SetBinError(iPt+1, hEffAllFD.GetBinError(iPt+1))
+    print('==PROMPT==')
+    print(iPt)
+    effC, wC = 0,0
+    for histo, br, in zip(hEffPrompt[1:],BR[1:]):
+        effC += histo.GetBinContent(iPt+1)*br
+        wC += br
+        print('--> B.R.: %f' % (br))
+        print(effC)
+        print(wC)
+    hEffCw.SetBinContent(iPt+1, (effC/wC))
+    hEffCw.SetBinError(iPt+1, hEffPrompt[0].GetBinError(iPt+1))
+
+    print('==FD==')
+    print(iPt)
+    effB, wB = 0,0
+    for histo, br, in zip(hEffFD[1:],BR[1:]):
+        effB += histo.GetBinContent(iPt+1)*br
+        wB += br
+        print('--> B.R.: %f' % (br))
+        print(effB)
+        print(wB)
+    hEffBw.SetBinContent(iPt+1, (effB/wB))
+    hEffBw.SetBinError(iPt+1, hEffFD[0].GetBinError(iPt+1))
 
 outFile = TFile(args.outFileName, 'recreate')
 hEffCw.Write()
