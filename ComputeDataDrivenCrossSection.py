@@ -127,7 +127,7 @@ systColors = {'YieldExtr': 'kAzure+4', 'SelEff': 'kRed', 'TrEff': 'kBlue+1',
               'Tot': 'kBlack'}
 gCrossSectionSyst = {}
 for systSource in systGetter:
-    gCrossSectionSyst[systSource] = TGraphErrors(0)
+    gCrossSectionSyst[systSource] = TGraphErrors(1)
     gCrossSectionSyst[systSource].SetName(f'g{histoName}Syst{systSource}')
     gCrossSectionSyst[systSource].SetTitle(axisTitle)
     SetObjectStyle(gCrossSectionSyst[systSource], color=GetROOTColor(systColors[systSource]), fillstyle=0)
@@ -193,7 +193,7 @@ for iPt in range(hCrossSection.GetNbinsX()):
         gCrossSectionSyst[systSource].SetPointError(iPt, 0.4, relSyst * crossSec)
 
 if args.system == 'pp':
-    gCrossSectionSystLumi = TGraphErrors(0)
+    gCrossSectionSystLumi = TGraphErrors(1)
     gCrossSectionSystLumi.SetName('gCrossSectionSystLumi')
     gCrossSectionSystLumi.SetTitle('Luminosity syst. unc.;;')
     gCrossSectionSystLumi.SetPoint(0, 1., 1.)
