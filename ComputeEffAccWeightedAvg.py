@@ -33,7 +33,6 @@ styleMarkerFD = [kOpenDiamond, kOpenSquare, kOpenStar, kOpenTriangleUp, kOpenCro
 hEffPrompt, hEffFD = [], []
 
 for iReso, fileName, in enumerate(inputFile):
-    print(iReso)
     infile = TFile.Open(fileName)
     hEffPrompt.append(infile.Get('hAccEffPrompt'))
     hEffFD.append(infile.Get('hAccEffFD'))
@@ -67,30 +66,20 @@ hEffCw = hEffPrompt[0].Clone("hAccEffPrompt")
 hEffBw = hEffFD[0].Clone("hAccEffFD")
 
 BR = [6.28 * 1e-02, 3.5 * 1e-02, 1.96 * 0.667 * 1e-02, 1.08 * 1e-02, 2.2 * 0.225 * 1e-02]
-#effC, wC = 0,0
+effC, wC = 0,0
 nPtBins = hEffPrompt[0].GetNbinsX()
 for iPt in range(nPtBins):
-    print('==PROMPT==')
-    print(iPt)
     effC, wC = 0,0
     for histo, br, in zip(hEffPrompt[1:],BR[1:]):
         effC += histo.GetBinContent(iPt+1)*br
         wC += br
-        print('--> B.R.: %f' % (br))
-        print(effC)
-        print(wC)
     hEffCw.SetBinContent(iPt+1, (effC/wC))
     hEffCw.SetBinError(iPt+1, hEffPrompt[0].GetBinError(iPt+1))
 
-    print('==FD==')
-    print(iPt)
     effB, wB = 0,0
     for histo, br, in zip(hEffFD[1:],BR[1:]):
         effB += histo.GetBinContent(iPt+1)*br
         wB += br
-        print('--> B.R.: %f' % (br))
-        print(effB)
-        print(wB)
     hEffBw.SetBinContent(iPt+1, (effB/wB))
     hEffBw.SetBinError(iPt+1, hEffFD[0].GetBinError(iPt+1))
 
