@@ -1,4 +1,4 @@
-meson: Ds
+particle: Ds
 
 reffilenames:
     data: ~/cernbox/Analyses/pp5TeV/Ds_wML_mult/outputs_prompt/100320/raw_yield/RawYieldsDs_pp5TeV_PromptEn.root
