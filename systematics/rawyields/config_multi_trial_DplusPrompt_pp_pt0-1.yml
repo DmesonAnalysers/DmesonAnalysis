@@ -1,4 +1,4 @@
-meson: Dplus
+particle: Dplus
 
 reffilenames:
     data: ../../../Analysispp2017DplusLowPt/outputs/rawyields/RawYields_Dplus_pp5TeV_central.root

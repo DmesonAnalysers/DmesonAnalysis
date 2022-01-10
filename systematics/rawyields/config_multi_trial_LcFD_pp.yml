@@ -1,26 +1,27 @@
-particle: Ds
+particle: Lc
 
 reffilenames:
-    data: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_FDen_pt2_12_SigmaFix_conservative.root
-    MC: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt2_12.root
+    data: ~/Lc_plots/rawYields/completeplus/RawYieldsLc_completeplus_FDEn.root
+    MC: ~/Lc_plots/rawYields/completeplus/RawYieldsLc_completeplus_PromptEn.root
+    # MC: null
 
 output:
-    filename: ../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/systematics/raw_yield/RawYieldSyst_Ds_pp5TeV_FD_moreRebins.root
+    filename: ~/Lc_plots/systematics/rawyields/completeplus/syst_Lc_completeplus_FDEn.root
     drawpurity: 0 # 0: False, 1: True
 
 multitrial:
     ptbins: null #list of pt bins, set null if you want to keep them all
-    mins: [1.76, 1.77, 1.78, 1.79, 1.80] # lower fit limit
-    maxs: [2.06, 2.08, 2.10, 2.12, 2.14] # upper fit limit
-    rebins: [4, 5, 6, 7, 8, 9, 10] # mass rebin values
+    mins: [2.11, 2.12, 2.13, 2.14, 2.15] # lower fit limit
+    maxs: [2.39, 2.40, 2.41, 2.43, 2.44] # upper fit limit
+    rebins: [3, 4, 5, 6, 7, 8] # mass rebin values
     sgnfuncs: [kGaus] # signal functions of AliHFInvMassFitter
-    bkgfuncs: [kExpo, kLin, kPol2] # bkg functions of AliHFInvMassFitter
-    sigma: [kFixed, kFixedMinusUnc, kFixedPlusUnc] 
-    # all possibilities: 
+    bkgfuncs: [kPol2, kPol3] # bkg functions of AliHFInvMassFitter
+    sigma: [kFixed, kFixedMinusUnc, kFixedPlusUnc]
+    # all possibilities:
     # kFree, kFixed, kFixedMinus10Perc, kFixedPlus10Perc, kFixedMinus15Perc, kFixedPlus15Perc, kFixedMinus20Perc, kFixedPlus20Perc, kFixedMinusUnc, kFixedPlusUnc
     # those with variations (Plus/Minus) are exclusive (i.e. it is not possible to run with 10% and 15% variation at the same time)
     mean: [kFree] # other possibilities: kFixed
-    # all possibilities: 
+    # all possibilities:
     # kFixed, kFree, kFixedMinusUnc, kFixedPlusUnc
     bincounting:
         nsigma: [3, 5] # multi-trial will be repeated for each nsigma value
@@ -29,4 +30,4 @@ multitrial:
 quality:
     chisquare:
         min: 0.
-        max: 2.
+        max: 2.5

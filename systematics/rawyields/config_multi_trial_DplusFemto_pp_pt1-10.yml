@@ -1,4 +1,4 @@
-meson: Dplus
+particle: Dplus
 
 reffilenames:
     data: ~/cernbox/ALICE_WORK/AnalysisFemtopp/outputs/rawyields/RawYieldsDplus_pp13TeV_HMV0M_central_finebins_sparse.root

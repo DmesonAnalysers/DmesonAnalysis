@@ -74,20 +74,22 @@ int RawYieldSystematics(TString cfgFileName) {
     double minChi2 = config["quality"]["chisquare"]["min"].as<double>();
     double maxChi2 = config["quality"]["chisquare"]["max"].as<double>();
 
-    std::string mesonName = config["meson"].as<std::string>();    
+    std::string particleName = config["particle"].as<std::string>();    
     double massDs = TDatabasePDG::Instance()->GetParticle(431)->Mass();
     double massDplus = TDatabasePDG::Instance()->GetParticle(411)->Mass();
     double massD0 = TDatabasePDG::Instance()->GetParticle(421)->Mass();
-
+    double massLc = TDatabasePDG::Instance()->GetParticle(4122)->Mass();
     double mass = -1;
-    if(mesonName == "Ds")
+    if(particleName == "Ds")
         mass = massDs;
-    else if(mesonName == "Dplus")
+    else if(particleName == "Dplus")
         mass = massDplus;
-    else if(mesonName == "D0")
+    else if(particleName == "D0")
         mass = massD0;
+    else if(particleName == "Lc")
+        mass = massLc;
     else {
-        std::cerr << "ERROR: you must specify if it is D+ ,D0 or Ds+! Exit." << std::endl;
+        std::cerr << "ERROR: you must specify if it is D+, Ds+ D0 or Lc! Exit." << std::endl;
         return -1;
     }
 
@@ -101,7 +103,7 @@ int RawYieldSystematics(TString cfgFileName) {
     TH1F *hMeanMC = nullptr;
     int loadref = LoadRefFiles(refFileName, refFileNameMC, hRawYieldRef, hSigmaRef, hMeanRef, hSignalRef, hBkgRef,
                                hSigmaSecPeakRef, hSigmaMC, hMeanMC, nSigma4Purity);
-    if ((loadref > 0 && loadref < 9) || (mesonName == "Ds" && !hSigmaSecPeakRef) || (loadref >= 9 && drawPurity)) {
+    if ((loadref > 0 && loadref < 9) || (particleName == "Ds" && !hSigmaSecPeakRef) || (loadref >= 9 && drawPurity)) {
         std::cerr << "ERROR: missing information in reference files! Check them please." << std::endl;
         return loadref;
     }
@@ -166,7 +168,7 @@ int RawYieldSystematics(TString cfgFileName) {
         multiTrial.SetSaveBkgValue(true, nSigma4Purity);
         multiTrial.SetUseLogLikelihoodFit();
         multiTrial.SetMass(mass);
-        if(mesonName == "Ds")
+        if(particleName == "Ds")
             multiTrial.IncludeSecondGausPeak(massDplus, true, hSigmaSecPeakRef->GetBinContent(iPt+1), true);
 
         multiTrial.ConfigureLowLimFitSteps(mins.size(), mins.data());
