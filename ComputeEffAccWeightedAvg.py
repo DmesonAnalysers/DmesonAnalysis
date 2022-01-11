@@ -69,19 +69,17 @@ BR = [6.28 * 1e-02, 3.5 * 1e-02, 1.96 * 0.667 * 1e-02, 1.08 * 1e-02, 2.2 * 0.225
 effC, wC = 0,0
 nPtBins = hEffPrompt[0].GetNbinsX()
 for iPt in range(nPtBins):
-    effC, wC = 0,0
-    for histo, br, in zip(hEffPrompt[1:],BR[1:]):
-        effC += histo.GetBinContent(iPt+1)*br
-        wC += br
-    hEffCw.SetBinContent(iPt+1, (effC/wC))
-    hEffCw.SetBinError(iPt+1, hEffPrompt[0].GetBinError(iPt+1))
-
-    effB, wB = 0,0
-    for histo, br, in zip(hEffFD[1:],BR[1:]):
-        effB += histo.GetBinContent(iPt+1)*br
-        wB += br
-    hEffBw.SetBinContent(iPt+1, (effB/wB))
-    hEffBw.SetBinError(iPt+1, hEffFD[0].GetBinError(iPt+1))
+    effC, effB, uncEffC, uncEffB, sumOfW = (0. for _ in range(5))
+    for histo, br, in zip(hEffPrompt, BR):
+        effC += histo.GetBinContent(iPt+1) * br
+        effB += histo.GetBinContent(iPt+1) * br
+        uncEffC += histo.GetBinError(iPt+1)**2 * br**2
+        uncEffB += histo.GetBinError(iPt+1)**2 * br**2
+        sumOfW += br
+    hEffCw.SetBinContent(iPt+1, (effC/sumOfW))
+    hEffCw.SetBinError(iPt+1, np.sqrt(uncEffC)/sumOfW)
+    hEffBw.SetBinContent(iPt+1, (effB/sumOfW))
+    hEffBw.SetBinError(iPt+1, np.sqrt(uncEffB)/sumOfW)
 
 outFile = TFile(args.outFileName, 'recreate')
 hEffCw.Write()
