@@ -24,7 +24,7 @@ args = parser.parse_args()
 gROOT.SetBatch(args.batch)
 SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, titlesize=0.045, labelsize=0.04)
 
-inputFile = [args.effFileAll, args.effFileNonRes, args.effFileKStar, args.effFileDelta, args.effFileLambda1520]
+inputFile = [args.effFileNonRes, args.effFileKStar, args.effFileDelta, args.effFileLambda1520]
 colorMarkerPrompt = [kBlack, kRed, kRed, kRed, kRed]
 colorMarkerFD = [kBlack, kAzure, kAzure, kAzure, kAzure]
 styleMarkerPrompt = [kFullDiamond, kFullSquare, kFullStar, kFullTriangleUp, kFullCross]
