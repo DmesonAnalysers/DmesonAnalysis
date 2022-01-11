@@ -64,12 +64,23 @@ int ComputeEffAccWeightedAvg(TString effdir, TString particle, TString cutset, T
         effBw->Reset("icse");
 
 
-        for(int k=0; k<effC[0]->GetNbinsX(); k++){
-            effCw->SetBinContent(k + 1, ((effC[0]->GetBinContent(k + 1) * BR[0]) + (effC[1]->GetBinContent(k + 1) * BR[1]) + (effC[2]->GetBinContent(k + 1) * BR[2]) + (effC[3]->GetBinContent(k + 1) * BR[3])) / (BR[0] + BR[1] + BR[2] + BR[3]));
-            effCw->SetBinError(k + 1, effC[4]->GetBinError(k + 1));
-
-            effBw->SetBinContent(k + 1, ((effB[0]->GetBinContent(k + 1) * BR[0]) + (effB[1]->GetBinContent(k + 1) * BR[1]) + (effB[2]->GetBinContent(k + 1) * BR[2]) + (effB[3]->GetBinContent(k + 1) * BR[3])) / (BR[0] + BR[1] + BR[2] + BR[3]));
-            effBw->SetBinError(k + 1, effB[4]->GetBinError(k + 1));
+        for(int iPt=0; iPt<effC[0]->GetNbinsX(); iPt++) {
+            double weightEffC = 0., weightUncEffC = 0., weightEffB = 0., weightUncEffB = 0., sumOfBR = 0.;
+            for(int iCh=0; iCh<4; iCh++) {
+                weightEffC += effC[iCh]->GetBinContent(iPt + 1) * BR[iCh];
+                weightUncEffC += effC[iCh]->GetBinError(iPt + 1) * effC[iCh]->GetBinError(iPt + 1) * BR[iCh] * BR[iCh];
+                weightEffB += effB[iCh]->GetBinContent(iPt + 1) * BR[iCh];
+                weightUncEffB += effB[iCh]->GetBinError(iPt + 1) * effB[iCh]->GetBinError(iPt + 1) * BR[iCh] * BR[iCh];
+                sumOfBR += BR[iCh];
+            }
+            weightEffC /= sumOfBR;
+            weightUncEffC = TMath::Sqrt(weightUncEffC) / sumOfBR;
+            weightEffB /= sumOfBR;
+            weightUncEffB = TMath::Sqrt(weightUncEffB) / sumOfBR;
+            effC[iCh]->SetBinContent(iPt + 1, weightEffC);
+            effC[iCh]->SetBinError(iPt + 1, weightUncEffC);
+            effB[iCh]->SetBinContent(iPt + 1, weightEffB);
+            effB[iCh]->SetBinError(iPt + 1, weightUncEffB);
         }
 
         TFile outFile(Form("%s/%s", effdir.Data(),outFileName.Data()),"recreate");
