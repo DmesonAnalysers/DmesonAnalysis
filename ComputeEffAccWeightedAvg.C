@@ -52,7 +52,7 @@ int ComputeEffAccWeightedAvg(TString effdir, TString particle, TString cutset, T
 
         TH1D *effC[4];
         TH1D *effB[4];
-        for(int i = 0; i < 5; i++){
+        for(int i = 0; i < 4; i++){
             effC[i] = (TH1D *)file[i]->Get("hAccEffPrompt");
             effB[i] = (TH1D *)file[i]->Get("hAccEffFD");
             cout << " n bins " << effC[i]->GetNbinsX() << endl;
