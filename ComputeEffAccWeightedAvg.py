@@ -73,7 +73,7 @@ cEffFD.SaveAs('%s_FD.pdf' % (outFileNamePDF))
 hEffCw = hEffPrompt[0].Clone("hAccEffPrompt")
 hEffBw = hEffFD[0].Clone("hAccEffFD")
 
-BR = [6.28 * 1e-02, 3.5 * 1e-02, 1.96 * 0.667 * 1e-02, 1.08 * 1e-02, 2.2 * 0.225 * 1e-02]
+BR = [3.5 * 1e-02, 1.96 * 0.667 * 1e-02, 1.08 * 1e-02, 2.2 * 0.225 * 1e-02]
 effC, wC = 0,0
 nPtBins = hEffPrompt[0].GetNbinsX()
 for iPt in range(nPtBins):
