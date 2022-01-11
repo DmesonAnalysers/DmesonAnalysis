@@ -37,7 +37,11 @@ for iReso, fileName, in enumerate(inputFile):
     hEffFD.append(infile.Get('hAccEffFD'))
     hEffPrompt[iReso].SetDirectory(0)
     hEffFD[iReso].SetDirectory(0)
-    SetObjectStyle(hEffPrompt[iReso], color=colorMarkerPrompt[iReso], markerstyle=styleMarkerPrompt[iReso])
+    SetObjectStyle(
+        hEffPrompt[iReso],
+        color=colorMarkerPrompt[iReso],
+        markerstyle=styleMarkerPrompt[iReso]
+    )
     SetObjectStyle(
         hEffFD[iReso],
         color=colorMarkerFD[iReso],
