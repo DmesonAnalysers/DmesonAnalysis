@@ -289,7 +289,7 @@ if $DoAccEffRw; then
   do
     if [ ${Particle} == "LctopKpi" ]; then
       echo $(tput setaf 4) Compute re-weighted efficiency times acceptance $(tput sgr0)
-      python3 ComputeEffAccWeightedAvg.py ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_NonRes${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_KStar${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Delta${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Lambda1520${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}_rw.root
+      python3 ComputeEffAccWeightedAvg.py ${OutDirEfficiency}/Eff_times_Acc_${Particle}_NonRes${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_KStar${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Delta${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Lambda1520${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}_rw.root
     elif [ ${Particle} != "LctopKpi" ]; then
       echo $(tput setaf 4) This is not LctopKpi --> not computing average efficiency re-weighted with BR $(tput sgr0)
     fi
