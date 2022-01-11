@@ -110,7 +110,9 @@ if particleName == 'Dplus':
     massAxisTit = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
 elif particleName == 'Ds':
     massAxisTit = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
-elif particleName == 'Lc':
+elif particleName == 'LctopKpi':
+    massAxisTit = '#it{M}(pK#pi) (GeV/#it{c}^{2})'
+elif particleName == 'LctopK0s':
     massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
 elif particleName == 'Dstar':
     massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'

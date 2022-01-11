@@ -37,6 +37,8 @@ parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=
                     help='First path of the pT weights file, second name of the pT weights histogram')
 parser.add_argument('--multweights', metavar=('text', 'text'), nargs=2, required=False,
                     help='First path of the mult weights file, second name of the mult weights histogram')
+parser.add_argument('--LctopKpireso', type=int, required=False,
+                    help='values to project single LctopKpi resonant channel (1: NonRes; 2: KStar; 3: Delta; 4: Lambda1520)')
 parser.add_argument('--std', help='adapt to std. analysis cuts', action='store_true')
 args = parser.parse_args()
 
@@ -65,6 +67,9 @@ bitSignal = 0
 bitPrompt = 2
 bitFD = 3
 bitRefl = 4
+#define specific bits for Lc->pKpi resonant channel
+bitsLcResonance = [9, 10, 11, 12] # ['NonRes', 'Lambda1520', 'KStar', 'Delta']
+
 # define mass binning
 particle = inputCfg['tree']['particle']
 if particle == 'Ds':
@@ -147,6 +152,8 @@ if isMC:
     if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only prompt and not reflected
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
         dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
+        if args.LctopKpireso in range(1, 5):
+            dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitsLcResonance[args.LctopKpireso]], 'and')
     dataFramePrompt.reset_index(inplace=True)
 
     dataFrameFD = LoadDfFromRootOrParquet(inputCfg['tree']['filenameFD'], inputCfg['tree']['dirname'],
@@ -154,6 +161,8 @@ if isMC:
     if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and not reflected
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
         dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
+        if args.LctopKpireso in range(1, 5):
+            dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitsLcResonance[args.LctopKpireso]], 'and')
     dataFrameFD.reset_index(inplace=True)
 
     # compute pt weights
@@ -200,6 +209,9 @@ if isMC:
         binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax * 0.9999)
         sparseGen['GenPrompt'].GetAxis(0).SetRange(binGenMin, binGenMax)
         sparseGen['GenFD'].GetAxis(0).SetRange(binGenMin, binGenMax)
+        if args.LctopKpireso:
+            sparseGen['GenPrompt'].GetAxis(2).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
+            sparseGen['GenFD'].GetAxis(3).SetRange(args.LctopKpireso+1, args.LctopKpireso+1) # "+1" applied to fix the discrepancy between the reso channel and the filled bin
 
         if args.multweights:
             hMultVsGenPtPrompt = sparseGen['GenPrompt'].Projection(4, 0)

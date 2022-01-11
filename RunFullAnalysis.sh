@@ -1,11 +1,12 @@
 #!/bin/bash
 #steps to be performed
-DoDataProjection=false
+DoDataProjection=true
 DoMCProjection=true
 DoDataRawYields=true
 DoMCRawYields=false
 DoEfficiency=true
 DoAccEff=true
+DoAccEffRw=false
 DoHFPtSpec=false
 DoHFPtSpecRaa=false
 DoDmesonYield=false
@@ -16,15 +17,23 @@ ProjectTree=false
 
 #PARAMETERS TO BE SET (use "" for parameters not needed)
 ################################################################################################
-Particle="Dplus" # whether it is Dplus,  Ds or Lc analysis
+Particle="LctopKpi" # # whether it is Dplus, D0, Ds, LctopK0s or LctopKpi analysis
 Cent="kpp13TeVFD" # used also to asses prompt or non-prompt and system
 
-cfgFileData="../analyses/np_Dplus_vsmult_pp13TeV/configfiles/inputs/config_Dplus_pp13TeV_data_MB_multWeights.yml"
-cfgFileMC="../analyses/np_Dplus_vsmult_pp13TeV/configfiles/inputs/config_Dplus_pp13TeV_MC_MB_multWeights.yml"
-cfgFileFit="../analyses/np_Dplus_vsmult_pp13TeV/configfiles//fit/config_fit_Dplus_13TeV.yml"
+cfgFileData="configfiles/config_LctopKpi_data_tree_basic.yml"
+cfgFileMC="configfiles/config_LctopKpi_MC_tree_basic.yml"
+cfgFileFit="configfiles/fit/config_LctopKpi_Fit_pp13TeV_basic.yml"
 
-accFileName="accfiles/Acceptance_Toy_DplusKpipi_yfidPtDep_etaDau09_ptDau100_promptDplusFONLL13ptshape_FONLLy.root"
-predFileName="models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFee_BRpythia8_SepContr_PDG2020.root"
+#Config input MC files - specific for LctopKpi resonant channel
+#WARNING: used only when Particle="LctopKpi"
+cfgFileMCNonRes="configfiles/config_LctopKpi_NonRes_MC_tree_basic.yml"
+cfgFileMCKStar="configfiles/config_LctopKpi_KStar_MC_tree_basic.yml"
+cfgFileMCDelta="configfiles/config_LctopKpi_Delta_MC_tree_basic.yml"
+cfgFileMCLambda1520="configfiles/config_LctopKpi_Lambda1520_MC_tree_basic.yml"
+LctopKpi_reso_channel=('' '_NonRes' '_KStar' '_Delta' '_Lambda1520')
+
+accFileName="accfiles/Acceptance_Toy_LcpKpi_yfidPtDep_etaDau09_ptDau100_promptD0FONLL13ptshape_FONLLy.root"
+predFileName="models/fonll/feeddown/DmesonLcPredictions_13TeV_y05_FFptDepLHCb_BRpythia8_PDG2020_PromptLcMod.root"
 pprefFileName="" #"ppreference/Ds_ppreference_pp5TeV_noyshift_pt_2_3_4_6_8_12_16_24_36_50.root"
 
 PtWeightsDFileName=""
@@ -38,7 +47,8 @@ MultWeightsHistoName="hNtrklWeightsCandInMass"
 DataDrivenFractionFileName=""
 
 #assuming cutsets config files starting with "cutset" and are .yml
-CutSetsDir="../analyses/np_Dplus_vsmult_pp13TeV/configfiles/cutsets/datadriven/030"
+
+CutSetsDir="configfiles/cutsets/LctopKpi/pp/central/"
 declare -a CutSets=()
 for filename in ${CutSetsDir}/*.yml; do
     tmp_name="$(basename -- ${filename} .yml)"
@@ -47,14 +57,16 @@ for filename in ${CutSetsDir}/*.yml; do
 done
 arraylength=${#CutSets[@]}
 
-OutDirRawyields="../analyses/np_Dplus_vsmult_pp13TeV/outputs/rawyields/030/"
-OutDirEfficiency="../analyses/np_Dplus_vsmult_pp13TeV/outputs/efficiencies/030/"
+
+
+OutDirRawyields="rawyields/central"
+OutDirEfficiency="efficiencies/central"
 OutDirCrossSec=""
 OutDirRaa=""
 ################################################################################################
 
-if [ ${Particle} != "Dplus" ] && [ ${Particle} != "D0" ]&& [ ${Particle} != "Ds" ] && [ ${Particle} != "Lc" ]; then
-  echo $(tput setaf 1) ERROR: only Ds and Dplus mesons are supported! $(tput sgr0)
+if [ ${Particle} != "Dplus" ] && [ ${Particle} != "D0" ] && [ ${Particle} != "Ds" ] && [ ${Particle} != "LctopK0s" ] && [ ${Particle} != "LctopKpi" ]; then
+  echo $(tput setaf 1) ERROR: only D0, Ds, Dplus, LctopK0s and LctopKpi hadrons are supported! $(tput sgr0)
   exit 2
 fi
 
@@ -72,6 +84,26 @@ fi
 
 if [ ! -f "${cfgFileMC}" ]; then
   echo $(tput setaf 1) ERROR: MC config file "${cfgFileMC}" does not exist! $(tput sgr0)
+  exit 2
+fi
+
+if [ ${Particle} == "LctopKpi" ] && [ ! -f "${cfgFileMCNonRes}" ]; then
+  echo $(tput setaf 1) ERROR: MC config file "${cfgFileMCNonRes}" does not exist! $(tput sgr0)
+  exit 2
+fi
+
+if [ ${Particle} == "LctopKpi" ] && [ ! -f "${cfgFileMCKStar}" ]; then
+  echo $(tput setaf 1) ERROR: MC config file "${cfgFileMCKStar}" does not exist! $(tput sgr0)
+  exit 2
+fi
+
+if [ ${Particle} == "LctopKpi" ] && [ ! -f "${cfgFileMCDelta}" ]; then
+  echo $(tput setaf 1) ERROR: MC config file "${cfgFileMCDelta}" does not exist! $(tput sgr0)
+  exit 2
+fi
+
+if [ ${Particle} == "LctopKpi" ] && [ ! -f "${cfgFileMCLambda1520}" ]; then
+  echo $(tput setaf 1) ERROR: MC config file "${cfgFileMCLambda1520}" does not exist! $(tput sgr0)
   exit 2
 fi
 
@@ -175,17 +207,25 @@ if $DoMCProjection; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Projecting MC distributions $(tput sgr0)
-    if [ "${PtWeightsDFileName}" == "" -o "${PtWeightsDHistoName}" == "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ] && [ "${MultWeightsFileName}" == "" -o "${MultWeightsHistoName}" == "" ]; then
-      python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root
-    elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ]; then
-        echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} $(tput sgr0)
-        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName}
-    elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" != "" ] && [ "${PtWeightsBHistoName}" != "" ]; then
-        echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} and ${PtWeightsBHistoName} ptB weights from ${PtWeightsBFileName} $(tput sgr0)
-        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName} --ptweightsB ${PtWeightsBFileName} ${PtWeightsBHistoName}
-    elif [ "${MultWeightsFileName}" != "" ] && [ "${MultWeightsHistoName}" != "" ]; then
-        echo $(tput setaf 6) Using ${MultWeightsHistoName} mult weights from ${MultWeightsFileName} $(tput sgr0)
-        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root --multweights ${MultWeightsFileName} ${MultWeightsHistoName}
+    if [ ${Particle} == "LctopKpi" ]; then
+      python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root
+      python3 ${ProjectScript} ${cfgFileMCNonRes} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_NonRes_MC${CutSets[$iCutSet]}.root --LctopKpireso 1
+      python3 ${ProjectScript} ${cfgFileMCKStar} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_KStar_MC${CutSets[$iCutSet]}.root --LctopKpireso 2
+      python3 ${ProjectScript} ${cfgFileMCDelta} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_Delta_MC${CutSets[$iCutSet]}.root --LctopKpireso 3
+      python3 ${ProjectScript} ${cfgFileMCLambda1520} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_Lambda1520_MC${CutSets[$iCutSet]}.root --LctopKpireso 4
+    elif [ ${Particle} != "LctopKpi" ]; then    
+      if [ "${PtWeightsDFileName}" == "" -o "${PtWeightsDHistoName}" == "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ] && [ "${MultWeightsFileName}" == "" -o "${MultWeightsHistoName}" == "" ]; then
+        python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root
+      elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" == "" -o "${PtWeightsBHistoName}" == "" ]; then
+          echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} $(tput sgr0)
+          python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName}
+      elif [ "${PtWeightsDFileName}" != "" ] && [ "${PtWeightsDHistoName}" != "" ] && [ "${PtWeightsBFileName}" != "" ] && [ "${PtWeightsBHistoName}" != "" ]; then
+          echo $(tput setaf 6) Using ${PtWeightsDHistoName} pt weights from ${PtWeightsDFileName} and ${PtWeightsBHistoName} ptB weights from ${PtWeightsBFileName} $(tput sgr0)
+          python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root --ptweights ${PtWeightsDFileName} ${PtWeightsDHistoName} --ptweightsB ${PtWeightsBFileName} ${PtWeightsBHistoName}
+      elif [ "${MultWeightsFileName}" != "" ] && [ "${MultWeightsHistoName}" != "" ]; then
+          echo $(tput setaf 6) Using ${MultWeightsHistoName} mult weights from ${MultWeightsFileName} $(tput sgr0)
+          python3 ${ProjectScript} ${cfgFileMC} ${CutSetsDir}/cutset${CutSets[$iCutSet]}.yml  ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root --multweights ${MultWeightsFileName} ${MultWeightsHistoName}
+      fi
     fi
   done
 fi
@@ -218,8 +258,14 @@ fi
 if $DoEfficiency; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-    python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root --batch
+    if [ ${Particle} == "LctopKpi" ]; then
+      for Channel in "${LctopKpi_reso_channel[@]}";
+        echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}${Channel}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
+        python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}${Channel}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${Channel}${CutSets[$iCutSet]}.root --batch
+    elif [ ${Particle} != "LctopKpi" ]; then
+      echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
+      python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root --batch
+    fi
   done
 fi
 
@@ -227,8 +273,26 @@ fi
 if $DoAccEff; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
-    echo $(tput setaf 4) Compute efficiency times acceptance $(tput sgr0)
-    python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root --batch
+    if [ ${Particle} == "LctopKpi" ]; then
+    for Channel in "${LctopKpi_reso_channel[@]}";
+      echo $(tput setaf 4) Compute efficiency times acceptance ${Particle} ${Channel} $(tput sgr0)
+      python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${Channel}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${Channel}${CutSets[$iCutSet]}.root --batch
+    elif [ ${Particle} != "LctopKpi" ]; then
+      echo $(tput setaf 4) Compute efficiency times acceptance $(tput sgr0)
+      python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root --batch
+    fi
+  done
+fi
+
+if $DoAccEffRw; then
+  for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
+  do
+    if [ ${Particle} == "LctopKpi" ]; then
+      echo $(tput setaf 4) Compute re-weighted efficiency times acceptance $(tput sgr0)
+      python3 ComputeEffAccWeightedAvg.py ${OutDirEfficiency}/Eff_times_Acc_${Particle}_NonRes${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_KStar${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Delta${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}_Lambda1520${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}_rw.root
+    elif [ ${Particle} != "LctopKpi" ]; then
+      echo $(tput setaf 4) This is not LctopKpi --> not computing average efficiency re-weighted with BR $(tput sgr0)
+    fi
   done
 fi
 
