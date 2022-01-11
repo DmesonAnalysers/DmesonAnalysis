@@ -13,7 +13,6 @@ from ROOT import kFullDiamond, kOpenDiamond, kFullTriangleUp, kOpenTriangleUp, k
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
 parser = argparse.ArgumentParser(description='Arguments')
-parser.add_argument('effFileAll', metavar='text', default='')
 parser.add_argument('effFileNonRes', metavar='text', default='')
 parser.add_argument('effFileKStar', metavar='text', default='')
 parser.add_argument('effFileDelta', metavar='text', default='')
