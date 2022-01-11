@@ -37,7 +37,7 @@ int ComputeEffAccWeightedAvg(TString effdir, TString particle, TString cutset, T
             Form("%s/Eff_times_Acc_%s_Lambda1520%s.root", effdir.Data(), particle.Data(), cutset.Data()), //Lambda1520
         };
         
-        TFile *file[5];
+        TFile *file[4];
         for (int i = 0; i < 4; i++){
             file[i] = TFile::Open(f[i].Data());
         }
