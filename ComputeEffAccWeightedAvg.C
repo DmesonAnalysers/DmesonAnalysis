@@ -38,7 +38,7 @@ int ComputeEffAccWeightedAvg(TString effdir, TString particle, TString cutset, T
         };
         
         TFile *file[5];
-        for (int i = 0; i < 5; i++){
+        for (int i = 0; i < 4; i++){
             file[i] = TFile::Open(f[i].Data());
         }
         
