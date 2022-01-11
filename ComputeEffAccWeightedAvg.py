@@ -38,7 +38,12 @@ for iReso, fileName, in enumerate(inputFile):
     hEffPrompt[iReso].SetDirectory(0)
     hEffFD[iReso].SetDirectory(0)
     SetObjectStyle(hEffPrompt[iReso], color=colorMarkerPrompt[iReso], markerstyle=styleMarkerPrompt[iReso])
-    SetObjectStyle(hEffFD[iReso], color=colorMarkerFD[iReso], markerstyle=styleMarkerFD[iReso], markersize=1.5, linewidh=2, linestyle=7)
+    SetObjectStyle(
+        hEffFD[iReso],
+        color=colorMarkerFD[iReso],
+        markerstyle=styleMarkerFD[iReso],
+        markersize=1.5, linewidh=2, linestyle=7
+    )
     
 ptMin = hEffPrompt[0].GetBinLowEdge(1)
 ptMax = hEffPrompt[0].GetBinLowEdge(hEffPrompt[0].GetNbinsX()) + hEffPrompt[0].GetBinWidth(hEffPrompt[0].GetNbinsX())
