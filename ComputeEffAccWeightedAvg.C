@@ -35,7 +35,6 @@ int ComputeEffAccWeightedAvg(TString effdir, TString particle, TString cutset, T
             Form("%s/Eff_times_Acc_%s_KStar%s.root", effdir.Data(), particle.Data(), cutset.Data()), //KStar
             Form("%s/Eff_times_Acc_%s_Delta%s.root", effdir.Data(), particle.Data(), cutset.Data()), //Delta
             Form("%s/Eff_times_Acc_%s_Lambda1520%s.root", effdir.Data(), particle.Data(), cutset.Data()), //Lambda1520
-            Form("%s/Eff_times_Acc_%s%s.root", effdir.Data(), particle.Data(), cutset.Data()) //All
         };
         
         TFile *file[5];
