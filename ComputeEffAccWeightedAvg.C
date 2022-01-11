@@ -50,8 +50,8 @@ int ComputeEffAccWeightedAvg(TString effdir, TString particle, TString cutset, T
             2.2 * 0.225 * 1e-02 //L1520
         };
 
-        TH1D *effC[5];
-        TH1D *effB[5];
+        TH1D *effC[4];
+        TH1D *effB[4];
         for(int i = 0; i < 5; i++){
             effC[i] = (TH1D *)file[i]->Get("hAccEffPrompt");
             effB[i] = (TH1D *)file[i]->Get("hAccEffFD");
