@@ -241,7 +241,7 @@ if $DoMCRawYields; then
   for (( iCutSet=0; iCutSet<${arraylength}; iCutSet++ ));
   do
     echo $(tput setaf 4) Extract raw yields from ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
-    echo '.x GetRawYieldsDplusDs.C+('${Cent}',true, "'${OutDirEfficiency}'/Distr_'${Particle}'_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Meson}'_MC'${CutSets[$iCutSet]}'.root")' | root -l -b
+    echo '.x GetRawYieldsDplusDs.C+('${Cent}',true, "'${OutDirEfficiency}'/Distr_'${Particle}'_MC'${CutSets[$iCutSet]}'.root", "", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Meson}'_MC'${CutSets[$iCutSet]}'.root")' | root -l -b
     echo '.q'
   done
 fi
@@ -251,10 +251,10 @@ if $DoDataRawYields; then
   do
     echo $(tput setaf 4) Extract raw yields from ${OutDirRawyields}/Distr_${Particle}_data${CutSets[$iCutSet]}.root $(tput sgr0)
     if [ ${Particle} != "D0" ]; then
-      echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root")' | root -l -b
+      echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root", "", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root")' | root -l -b
       echo '.q'
     else
-      echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root","'${OutDirEfficiency}'/Distr_'${Particle}'_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root")' | root -l -b
+      echo '.x GetRawYieldsDplusDs.C+('${Cent}',false, "'${OutDirRawyields}'/Distr_'${Particle}'_data'${CutSets[$iCutSet]}'.root", "", "'${OutDirEfficiency}'/Distr_'${Particle}'_MC'${CutSets[$iCutSet]}'.root", "'${cfgFileFit}'", "'${OutDirRawyields}'/RawYields'${Particle}${CutSets[$iCutSet]}'.root")' | root -l -b
       echo '.q'
       fi
   done
