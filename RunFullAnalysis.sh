@@ -266,8 +266,10 @@ if $DoEfficiency; then
   do
     if [ ${Particle} == "LctopKpi" ]; then
       for Channel in "${LctopKpi_reso_channel[@]}";
+      do
         echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}${Channel}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
         python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}${Channel}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${Channel}${CutSets[$iCutSet]}.root --batch
+      done
     elif [ ${Particle} != "LctopKpi" ]; then
       echo $(tput setaf 4) Compute efficiency from ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root $(tput sgr0)
       python3 ComputeEfficiencyDplusDs.py ${cfgFileFit} ${Cent} ${OutDirEfficiency}/Distr_${Particle}_MC${CutSets[$iCutSet]}.root ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root --batch
@@ -281,8 +283,10 @@ if $DoAccEff; then
   do
     if [ ${Particle} == "LctopKpi" ]; then
     for Channel in "${LctopKpi_reso_channel[@]}";
+    do
       echo $(tput setaf 4) Compute efficiency times acceptance ${Particle} ${Channel} $(tput sgr0)
       python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${Channel}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${Channel}${CutSets[$iCutSet]}.root --batch
+    done
     elif [ ${Particle} != "LctopKpi" ]; then
       echo $(tput setaf 4) Compute efficiency times acceptance $(tput sgr0)
       python3 CombineAccTimesEff.py ${OutDirEfficiency}/Efficiency_${Particle}${CutSets[$iCutSet]}.root ${accFileName} ${OutDirEfficiency}/Eff_times_Acc_${Particle}${CutSets[$iCutSet]}.root --batch
