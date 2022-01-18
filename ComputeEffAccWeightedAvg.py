@@ -77,12 +77,13 @@ BR = [3.5 * 1e-02, 1.96 * 0.667 * 1e-02, 1.08 * 1e-02, 2.2 * 0.225 * 1e-02]
 nPtBins = hEffPrompt[0].GetNbinsX()
 for iPt in range(nPtBins):
     effC, effB, uncEffC, uncEffB, sumOfW = (0. for _ in range(5))
-    for histo, br, in zip(hEffPrompt, BR):
-        effC += histo.GetBinContent(iPt+1) * br
-        effB += histo.GetBinContent(iPt+1) * br
-        uncEffC += histo.GetBinError(iPt+1)**2 * br**2
-        uncEffB += histo.GetBinError(iPt+1)**2 * br**2
+    for histoC, br, in zip(hEffPrompt, BR):
+        effC += histoC.GetBinContent(iPt+1) * br
+        uncEffC += histoC.GetBinError(iPt+1)**2 * br**2
         sumOfW += br
+    for histoB, br, in zip(hEffFD, BR):
+        effB += histoB.GetBinContent(iPt+1) * br
+        uncEffB += histoB.GetBinError(iPt+1)**2 * br**2
     hEffCw.SetBinContent(iPt+1, (effC/sumOfW))
     hEffCw.SetBinError(iPt+1, np.sqrt(uncEffC)/sumOfW)
     hEffBw.SetBinContent(iPt+1, (effB/sumOfW))
