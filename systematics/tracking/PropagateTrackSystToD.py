@@ -93,27 +93,6 @@ if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and
     dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
 dataFrameFD.reset_index(inplace=True)
 
-pd.set_option("max_rows", 40)
-print("prompt:\n",dataFramePrompt)
-dataFramePrompt.info()
-print("\n\nfd:\n",dataFrameFD)
-dataFrameFD.info()
-
-print('#########################################################################################################')
-print('#########################################################################################################')
-print('#########################################################################################################')
-# dataFramePrompt=dataFramePrompt[dataFramePrompt['pt_cand']<8]
-# dataFrameFD=dataFrameFD[dataFrameFD['pt_cand']<8]
-print("prompt:\n",dataFramePrompt)
-dataFramePrompt.info()
-print("\n\nfd:\n",dataFrameFD)
-dataFrameFD.info()
-# # for iEntry, row in enumerate(dataFramePrompt.iterrows()):
-#     # if row['pt_prong0'] != row['pt_prong0']:
-#         # print(iEntry, row)
-# # pd.options.display.max_rows = 10
-# print(dataFramePrompt[dataFramePrompt['pt_prong0']!=dataFramePrompt['pt_prong0']])
-
 if 'pt_prong0' not in dataFramePrompt.columns or 'pt_prong0' not in dataFrameFD.columns:
     print('ERROR: input dataframe does not contain daughter-track pt, propagation not possible! Exit')
     sys.exit()
