@@ -12,6 +12,7 @@ from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,n
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker #pylint: disable=wrong-import-position,import-error
 from utils.AnalysisUtils import ComputeRatioDiffBins, ScaleGraph, ComputeRatioGraph #pylint: disable=wrong-import-position,import-error
+from utils.DfUtils import GetObjectFromFile #pylint: disable=wrong-import-position,import-error
 
 # load inputs
 parser = argparse.ArgumentParser(description='Arguments')
@@ -93,10 +94,11 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
     if inFile == None:
         print(f"ERROR: cannot open {inFileName}. Check your config. Exit!")
         sys.exit()
-    if inFile.Get(objName) == None:
+    objToCompare = GetObjectFromFile(inFile, objName)
+    if objToCompare == None:
         print(f"ERROR: couldn't load the histogram \'{objName}\' in \'{inFileName}\'. Check your config. Exit! ")
         sys.exit()
-    hToCompare.append(inFile.Get(objName))
+    hToCompare.append(objToCompare)
     if 'TH' in objType:
         hToCompare[iFile].SetName(f'h{iFile}')
         hToCompare[iFile].SetStats(0)

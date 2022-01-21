@@ -2,8 +2,10 @@
 Script with utils methods for managment and operations on pandas dataframes
 '''
 import pandas as pd
+import os
+import sys
 import uproot
-from ROOT import TFile, TTree
+from ROOT import TFile, TTree, TList
 import numpy as np
 from alive_progress import alive_bar
 
@@ -95,6 +97,46 @@ def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
 
     return dfOut
 
+def GetObjectFromFile(inFile, pathToObj):
+    '''
+    Function to extract an object inside a root file.
+    Supports nested containers with the following DataTipes:
+     - TFile
+     - TList
+
+    Parameters
+    -----------
+    inFile: TFile or name of the input file
+    pathToObj: path of the object inside the root file
+
+    Returns:
+    -----------
+    outObj: target root object
+    '''
+
+    pathToObj = os.path.normpath(pathToObj)
+    pathElements = pathToObj.split(os.sep)
+    print(pathElements)
+    if isinstance(inFile, str):
+        outObj = TFile.Open(inFile)
+    elif isinstance(inFile, TFile):
+        outObj = inFile
+    else:
+        print('\033[31mError\033[0m: input file must be TFile or str. Exit!')
+        sys.exit()
+
+    for iContainer, containerName in enumerate(pathElements):
+        print(outObj, type(outObj))
+        outObj.ls()
+        if isinstance(outObj, TFile):
+            outObj = outObj.Get(containerName)
+        elif isinstance(outObj, TList):
+            outObj = outObj.FindObject(containerName)
+        else:
+            print(f'\033[31mError\033[0m: instance of {type(outObj)} not implemented. Exit!')
+            sys.exit()
+    print('\n\n', outObj, type(outObj))
+    return outObj
 
 def GetMind0(ptList, d0List, ptThrs):
     '''
