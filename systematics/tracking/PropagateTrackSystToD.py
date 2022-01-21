@@ -292,6 +292,4 @@ for iPt in range(hTotSystAll.GetNbinsX()):
     print(
         f'\t\t pT (GeV/c): [{ptLims[iPt]:.1f} - {ptLims[iPt+1]:.1f}] syst: {hTotSystAll.GetBinContent(iPt+1):.3f}')
 
-# print(hPtDauVsPtDPrompt.GetEntries())
-
 input('\nPress enter to exit')
