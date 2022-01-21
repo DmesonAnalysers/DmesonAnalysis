@@ -6,6 +6,7 @@ run: python PropagateTrackSystToD.py cfgFileName.yml cutSetFileName.yml outFileN
 import sys
 import argparse
 import yaml
+import pandas as pd
 import numpy as np
 from ROOT import TFile, TCanvas, TH2F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kRainBow, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module
@@ -22,23 +23,23 @@ parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
 parser.add_argument('cutSetFileName', metavar='text', default='cutSetFileName.yml', help='input file with cut set')
 parser.add_argument('outFileName', metavar='text', default='outFileName.root', help='output root file name')
 parser.add_argument('period', metavar='text', default='LHC17pq', help='data period for systematic evaluation')
-parser.add_argument('--Dplus', action='store_true', default=False, help='enable comparison for D+')
-parser.add_argument('--Ds', action='store_true', default=False, help='enable comparison for Ds')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('--Dplus', action='store_true', default=False, help='enable comparison for D+')
+group.add_argument('--Ds', action='store_true', default=False, help='enable comparison for Ds')
+group.add_argument('--Lc2pK0s', action='store_true', default=False, help='enable comparison for Lc2pK0s')
 args = parser.parse_args()
 
-if not args.Dplus and not args.Ds:
-    print('ERROR: you should enable the syst uncertainty evaluation for either D+ or Ds! Exit')
-    sys.exit()
-elif args.Dplus and args.Ds:
-    print('ERROR: you should enable the syst uncertainty evaluation for either D+ or Ds! Exit')
-    sys.exit()
+nDau = 3
+if args.Dplus:
+    particle = 'Dplus'
 elif args.Dplus:
-    meson = 'Dplus'
+    particle = 'Ds'
 else:
-    meson = 'Ds'
+    particle = 'Lc2pK0s'
+    nDau = 1
 
 # input systematic uncertainties
-inFileSystUnc = TFile.Open(f'singletracksyst/traking_ME_piK_syst_{meson}_{args.period}.root')
+inFileSystUnc = TFile.Open(f'singletracksyst/traking_ME_piK_syst_{particle}_{args.period}.root')
 hTrkEff = inFileSystUnc.Get('hTrEff')
 hME = inFileSystUnc.Get('h')
 hTrkEff.SetDirectory(0)
@@ -79,6 +80,7 @@ bitRefl = 4
 
 dataFramePrompt = LoadDfFromRootOrParquet(inputCfg['tree']['filenamePrompt'], inputCfg['tree']['dirname'],
                                           inputCfg['tree']['treename'])
+        
 if 'cand_type' in dataFramePrompt.columns: #if not filtered tree, select only prompt and not reflected
     dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitSignal, bitPrompt], 'and')
     dataFramePrompt = FilterBitDf(dataFramePrompt, 'cand_type', [bitRefl], 'not')
@@ -90,6 +92,27 @@ if 'cand_type' in dataFrameFD.columns: #if not filtered tree, select only FD and
     dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitSignal, bitFD], 'and')
     dataFrameFD = FilterBitDf(dataFrameFD, 'cand_type', [bitRefl], 'not')
 dataFrameFD.reset_index(inplace=True)
+
+pd.set_option("max_rows", 40)
+print("prompt:\n",dataFramePrompt)
+dataFramePrompt.info()
+print("\n\nfd:\n",dataFrameFD)
+dataFrameFD.info()
+
+print('#########################################################################################################')
+print('#########################################################################################################')
+print('#########################################################################################################')
+# dataFramePrompt=dataFramePrompt[dataFramePrompt['pt_cand']<8]
+# dataFrameFD=dataFrameFD[dataFrameFD['pt_cand']<8]
+print("prompt:\n",dataFramePrompt)
+dataFramePrompt.info()
+print("\n\nfd:\n",dataFrameFD)
+dataFrameFD.info()
+# # for iEntry, row in enumerate(dataFramePrompt.iterrows()):
+#     # if row['pt_prong0'] != row['pt_prong0']:
+#         # print(iEntry, row)
+# # pd.options.display.max_rows = 10
+# print(dataFramePrompt[dataFramePrompt['pt_prong0']!=dataFramePrompt['pt_prong0']])
 
 if 'pt_prong0' not in dataFramePrompt.columns or 'pt_prong0' not in dataFrameFD.columns:
     print('ERROR: input dataframe does not contain daughter-track pt, propagation not possible! Exit')
@@ -106,14 +129,23 @@ for iPt, (cuts, ptMin, ptMax) in enumerate(zip(selToApply, cutVars['Pt']['min'],
 dataFramePromptSel.reset_index(inplace=True)
 dataFrameFDSel.reset_index(inplace=True)
 
-for iDau in range(3):
+for iDau in range(nDau):
     dataFramePromptSel[f'ME_dau{iDau}'] = ApplyHistoEntriesToColumn(dataFramePromptSel, f'pt_prong{iDau}', hME)
     dataFrameFDSel[f'ME_dau{iDau}'] = ApplyHistoEntriesToColumn(dataFrameFDSel, f'pt_prong{iDau}', hME)
 
-dataFramePromptSel['ME_tot'] = dataFramePromptSel.apply(
-    lambda row: row['ME_dau0']+row['ME_dau1']+row['ME_dau2'], axis=1)
-dataFrameFDSel['ME_tot'] = dataFrameFDSel.apply(
-    lambda row: row['ME_dau0']+row['ME_dau1']+row['ME_dau2'], axis=1)
+if args.Lc2pK0s: # Use only the track of the proton
+    dataFramePromptSel['ME_tot'] = dataFramePromptSel.apply(
+        lambda row: row['ME_dau0'], axis=1)
+    dataFrameFDSel['ME_tot'] = dataFrameFDSel.apply(
+        lambda row: row['ME_dau0'], axis=1)
+else:
+    dataFramePromptSel['ME_tot'] = dataFramePromptSel.apply(
+        lambda row: row['ME_dau0']+row['ME_dau1']+row['ME_dau2'], axis=1)
+    dataFrameFDSel['ME_tot'] = dataFrameFDSel.apply(
+        lambda row: row['ME_dau0']+row['ME_dau1']+row['ME_dau2'], axis=1)
+
+# dataFramePromptSel=dataFramePromptSel[dataFramePromptSel['pt_prong0']==dataFramePromptSel['pt_prong0']]
+# dataFrameFDSel=dataFrameFDSel[dataFrameFDSel['pt_prong0']==dataFrameFDSel['pt_prong0']]
 
 nPtBins = hTrkEff.GetNbinsX()
 ptLims = cutVars['Pt']['min'].copy()
@@ -144,7 +176,7 @@ SetObjectStyle(hSystMeanPrompt, fillstyle=0, markersize=0.8)
 SetObjectStyle(hSystMeanFD, fillstyle=0, markersize=0.8)
 SetObjectStyle(hSystMeanAll, fillstyle=0, markersize=0.8)
 
-for iDau in range(3):
+for iDau in range(nDau):
     hTmp = hPtDauVsPtDPrompt.Clone('hTmp')
     hTmp.Reset()
     for pt, ptProng in zip(dataFramePromptSel['pt_cand'].to_numpy(), dataFramePromptSel[f'pt_prong{iDau}'].to_numpy()):
@@ -282,5 +314,7 @@ print('\nAll')
 for iPt in range(hTotSystAll.GetNbinsX()):
     print(
         f'\t\t pT (GeV/c): [{ptLims[iPt]:.1f} - {ptLims[iPt+1]:.1f}] syst: {hTotSystAll.GetBinContent(iPt+1):.3f}')
+
+# print(hPtDauVsPtDPrompt.GetEntries())
 
 input('\nPress enter to exit')
