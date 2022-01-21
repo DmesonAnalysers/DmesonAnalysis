@@ -6,7 +6,6 @@ run: python PropagateTrackSystToD.py cfgFileName.yml cutSetFileName.yml outFileN
 import sys
 import argparse
 import yaml
-import pandas as pd
 import numpy as np
 from ROOT import TFile, TCanvas, TH2F, TLegend # pylint: disable=import-error,no-name-in-module
 from ROOT import kRed, kAzure, kRainBow, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module
