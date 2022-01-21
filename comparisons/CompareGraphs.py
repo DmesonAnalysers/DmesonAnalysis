@@ -124,7 +124,7 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
         for iBin in range(hToCompare[iFile].GetNbinsX()):
             bc = hToCompare[iFile].GetBinContent(iBin+1)
             hToCompare[iFile].SetBinContent(iBin+1, (bc -1) * lambdaParam +1)
-            hToCompare[iFile].SetBinError(iBin+1, hToCompare[iFile].GetBinError() * lambdaParam)
+            hToCompare[iFile].SetBinError(iBin+1, hToCompare[iFile].GetBinError(iBin+1) * lambdaParam)
     else:
         ScaleGraph(hToCompare[iFile], scale)
         
