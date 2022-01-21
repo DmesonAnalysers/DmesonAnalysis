@@ -32,7 +32,7 @@ args = parser.parse_args()
 nDau = 3
 if args.Dplus:
     particle = 'Dplus'
-elif args.Dplus:
+elif args.Ds:
     particle = 'Ds'
 else:
     particle = 'Lc2pK0s'
