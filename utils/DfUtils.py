@@ -116,7 +116,7 @@ def GetObjectFromFile(inFile, pathToObj):
 
     pathToObj = os.path.normpath(pathToObj)
     pathElements = pathToObj.split(os.sep)
-    print(pathElements)
+
     if isinstance(inFile, str):
         outObj = TFile.Open(inFile)
     elif isinstance(inFile, TFile):
@@ -126,8 +126,6 @@ def GetObjectFromFile(inFile, pathToObj):
         sys.exit()
 
     for iContainer, containerName in enumerate(pathElements):
-        print(outObj, type(outObj))
-        outObj.ls()
         if isinstance(outObj, TFile):
             outObj = outObj.Get(containerName)
         elif isinstance(outObj, TList):
@@ -135,7 +133,6 @@ def GetObjectFromFile(inFile, pathToObj):
         else:
             print(f'\033[31mError\033[0m: instance of {type(outObj)} not implemented. Exit!')
             sys.exit()
-    print('\n\n', outObj, type(outObj))
     return outObj
 
 def GetMind0(ptList, d0List, ptThrs):
