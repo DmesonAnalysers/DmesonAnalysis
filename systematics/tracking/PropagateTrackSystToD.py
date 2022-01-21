@@ -123,8 +123,6 @@ else:
     dataFrameFDSel['ME_tot'] = dataFrameFDSel.apply(
         lambda row: row['ME_dau0']+row['ME_dau1']+row['ME_dau2'], axis=1)
 
-# dataFramePromptSel=dataFramePromptSel[dataFramePromptSel['pt_prong0']==dataFramePromptSel['pt_prong0']]
-# dataFrameFDSel=dataFrameFDSel[dataFrameFDSel['pt_prong0']==dataFrameFDSel['pt_prong0']]
 
 nPtBins = hTrkEff.GetNbinsX()
 ptLims = cutVars['Pt']['min'].copy()
