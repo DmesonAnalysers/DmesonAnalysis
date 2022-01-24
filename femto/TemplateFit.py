@@ -16,7 +16,6 @@ from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, G
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', help='yaml config file name')
-parser.add_argument('--onlyMC', action='store_true', help='Compute the fractions only in the MC sample')
 parser.add_argument('-b', action='store_true', help='Run un batch mode')
 args = parser.parse_args()
 
@@ -29,17 +28,33 @@ channel = cfg['input']['channel']
 dataFile = TFile(cfg['input']['data'], 'read')
 mcFile = TFile(cfg['input']['mc'], 'read')
 sourceList = cfg['sources']
-colors = cfg['colors']
-colors = [GetROOTColor(color) for color in colors]
+sourceLabelList = cfg['sourcelabels']
+colors = cfg['colors']  # todo remove ?
+colors = [GetROOTColor(color) for color in cfg['colors']]
 tolerance = cfg['tolerance']
-rebin = cfg['rebin']
+rebinPt = cfg['rebinpt']
 dcaFitRange = cfg['dcafitrange']
 dcaFracRange = cfg['dcafracrange']
 ptRange = cfg['ptrange']
-fractoinRange = cfg['fractionrange']
 useLogY = cfg['output']['logy']
-sourceLegend = cfg['sourcelegend']
 oFileName = cfg['output']['filename']
+
+# fractions-vs-pt plot settings
+fracNLegCols = cfg['output']['fractionsVsPt']['legcols']
+fracLegPos = cfg['output']['fractionsVsPt']['legposition']
+fracYRange = cfg['output']['fractionsVsPt']['yrange']
+
+# data-and-prediction plot settings
+dataPredNLegCols = cfg['output']['dataprediction']['legcols']
+dataPredLegPos = cfg['output']['dataprediction']['legposition']
+dataPredYRange = cfg['output']['dataprediction']['yrange']
+
+# data-and-MC-templates plot settings
+dataTemplatesNLegCols = cfg['output']['mctemplates']['legcols']
+dataTemplLegPos = cfg['output']['mctemplates']['legposition']
+dataTemplatesYRange = cfg['output']['mctemplates']['yrange']
+dataTemplatesYRebin = cfg['output']['mctemplates']['rebin']
+
 
 if channel == 'DK':
     buddy = 'kaon'
@@ -67,7 +82,7 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
 
     hDcaPt_data = hDcaPtList_data.FindObject('DCAXYPtBinningTot')
     hDcaPt_data.GetXaxis().SetRangeUser(ptRange[0], ptRange[1])
-    hDcaPt_data.RebinX(rebin)
+    hDcaPt_data.RebinX(rebinPt)
     hDcaPt_data.GetYaxis().SetRangeUser(-dcaFitRange, dcaFitRange)
 
     nPtBins = hDcaPt_data.GetNbinsX()
@@ -83,7 +98,7 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     # Make plots
     for iSource, source in enumerate(sourceList):
         hDcaPt_mc = hDcaPtList_mc.FindObject('DCAPtBinning').FindObject(f'DCAPtBinning{source}')
-        hDcaPt_mc.RebinX(rebin)
+        hDcaPt_mc.RebinX(rebinPt)
         hDcaPt_mc.GetYaxis().SetRangeUser(-dcaFitRange, dcaFitRange)
 
         if hDcaPt_data.GetNbinsX() != hDcaPt_mc.GetNbinsX():
@@ -106,7 +121,6 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     for iPtBin, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         hDataToFit = hDcaPt_data.ProjectionY(f'hDca_{iPtBin+1}_data', iPtBin + 1, iPtBin + 1)
         dataToDraw.append(hDataToFit.Clone(f'hDataToDraw_{iPtBin}_data'))
-
         # Create list of MC templates
         hMcToFit = TObjArray(len(sourceList))
         for iSource, source in enumerate(sourceList):
@@ -118,10 +132,11 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
         # Compute fractions in MC, used as a reference to constrain the fit parameters
         totalMCIntegral = sum([hMcToFit.At(iSource).Integral() for iSource in range(len(sourceList))])
         fractionsInMC.append([hMcToFit.At(iSource).Integral() / totalMCIntegral for iSource in range(len(sourceList))])
-        if args.onlyMC:
-            continue
+
         for iSource in range(len(sourceList)):
-            cocktail[iPtBin].Constrain(iSource, fractionsInMC[iPtBin][iSource] * (1 - tolerance), min(1, fractionsInMC[iPtBin][iSource] / (1 - tolerance)))
+            fracMin = fractionsInMC[iPtBin][iSource] * (1 - tolerance)
+            fracMax = min(1, fractionsInMC[iPtBin][iSource] / (1 - tolerance))
+            cocktail[iPtBin].Constrain(iSource, fracMin, fracMax)
         status = cocktail[iPtBin].Fit()
 
         fractionsInData = [ctypes.c_double() for iSource in range(len(sourceList))]
@@ -149,10 +164,11 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
 
         fractionsInFracRange.append([contrib / sum(contributions) for contrib in contributions])
         fractionsUncInFracRange.append([unc / sum(contributions) for unc in uncList])
+
     # Make drawings
     oFile.mkdir(f'HM_CharmFemto_D{buddy}')
     oFile.cd(f'HM_CharmFemto_D{buddy}')
-    # gStyle.SetPalette(52)
+
     SetGlobalStyle(
         textsize=0.03,
         labelsize=0.035,
@@ -163,11 +179,11 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
         padbottommargin=0.12,
         padrightmargin=0.1)
 
-    # todo: fix this part
-    # cDataTemplatesStack = TCanvas('cDataTemplatesStack', 'MC DCA templates', 1920, 1080)
-    # DivideCanvas(cDataTemplatesStack, nPtBins)
+    cDataTemplatesStack = TCanvas(f'cDataTemplatesStack_{buddy}', f'MC DCA templates - {buddy}', 1920, 1080)
+    DivideCanvas(cDataTemplatesStack, nPtBins)
+    cDataTemplatesStack.cd(iPtBin + 1)
 
-    cPred = TCanvas('cPred', 'Data and prediction', 1920, 1080)
+    cPred = TCanvas(f'cPred_{buddy}', f'Data and prediction - {buddy}', 1920, 1080)
     DivideCanvas(cPred, nPtBins)
 
     hDataTemplatesStack = []
@@ -175,68 +191,94 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     for iPtBin, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         if useLogY:
             cPred.cd(iPtBin + 1).SetLogy()
-            # cDataTemplatesStack.cd(iPtBin + 1).SetLogy() # todo: fix this part
-        if not args.onlyMC:
-            # Draw Data and prediction
-            cPred.cd(iPtBin + 1)
-            cPred.SetBottomMargin(0)
-            cPred.SetTopMargin(0)
-            hPred = cocktail[iPtBin].GetPlot()
-            SetObjectStyle(hPred, linecolor=kRed, linewidth=1)
-            hPred.SetTitle(';DCA_{xy} (cm); Entries (a.u.)')
-            hPred.SetLineColor(GetROOTColor('kRed'))
-            SetObjectStyle(dataToDraw[iPtBin])
-            dataToDraw[iPtBin].DrawCopy('pe')
-            dataToDraw[iPtBin].Write(f'hData_pT_{ptMin*1000:.0f}_{ptMax*1000:.0f}')
-            if iPtBin == 0:
-                legPred = TLegend(0.15, 0.8, 0.4, 0.9)
-                legPred.AddEntry(dataToDraw[iPtBin], 'Data', 'lp')
-                legPred.AddEntry(hPred, 'Prediction', 'l')
-                legPred.Draw('same')
-            hPred.DrawCopy('same hist')
-            hPred.Write(f'hPrediction_{source}_pT_{ptMin*1000:.0f}_{ptMax*1000:.0f}')
-            latPred = TLatex()
-            latPred.SetTextSize(0.03)
-            latPred.DrawLatexNDC(0.65, 0.85, f'#chi^{{2}}/NDF = {cocktail[iPtBin].GetChisquare()/cocktail[iPtBin].GetNDF():.2f}')
-            latPred.DrawLatexNDC(0.65, 0.8, f'{ptMin:.2f} < #it{{p}}_{{T}} < {ptMax:.2f} GeV/c')
 
-        # stack templates # todo: fix this part
-        # cDataTemplatesStack.cd(iPtBin + 1)
-        hDataTemplatesStack.append(THStack(f'hDataTemplatesStack_{buddy}', 'MC DCA templates;DCA_{xy} (cm); Entries (a.u.)'))
+        # Draw Data and prediction
+        cPred.cd(iPtBin + 1)
+        cPred.SetBottomMargin(0)
+        cPred.SetTopMargin(0)
+        hPred = cocktail[iPtBin].GetPlot()
+        SetObjectStyle(hPred, linecolor=kRed, linewidth=1)
+        hPred.SetLineColor(GetROOTColor('kRed'))
+        SetObjectStyle(dataToDraw[iPtBin])
 
-        # legStack = TLegend(0.15, 0.55, 0.4, 0.92)
-        # if not args.onlyMC:
-        #     hDataToDraw = dataToDraw[iPtBin].Clone('dataToDraw_stack')  # Data
-        #     SetObjectStyle(hDataToDraw, markerstyle=20, SetPadLeftMargin=0.3)
-        #     hDataToDraw.Scale(1. / hDataToDraw.Integral())
-        #     legStack.AddEntry(hDataToDraw, 'Data')
-        #     hDataTemplatesStack[-1].Add(hDataToDraw)
-        for iSource, source in enumerate(sourceList):  # MC
+        if isinstance(dataPredYRange, list):
+            dataToDraw[iPtBin].GetYaxis().SetRangeUser(dataPredYRange[0], dataPredYRange[1])
+        elif dataPredYRange == 'auto':
+            pass
+        else:
+            print(f'\033[91mError:\033[0m the range option {fracYRange} is not supported. Exit!')
+            sys.exit()
+
+        dataToDraw[iPtBin].SetTitle(';DCA_{xy} (cm);Entries (a.u.)')
+        dataToDraw[iPtBin].DrawCopy('pe')
+        dataToDraw[iPtBin].Write(f'hData_pT_{ptMin*1000:.0f}_{ptMax*1000:.0f}')
+        hPred.SetTitle(';DCA_{xy} (cm);Entries (a.u.)')
+        hPred.DrawCopy('same hist')
+        hPred.Write(f'hPrediction_{source}_pT_{ptMin*1000:.0f}_{ptMax*1000:.0f}')
+
+        if iPtBin == 0:
+            legPred = TLegend(dataPredLegPos[0], dataPredLegPos[1], dataPredLegPos[2], dataPredLegPos[3])
+            legPred.AddEntry(dataToDraw[iPtBin], 'Data', 'lp')
+            legPred.AddEntry(hPred, 'Prediction', 'l')
+            legPred.Draw('same')
+        latPred = TLatex()
+        latPred.SetTextSize(0.03)
+        chi2NDF = cocktail[iPtBin].GetChisquare() / cocktail[iPtBin].GetNDF()
+        latPred.DrawLatexNDC(0.65, 0.85, f'#chi^{{2}}/NDF = {chi2NDF:.2f}')
+        latPred.DrawLatexNDC(0.65, 0.8, f'{ptMin:.2f} < #it{{p}}_{{T}} < {ptMax:.2f} GeV/c')
+
+        if useLogY:
+            cDataTemplatesStack.cd(iPtBin + 1).SetLogy()
+        hDataTemplatesStack.append(THStack(f'hDataTemplatesStack_{buddy}',
+                                           'MC DCA templates;DCA_{xy} (cm); Entries (a.u.)'))
+
+        # stack with MC templates and data
+        legStack = TLegend(dataTemplLegPos[0], dataTemplLegPos[1], dataTemplLegPos[2], dataTemplLegPos[3])
+        hDataToDraw = dataToDraw[iPtBin].Clone('dataToDraw_stack')  # Data
+        SetObjectStyle(hDataToDraw, markerstyle=20, SetPadLeftMargin=0.3)
+        hDataToDraw.Rebin(dataTemplatesYRebin)
+        hDataToDraw.Scale(1. / hDataToDraw.Integral())
+        if isinstance(dataTemplatesYRange, list):
+            hDataToDraw.GetYaxis().SetRangeUser(dataTemplatesYRange[0], dataTemplatesYRange[1])
+        elif dataTemplatesYRange == 'auto':
+            pass
+        else:
+            print(f'\033[91mError:\033[0m the range option {fracYRange} is not supported. Exit!')
+            sys.exit()
+        legStack.AddEntry(hDataToDraw, 'Data')
+        hDataTemplatesStack[-1].Add(hDataToDraw)
+
+        for iSource, (source, sourceLabel, color) in enumerate(zip(sourceList, sourceLabelList, colors, )):  # MC
             hMCTemplateToDraw = mcToDraw[iPtBin][iSource]
             hMCTemplateToDraw.Write(f'hMCTemplate_{source}_pT_{ptMin*1000:.0f}_{ptMax*1000:.0f}')
-        #     SetObjectStyle(hMCTemplateToDraw, markercolor=colors[iSource], linecolor=colors[iSource], markerstyle=21 + iSource)
-        #     hMCTemplateToDraw.Scale(1. / hMCTemplateToDraw.Integral() if hMCTemplateToDraw.Integral() > 0 else 1)
-        #     legStack.AddEntry(hMCTemplateToDraw, sourceList[iSource])
-        #     hDataTemplatesStack[-1].Add(hMCTemplateToDraw)
+            SetObjectStyle(hMCTemplateToDraw, markercolor=color, linecolor=color, markerstyle=21 + iSource)
+            hMCTemplateToDraw.Rebin(dataTemplatesYRebin)
+            hMCTemplateToDraw.Scale(1. / hMCTemplateToDraw.Integral() if hMCTemplateToDraw.Integral() > 0 else 1)
+            legStack.AddEntry(hMCTemplateToDraw, sourceLabel)
+            hDataTemplatesStack[-1].Add(hMCTemplateToDraw)
 
-        # hDataTemplatesStack[-1].DrawClone('nostack plm')
-        # hDataTemplatesStack[-1].Write()
-        # legStack.Draw('same plm')
-        # latStack = TLatex()
-        # latStack.SetTextSize(0.03)
-        # latStack.DrawLatexNDC(0.65, 0.85, f'{ptMin:.2f} < #it{{p}}_{{T}} < {ptMax:.2f} GeV/c')
-        # for iSource, source in enumerate(sourceList):
-        #     latStack.DrawLatexNDC(
-        #         0.65, 0.8 - 0.05 * iSource, f'f_{{{source}}} = {fractionsInData[iSource].value if not args.onlyMC else fractionsInMC[iPtBin][iSource]:.4f} #pm {fractionsInDataUnc[iSource].value if not args.onlyMC else 0:.4f}')
+        cDataTemplatesStack.cd(iPtBin + 1)
+        hDataTemplatesStack[-1].Draw('nostack hist')
 
-    # cDataTemplatesStack.Modified() # todo: fix this partali
-    # cDataTemplatesStack.Update() # todo: fix this part
+        hDataTemplatesStack[-1].Write()
+        legStack.Draw('same l')
+        latStack = TLatex()
+        latStack.SetTextSize(0.03)
+        latStack.DrawLatexNDC(0.65, 0.85, f'{ptMin:.2f} < #it{{p}}_{{T}} < {ptMax:.2f} GeV/c')
+        for iSource, (source, frac, fracUnc) in enumerate(zip(sourceList, fractionsInData, fractionsInDataUnc)):
+            latStack.DrawLatexNDC(0.65, 0.8 - 0.05 * iSource,
+                                  f'f_{{{source}}} = {frac.value:.4f} #pm {fracUnc.value:.4f}')
+
+    cDataTemplatesStack.Modified()
+    cDataTemplatesStack.Update()
+
+    cPred.Modified()
+    cPred.Update()
 
     cPred.SaveAs(f'{oFileName}_{buddy}_pred.pdf')
-    # cDataTemplatesStack.SaveAs(f'{oFileName}_{buddy}_shapes.pdf')  # todo: fix this part
+    cDataTemplatesStack.SaveAs(f'{oFileName}_{buddy}_shapes.pdf')
 
     # Fractions vs pT
-
     cFracVsPt = TCanvas(f'cFracVsPt_{buddy}', f'Fractions vs pT - {buddy}', 600, 600)
     gFraction = [TGraphErrors(1) for _ in range(len(sourceList))]
     for iPtBin, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
@@ -244,21 +286,23 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
         x = (ptMax + ptMin) / 2
         xUnc = (ptMax - ptMin) / 2
         for iSource in range(len(sourceList)):
-            if args.onlyMC:
-                y = fractionsInMC[iPtBin][iSource]
-                yUnc = 0
-            else:
-                y = fractionsInFracRange[iPtBin][iSource]
-                yUnc = fractionsUncInFracRange[iPtBin][iSource]
+            y = fractionsInFracRange[iPtBin][iSource]
+            yUnc = fractionsUncInFracRange[iPtBin][iSource]
             gFraction[iSource].SetPoint(iPtBin, x, y)
             gFraction[iSource].SetPointError(iPtBin, xUnc, yUnc)
 
-    gFraction[0].GetYaxis().SetRangeUser(fractoinRange[0], fractoinRange[1])
-    gFraction[0].SetTitle(f'Contribution to the sample with {-dcaFitRange} #leq DCA_{{xy}} #leq {-dcaFitRange} (cm);#it{{p}}_{{T}} (GeV/c);fraction')
+    if isinstance(fracYRange, list):
+        gFraction[0].GetYaxis().SetRangeUser(fracYRange[0], fracYRange[1])
+    elif fracYRange == 'auto':
+        pass
+    else:
+        print(f'\033[91mError:\033[0m the range option {fracYRange} is not supported. Exit!')
+        sys.exit()
+
     if useLogY:
         cFracVsPt.SetLogy()
-    legFrac = TLegend(0.35, 0.2)
-    legFrac.SetNColumns(2)
+    legFrac = TLegend(fracLegPos[0], fracLegPos[1], fracLegPos[2], fracLegPos[3])
+    legFrac.SetNColumns(fracNLegCols)
     if buddy == 'kaon':
         legTitle = 'K^{+}'
     elif buddy == 'antikaon':
@@ -268,10 +312,10 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     elif buddy == 'antipion':
         legTitle = '#pi^{-}'
     legFrac.SetHeader(legTitle, 'C')
-    for iSource in range(len(sourceList)):
+    for iSource, (source, sourceLabel, color)in enumerate(zip(sourceList, sourceLabelList, colors)):
         gFraction[iSource].SetName(f'gFraction_{buddy}_{sourceList[iSource]}')
-        SetObjectStyle(gFraction[iSource], markercolor=colors[iSource], linecolor=colors[iSource], markerstyle=21 + iSource)
-        legFrac.AddEntry(gFraction[iSource], sourceLegend[iSource], 'lp')
+        SetObjectStyle(gFraction[iSource], markercolor=color, linecolor=color, markerstyle=21 + iSource)
+        legFrac.AddEntry(gFraction[iSource], sourceLabel, 'lp')
         if iSource == 0:
             gFraction[iSource].Draw('ape')
         gFraction[iSource].Draw('pe same')
@@ -279,4 +323,3 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     legFrac.Draw('same')
     cFracVsPt.SaveAs(f'{oFileName}_{buddy}_fractions.pdf')
     cFracVsPt.Write()
-oFile.Close()

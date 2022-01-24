@@ -1,0 +1,36 @@
+input:
+    channel: DK
+    data: /home/daniel/alice/CharmingAnalyses/DKDpi/oton_mctruth/data/AnalysisResults_all.root
+    mc: /home/daniel/alice/CharmingAnalyses/DKDpi/oton_mctruth/mcgp/AnalysisResults_all.root
+
+sources: [Pri, Mat, Sec]
+sourcelabels: ["Primaries", "Material", "Sec. from weak decay"]
+
+colors: [kRed, kGrey+2, kGreen+2] # data is kBlack
+
+# fit
+ptrange: [0, 2] # you must make that sure all histograms used in the fit are non-empty in the specified pt-range
+dcafitrange: 2.2
+dcafracrange: 0.1
+tolerance: 0.3 # fractions are constrained in [fracInMC * (1 - tol), fracInMC / (1 - tol)]
+rebinpt: 10
+
+output:
+    filename: /home/daniel/alice/CharmingAnalyses/DKDpi/oton_mctruth/dcafit/dcafit # wo extension
+    logy: true
+
+    dataprediction:
+        legposition: [0.15, 0.8, 0.4, 0.9]
+        legcols: 1
+        yrange: auto
+
+    mctemplates:
+        legposition: [0.15, 0.7, 0.4, 0.9]
+        legcols: 1
+        yrange: [1.e-6, 10]
+        rebin: 20 # only for graphic purposes. Neither dara nor MC templates are rebinned using this value for the fit!
+
+    fractionsVsPt:
+        legposition: [0.55, 0.15, 0.85, 0.35]
+        legcols: 1
+        yrange: [1.e-7, 5]

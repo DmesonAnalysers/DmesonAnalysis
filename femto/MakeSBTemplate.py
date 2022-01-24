@@ -34,15 +34,6 @@ else:
         f'\033[91mError:\033[0m the channel {spec} is not implemented. Exit!')
     sys.exit()
 
-# def getBootstrapGraph(graph):
-#     grOut = graph.Clone(Form("bootstrap_%s_%i", graph.GetName(), int(gRandom.Uniform() * 10000.f)));
-#     static double xVal, yVal;
-#     for (int i = 0; i < graph.GetN(); ++i) {
-#         graph.GetPoint(i, xVal, yVal);
-#         grOut.SetPoint(i, xVal, gRandom.Gaus(yVal, graph.GetErrorY(i)));
-#     }
-#     return grOut;
-
 # open files with CF
 fSBL = TFile(os.path.join(cfg['input']['sideband_dir'], f'CFOutput_{spec}_SBLeft.root'))
 fSBR = TFile(os.path.join(cfg['input']['sideband_dir'], f'CFOutput_{spec}_SBRight.root'))
@@ -156,12 +147,18 @@ cSBCombined = TCanvas('cSBCombined', 'Left and right combined', 600, 600)
 modelSBComb.SetTitle(gSBL.GetTitle())  # todo: check if works
 modelSBComb.Draw()
 
+
 def modelSBCombFuncUncHigh(x, par):
     return modelSBComb.Eval(x[0]) + modelSBUnc.Eval(x[0])
+
+
 modelSBCombUncHigh = TF1('funcCFSBCombUncHigh', modelSBCombFuncUncHigh, fitRangeMin, fitRangeMax)
+
 
 def modelSBCombFuncUncLow(x, par):
     return modelSBComb.Eval(x[0]) - modelSBUnc.Eval(x[0])
+
+
 modelSBCombUncLow = TF1('funcCFSBCombUncLow', modelSBCombFuncUncLow, fitRangeMin, fitRangeMax)
 
 modelSBCombUncHigh.SetLineStyle(9)
