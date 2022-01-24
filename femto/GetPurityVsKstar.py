@@ -2,7 +2,6 @@
 python script for the evaluation of the D-meson S/B as a function of k*
 '''
 
-from cmath import inf
 import sys
 import os
 import argparse
@@ -131,8 +130,6 @@ else:
 inFile = TFile.Open(inFileName)
 listName = f'{prefix}_CharmFemto{HFsuffix}_ResultQA{suffix}/{prefix}_CharmFemto{HFsuffix}_ResultQA{suffix}'
 inList = inFile.Get(listName)
-inFile.ls()
-print(listName, inList)
 
 kStarDelta = 0.2
 kStarMins = [iK * kStarDelta for iK in range(15)]
@@ -140,9 +137,7 @@ kStarMaxs = [(iK+1) * kStarDelta for iK in range(15)]
 
 hSEPairVsPtVsKstar, hSEPairVsPt, hSEPairSignalVsPt = ({} for _ in range(3))
 for corrName in corrNames:
-
     listCorr = inList.FindObject(f'QA_{corrName}')
-    
     hSEPairVsPtVsKstar[corrName], hSEPairVsPt[corrName] = [], []
     for kStarMin, kStarMax in zip(kStarMins, kStarMaxs):
         hSEPairVsPtVsKstar[corrName].append(listCorr.FindObject(f'KstarPtSEPartTwo_{corrName}'))
