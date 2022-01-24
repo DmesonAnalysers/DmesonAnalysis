@@ -1,0 +1,19 @@
+input:
+    sideband_dir: /home/daniel/alice/CharmingAnalyses/DKDpi/starting_selections/data/cf/
+    specifier: KplusDminus
+
+output: /home/daniel/alice/CharmingAnalyses/DKDpi/starting_selections/lambdaparam/kaons #wo extension
+
+rebin: 3 # specifies the CF to use among those obtained with different rebinning of SE/ME distributions  
+
+fit:
+    method: legendre3
+    xrange: [0., 1200.]
+    yrange: [0.9, 2.4]
+    parmin: [0.5., -0.8, -0.8, -0.8, -0.8, -0.8]
+    parmax: [+2., +1., +1., +1., +1., +1.]
+
+sidebands:
+    combmethod: kAverage
+    weightleftsb: 0.51
+    weightrightsb: 0.49
