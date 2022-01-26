@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import sys
 import uproot
-from ROOT import TFile, TTree, TList
+from ROOT import TFile, TTree, TList, TDirectoryFile
 import numpy as np
 from alive_progress import alive_bar
 
@@ -100,7 +100,7 @@ def LoadDfFromRootOrParquet(inFileNames, inDirNames=None, inTreeNames=None):
 def GetObjectFromFile(inFile, pathToObj):
     '''
     Function to extract an object inside a root file.
-    Supports nested containers with the following DataTipes:
+    Supports nested containers with the following Data Types:
      - TFile
      - TList
 
@@ -130,6 +130,8 @@ def GetObjectFromFile(inFile, pathToObj):
             outObj = outObj.Get(containerName)
         elif isinstance(outObj, TList):
             outObj = outObj.FindObject(containerName)
+        elif isinstance(outObj, TDirectoryFile):
+            outObj = outObj.Get(containerName)
         else:
             print(f'\033[31mError\033[0m: instance of {type(outObj)} not implemented. Exit!')
             sys.exit()
