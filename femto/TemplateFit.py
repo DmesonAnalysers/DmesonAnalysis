@@ -10,7 +10,7 @@ import numpy as np
 import yaml
 import os
 from ROOT import TCanvas, TFractionFitter, TFile, TObjArray, TGraphErrors
-from ROOT import THStack, kRed, gROOT, TLatex, TLegend
+from ROOT import THStack, kRed, gROOT, TLatex, TLegend, TH1D
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker, DivideCanvas
 
@@ -29,7 +29,6 @@ dataFile = TFile(cfg['input']['data'], 'read')
 mcFile = TFile(cfg['input']['mc'], 'read')
 sourceList = cfg['sources']
 sourceLabelList = cfg['sourcelabels']
-colors = cfg['colors']  # todo remove ?
 colors = [GetROOTColor(color) for color in cfg['colors']]
 tolerance = cfg['tolerance']
 rebinPt = cfg['rebinpt']
@@ -54,7 +53,6 @@ dataTemplatesNLegCols = cfg['output']['mctemplates']['legcols']
 dataTemplLegPos = cfg['output']['mctemplates']['legposition']
 dataTemplatesYRange = cfg['output']['mctemplates']['yrange']
 dataTemplatesYRebin = cfg['output']['mctemplates']['rebin']
-
 
 if channel == 'DK':
     buddy = 'kaon'
@@ -121,8 +119,10 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     for iPtBin, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         hDataToFit = hDcaPt_data.ProjectionY(f'hDca_{iPtBin+1}_data', iPtBin + 1, iPtBin + 1)
         dataToDraw.append(hDataToFit.Clone(f'hDataToDraw_{iPtBin}_data'))
+
+        nSources = len(sourceList)
         # Create list of MC templates
-        hMcToFit = TObjArray(len(sourceList))
+        hMcToFit = TObjArray(nSources)
         for iSource, source in enumerate(sourceList):
             hMC = hMcToProject[iSource].ProjectionY(f'hDca_{source}_{iPtBin+1}_mc', iPtBin + 1, iPtBin + 1)
             hMcToFit.Add(hMC)
@@ -130,21 +130,21 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
         cocktail.append(TFractionFitter(hDataToFit, hMcToFit, 'Q'))
 
         # Compute fractions in MC, used as a reference to constrain the fit parameters
-        totalMCIntegral = sum([hMcToFit.At(iSource).Integral() for iSource in range(len(sourceList))])
-        fractionsInMC.append([hMcToFit.At(iSource).Integral() / totalMCIntegral for iSource in range(len(sourceList))])
+        totalMCIntegral = sum([hMcToFit.At(iSource).Integral() for iSource in range(nSources)])
+        fractionsInMC.append([hMcToFit.At(iSource).Integral() / totalMCIntegral for iSource in range(nSources)])
 
-        for iSource in range(len(sourceList)):
+        for iSource in range(nSources):
             fracMin = fractionsInMC[iPtBin][iSource] * (1 - tolerance)
             fracMax = min(1, fractionsInMC[iPtBin][iSource] / (1 - tolerance))
             cocktail[iPtBin].Constrain(iSource, fracMin, fracMax)
         status = cocktail[iPtBin].Fit()
 
-        fractionsInData = [ctypes.c_double() for iSource in range(len(sourceList))]
-        fractionsInDataUnc = [ctypes.c_double() for iSource in range(len(sourceList))]
+        fractionsInData = [ctypes.c_double() for iSource in range(nSources)]
+        fractionsInDataUnc = [ctypes.c_double() for iSource in range(nSources)]
 
-        for iSource in range(len(sourceList)):
+        for iSource in range(nSources):
             cocktail[iPtBin].GetResult(iSource, fractionsInData[iSource], fractionsInDataUnc[iSource])
-        totalDataIntegral = sum([float(fractionsInData[iSource].value) for iSource in range(len(sourceList))])
+        totalDataIntegral = sum([float(fractionsInData[iSource].value) for iSource in range(nSources)])
 
         print('      From TFractionFitter          |      in MC')
         for source, fData, fDataUnc, fMC in zip(sourceList, fractionsInData, fractionsInDataUnc, fractionsInMC[iPtBin]):
@@ -153,7 +153,7 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
 
         uncList = []
         contributions = []
-        for iSource in range(len(sourceList)):
+        for iSource in range(nSources):
             predSource = cocktail[iPtBin].GetMCPrediction(iSource)
             minBin = int(predSource.GetXaxis().FindBin(-dcaFitRange))
             maxBin = int(predSource.GetXaxis().FindBin(+dcaFitRange))
@@ -170,7 +170,7 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     oFile.cd(f'HM_CharmFemto_D{buddy}')
 
     SetGlobalStyle(
-        textsize=0.03,
+        textsize=0.04,
         labelsize=0.035,
         titlesize=0.035,
         titleoffsety=1.8,
@@ -222,7 +222,7 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
             legPred.AddEntry(hPred, 'Prediction', 'l')
             legPred.Draw('same')
         latPred = TLatex()
-        latPred.SetTextSize(0.03)
+        latPred.SetTextSize(0.04)
         chi2NDF = cocktail[iPtBin].GetChisquare() / cocktail[iPtBin].GetNDF()
         latPred.DrawLatexNDC(0.65, 0.85, f'#chi^{{2}}/NDF = {chi2NDF:.2f}')
         latPred.DrawLatexNDC(0.65, 0.8, f'{ptMin:.2f} < #it{{p}}_{{T}} < {ptMax:.2f} GeV/c')
@@ -260,10 +260,10 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
         cDataTemplatesStack.cd(iPtBin + 1)
         hDataTemplatesStack[-1].Draw('nostack hist')
 
-        hDataTemplatesStack[-1].Write()
         legStack.Draw('same l')
         latStack = TLatex()
-        latStack.SetTextSize(0.03)
+        latStack.SetTextSize(0.04)
+
         latStack.DrawLatexNDC(0.65, 0.85, f'{ptMin:.2f} < #it{{p}}_{{T}} < {ptMax:.2f} GeV/c')
         for iSource, (source, frac, fracUnc) in enumerate(zip(sourceList, fractionsInData, fractionsInDataUnc)):
             latStack.DrawLatexNDC(0.65, 0.8 - 0.05 * iSource,
@@ -280,17 +280,17 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
 
     # Fractions vs pT
     cFracVsPt = TCanvas(f'cFracVsPt_{buddy}', f'Fractions vs pT - {buddy}', 600, 600)
-    gFraction = [TGraphErrors(1) for _ in range(len(sourceList))]
+    gFraction = [TGraphErrors(1) for _ in range(nSources)]
     for iPtBin, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         SetObjectStyle(gFraction[iSource])
         x = (ptMax + ptMin) / 2
         xUnc = (ptMax - ptMin) / 2
-        for iSource in range(len(sourceList)):
+        for iSource in range(nSources):
             y = fractionsInFracRange[iPtBin][iSource]
             yUnc = fractionsUncInFracRange[iPtBin][iSource]
             gFraction[iSource].SetPoint(iPtBin, x, y)
             gFraction[iSource].SetPointError(iPtBin, xUnc, yUnc)
-
+    gFraction[0].SetTitle(f';#it{{p}}_{{T}} (GeV/c);fraction')
     if isinstance(fracYRange, list):
         gFraction[0].GetYaxis().SetRangeUser(fracYRange[0], fracYRange[1])
     elif fracYRange == 'auto':
@@ -312,8 +312,9 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     elif buddy == 'antipion':
         legTitle = '#pi^{-}'
     legFrac.SetHeader(legTitle, 'C')
+    legFrac.SetTextSize(0.04)
     for iSource, (source, sourceLabel, color)in enumerate(zip(sourceList, sourceLabelList, colors)):
-        gFraction[iSource].SetName(f'gFraction_{buddy}_{sourceList[iSource]}')
+        gFraction[iSource].SetName(f'gFraction_{sourceList[iSource]}')
         SetObjectStyle(gFraction[iSource], markercolor=color, linecolor=color, markerstyle=21 + iSource)
         legFrac.AddEntry(gFraction[iSource], sourceLabel, 'lp')
         if iSource == 0:
@@ -323,3 +324,12 @@ for dirNameData, dirNameMC in zip(dirNameDataList, dirNameMCList):
     legFrac.Draw('same')
     cFracVsPt.SaveAs(f'{oFileName}_{buddy}_fractions.pdf')
     cFracVsPt.Write()
+
+    # Compute fraction averages
+    hFracAritmAverage = TH1D('hFracAritmAverage', 'Fractions - aritmetic average;;fraction', nSources, 0, nSources)
+    for iSource, (sourceLabel, gFrac) in enumerate(zip(sourceLabelList, gFraction)):
+        hFracAritmAverage.GetXaxis().SetBinLabel(iSource + 1, sourceLabel)
+        fracAverage = sum([gFrac.GetPointY(iPoint) for iPoint in range(gFrac.GetN())])/gFrac.GetN()
+        
+        hFracAritmAverage.SetBinContent(iSource + 1, fracAverage)
+    hFracAritmAverage.Write()
