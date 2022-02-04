@@ -3,6 +3,7 @@ Script with miscellanea utils methods for the analysis
 '''
 
 import ctypes
+import sys
 import numpy as np
 import pandas as pd
 from ROOT import TH1F, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
@@ -624,6 +625,36 @@ def ComputeRatioDiffBins(hNum, hDen, uncOpt=''):
 
     return hRatio
 
+def ComputeZ(hist1, hist2, name = 'hZ'):
+    ''''
+    Method to check the compatibility of two histograms.
+
+    
+    Parameters
+    ----------
+    - hist1: first histogram to compare
+    - hist2: second histogram to compare
+    - name: name of the output histogram
+    
+    Returns
+    ----------
+    - hZ: Histogram containing the Z test for each bin of the two input histograms.
+    '''
+
+    if hist1.GetNbinsX() != hist2.GetNbinsX():
+        print()
+        print('\033[41mError\033[0m: Z can be computed ony for histograms with same binning. Exit!')
+        sys.exit()
+    nBins = hist1.GetNbinsX()
+    hZ = TH1F(name, name, hist1.GetNbinsX(), hist1.GetXaxis().GetXmin(), hist1.GetXaxis().GetXmax())
+    for iBin in range(nBins):
+        val1 = hist1.GetBinContent(iBin + 1)
+        val2 = hist2.GetBinContent(iBin + 1)
+        unc1 = hist1.GetBinError(iBin + 1)
+        unc2 = hist2.GetBinError(iBin + 1)
+        
+        hZ.SetBinContent(iBin+1, (val1-val2)/np.sqrt(unc1**2 + unc2**2))
+    return hZ
 
 def ScaleGraph(graph, scaleFactor):
     '''
