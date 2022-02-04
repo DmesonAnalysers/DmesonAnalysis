@@ -119,8 +119,7 @@ def GetObjectFromFile(inFile, pathToObj):
 
     outObjOld = None
     if isinstance(inFile, str):
-        inFile = TFile.Open(inFile, 'read')
-        outObjOld = inFile
+        outObjOld = TFile.Open(inFile, 'read')
 
     # if isinstance(inFile, str):
     #     print('lallero', outObjOld, type(outObjOld))
