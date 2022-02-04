@@ -117,25 +117,44 @@ def GetObjectFromFile(inFile, pathToObj):
     pathToObj = os.path.normpath(pathToObj)
     pathElements = pathToObj.split(os.sep)
 
+    outObjOld = None
     if isinstance(inFile, str):
-        outObj = TFile.Open(inFile)
+        inFile = TFile.Open(inFile, 'read')
+        outObjOld = inFile
+
+    # if isinstance(inFile, str):
+    #     print('lallero', outObjOld, type(outObjOld))
+
+    #     if outObjOld == None:
+    #         print('\033[31mError\033[0m: File does not exist. Exit!')
+    #         sys.exit()
     elif isinstance(inFile, TFile):
-        outObj = inFile
+        outObjOld = inFile
+        # pass
     else:
         print('\033[31mError\033[0m: input file must be TFile or str. Exit!')
         sys.exit()
 
+    # print(containerName, outObjOld.Get('HM_CharmFemto_Dpion_TrackCuts0'))
     for iContainer, containerName in enumerate(pathElements):
-        if isinstance(outObj, TFile):
-            outObj = outObj.Get(containerName)
-        elif isinstance(outObj, TList):
-            outObj = outObj.FindObject(containerName)
-        elif isinstance(outObj, TDirectoryFile):
-            outObj = outObj.Get(containerName)
+        print(f'\n\nStart of loop. container: {outObjOld}. name of target obj: {containerName}')
+        if isinstance(outObjOld, TFile):
+            print("---------------- 1")
+            outObjOld.ls()
+            outObjOld = outObjOld.Get(containerName)
+            print("---------------- 2")
+            outObjOld.ls()
+            print(outObjOld)
+        elif isinstance(outObjOld, TList):
+            outObjOld = outObjOld.FindObject(containerName)
+        elif isinstance(outObjOld, TDirectoryFile):
+            outObjOld = outObjOld.Get(containerName)
         else:
-            print(f'\033[31mError\033[0m: instance of {type(outObj)} not implemented. Exit!')
+            print(f'\033[31mError\033[0m: instance of {type(outObjOld)} not implemented. Exit!')
             sys.exit()
-    return outObj
+        print(f'End of loop. container: {outObjOld}. name of target obj: {containerName}')
+        
+    return outObjOld
 
 def GetMind0(ptList, d0List, ptThrs):
     '''
