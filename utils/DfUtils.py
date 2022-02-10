@@ -122,8 +122,10 @@ def GetObjectFromFile(inFile, pathToObj):
     elif not isinstance(inFile, TFile):
         print('\033[31mError\033[0m: input file must be TFile or str. Exit!')
         sys.exit()
-    
-    outObj = inFile
+
+    outObj = inFile.Get(pathElements.pop(0))
+    outObj.SetDirectory(0)
+    inFile.Close()
 
     for iContainer, containerName in enumerate(pathElements):
         if isinstance(outObj, TFile) or isinstance(outObj, TDirectoryFile):
@@ -133,7 +135,7 @@ def GetObjectFromFile(inFile, pathToObj):
         else:
             print(f'\033[31mError\033[0m: instance of {type(outObj)} not implemented. Exit!')
             sys.exit()
-        
+
     return outObj
 
 def GetMind0(ptList, d0List, ptThrs):
