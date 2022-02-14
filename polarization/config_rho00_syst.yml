@@ -1,0 +1,69 @@
+massfits:
+    inputs:
+        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/random
+        files: [ # the first one is always the default one
+          Rho00_corr_default.root,
+          Rho00_corr_freewidth.root,
+          Rho00_corr_bincount.root,
+          Rho00_corr_fitrangehigh.root,
+          Rho00_corr_fitrangesmall.root
+        ]
+    labels: [
+        "default",
+        "free width",
+        "bin counting",
+        "smaller fit range",
+        "larger fit range"
+    ]
+
+tracking: # based on https://twiki.cern.ch/twiki/bin/view/ALICE/AliDPGtoolsTrackSystematicUncertainty
+    inputs:
+        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/random
+        files: [ # the first one is always the default one
+          Rho00_corr_default.root,
+          Rho00_corr_trackcut1.root,
+          Rho00_corr_trackcut2.root,
+          Rho00_corr_trackcut3.root,
+          Rho00_corr_trackcut4.root
+        ]
+    labels: [
+        "default",
+        "TPC crossed rows > 120-(5/#it{p}_{T})",
+        "TPC clusters > 0.65 x TPC crossed rows",
+        "TPC crossed rows over findable clusters > 0.9",
+        "TPC d#it{E}/d#it{x} > 0.5 x TPC crossed rows"
+    ]
+
+fraction:
+    inputs:
+        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/random
+        files: [ # the first one is always the default one
+          Rho00_corr_default.root,
+          Rho00_corr_fracalt1.root,
+          Rho00_corr_fracalt2.root,
+          Rho00_corr_fracalt3.root,
+          Rho00_corr_fracalt4.root,
+          Rho00_corr_fracalt5.root,
+          Rho00_corr_fracalt6.root,
+          Rho00_corr_fracalt7.root,
+          Rho00_corr_fracalt8.root,
+          Rho00_corr_fracalt9.root,
+          Rho00_corr_fracalt10.root,
+          Rho00_corr_fracalt11.root,
+          Rho00_corr_fracalt12.root
+        ]
+    labels: [
+        "default",
+        "narrower left 1",
+        "narrower left 2",
+        "narrower left 3",
+        "narrower right 1",
+        "narrower right 2",
+        "narrower right 3",
+        "wider left 1",
+        "wider left 2",
+        "wider left 3",
+        "wider right 1",
+        "alt step 1",
+        "alt step 2",
+    ]
