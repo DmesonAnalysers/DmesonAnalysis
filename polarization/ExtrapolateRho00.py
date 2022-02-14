@@ -7,13 +7,15 @@ import sys
 import argparse
 import numpy as np
 import yaml
-from ROOT import TFile, TLine, TGraphAsymmErrors, TH1D, TCanvas, TF1, TVirtualFitter, TLatex, TLegend
+from ROOT import TFile, TLine, TGraphAsymmErrors, TH1D, TCanvas, TF1, TVirtualFitter, TLatex, TLegend, gROOT
 sys.path.append('../')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas, GetROOTColor, GetROOTMarker
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
                     help='config file name with root input files')
+parser.add_argument('--batch', action='store_true', default=False,
+                    help='flag to run the script in batch mode')
 args = parser.parse_args()
 
 SetGlobalStyle(
@@ -21,11 +23,16 @@ SetGlobalStyle(
     padbottommargin=0.15,
 )
 
+if args.batch:
+    gROOT.SetBatch(True)
+
 with open(args.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
 
-inFilesRho00 = inputCfg['inputs']['files']['rho00']
-inFilesFrac = inputCfg['inputs']['files']['fractions']
+inFilesRho00 = inputCfg['inputs']['rho00']['files']
+inFilesFrac = inputCfg['inputs']['fractions']['files']
+histoNameRho00 = inputCfg['inputs']['rho00']['histoname']
+histoNamesFrac = inputCfg['inputs']['fractions']['histonames']
 ptMins = inputCfg['inputs']['ptbins']['min']
 ptMaxs = inputCfg['inputs']['ptbins']['max']
 
@@ -36,17 +43,17 @@ if len(inFilesRho00) != len(inFilesFrac):
 hRhoVsPt, hPromptFracVsPt, hNonPromptFracVsPt = ([] for _ in range(3))
 for iFile, fileNameRho in enumerate(inFilesRho00):
     inFile = TFile.Open(fileNameRho)
-    hRhoVsPt.append(inFile.Get('rhovspt'))
+    hRhoVsPt.append(inFile.Get(histoNameRho00))
     hRhoVsPt[iFile].SetName(f'hRhoVsPt_{iFile}')
     hRhoVsPt[iFile].SetDirectory(0)
     inFile.Close()
 
 for iFile, fileNameFrac in enumerate(inFilesFrac):
     inFile = TFile.Open(fileNameFrac)
-    hPromptFracVsPt.append(inFile.Get('hPromptFrac'))
+    hPromptFracVsPt.append(inFile.Get(histoNamesFrac['prompt']))
     hPromptFracVsPt[iFile].SetName(f'hPromptFracVsPt_{iFile}')
     hPromptFracVsPt[iFile].SetDirectory(0)
-    hNonPromptFracVsPt.append(inFile.Get('hFDFrac'))
+    hNonPromptFracVsPt.append(inFile.Get(histoNamesFrac['nonprompt']))
     hNonPromptFracVsPt[iFile].SetName(f'hPromptFracVsPt_{iFile}')
     hNonPromptFracVsPt[iFile].SetDirectory(0)
     inFile.Close()
@@ -212,4 +219,5 @@ for iPt, _ in enumerate(ptMins):
     ciRho00VsPromptFrac[iPt].Write()
     ciRho00VsNonPromptFrac[iPt].Write()
 
-input('Press enter to exit')
+if not args.batch:
+    input('Press enter to exit')
