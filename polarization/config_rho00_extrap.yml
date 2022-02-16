@@ -1,20 +1,25 @@
 inputs:
-    files:
-        rho00: [
-          /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/results/costhetastar_effycorrecteddist_charm_MB.root,
-          /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/results/costhetastar_effycorrecteddist_charm_HM.root,
-          /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/results/costhetastar_effycorrecteddist__beauty_MB.root,
-          /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/results/costhetastar_effycorrecteddist_beauty_HM.root
+    rho00: 
+        files: [
+          /home/skundu/Dstar_server/New/final_output/CHARM_MB_RANDOM.root,
+          /home/skundu/Dstar_server/New/final_output/CHARM_HM_RANDOM.root,
+          /home/skundu/Dstar_server/New/final_output/BEAUTY_MB_RANDOM.root,
+          /home/skundu/Dstar_server/New/final_output/BEAUTY_HM_RANDOM.root
         ]
-        fractions: [
-          /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/fraction/MB/finalbinning/DstarFraction_pp13TeV_MB_prompt.root,
-          /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/fraction/HM/finalbinning/DstarFraction_pp13TeV_HM_prompt.root,
-          /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/fraction/MB/finalbinning/DstarFraction_pp13TeV_MB_FD.root,
-          /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/fraction/HM/finalbinning/DstarFraction_pp13TeV_HM_FD.root,
+        histoname: Fitrange_small
+    fractions:
+        files: [
+          /home/fgrosa/Dstar_polarization/outputs/fraction/MB/DstarFraction_pp13TeV_MB_prompt_final.root,
+          /home/fgrosa/Dstar_polarization/outputs/fraction/HM/DstarFraction_pp13TeV_HM_prompt_final.root,
+          /home/fgrosa/Dstar_polarization/outputs/fraction/MB/DstarFraction_pp13TeV_MB_FD_final.root,
+          /home/fgrosa/Dstar_polarization/outputs/fraction/HM/DstarFraction_pp13TeV_HM_FD_final.root,
         ]
+        histonames: 
+            prompt: hPromptFrac
+            nonprompt: hFDFrac
     ptbins:
         min: [5., 7., 10.]
         max: [7., 10., 20.]
 
 output:
-    file: /Users/fgrosa/cernbox/alice_work/analyses/Dstar_polarization/outputs/results/Rho00_corr # w/o extension
+    file: /home/fgrosa/Dstar_polarization/outputs/systematics/random/Rho00_corr_fitrangesmall # w/o extension
