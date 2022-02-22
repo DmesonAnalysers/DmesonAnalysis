@@ -1,6 +1,6 @@
 massfits:
     inputs:
-        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/random
+        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/helicity
         files: [ # the first one is always the default one
           Rho00_corr_default.root,
           Rho00_corr_freewidth.root,
@@ -18,7 +18,7 @@ massfits:
 
 tracking: # based on https://twiki.cern.ch/twiki/bin/view/ALICE/AliDPGtoolsTrackSystematicUncertainty
     inputs:
-        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/random
+        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/helicity
         files: [ # the first one is always the default one
           Rho00_corr_default.root,
           Rho00_corr_trackcut1.root,
@@ -36,9 +36,9 @@ tracking: # based on https://twiki.cern.ch/twiki/bin/view/ALICE/AliDPGtoolsTrack
 
 fraction:
     inputs:
-        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/random
+        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/helicity
         files: [ # the first one is always the default one
-          Rho00_corr_default.root,
+          Rho00_corr_fracalt1.root,
           Rho00_corr_fracalt1.root,
           Rho00_corr_fracalt2.root,
           Rho00_corr_fracalt3.root,

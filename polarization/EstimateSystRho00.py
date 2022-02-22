@@ -70,6 +70,9 @@ for syst in inputCfg:
     legSyst[syst].SetTextSize(0.035)
     legSyst[syst].SetBorderSize(0)
     legSyst[syst].SetFillStyle(0)
+    if len(inputFiles) > 5:
+        legSyst[syst].SetNColumns(2)
+        legSyst[syst].SetX2(0.8)
 
     for iFile, inFileName in enumerate(inputFiles):
         inFile = TFile.Open(os.path.join(inputDir, inFileName))

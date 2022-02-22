@@ -1,12 +1,12 @@
 inputs:
     rho00: 
         files: [
-          /home/skundu/Dstar_server/New/final_output/CHARM_MB_RANDOM.root,
-          /home/skundu/Dstar_server/New/final_output/CHARM_HM_RANDOM.root,
-          /home/skundu/Dstar_server/New/final_output/BEAUTY_MB_RANDOM.root,
-          /home/skundu/Dstar_server/New/final_output/BEAUTY_HM_RANDOM.root
+          /home/skundu/Dstar_server/New/final_output/CHARM_MB_HELICITY.root,
+          /home/skundu/Dstar_server/New/final_output/CHARM_HM_HELICITY.root,
+          /home/skundu/Dstar_server/New/final_output/BEAUTY_MB_HELICITY.root,
+          /home/skundu/Dstar_server/New/final_output/BEAUTY_HM_HELICITY.root
         ]
-        histoname: Fitrange_small
+        histoname: Default_funcint
     fractions:
         files: [
           /home/fgrosa/Dstar_polarization/outputs/fraction/MB/DstarFraction_pp13TeV_MB_prompt_final.root,
@@ -22,4 +22,4 @@ inputs:
         max: [7., 10., 20.]
 
 output:
-    file: /home/fgrosa/Dstar_polarization/outputs/systematics/random/Rho00_corr_fitrangesmall # w/o extension
+    file: /home/fgrosa/Dstar_polarization/outputs/results/Rho00_corr_HELICITY_ResolutionFIX # w/o extension
