@@ -78,11 +78,11 @@ for syst in inputCfg:
         inFile = TFile.Open(os.path.join(inputDir, inFileName))
         hRho00Charm[syst].append(inFile.Get('hRho00Charm'))
         hRho00Charm[syst][iFile].SetDirectory(0)
-        hRho00Charm[syst][iFile].SetName(f'hRho00Charm_{syst}')
+        hRho00Charm[syst][iFile].SetName(f'hRho00Charm_{syst}_{iFile}')
         SetObjectStyle(hRho00Charm[syst][iFile], color=colors[iFile])
         hRho00Beauty[syst].append(inFile.Get('hRho00Beauty'))
         hRho00Beauty[syst][iFile].SetDirectory(0)
-        hRho00Beauty[syst][iFile].SetName(f'hRho00Beauty_{syst}')
+        hRho00Beauty[syst][iFile].SetName(f'hRho00Beauty_{syst}_{iFile}')
         SetObjectStyle(hRho00Beauty[syst][iFile], color=colors[iFile])
         legSyst[syst].AddEntry(hRho00Charm[syst][iFile], labels[iFile], 'p')
         nPtBins = hRho00Charm[syst][iFile].GetNbinsX()
@@ -100,7 +100,7 @@ for syst in inputCfg:
                 0.,
                 ptMax,
                 0.6,
-                ';#it{p}_{T} (GeV/#it{c}; #it{#rho}_{00} (charm)'
+                ';#it{p}_{T} (GeV/#it{c}); #it{#rho}_{00} (charm)'
             )
             hFrameCharm.GetYaxis().SetDecimals()
             hFrameBeauty = cSyst[syst].cd(2).DrawFrame(
@@ -108,7 +108,7 @@ for syst in inputCfg:
                 0.,
                 ptMax,
                 0.6,
-                ';#it{p}_{T} (GeV/#it{c}; #it{#rho}_{00} (beauty)'
+                ';#it{p}_{T} (GeV/#it{c}); #it{#rho}_{00} (beauty)'
             )
             hFrameBeauty.GetYaxis().SetDecimals()
             hFrameCharmRatio = cSyst[syst].cd(3).DrawFrame(
@@ -116,7 +116,7 @@ for syst in inputCfg:
                 0.8,
                 ptMax,
                 1.2,
-                ';#it{p}_{T} (GeV/#it{c}; #it{#rho}_{00} / #it{#rho}_{00}^{def} (charm)'
+                ';#it{p}_{T} (GeV/#it{c}); #it{#rho}_{00} / #it{#rho}_{00}^{def} (charm)'
             )
             hFrameCharmRatio.GetYaxis().SetDecimals()
             hFrameBeautyRatio = cSyst[syst].cd(4).DrawFrame(
@@ -124,7 +124,7 @@ for syst in inputCfg:
                 0.8,
                 ptMax,
                 1.2,
-                ';#it{p}_{T} (GeV/#it{c}; #it{#rho}_{00} / #it{#rho}_{00}^{def} (beauty)'
+                ';#it{p}_{T} (GeV/#it{c}); #it{#rho}_{00} / #it{#rho}_{00}^{def} (beauty)'
             )
             hFrameBeautyRatio.GetYaxis().SetDecimals()
 
