@@ -2,11 +2,11 @@ massfits:
     inputs:
         directory: /home/fgrosa/Dstar_polarization/outputs/systematics/helicity
         files: [ # the first one is always the default one
-          Rho00_corr_default.root,
-          Rho00_corr_freewidth.root,
-          Rho00_corr_bincount.root,
-          Rho00_corr_fitrangehigh.root,
-          Rho00_corr_fitrangesmall.root
+            Rho00_corr_default.root,
+            Rho00_corr_freewidth.root,
+            Rho00_corr_bincount.root,
+            Rho00_corr_fitrangehigh.root,
+            Rho00_corr_fitrangesmall.root
         ]
     labels: [
         "default",
@@ -20,11 +20,11 @@ tracking: # based on https://twiki.cern.ch/twiki/bin/view/ALICE/AliDPGtoolsTrack
     inputs:
         directory: /home/fgrosa/Dstar_polarization/outputs/systematics/helicity
         files: [ # the first one is always the default one
-          Rho00_corr_default.root,
-          Rho00_corr_trackcut1.root,
-          Rho00_corr_trackcut2.root,
-          Rho00_corr_trackcut3.root,
-          Rho00_corr_trackcut4.root
+            Rho00_corr_default.root,
+            Rho00_corr_trackcut1.root,
+            Rho00_corr_trackcut2.root,
+            Rho00_corr_trackcut3.root,
+            Rho00_corr_trackcut4.root
         ]
     labels: [
         "default",
@@ -38,19 +38,19 @@ fraction:
     inputs:
         directory: /home/fgrosa/Dstar_polarization/outputs/systematics/helicity
         files: [ # the first one is always the default one
-          Rho00_corr_fracalt1.root,
-          Rho00_corr_fracalt1.root,
-          Rho00_corr_fracalt2.root,
-          Rho00_corr_fracalt3.root,
-          Rho00_corr_fracalt4.root,
-          Rho00_corr_fracalt5.root,
-          Rho00_corr_fracalt6.root,
-          Rho00_corr_fracalt7.root,
-          Rho00_corr_fracalt8.root,
-          Rho00_corr_fracalt9.root,
-          Rho00_corr_fracalt10.root,
-          Rho00_corr_fracalt11.root,
-          Rho00_corr_fracalt12.root
+            Rho00_corr_fracalt1.root,
+            Rho00_corr_fracalt1.root,
+            Rho00_corr_fracalt2.root,
+            Rho00_corr_fracalt3.root,
+            Rho00_corr_fracalt4.root,
+            Rho00_corr_fracalt5.root,
+            Rho00_corr_fracalt6.root,
+            Rho00_corr_fracalt7.root,
+            Rho00_corr_fracalt8.root,
+            Rho00_corr_fracalt9.root,
+            Rho00_corr_fracalt10.root,
+            Rho00_corr_fracalt11.root,
+            Rho00_corr_fracalt12.root
         ]
     labels: [
         "default",
@@ -66,4 +66,18 @@ fraction:
         "wider right 1",
         "alt step 1",
         "alt step 2",
+    ]
+
+BDTselection:
+    inputs:
+        directory: /home/fgrosa/Dstar_polarization/outputs/systematics/helicity
+        files: [ # the first one is always the default one
+            Rho00_corr_default.root,
+            Rho00_corr_varSignalBDT.root,
+            Rho00_corr_varBkgBDT.root
+        ]
+    labels: [
+        "default",
+        "BDT signal score",
+        "BDT bkg score"
     ]
