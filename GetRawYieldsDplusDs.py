@@ -1,6 +1,6 @@
 '''
 Script for fitting D+, D0 and Ds+ invariant-mass spectra
-run: python GetRawYieldsDsDplus.py fitConfigFileName.yml centClass inputFileName.root outFileName.root 
+run: python GetRawYieldsDsDplus.py fitConfigFileName.yml centClass inputFileName.root outFileName.root
             [--refFileName][--isMC][--batch]
 '''
 
@@ -42,7 +42,7 @@ else:
     sys.exit()
 
 
-with open(args.fitConfigFileName, 'r') as ymlfitConfigFile:
+with open(args.fitConfigFileName, 'r', encoding='utf8') as ymlfitConfigFile:
     fitConfig = yaml.load(ymlfitConfigFile, yaml.FullLoader)
 
 gROOT.SetBatch(args.batch)
@@ -137,24 +137,23 @@ hRel, hSig, hMassForRel, hMassForSig  = [], [], [], []
 hMass, hMassForFit = [], []
 for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
     if not args.isMC:
-        hMass.append(infile.Get('hMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
+        hMass.append(infile.Get(f'hMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
         hMass[iPt].SetDirectory(0)
         if enableRef:
-            hRel.append(infileref.Get('hVarReflMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
-            hSig.append(infileref.Get('hFDMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
-            hSig[iPt].Add(infileref.Get('hPromptMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
+            hRel.append(infileref.Get(f'hVarReflMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
+            hSig.append(infileref.Get(f'hFDMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
+            hSig[iPt].Add(infileref.Get(f'hPromptMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
             hRel[iPt].SetDirectory(0)
             hSig[iPt].SetDirectory(0)
             hRel[iPt].Sumw2()
             hSig[iPt].Sumw2()
     else:
-        hMass.append(infile.Get('hPromptMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
-        hMass[iPt].Add(infile.Get('hFDMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
-        hMass[iPt].SetDirectory(0)
+        hMass.append(infile.Get(f'hPromptMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
+        hMass[iPt].Add(infile.Get(f'hFDMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
         if secPeak:
-            hMass[iPt].Add(infile.Get('hPromptSecPeakMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
-            hMass[iPt].Add(infile.Get('hFDSecPeakMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
-            hMass[iPt].SetDirectory(0)
+            hMass[iPt].Add(infile.Get(f'hPromptSecPeakMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
+            hMass[iPt].Add(infile.Get(f'hFDSecPeakMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
+        hMass[iPt].SetDirectory(0)
     hMass[iPt].Sumw2()
     SetObjectStyle(hMass[iPt], color=kBlack, markerstyle=kFullCircle)
 
@@ -515,7 +514,7 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
                 hMassForRel[iPt].FindBin(massMax * 0.999)
             )
             massFitter[iPt].SetFixReflOverS(rOverS)
-            massFitter[iPt].SetTemplateReflections(hRel[iPt], "2gaus", massMin, massMax);
+            massFitter[iPt].SetTemplateReflections(hRel[iPt], "2gaus", massMin, massMax)
         massFitter[iPt].MassFitter(False)
 
         rawyield = massFitter[iPt].GetRawYield()
@@ -550,7 +549,7 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
         hRawYieldsChiSquare.SetBinContent(iPt+1, redchi2)
         hRawYieldsChiSquare.SetBinError(iPt+1, 1.e-20)
 
-        for iS in range(len(nSigma4SandB)):
+        for iS, _ in enumerate(nSigma4SandB):
             massFitter[iPt].Significance(nSigma4SandB[iS],signif,signiferr)
             massFitter[iPt].Signal(nSigma4SandB[iS],sgn,sgnerr)
             massFitter[iPt].Background(nSigma4SandB[iS],bkg,bkgerr)
@@ -566,7 +565,7 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
             )
             hRawYieldsSignifDiffSigma[iS].SetBinContent(iPt+1,signif.value)
             hRawYieldsSignifDiffSigma[iS].SetBinError(iPt+1,signiferr.value)
-        
+
         fTotFunc = massFitter[iPt].GetMassFunc()
         fBkgFunc = massFitter[iPt].GetBackgroundRecalcFunc()
 
