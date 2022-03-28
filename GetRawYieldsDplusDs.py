@@ -150,6 +150,7 @@ for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
     else:
         hMass.append(infile.Get('hPromptMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
         hMass[iPt].Add(infile.Get('hFDMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
+        hMass[iPt].SetDirectory(0)
         if secPeak:
             hMass[iPt].Add(infile.Get('hPromptSecPeakMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
             hMass[iPt].Add(infile.Get('hFDSecPeakMass_{0:.0f}_{1:.0f}'.format(ptMin*10, ptMax*10)))
