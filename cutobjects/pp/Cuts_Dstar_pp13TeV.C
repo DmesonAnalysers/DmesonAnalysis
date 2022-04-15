@@ -299,7 +299,7 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_TreeML_Femto(bool fIsMC = f
 
     analysiscuts->PrintAll();
     analysiscuts->PrintTrigger();
-    TString filename = Form("DstartoD0piCuts_pp13TeV_loose_%s.root", triggername.Data());
+    TString filename = Form("DstartoKpipiCuts_pp13TeV_loose_femto_%s.root", triggername.Data());
     TFile *fout = new TFile(filename.Data(), "recreate");
     fout->cd();
     analysiscuts->Write();
