@@ -101,7 +101,7 @@ void FilterTree4ML(TString cfgFileName="config_LctopKpi_MC_train_pp13TeV.yml")
         TString totsel = Form("pt_cand > %f && pt_cand < %f", PtMin[iPtBin], PtMax[iPtBin]);
         if(preSelections != "")
         {
-            totsel.Append(" & ");
+            totsel.Append(" && ");
             totsel.Append(preSelections.data());
         }
         auto dataFramePtCutSel = dataFrame.Filter(totsel.Data());
