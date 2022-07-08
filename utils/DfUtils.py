@@ -106,7 +106,7 @@ def GetObjectFromFile(inFile, pathToObj):
 
     Parameters
     -----------
-    inFile: TFile or name of the input file
+    inFile: TFile of the input file
     pathToObj: path of the object inside the root file
 
     Returns:
@@ -116,16 +116,7 @@ def GetObjectFromFile(inFile, pathToObj):
 
     pathToObj = os.path.normpath(pathToObj)
     pathElements = pathToObj.split(os.sep)
-
-    if isinstance(inFile, str):
-        inFile = TFile.Open(inFile, 'read')
-    elif not isinstance(inFile, TFile):
-        print('\033[31mError\033[0m: input file must be TFile or str. Exit!')
-        sys.exit()
-
     outObj = inFile.Get(pathElements.pop(0))
-    outObj.SetDirectory(0)
-    inFile.Close()
 
     for iContainer, containerName in enumerate(pathElements):
         if isinstance(outObj, TFile) or isinstance(outObj, TDirectoryFile):
