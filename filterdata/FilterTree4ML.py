@@ -95,6 +95,7 @@ bitsForSel, labelsContr = ({} for _ in range(2))
 labelsContr = {'bkg': 'Bkg', 'prompt_sig': 'Prompt', 'FD_sig': 'FD',
                'prompt_sig_refl': 'PromptRefl', 'FD_sig_refl': 'FDRefl',
                'prompt_sec_peak': 'SecPeakPrompt', 'FD_sec_peak': 'SecPeakFD',
+               'prompt_sec_peak_refl': 'SecPeakPromptRefl', 'FD_sec_peak_refl': 'SecPeakFDRefl',
                'prompt_sig_nonreso': 'PromptNonRes', 'FD_sig_nonreso': 'FDNonRes',
                'prompt_sig_Lambda1520': 'PromptLambda1520', 'FD_sig_Lambda1520': 'FDLambda1520',
                'prompt_sig_KStar': 'PromptKStar', 'FD_sig_KStar': 'FDKStar',
@@ -105,7 +106,8 @@ if isMC:
         bitsForSel = {'bkg': [bitBkg],
                       'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD],
                       'prompt_sig_refl': [bitSignal, bitPrompt, bitRefl], 'FD_sig_refl': [bitSignal, bitFD, bitRefl],
-                      'prompt_sec_peak': [bitSecPeakDs, bitPrompt], 'FD_sec_peak': [bitSecPeakDs, bitFD]}
+                      'prompt_sec_peak': [bitSecPeakDs, bitPrompt], 'FD_sec_peak': [bitSecPeakDs, bitFD],
+                      'prompt_sec_peak_refl': [bitSecPeakDs, bitPrompt, bitRefl], 'FD_sec_peak_refl': [bitSecPeakDs, bitFD, bitRefl]}
     elif 'Dplus' in channel:
         bitsForSel = {'bkg': [bitBkg], 'prompt_sig': [bitSignal, bitPrompt], 'FD_sig': [bitSignal, bitFD]}
     elif 'Dstar' in channel:
