@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <filesystem>
 #include "yaml-cpp/yaml.h"
 
 #include <TChain.h>
@@ -29,7 +29,6 @@ using namespace std;
 //______________________________________________
 void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full", bool mergeviajdl = true)
 {
-    configfilename=TString("/home/daniel/alice/CharmingAnalyses/DKDpi/test/runAnalysis_femto_config_LHC20k7a2.yml");
 
     //_________________________________________________________________________________________________________________
     //load config
@@ -41,6 +40,7 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
 
     bool useMCTruthReco = static_cast<bool>(config["useMCTruthReco"].as<int>());
     bool useMCTruthGen = static_cast<bool>(config["useMCTruthGen"].as<int>());
+    bool useTree = config["task"]["useTree"].as<bool>();
     string cutVariation = config["cutvariation"].as<string>();
 
     int splitmaxinputfilenum = config["splitmaxinputfilenum"].as<int>();
@@ -73,7 +73,8 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
     bool applyML = static_cast<bool>(config["task"]["applyML"]["doapplyML"].as<int>());
     string confFileML = config["task"]["applyML"]["configfile"].as<string>();
     int pdgLight = config["task"]["pdglight"].as<int>();
-    std::cout << pdgLight << std::endl;
+    std::string charmDecChannel = config["task"]["charmDecChannel"].as<std::string>();
+    std::string massSelection = config["task"]["massselection"].as<std::string>();
 
     bool useMLselectorTask = static_cast<bool>(config["task"]["applyML"]["MLselector"]["enable"].as<int>());
     string MLSelcutFileName = config["task"]["applyML"]["MLselector"]["infile"].as<string>();
@@ -105,9 +106,13 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
     AliAnalysisTaskSECharmHadronMLSelector *taskMLSel = nullptr;
     if(useMLselectorTask)
     {
-        taskMLSel = reinterpret_cast<AliAnalysisTaskSECharmHadronMLSelector*>(gInterpreter->ProcessLine(Form(".x %s(\"%s\", \"%s\", AliAnalysisTaskSECharmHadronMLSelector::kDplustoKpipi, \"%s\", \"""\", %s)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskCharmHadronMLSelector.C"), MLSelcutFileName.data(), MLSelconfFileML.data(), MLSelcutObjName.data(), triggerMask.data())));
+        std::string charmDecChannelMLSelector = charmDecChannel;
+        if (charmDecChannel == "kDstartoKpipi") {
+            charmDecChannelMLSelector = "kDstartoD0pi";
+        }
+        taskMLSel = reinterpret_cast<AliAnalysisTaskSECharmHadronMLSelector*>(gInterpreter->ProcessLine(Form(".x %s(\"%s\", \"%s\", AliAnalysisTaskSECharmHadronMLSelector::%s, \"%s\", \"""\", %s)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskCharmHadronMLSelector.C"), MLSelcutFileName.data(), MLSelconfFileML.data(), charmDecChannelMLSelector.data(), MLSelcutObjName.data(), triggerMask.data())));
     }
-    AliAnalysisTaskCharmingFemto *task = reinterpret_cast<AliAnalysisTaskCharmingFemto*>(gInterpreter->ProcessLine(Form(".x %s(%d, %d, %d, true, \"%s\", AliAnalysisTaskCharmingFemto::kDplustoKpipi, \"%s\", \"%s\", \"""\", %d, \"%s\", 0, AliAnalysisTaskCharmingFemto::kSignal, %d, \"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGCF/FEMTOSCOPY/macros/AddTaskAnyCharmingFemto.C"), isRunOnMC, useMCTruthReco, useMCTruthGen, triggerMask.data(), cutFileName.data(), cutObjName.data(), applyML, confFileML.data(), pdgLight, cutVariation.data())));
+    AliAnalysisTaskCharmingFemto *task = reinterpret_cast<AliAnalysisTaskCharmingFemto*>(gInterpreter->ProcessLine(Form(".x %s(%d, %d, %d, %d, true, \"%s\", AliAnalysisTaskCharmingFemto::%s, \"%s\", \"%s\", \"""\", %d, \"%s\", 0, AliAnalysisTaskCharmingFemto::%s, %d, \"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGCF/FEMTOSCOPY/macros/AddTaskAnyCharmingFemto.C"), isRunOnMC, useMCTruthReco, useMCTruthGen, useTree, triggerMask.data(), charmDecChannel.data(), cutFileName.data(), cutObjName.data(), applyML, confFileML.data(), massSelection.data(), pdgLight, cutVariation.data())));
     if(useMLselectorTask)
         task->SetIsDependentOnMLSelector();
 
@@ -124,8 +129,16 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
         TChain *chainAODfriend = new TChain("aodTree");
 
         // add a few files to the chain (change this so that your local files are added)
-        chainAOD->Add(Form("%s/AliAOD.root", pathToLocalAODfiles.data()));
-        chainAODfriend->Add(Form("%s/AliAOD.VertexingHF.root", pathToLocalAODfiles.data()));
+        for (const auto &path : std::filesystem::recursive_directory_iterator(pathToLocalAODfiles.data())) {
+            auto currentPath = path.path();
+            if (std::string(currentPath).find("AliAOD.root") != std::string::npos) {
+                std::cout << "Adding data file:      " << currentPath << '\n';
+                chainAOD->Add(std::string(currentPath).data());
+            } else if (std::string(currentPath).find("AliAOD.VertexingHF.root") != std::string::npos) {
+                std::cout << "Adding vertexing file: " << currentPath << '\n';
+                chainAODfriend->Add(std::string(currentPath).data());
+            }
+        }
 
         chainAOD->AddFriend(chainAODfriend);
 
