@@ -28,6 +28,16 @@ shapes:
         lgr:
             enabled: false
             file: null
+        datashape:
+            enabled: false
+            file: ''
+            hSpectraName: 'histoSigmaCorr'
+            systErrName: 'AliHFSystErr'
+            parConfig: 
+                'alpha': [] #[init value, min. limit, max. limit]
+                'beta': []
+                'gamma': []
+            controlFile: ''
     B:
         fonll: # fonll is mandatory
             file: ../../models/fonll/FONLL_B_pp13_y05_Mod.txt

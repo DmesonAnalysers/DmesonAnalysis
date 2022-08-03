@@ -114,6 +114,22 @@ def ExpoPowLaw(x, par):
     return par[0] * TMath.Sqrt(x[0] - par[1]) * TMath.Exp(-1. * par[2] * (x[0] - par[1]))
 
 
+def PeakPowLaw(x, par):
+    '''
+    Power law function with peak at low x, used to fit pT-differential spectra
+
+    Parameters
+    ----------
+    - x: function variable
+    - par: function parameters
+        par[0]: normalisation
+        par[1]: alpha
+        par[2]: beta
+        par[3]: gamma
+    '''
+
+    return par[0] * x[0] / TMath.Power((1 + TMath.Power(x[0] / par[1], par[3])), par[2])
+
 
 # pylint: disable=too-many-instance-attributes
 class BkgFitFuncCreator:

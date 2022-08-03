@@ -6,8 +6,8 @@ import ctypes
 import sys
 import numpy as np
 import pandas as pd
-from ROOT import TH1F, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from .FitUtils import BkgFitFuncCreator
+from ROOT import TFile, TCanvas, TH1F, TF1, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from .FitUtils import BkgFitFuncCreator, PeakPowLaw
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''
@@ -629,13 +629,12 @@ def ComputeZ(hist1, hist2, name = 'hZ'):
     ''''
     Method to check the compatibility of two histograms.
 
-    
     Parameters
     ----------
     - hist1: first histogram to compare
     - hist2: second histogram to compare
     - name: name of the output histogram
-    
+
     Returns
     ----------
     - hZ: Histogram containing the Z test for each bin of the two input histograms.
@@ -652,7 +651,7 @@ def ComputeZ(hist1, hist2, name = 'hZ'):
         val2 = hist2.GetBinContent(iBin + 1)
         unc1 = hist1.GetBinError(iBin + 1)
         unc2 = hist2.GetBinError(iBin + 1)
-        
+
         hZ.SetBinContent(iBin+1, (val1-val2)/np.sqrt(unc1**2 + unc2**2))
     return hZ
 
@@ -870,3 +869,65 @@ def RescaleForFiducialAcceptance(histo):
         accEffUnc = histo.GetBinError(iBin)
         histo.SetBinContent(iBin, accEff / (2 * yFid))
         histo.SetBinError(iBin, accEffUnc / (2 * yFid))
+
+
+def FitSpectra(inFileName, hSpectraName, systErrName, dictPar, outFileName=None):
+    '''
+    Helper function to fit pT-differential spectra with a power-law + peak function for further reuse
+
+    Parameters
+    -----------
+    inFileName: cross sec or corrected yield file name
+    hSpectraName: name of the histogram with the spectra
+    systErrName: name of the object with the systematic errors
+    dictPar: dictionary with the parameter initial values and limits
+    outFileName: output file for fit results (optional)
+
+    Returns:
+    -----------
+    fitFunc: fitted TF1 function
+    ptMin: minimum pt for which the function is valid
+    ptMax: maximum pt for which the function is valid
+    '''
+    inFile = TFile.Open(inFileName)
+    hSpectra = inFile.Get(hSpectraName)
+    systErr = inFile.Get(systErrName)
+    hSpectra.SetDirectory(0)
+    inFile.Close()
+
+    nBins = hSpectra.GetNbinsX()
+    ptMin = hSpectra.GetBinLowEdge(1)
+    ptMax = hSpectra.GetXaxis().GetBinUpEdge(nBins)
+
+    hToFit = hSpectra.Clone('hToFit')
+    for iBin in range(1, nBins + 1):
+        ptCent = hSpectra.GetBinCenter(iBin)
+        binValue = hSpectra.GetBinContent(iBin)
+        binValueUnc = hSpectra.GetBinError(iBin)
+        systRawYield = systErr.GetRawYieldErr(ptCent) * binValue
+        hToFit.SetBinError(iBin, np.sqrt(binValueUnc**2 + systRawYield**2))
+
+    fitFunc = TF1('peakPowLaw', PeakPowLaw, 0., ptMax, 4)
+    fitFunc.SetParameters(hSpectra.Integral(), dictPar['alpha'][0], dictPar['beta'][0], dictPar['gamma'][0])
+    fitFunc.FixParameter(0, hSpectra.Integral())
+    fitFunc.SetParLimits(1, dictPar['alpha'][1], dictPar['alpha'][2])
+    fitFunc.SetParLimits(2, dictPar['beta'][1], dictPar['beta'][2])
+    fitFunc.SetParLimits(3, dictPar['gamma'][1], dictPar['gamma'][2])
+
+    hToFit.Fit(fitFunc, 'IE0', '', ptMin, ptMax)
+    print(f'Function integral in pT = [0., {ptMax}] -> {fitFunc.Integral(0., ptMax):.6f}')
+    print(f'Function integral in pT = [{ptMin}, {ptMax}] -> {fitFunc.Integral(ptMin, ptMax):.6f}')
+    print(f'Histo integral in pT = [{ptMin}, {ptMax}] -> {hSpectra.Integral():.6f}')
+
+    if outFileName:
+        cFit = TCanvas('cSpectra', '', 800, 800)
+        cFit.DrawFrame(0., hSpectra.GetMinimum() / 5, ptMax, hSpectra.GetMaximum() * 5,
+                       ';#it{p}_{T} (GeV/#it{c});d#it{N}(d#sigma)/d#it{p}_{T};')
+        cFit.SetLogy()
+        hToFit.Draw("same")
+        fitFunc.Draw("same")
+        cFit.Update()
+        cFit.SaveAs(outFileName)
+        cFit.SaveAs(outFileName.replace('.root', '.pdf'))
+
+    return fitFunc, ptMin, ptMax

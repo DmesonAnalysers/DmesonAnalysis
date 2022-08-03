@@ -9,13 +9,14 @@ import yaml
 from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
 sys.path.append('../..')
 from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ, ReadLIDO, ReadLGR  #pylint: disable=wrong-import-position,import-error
+from utils.AnalysisUtils import FitSpectra #pylint: disable=wrong-import-position,import-error
 
 parser = argparse.ArgumentParser(description='Arguments to pass')
 parser.add_argument('cfgFileName', metavar='text', default='cfgFileName.yml',
                     help='input yaml cibfugfile name')
 args = parser.parse_args()
 
-with open(args.cfgFileName, 'r') as ymlfitConfigFile:
+with open(args.cfgFileName, 'r', encoding='utf8') as ymlfitConfigFile:
     inputCfg = yaml.load(ymlfitConfigFile, yaml.FullLoader)
 
 Dspecie = inputCfg['meson']['Dspecie']
@@ -104,7 +105,6 @@ if Bspecie:
 infileGenPtShape.Close()
 
 # default models
-isPbPb = False
 sFONLLD, _, ptMinFONLL, ptMaxFONLL = ReadFONLL(shapesD['fonll']['file'], True)
 if Bspecie:
     sFONLLB, _, ptMinFONLLB, ptMaxFONLLB = ReadFONLL(shapesB['fonll']['file'], True)
@@ -121,6 +121,10 @@ if 'lido' in shapesD and shapesD['lido']['enabled']:
     sLIDO, _, ptMinLIDO, ptMaxLIDO = ReadLIDO(shapesD['lido']['file'])
 if 'lgr' in shapesD and shapesD['lgr']['enabled']:
     sLGR, _, ptMinLGR, ptMaxLGR = ReadLGR(shapesD['lgr']['file'])
+if 'datashape' in shapesD and shapesD['datashape']['enabled']:
+    fData, _, _ = FitSpectra(shapesD['datashape']['file'], shapesD['datashape']['hSpectraName'],
+                             shapesD['datashape']['systErrName'], shapesD['datashape']['parConfig'],
+                             shapesD['datashape']['controlFile'])
 
 if 'tamu' in shapesB and shapesB['tamu']['enabled']:
     if Bspecie not in ['Bplus', 'Bzero', 'Bs', 'BsBmix']:
@@ -144,11 +148,12 @@ modelPred = ['yCent', 'yMin', 'yMax']
 
 hPtFONLLD, hPtFONLLB, hPtFONLLtimesTAMUD, hPtFONLLtimesTAMUB, hPtFONLLtimesPHSDD, \
     hPtFONLLtimesGossiauxD, hPtFONLLtimesCataniaD, hPtFONLLtimesLIDOD, hPtFONLLtimesLIDOB, \
-        hPtFONLLtimesLGRD = ([] for _ in range(10))
+        hPtFONLLtimesLGRD, hPtDataShape = ([] for _ in range(11))
 
 hPtWeightsFONLLD, hPtWeightsFONLLB, hPtWeightsFONLLtimesTAMUD, hPtWeightsFONLLtimesTAMUB, \
     hPtWeightsFONLLtimesPHSDD, hPtWeightsFONLLtimesGossiauxD, hPtWeightsFONLLtimesCataniaD, \
-        hPtWeightsFONLLtimesLIDOD, hPtWeightsFONLLtimesLIDOB, hPtWeightsFONLLtimesLGRD = ([] for _ in range(10))
+        hPtWeightsFONLLtimesLIDOD, hPtWeightsFONLLtimesLIDOB, hPtWeightsFONLLtimesLGRD, \
+            hPtWeightsDataShape = ([] for _ in range(11))
 
 # D meson weights
 for histoName, pred in zip(histoDNames, modelPred):
@@ -165,6 +170,8 @@ for histoName, pred in zip(histoDNames, modelPred):
         hPtFONLLtimesLIDOD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesLIDO')))
     if 'lgr' in shapesD and shapesD['lgr']['enabled']:
         hPtFONLLtimesLGRD.append(hPtGenD.Clone(histoName.replace('FONLL', 'FONLLtimesLGR')))
+    if 'datashape' in shapesD and shapesD['datashape']['enabled']:
+        hPtDataShape.append(hPtGenD.Clone(histoName.replace('FONLL', 'DataShape')))
 
     for iPt in range(1, hPtFONLLD[-1].GetNbinsX()+1):
         ptCent = hPtFONLLD[-1].GetBinCenter(iPt)
@@ -224,6 +231,10 @@ for histoName, pred in zip(histoDNames, modelPred):
             else:
                 hPtFONLLtimesLGRD[-1].SetBinContent(iPt, sFONLLD[pred](ptCent) * sLGR['yCent'](ptMinLGR))
 
+        if 'datashape' in shapesD and shapesD['datashape']['enabled']:
+            # In this case we have to trust the data shape outside the fit range
+            hPtDataShape[-1].SetBinContent(iPt, fData(ptCent))
+
     hPtFONLLD[-1].Sumw2()
     hPtFONLLD[-1].Scale(1./hPtFONLLD[-1].Integral())
     hPtWeightsFONLLD.append(hPtFONLLD[-1].Clone(histoName.replace('Pt', 'PtWeights')))
@@ -265,6 +276,12 @@ for histoName, pred in zip(histoDNames, modelPred):
             hPtFONLLtimesLGRD[-1].Clone(hPtFONLLtimesLGRD[-1].GetName().replace('Pt', 'PtWeights')))
         hPtWeightsFONLLtimesLGRD[-1].Divide(hPtFONLLtimesLGRD[-1], hPtGenD)
         hPtWeightsFONLLtimesLGRD[-1].Smooth(smooth)
+    if 'datashape' in shapesD and shapesD['datashape']['enabled']:
+        hPtDataShape[-1].Scale(1./hPtDataShape[-1].Integral())
+        hPtWeightsDataShape.append(
+            hPtDataShape[-1].Clone(hPtDataShape[-1].GetName().replace('Pt', 'PtWeights')))
+        hPtWeightsDataShape[-1].Divide(hPtDataShape[-1], hPtGenD)
+        hPtWeightsDataShape[-1].Smooth(smooth)
 
 # B meson weights
 if Bspecie:
@@ -354,6 +371,9 @@ for iHisto, _ in enumerate(hPtFONLLD):
     if 'lgr' in shapesD and shapesD['lgr']['enabled']:
         hPtFONLLtimesLGRD[iHisto].Write()
         hPtWeightsFONLLtimesLGRD[iHisto].Write()
+    if 'datashape' in shapesD and shapesD['datashape']['enabled']:
+        hPtDataShape[iHisto].Write()
+        hPtWeightsDataShape[iHisto].Write()
     if Bspecie:
         hPtFONLLB[iHisto].Write()
         hPtWeightsFONLLB[iHisto].Write()

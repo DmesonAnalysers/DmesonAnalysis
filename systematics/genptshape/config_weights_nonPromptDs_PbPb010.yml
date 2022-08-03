@@ -28,6 +28,16 @@ shapes:
         lgr:
             enabled: false
             file: ../../models/lgr/RAA_Prompt_Ds_0-10__ColRad_FragCoal.dat
+        datashape:
+            enabled: false
+            file: ''
+            hSpectraName: 'hAAC'
+            systErrName: 'AliHFSystErrAA'
+            parConfig: 
+                'alpha': [] #[init value, min. limit, max. limit]
+                'beta': []
+                'gamma': []
+            controlFile: ''
     B:
         fonll: # fonll is mandatory
             file: ../../models/fonll/FONLL_B_pp5_y05_pt0-150_100MeVbins.txt
