@@ -3,7 +3,7 @@ meson:
     Bspecie: null # optional, needed for non-prompt analyses mainly
 
 inputMC:
-    filename: ptweights/DsPbPb/GenPtShape_LHC20g2b.root
+    filename: /home/fcatalan/cernbox/Analyses/PbPb2018/Ds_wML/final/raa/pass3/GenPtShape_LHC20g2b.root
     suffixCF: _prompt_3050_strongPIDpt8_Raa # only for CF outputs otherwise null
 
 shapes:
@@ -28,6 +28,16 @@ shapes:
         lgr:
             enabled: true
             file: ../../models/lgr/RAA_Prompt_Ds_30-50__ColRad_FragCoal.dat
+        datashape:
+            enabled: true
+            file: ../../../PhDThesis/chapter7/data/DsYield_method2_fd1_br1_Ds_3050_040521.root
+            hSpectraName: 'hAAC'
+            systErrName: 'AliHFSystErrAA'
+            parConfig: 
+                'alpha': [2., -10., 10.] #[init value, min. limit, max. limit]
+                'beta': [0.6, -2, 2.]
+                'gamma': [3., -10., 10.]
+            controlFile: /home/fcatalan/cernbox/Analyses/PbPb2018/Ds_wML/final/check_ptWeights/DsYield_PbPb3050_Fitted.root
     B:
         fonll: # fonll is mandatory
             file: ../../models/fonll/FONLL_B_pp5_y05_pt0-150_100MeVbins.txt
