@@ -102,6 +102,7 @@ def GetObjectFromFile(inFile, pathToObj):
     Function to extract an object inside a root file.
     Supports nested containers with the following Data Types:
      - TFile
+     - TDirecotryFile
      - TList
 
     Parameters
@@ -118,8 +119,8 @@ def GetObjectFromFile(inFile, pathToObj):
     pathElements = pathToObj.split(os.sep)
     outObj = inFile.Get(pathElements.pop(0))
 
-    for iContainer, containerName in enumerate(pathElements):
-        if isinstance(outObj, TFile) or isinstance(outObj, TDirectoryFile):
+    for _, containerName in enumerate(pathElements):
+        if isinstance(outObj, (TFile, TDirectoryFile)):
             outObj = outObj.Get(containerName)
         elif isinstance(outObj, TList):
             outObj = outObj.FindObject(containerName)
