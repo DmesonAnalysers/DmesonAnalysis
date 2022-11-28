@@ -1,0 +1,11 @@
+input: outputs/Ds1plus/Dstar_K0S_HM_centsel.parquet.gzip
+output_dir: outputs/Ds1plus
+pdg_reso: 10433
+
+fit_config:
+  pt_mins: [2.]
+  pt_maxs: [20.]
+  mass_mins: [0.0, 0.0]
+  mass_maxs: [0.6, 0.6]
+  signal_pdf: ["voigtian"]
+  bkg_pdf: ["expopow"]
