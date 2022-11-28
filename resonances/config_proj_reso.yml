@@ -1,0 +1,90 @@
+input_dirs: /Users/fgrosa/cernbox/alice_work/analyses/resonances/all/*/
+output_dir: /Users/fgrosa/cernbox/alice_work/analyses/resonances/outputs/Ds2starplus
+
+selections: # taken from previous analyses
+  # D mesons
+  411: # D+
+    MB:
+      pt_min: 1
+      mass_min: 0.
+      mass_max: 1000.
+      BDT:
+        pt_mins: [1, 2, 3, 4, 12, 24]
+        pt_maxs: [2, 3, 4, 12, 24, 50]
+        BDT_bkg: [0.020, 0.050, 0.070, 0.150, 0.200, 0.0300]
+        BDT_prompt: [0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+    HM:
+      pt_min: 1
+      mass_min: 0.
+      mass_max: 1000.
+      BDT:
+        pt_mins: [1, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24]
+        pt_maxs: [3, 4, 5, 6, 7, 8, 10, 12, 16, 24, 50]
+        BDT_bkg: [0.0025, 0.0030, 0.0080, 0.0100, 0.0250, 0.0300, 0.0200, 0.0300, 0.0500, 0.0750, 0.1000]
+        BDT_prompt: [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
+  413: # D*+
+    MB:
+      pt_min: 1
+      mass_min: 0.
+      mass_max: 0.16
+      BDT:
+        pt_mins: [1, 2, 3, 5, 7]
+        pt_maxs: [2, 3, 5, 7, 50]
+        BDT_bkg: [0.10, 0.15, 0.25, 0.30, 0.90]
+        BDT_prompt: [0., 0., 0., 0., 0.]
+    HM:
+      pt_min: 1
+      mass_min: 0.
+      mass_max: 0.16
+      BDT:
+        pt_mins: [1, 2, 3, 4, 6, 12]
+        pt_maxs: [2, 3, 4, 6, 12, 50]
+        BDT_bkg: [0.015, 0.020, 0.050, 0.100, 0.300, 0.500]
+        BDT_prompt: [0., 0., 0., 0., 0., 0.]
+  # V0s
+  310:
+    MB:
+      pt_min: 0
+      cosp_min: 0.97
+      declen_xy_min: 0.5
+      dca_dau_min: 0.06
+    HM:
+      pt_min: 0
+      cosp_min: 0.97
+      declen_xy_min: 0.5
+      dca_dau_min: 0.06
+  3122:
+    MB:
+      pt_min: 0
+      cosp_min: 0.99
+      declen_xy_min: 0.5
+      dca_dau_min: 0.06
+    HM:
+      pt_min: 0
+      cosp_min: 0.99
+      declen_xy_min: 0.5
+      dca_dau_min: 0.06
+  # resonances
+  10433: # Ds1+
+    MB:
+      delta_mass_D: 3. # number of sigmas
+      delta_mass_V0: 3. # number of sigmas
+      mass_min: -1
+      mass_max: 0.60
+    HM:
+      delta_mass_D: 3. # number of sigmas
+      delta_mass_V0: 3. # number of sigmas
+      mass_min: -1
+      mass_max: 0.60
+  435: # Ds2*+
+    MB:
+      delta_mass_D: 3. # number of sigmas
+      delta_mass_V0: 3. # number of sigmas
+      mass_min: 0.55
+      mass_max: 0.85
+    HM:
+      delta_mass_D: 3. # number of sigmas
+      delta_mass_V0: 3. # number of sigmas
+      mass_min: 0.55
+      mass_max: 0.85
+
