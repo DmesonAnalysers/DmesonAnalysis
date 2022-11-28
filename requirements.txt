@@ -1,3 +1,4 @@
 hipe4ml>=0.0.10
+flarefly>=0.0.5
 pyaml
 alive_progress
