@@ -114,7 +114,6 @@ def project(config, trigger, pdg_d, pdg_v0):
     if pdg_d == 411:
         data_hdl_D = DataHandler(df_sel, var_name="inv_mass_D", limits=[1.75, 1.98])
         fitter_d = F2MassFitter(data_hdl_D, ["gaussian"], ["expo"], "Dplus_ptint")
-        fitter_d.set_particle_mass(0, pdg_id=411)
         fitter_d.set_signal_initpar(0, "sigma", 0.015)
     elif pdg_d == 413:
         data_hdl_D = DataHandler(df_sel, var_name="inv_mass_D", limits=[Particle.from_pdgid(211).mass*1e-3, 0.16])
