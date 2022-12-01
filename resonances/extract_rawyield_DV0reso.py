@@ -141,7 +141,7 @@ def extract_rawyield(config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("config", metavar="text",
-                        default="config_selections.yml", help="input config file")
+                        default="config_fit.yml", help="input config file")
     args = parser.parse_args()
 
     extract_rawyield(args.config)
