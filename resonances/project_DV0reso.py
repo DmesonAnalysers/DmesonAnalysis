@@ -211,7 +211,7 @@ def project(config, trigger, pdg_d, pdg_v0):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("config", metavar="text",
-                        default="config_selections.yml", help="input config file")
+                        default="config_proj.yml", help="input config file")
     parser.add_argument("--trigger", "-t", metavar="text",
                         default="HM", required=True, help="trigger class (options: [HM, MB]")
     parser.add_argument("--pdg_D", "-d", type=int, required=True, default=413,
