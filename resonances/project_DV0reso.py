@@ -107,8 +107,12 @@ def project(config, trigger, pdg_d, pdg_v0):
     fig_v0 = fitter_v0.plot_mass_fit(style="ATLAS", bins=200, axis_title=label_mass_v0)
     mean_v0, _ = fitter_v0.get_mass(0)
     frac_gaus_v0 = fitter_v0.get_signal_parameter(0, "frac1")[0]
-    width_v0 = frac_gaus_v0*fitter_v0.get_signal_parameter(0, "sigma1")[0] + \
-        (1-frac_gaus_v0)*fitter_v0.get_signal_parameter(0, "sigma2")[0]
+    if pdg_v0 == 310:
+        width_v0 = frac_gaus_v0*fitter_v0.get_signal_parameter(0, "sigma1")[0] + \
+            (1-frac_gaus_v0)*fitter_v0.get_signal_parameter(0, "sigma2")[0]
+    elif pdg_v0 == 3122:
+        width_v0, _ = fitter_v0.get_signal_parameter(0, "sigma")
+
     fig_v0.savefig(os.path.join(cfg["output_dir"], f"mass_{name_v0}_{trigger}.pdf"))
 
     if pdg_d == 411:
