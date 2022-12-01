@@ -81,7 +81,6 @@ def project(config, trigger, pdg_d, pdg_v0):
         else:
             sel_string_d += f" or {sel_string_pt})"
 
-    #cosp_v0:declen_xy_v0:dca_dau_min_v0
     pt_v0_min = cfg['selections'][pdg_v0][trigger]['pt_min']
     cosp_v0_min = cfg['selections'][pdg_v0][trigger]['cosp_min']
     declen_xy_v0_min = cfg['selections'][pdg_v0][trigger]['declen_xy_min']
