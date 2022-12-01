@@ -11,6 +11,15 @@ from particle import Particle
 def project(config, trigger, pdg_d, pdg_v0):
     """
     function for raw yield computation
+
+    Parameters
+    ----------
+
+    - config (str): path of config file 
+    - trigger (str): trigger class (MB or HM)
+    - pdg_d (int): PDG code of the D meson
+    - pdg_v0 (int): PDG code of the V0
+
     """
 
     with open(config, "r") as yml_cfg:  # pylint: disable=bad-option-value

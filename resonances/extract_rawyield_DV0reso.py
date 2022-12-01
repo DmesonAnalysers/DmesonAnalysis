@@ -18,7 +18,21 @@ from particle import Particle
 def create_hist(pt_lims, contents, errors, label_pt=r"$p_\mathrm{T}~(\mathrm{GeV}/c)$"):
     """
     Helper method to create histogram
+
+    Parameters
+    ----------
+
+    - pt_lims (list): list of pt limits
+    - contents (list): histogram contents
+    - errors (list): histogram errors
+    - label_pt (str): label for x axis
+
+    Returns
+    ----------
+    - histogram (hist.Hist)
+
     """
+
     pt_cent = [(pt_min+pt_max)/2 for pt_min, pt_max in zip(pt_lims[:-1], pt_lims[1:])]
     histo = Hist.new.Var(pt_lims, name="x", label=label_pt).Weight()
     histo.fill(pt_cent, weight=contents)
@@ -30,6 +44,11 @@ def create_hist(pt_lims, contents, errors, label_pt=r"$p_\mathrm{T}~(\mathrm{GeV
 def extract_rawyield(config):
     """
     function for raw yield computation
+
+    Parameters
+    ----------
+
+    - config (str): path of config file 
     """
 
     with open(config, "r") as yml_cfg:  # pylint: disable=bad-option-value
