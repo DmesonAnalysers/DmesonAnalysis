@@ -5,7 +5,7 @@ pdg_reso: 435
 fit_config:
   pt_mins: [2.]
   pt_maxs: [20.]
-  mass_mins: [0.55, 0.55]
-  mass_maxs: [0.85, 0.85]
+  mass_mins: [0.55]
+  mass_maxs: [0.85]
   signal_pdf: ["voigtian"]
   bkg_pdf: ["chebpol2"]
