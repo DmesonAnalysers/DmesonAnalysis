@@ -382,7 +382,10 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
             parFrac2Gaus = 4
             if not (secPeak and particleName == 'Ds'):
                 massFunc = TF1(f'massFunc{iPt}', DoubleGaus, massMin, massMax, 5)
-                massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9)
+                if not particleName == 'Dstar':
+                    massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9)
+                else:
+                    massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.0010, 0.0030, 0.9)
             else:
                 massFunc = TF1(f'massFunc{iPt}', DoublePeakDoubleGaus, massMin, massMax, 8)
                 massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9,
