@@ -123,6 +123,16 @@ elif cfg['input']['channel'] == 'Dpi':
                 'Particle0_Particle3': '#pi^{+} #minus D^{#minus}',
                 'Particle1_Particle2': '#pi^{#minus} #minus D^{+}',
                 'Particle1_Particle3': '#pi^{#minus} #minus D^{#minus}'}
+elif cfg['input']['channel'] == 'Dstarpi':
+    corrTitles = {'Particle0_Particle2': '#pi^{+} #minus D*^{+}',
+                'Particle0_Particle3': '#pi^{+} #minus D*^{#minus}',
+                'Particle1_Particle2': '#pi^{#minus} #minus D*^{+}',
+                'Particle1_Particle3': '#pi^{#minus} #minus D*^{#minus}'}
+elif cfg['input']['channel'] == 'DstarK':
+    corrTitles = {'Particle0_Particle2': 'K^{+} #minus D*^{+}',
+                'Particle0_Particle3': 'K^{+} #minus D*^{#minus}',
+                'Particle1_Particle2': 'K^{#minus} #minus D*^{+}',
+                'Particle1_Particle3': 'K^{#minus} #minus D*^{#minus}'}
 else:
     print('ERROR: Channel not implemented! Choose between Dp, DK, Dpi. Exit')
     sys.exit()
@@ -438,14 +448,14 @@ for corrName in ['Particle0_Particle2_plus_Particle1_Particle3', 'Particle0_Part
             fracDstarAvSysLow = fracDstar - fracDstarAvSysLow
             fracDstarAvSysHigh = fracDstarAvSysHigh - fracDstar
 
-            kStar = (kStarMax+kStarMin) / 2
-            kStarDelta = (kStarMax-kStarMin) / 2
+        kStar = (kStarMax+kStarMin) / 2
+        kStarDelta = (kStarMax-kStarMin) / 2
 
-            gBeautyFrac[corrName].SetPoint(iK, kStar, fracBeauty)
-            gDstarFrac[corrName].SetPoint(iK, kStar, fracDstar)
+        gBeautyFrac[corrName].SetPoint(iK, kStar, fracBeauty)
+        gDstarFrac[corrName].SetPoint(iK, kStar, fracDstar)
 
-            gBeautyFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracBeautyUnc, fracBeautyUnc)
-            gDstarFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracDstarUnc, fracDstarUnc)
+        gBeautyFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracBeautyUnc, fracBeautyUnc)
+        gDstarFrac[corrName].SetPointError(iK, kStarDelta, kStarDelta, fracDstarUnc, fracDstarUnc)
 
         if iK == 0: # only for k* < 200 MeV/c^2
             hFractions[corrName].SetBinContent(1, purity)
