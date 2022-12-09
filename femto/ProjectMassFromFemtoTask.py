@@ -44,15 +44,19 @@ hDminusMassVsPt, hDplusMassVsPt = None, None
 for iFile, fileName in enumerate(inFileNames):
     inFile = TFile.Open(fileName)
     inList = inFile.Get(listName)
-    if iFile == 0:
-        hDminusMassVsPt = inList.FindObject('fHistDminusInvMassPt')
-        hDplusMassVsPt = inList.FindObject('fHistDplusInvMassPt')
+    if 'Dstar' in args.HFsuffix:
+        nameDplus = 'Dstar'
+        nameDminus = 'Dstarminus'
     else:
-        hDminusMassVsPt.Add(inList.FindObject('fHistDminusInvMassPt'))
-        hDplusMassVsPt.Add(inList.FindObject('fHistDplusInvMassPt'))
-    print(f'Read input file: {fileName}')
-print(f'           dir: {dirName}')
-print(f'           list: {listName}')
+        nameDplus = 'Dplus'
+        nameDminus = 'Dminus'
+
+    if iFile == 0:
+        hDminusMassVsPt = inList.FindObject(f'fHist{nameDminus}InvMassPt')
+        hDplusMassVsPt = inList.FindObject(f'fHist{nameDplus}InvMassPt')
+    else:
+        hDminusMassVsPt.Add(inList.FindObject(f'fHist{nameDminus}InvMassPt'))
+        hDplusMassVsPt.Add(inList.FindObject(f'fHist{nameDplus}InvMassPt'))
 
 hMassVsPt = hDminusMassVsPt.Clone('hMassVsPt')
 if hDminusMassVsPt.GetXaxis().GetXmin() == hDplusMassVsPt.GetXaxis().GetXmin():
