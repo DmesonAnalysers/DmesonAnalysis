@@ -134,7 +134,7 @@ elif cfg['input']['channel'] == 'DstarK':
                 'Particle1_Particle2': 'K^{#minus} #minus D*^{+}',
                 'Particle1_Particle3': 'K^{#minus} #minus D*^{#minus}'}
 else:
-    print('ERROR: Channel not implemented! Choose between Dp, DK, Dpi. Exit')
+    print('ERROR: Channel not implemented! Choose between Dp, DK, Dpi, Dstarpi and DstarK. Exit')
     sys.exit()
 
 inFile = TFile.Open(inFileName)
