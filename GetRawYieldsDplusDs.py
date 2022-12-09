@@ -67,8 +67,16 @@ ptLims.append(ptMaxs[-1])
 particleName = fitConfig[cent]['Particle']
 inclSecPeak = fitConfig[cent]['InclSecPeak']
 
+SgnFuncStr = fitConfig[cent]['SgnFunc']
+if not isinstance(SgnFuncStr, list):
+    SgnFuncStr = [SgnFuncStr] * nPtBins
+
+BkgFuncStr = fitConfig[cent]['BkgFunc']
+if not isinstance(BkgFuncStr, list):
+    BkgFuncStr = [BkgFuncStr] * nPtBins
+
 SgnFunc, BkgFunc, degPol = [], [], []
-for iPt, (bkgStr, sgnStr) in enumerate(zip(fitConfig[cent]['BkgFunc'], fitConfig[cent]['SgnFunc'])):
+for iPt, (bkgStr, sgnStr) in enumerate(zip(BkgFuncStr, SgnFuncStr)):
     degPol.append(-1)
     if bkgStr == 'kExpo':
         BkgFunc.append(AliHFInvMassFitter.kExpo)
@@ -135,6 +143,7 @@ if enableRef:
 
 hRel, hSig, hMassForRel, hMassForSig  = [], [], [], []
 hMass, hMassForFit = [], []
+inclSecPeak = [inclSecPeak] * len(ptMins) if not isinstance(inclSecPeak, list) else inclSecPeak
 for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
     if not args.isMC:
         hMass.append(infile.Get(f'hMass_{ptMin*10:.0f}_{ptMax*10:.0f}'))
@@ -338,9 +347,21 @@ for iCanv in range(nCanvases):
     DivideCanvas(cResiduals[iCanv], nPads)
 
 massFitter = []
+
+rebins = fitConfig[cent]['Rebin']
+if not isinstance(rebins, list):
+    rebins = [rebins] * len(ptMins)
+
+massMins = fitConfig[cent]['MassMin']
+if not isinstance(massMins, list):
+    massMins = [massMins] * len(ptMins)
+
+massMaxs = fitConfig[cent]['MassMax']
+if not isinstance(massMaxs, list):
+    massMaxs = [massMaxs] * len(ptMins)
+
 for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in enumerate(
-        zip(hMass, ptMins, ptMaxs, fitConfig[cent]['Rebin'], SgnFunc, BkgFunc, inclSecPeak, fitConfig[cent]['MassMin'],
-            fitConfig[cent]['MassMax'])):
+        zip(hMass, ptMins, ptMaxs, rebins, SgnFunc, BkgFunc, inclSecPeak, massMins, massMaxs)):
     iCanv = int(np.floor(iPt / nMaxCanvases))
     hMassForFit.append(TH1F())
     AliVertexingHFUtils.RebinHisto(hM, reb).Copy(hMassForFit[iPt]) #to cast TH1D to TH1F
