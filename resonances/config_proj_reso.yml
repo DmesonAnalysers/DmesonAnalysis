@@ -88,3 +88,10 @@ selections: # taken from previous analyses
       mass_min: 0.55
       mass_max: 0.85
 
+eff:
+  input_files: [/home/stefano/Desktop/Analyses/DmesonAnalysis/inputs/AnalysisResults.root]
+  input_dirs: ['PWGHF_D2H_HFResoBuilderDplustoKpipiDplusK0S', 'PWGHF_D2H_HFResoBuilderDstartoD0piDstarK0S']
+  mesons: ['Dplus', 'Dstar']
+  v0s: ['K0S']
+  mult: 'MB'
+  outfile: './ResoEff.root'
