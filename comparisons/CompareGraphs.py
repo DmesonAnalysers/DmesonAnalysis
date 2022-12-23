@@ -25,21 +25,38 @@ with open(args.cfgFileName, 'r') as ymlCfgFile:
 inDirName = inputCfg['inputs']['dirname']
 inFileNames = inputCfg['inputs']['filenames']
 objNames = inputCfg['inputs']['objectnames']
+nObj = len(objNames)
 
 outFileName = inputCfg['output']['filename']
 outExtensions = inputCfg['output']['extensions']
 
 objTypes = inputCfg['options']['ROOTobject']
+if not isinstance(objTypes, list):
+    objTypes = [objTypes] * nObj
+
 scales = inputCfg['options']['scale']
+if not isinstance(scales, list):
+    scales = [scales] * nObj
+
 lambdaParams = inputCfg['options']['lambdaParams']
+if not isinstance(lambdaParams, list):
+    lambdaParams = [lambdaParams] * nObj
 normalizes = inputCfg['options']['normalize']
+if not isinstance(normalizes, list):
+    normalizes = [normalizes] * nObj
 colors = inputCfg['options']['colors']
 markers = inputCfg['options']['markers']
 markersize = inputCfg['options']['markersize']
 linewidth = inputCfg['options']['linewidth']
 fillstyles = inputCfg['options']['fillstyle']
+if not isinstance(fillstyles, list):
+    fillstyles = [fillstyles] * nObj
 fillalphas = inputCfg['options']['fillalpha']
+if not isinstance(fillalphas, list):
+    fillalphas = [fillalphas] * nObj
 drawOptions = inputCfg['options']['drawopt']
+if not isinstance(drawOptions, list):
+    drawOptions = [drawOptions] * nObj
 
 doRatio = inputCfg['options']['ratio']['enable']
 drawRatioUnc = inputCfg['options']['ratio']['uncertainties']['enable']
