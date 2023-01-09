@@ -68,6 +68,7 @@ appl:
     column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
 
 standalone_appl:
+    treename: null # null if using parquet
     inputs: [~/Ds_PbPb_data_newSplines/skimmed_data/010_tightPre/Prompt_DsPbPb5TeV010NoOutlier_D2H_TightPre_pT_2_4.parquet.gzip, 
              ~/Ds_PbPb_data_newSplines/skimmed_data/010_tightPre/FD_DsPbPb5TeV010NoOutlier_D2H_TightPre_pT_2_4.parquet.gzip] # list of parquet files for the model application
     output_names: ['Prompt_D2H', 'FD_D2H'] # names for the outputs (one for each file)

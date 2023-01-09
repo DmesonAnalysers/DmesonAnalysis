@@ -76,6 +76,7 @@ appl:
     column_to_save_list: ['inv_mass', 'pt_cand'] # list of variables saved in the dataframes with the applied models
 
 standalone_appl:
+    treename: null # null if using parquet
     inputs: [] # list of parquet files for the model application
     output_names: [] # names for the outputs (one for each file)
     output_dir: null # output directory
