@@ -77,6 +77,7 @@ appl:
                           max_norm_d0d0exp, nsigComb_Pi_0, nsigComb_Pi_1, nsigComb_Pi_2, nsigComb_K_0, nsigComb_K_1, nsigComb_K_2] # list of variables saved in the dataframes with the applied models
 
 standalone_appl:
+    treename: null # null if using parquet
     inputs: [] # list of parquet files for the model application
     output_names: [] # names for the outputs (one for each file)
     output_dir: null # output directory

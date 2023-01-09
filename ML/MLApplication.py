@@ -41,9 +41,14 @@ def main(): #pylint: disable=too-many-statements, too-many-branches
         ModelHandl.load_model_handler(ModelPath)
         ModelHandls.append(ModelHandl)
 
+    treename = inputCfg['standalone_appl']['treename']
     for inputFile, outName in zip(inputCfg['standalone_appl']['inputs'], inputCfg['standalone_appl']['output_names']):
         print(f'Loading and preparing data file {inputFile}: ...', end='\r')
-        DataHandler = TreeHandler(inputFile)
+        if treename is None:
+            DataHandler = TreeHandler(inputFile)
+        else:
+            DataHandler = TreeHandler(inputFile, treename)
+
         DataHandler.slice_data_frame('pt_cand', PtBins, True)
         print(f'Loading and preparing data files {inputFile}: Done!')
 
