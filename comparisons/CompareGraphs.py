@@ -8,7 +8,7 @@ from os.path import join
 import argparse
 import numpy as np
 import yaml
-from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,no-name-in-module
+from ROOT import TCanvas, TFile, TLegend, TLine, gROOT # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker #pylint: disable=wrong-import-position,import-error
 from utils.AnalysisUtils import ComputeRatioDiffBins, ScaleGraph, ComputeRatioGraph #pylint: disable=wrong-import-position,import-error
@@ -17,7 +17,10 @@ from utils.DfUtils import GetObjectFromFile #pylint: disable=wrong-import-positi
 # load inputs
 parser = argparse.ArgumentParser(description='Arguments')
 parser.add_argument('cfgFileName', metavar='text', default='config_comparison.yml')
+parser.add_argument('-b', default=False, action='store_true')
+
 args = parser.parse_args()
+gROOT.SetBatch(args.b)
 
 with open(args.cfgFileName, 'r') as ymlCfgFile:
     inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
