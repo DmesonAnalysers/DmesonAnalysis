@@ -49,13 +49,16 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
   if (decayer == kPythia8) {
     decName = "Pythia8";
     // keep only interesting decays
+    pythia.readString("413:onMode = off");
+    if (pdgReso != 10433) {
+      pythia.readString("413:onIfMatch = 211 421");
+    }
     pythia.readString("435:onMode = off");
     pythia.readString("435:onIfMatch = 311 411");
     pythia.readString("10433:onMode = off");
     pythia.readString("10433:onIfMatch = 311 413");
     // switch off D-meson decays
     pythia.readString("421:onMode = off");
-    pythia.readString("413:onMode = off");
     pythia.readString("411:onMode = off");
     pythia.readString("310:onMode = off");
     pythia.readString("311:onMode = off");
@@ -80,12 +83,17 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
   std::string outFileNameRoot = Form("Decays_%d_%s_decayer_%s.root", pdgReso, decName.data(), trigger.data());
   auto tupleDreso = new TNtuple(
       "tupleDreso", "tupleDreso",
-      "mass_reso:pt_reso:y_reso:phi_reso:pt_d:y_d:phi_d:pt_v0:y_v0:phi_v0");
+      "mass_reso:pt_reso:y_reso:phi_reso:pt_d:y_d:phi_d:pt_light:y_light:phi_light:eta_light");
 
   //__________________________________________________________
   // define reso mass limit
   double massLimit = -1.;
   switch(pdgReso) {
+    case 413:
+    {
+      massLimit = TDatabasePDG::Instance()->GetParticle(421)->Mass() + TDatabasePDG::Instance()->GetParticle(211)->Mass();
+      break;
+    }
     case 435:
     {
       massLimit = TDatabasePDG::Instance()->GetParticle(411)->Mass() + TDatabasePDG::Instance()->GetParticle(310)->Mass();
@@ -127,8 +135,8 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
 
     std::array<float, 4> arrDreso{};
     std::array<float, 3> arrDdau{};
-    std::array<float, 3> arrV0dau{};
-    bool isResoFilled = false, isDmesonFilled = false, isV0Filled = false;
+    std::array<float, 4> arrLightDau{};
+    bool isResoFilled = false, isDmesonFilled = false, isLightFilled = false;
     for (auto iPart{1}; iPart < pythia.event.size(); ++iPart) {
       int pdg = pythia.event[iPart].id();
       int absPdg = std::abs(pdg);
@@ -137,19 +145,30 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
       float pT = pythia.event[iPart].pT();
       float phi = pythia.event[iPart].phi();
       float y = pythia.event[iPart].y();
+      float eta = pythia.event[iPart].eta();
 
       if (!isResoFilled && absPdg == pdgReso) {
         arrDreso = std::array<float, 4>{mass, pT, y, phi};
         isResoFilled = true;
+      }
+      else if (pdgReso == 413) {
+        if (!isDmesonFilled && absPdg == 421) {
+          arrDdau = std::array<float, 3>{pT, y, phi};
+          isDmesonFilled = true;
+        }
+        else if (!isLightFilled && absPdg == 211) {
+          arrLightDau = std::array<float, 4>{pT, y, phi, eta};
+          isLightFilled = true;
+        }
       }
       else if (pdgReso == 435) {
         if (!isDmesonFilled && absPdg == 411) {
           arrDdau = std::array<float, 3>{pT, y, phi};
           isDmesonFilled = true;
         }
-        else if (!isV0Filled && absPdg == 310) {
-          arrV0dau = std::array<float, 3>{pT, y, phi};
-          isV0Filled = true;
+        else if (!isLightFilled && absPdg == 310) {
+          arrLightDau = std::array<float, 4>{pT, y, phi, eta};
+          isLightFilled = true;
         }
       }
       else if (pdgReso == 10433) {
@@ -157,21 +176,21 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
           arrDdau = std::array<float, 3>{pT, y, phi};
           isDmesonFilled = true;
         }
-        else if (!isV0Filled && absPdg == 310) {
-          arrV0dau = std::array<float, 3>{pT, y, phi};
-          isV0Filled = true;
+        else if (!isLightFilled && absPdg == 310) {
+          arrLightDau = std::array<float, 4>{pT, y, phi, eta};
+          isLightFilled = true;
         }
       }
     }
 
-    if (!isResoFilled || !isDmesonFilled || !isV0Filled) {
+    if (!isResoFilled || !isDmesonFilled || !isLightFilled) {
       continue;
     }
 
-    std::array<float, 10> array4tuple{};
+    std::array<float, 11> array4tuple{};
     std::copy(arrDreso.begin(), arrDreso.end(), array4tuple.begin());
     std::copy(arrDdau.begin(), arrDdau.end(), array4tuple.begin() + arrDreso.size());
-    std::copy(arrV0dau.begin(), arrV0dau.end(), array4tuple.begin() + arrDreso.size() + arrDdau.size());
+    std::copy(arrLightDau.begin(), arrLightDau.end(), array4tuple.begin() + arrDreso.size() + arrDdau.size());
     tupleDreso->Fill(array4tuple.data());
   }
 
