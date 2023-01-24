@@ -70,6 +70,7 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
     string cutFileName = config["task"]["cuts"]["infile"].as<string>();
     string cutObjName = config["task"]["cuts"]["objname"].as<string>();
     string triggerMask = config["task"]["triggermask"].as<string>();
+    string cutHFsuffix = config["task"]["cutHFsuffix"].as<string>();
     bool applyML = static_cast<bool>(config["task"]["applyML"]["doapplyML"].as<int>());
     string confFileML = config["task"]["applyML"]["configfile"].as<string>();
     int pdgLight = config["task"]["pdglight"].as<int>();
@@ -112,9 +113,12 @@ void RunAnalysisCharmFemtoTask(TString configfilename, TString runMode = "full",
         }
         taskMLSel = reinterpret_cast<AliAnalysisTaskSECharmHadronMLSelector*>(gInterpreter->ProcessLine(Form(".x %s(\"%s\", \"%s\", AliAnalysisTaskSECharmHadronMLSelector::%s, \"%s\", \"""\", %s)", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGHF/vertexingHF/macros/AddTaskCharmHadronMLSelector.C"), MLSelcutFileName.data(), MLSelconfFileML.data(), charmDecChannelMLSelector.data(), MLSelcutObjName.data(), triggerMask.data())));
     }
-    AliAnalysisTaskCharmingFemto *task = reinterpret_cast<AliAnalysisTaskCharmingFemto*>(gInterpreter->ProcessLine(Form(".x %s(%d, %d, %d, %d, true, \"%s\", AliAnalysisTaskCharmingFemto::%s, \"%s\", \"%s\", \"""\", %d, \"%s\", 0, AliAnalysisTaskCharmingFemto::%s, %d, \"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGCF/FEMTOSCOPY/macros/AddTaskAnyCharmingFemto.C"), isRunOnMC, useMCTruthReco, useMCTruthGen, useTree, triggerMask.data(), charmDecChannel.data(), cutFileName.data(), cutObjName.data(), applyML, confFileML.data(), massSelection.data(), pdgLight, cutVariation.data())));
+    AliAnalysisTaskCharmingFemto *task = reinterpret_cast<AliAnalysisTaskCharmingFemto*>(gInterpreter->ProcessLine(Form(".x %s(%d, %d, %d, %d, false, true, \"%s\", AliAnalysisTaskCharmingFemto::%s, \"%s\", \"%s\", \"%s\", %d, \"%s\", 0, AliAnalysisTaskCharmingFemto::%s, %d, 20, {\"mult\", \"kStar\", \"is_oldpcrm\", \"is_newpcrm\", \"is_crosspcrm\", \"inv_mass\", \"inv_masspdg\", \"heavy_mult\", \"heavy_invmass\", \"heavy_pt\", \"heavy_origin\", \"light_mult\", \"light_px\", \"light_py\", \"light_eta\", \"light_nsigtpc\", \"light_nsigtof\", \"light_dcaxy\", \"light_dcaz\", \"light_motherpdg\"}, \"%s\")", gSystem->ExpandPathName("$ALICE_PHYSICS/PWGCF/FEMTOSCOPY/macros/AddTaskAnyCharmingFemto.C"), isRunOnMC, useMCTruthReco, useMCTruthGen, useTree, triggerMask.data(), charmDecChannel.data(), cutFileName.data(), cutObjName.data(), cutHFsuffix.data(), applyML, confFileML.data(), massSelection.data(), pdgLight, cutVariation.data())));
     if(useMLselectorTask)
         task->SetIsDependentOnMLSelector();
+
+    task->SetUseUseLFFromEvtsWithPairs(true);
+    task->SetPart2Buffer(false);
 
     if (!mgr->InitAnalysis())
         return;
