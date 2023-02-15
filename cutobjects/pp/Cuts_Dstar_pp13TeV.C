@@ -335,7 +335,7 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_NoDstarCuts(bool fIsMC = fa
     float *ptbins;
     ptbins = new float[nptbins + 1];
 
-    ptbins[0] = 1.;
+    ptbins[0] = 0.;
     ptbins[1] = 5.;
     ptbins[2] = 50.;
 
@@ -367,13 +367,13 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_NoDstarCuts(bool fIsMC = fa
 
     for (int ipt = 0; ipt < nptbins; ipt++)
     {
-        anacutsval[1][ipt]  = 0.1;   //dca O
-        anacutsval[2][ipt]  = 1.1;   //cost* O
-        anacutsval[3][ipt]  = 0.3;   //ptK  O
-        anacutsval[4][ipt]  = 0.3;   //ptPi O
-        anacutsval[5][ipt]  = 0.5;   //d0K  O
-        anacutsval[6][ipt]  = 0.5;   //d0Pi O
-        anacutsval[7][ipt]  = 1.0;   //d0d0 O
+        anacutsval[1][ipt]  = 0.1;   //dca
+        anacutsval[2][ipt]  = 1.1;   //cost*
+        anacutsval[3][ipt]  = 0.3;   //ptK
+        anacutsval[4][ipt]  = 0.3;   //ptPi
+        anacutsval[5][ipt]  = 0.5;   //d0K
+        anacutsval[6][ipt]  = 0.5;   //d0Pi
+        anacutsval[7][ipt]  = 1.0;   //d0d0
         anacutsval[9][ipt]  = 1000.; //inv. mass half width of D* [GeV]
         anacutsval[10][ipt] = 1000.; //half width of (M_Kpipi-M_D0) [GeV]
         anacutsval[11][ipt] = 0.05;  //PtMin of pi_s [GeV/c]
@@ -381,11 +381,11 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_NoDstarCuts(bool fIsMC = fa
         anacutsval[13][ipt] = 10.;   //theta, angle between the pi_s and decay plane of the D0 [rad]
     }
 
-    //pT 1-5
-    anacutsval[0][0] = 0.05;  //minv O
-    anacutsval[8][0] = 0.75;  //cosp O
-    anacutsval[14][0] = 0.75; //cosp xy O
-    anacutsval[15][0] = 1;    //NormDecayLenghtXY O
+    //pT 0-5
+    anacutsval[0][0] = 0.05;  //minv
+    anacutsval[8][0] = 0.75;  //cosp
+    anacutsval[14][0] = 0.75; //cosp xy
+    anacutsval[15][0] = 1;    //NormDecayLenghtXY
 
     //pT 5-50
     anacutsval[0][1] = 0.10;  //minv
@@ -434,7 +434,7 @@ AliRDHFCutsDStartoKpipi *MakeFileForCutsDstarpp13TeV_NoDstarCuts(bool fIsMC = fa
     analysiscuts->SetRemoveDaughtersFromPrim(true);
     analysiscuts->SetMinVtxContr(1);
 
-    analysiscuts->SetMinPtCandidate(3.);
+    analysiscuts->SetMinPtCandidate(0.);
     analysiscuts->SetMaxPtCandidate(50.);
 
     std::cout << "This is the object I'm going to save:" << nptbins << std::endl;
