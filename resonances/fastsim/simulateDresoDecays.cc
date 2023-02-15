@@ -87,7 +87,7 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
   std::string outFileNameRoot = Form("Decays_%d_%s_decayer_%s_%s.root", pdgReso, decName.data(), trigger.data(), ptShapeLabel.data());
   auto tupleDreso = new TNtuple(
       "tupleDreso", "tupleDreso",
-      "mass_reso:pt_reso:y_reso:phi_reso:pt_d:y_d:phi_d:pt_light:y_light:phi_light:eta_light");
+      "mass_reso:pt_reso:y_reso:phi_reso:pt_d:y_d:phi_d:eta_d:pt_light:y_light:phi_light:eta_light");
 
   //__________________________________________________________
   // define reso mass limit
@@ -139,7 +139,7 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
     }
 
     std::array<float, 4> arrDreso{};
-    std::array<float, 3> arrDdau{};
+    std::array<float, 4> arrDdau{};
     std::array<float, 4> arrLightDau{};
     bool isResoFilled = false, isDmesonFilled = false, isLightFilled = false;
     for (auto iPart{1}; iPart < pythia.event.size(); ++iPart) {
@@ -158,7 +158,7 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
       }
       else if (pdgReso == 413) {
         if (!isDmesonFilled && absPdg == 421) {
-          arrDdau = std::array<float, 3>{pT, y, phi};
+          arrDdau = std::array<float, 4>{pT, y, phi, eta};
           isDmesonFilled = true;
         }
         else if (!isLightFilled && absPdg == 211) {
@@ -168,7 +168,7 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
       }
       else if (pdgReso == 435) {
         if (!isDmesonFilled && absPdg == 411) {
-          arrDdau = std::array<float, 3>{pT, y, phi};
+          arrDdau = std::array<float, 4>{pT, y, phi, eta};
           isDmesonFilled = true;
         }
         else if (!isLightFilled && absPdg == 310) {
@@ -178,7 +178,7 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
       }
       else if (pdgReso == 10433) {
         if (!isDmesonFilled && absPdg == 413) {
-          arrDdau = std::array<float, 3>{pT, y, phi};
+          arrDdau = std::array<float, 4>{pT, y, phi, eta};
           isDmesonFilled = true;
         }
         else if (!isLightFilled && absPdg == 310) {
