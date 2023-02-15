@@ -30,13 +30,13 @@ enum decayer { kPythia8 = 0, kEvtGen };
 
 //__________________________________________________________________________________________________
 void SimulateDresoDecays(int nEvents = 10000, int pdgReso = 435,
-                         int decayer = kEvtGen, int seed = 42, std::string trigger = "MB");
+                         int decayer = kEvtGen, int seed = 42, std::string trigger = "MB", bool applyPtShapeVar=false);
 Particle GetParticle(int pdgCode = 435, TF1* fPtShape = nullptr);
-TF1* GetPtShape(std::string inFileName = "HEPDataDvsMult.root", std::string trigger = "MB");
+TF1* GetPtShape(TGraphErrors*& gPtShape, std::string inFileName = "HEPDataDvsMult.root", std::string trigger = "MB", bool applyVar=false);
 double PowLaw(double* pt, double* pars);
 
 //__________________________________________________________________________________________________
-void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::string trigger) {
+void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::string trigger, bool applyPtShapeVar) {
   //__________________________________________________________
   // create and configure pythia generator
 
@@ -80,7 +80,11 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
 
   //__________________________________________________________
   // define outputs
-  std::string outFileNameRoot = Form("Decays_%d_%s_decayer_%s.root", pdgReso, decName.data(), trigger.data());
+  std::string ptShapeLabel = "Dsptshape";
+  if (applyPtShapeVar) {
+    ptShapeLabel = "Lcptshape";
+  }
+  std::string outFileNameRoot = Form("Decays_%d_%s_decayer_%s_%s.root", pdgReso, decName.data(), trigger.data(), ptShapeLabel.data());
   auto tupleDreso = new TNtuple(
       "tupleDreso", "tupleDreso",
       "mass_reso:pt_reso:y_reso:phi_reso:pt_d:y_d:phi_d:pt_light:y_light:phi_light:eta_light");
@@ -112,7 +116,8 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
     }
   }
   // define pT shape
-  auto fPtShape = GetPtShape("HEPDataDvsMult.root", trigger);
+  TGraphErrors* gPtShape = nullptr;
+  auto fPtShape = GetPtShape(gPtShape, "HEPDataDvsMult.root", trigger, applyPtShapeVar);
 
   //__________________________________________________________
   // perform the simulation
@@ -196,6 +201,7 @@ void simulateDresoDecays(int nEvents, int pdgReso, int decayer, int seed, std::s
 
   // save root output file
   TFile outFile(outFileNameRoot.data(), "recreate");
+  gPtShape->Write();
   fPtShape->Write();
   tupleDreso->Write();
   outFile.Close();
@@ -230,15 +236,22 @@ Particle GetParticle(int pdg, TF1* fPtShape)
 }
 
 //__________________________________________________________
-TF1* GetPtShape(std::string inFileName, std::string trigger) {
+TF1* GetPtShape(TGraphErrors*& gPtShape, std::string inFileName, std::string trigger, bool applyVar) {
 
   auto inFile = TFile::Open(inFileName.data());
-  TGraphErrors* gPtShape = nullptr;
   if (trigger == "MB") {
-    gPtShape = (TGraphErrors*)inFile->Get("Table sup3b/Graph1D_y1");
+    if (!applyVar) {
+      gPtShape = (TGraphErrors*)inFile->Get("Table sup3b/Graph1D_y1");
+    } else {
+      gPtShape = (TGraphErrors*)inFile->Get("Table sup3c/Graph1D_y1");
+    }
   }
   else if (trigger == "HM") {
-    gPtShape = (TGraphErrors*)inFile->Get("Table sup3b/Graph1D_y4");
+    if (!applyVar) {
+      gPtShape = (TGraphErrors*)inFile->Get("Table sup3b/Graph1D_y4");
+    } else {
+      gPtShape = (TGraphErrors*)inFile->Get("Table sup3c/Graph1D_y4");
+    }
   }
   else {
     std::cerr << "WARNING: Trigger " << trigger << " not supported for pT shape! Return nullptr." << std::endl;
@@ -249,7 +262,7 @@ TF1* GetPtShape(std::string inFileName, std::string trigger) {
   TF1* fPtShape = new TF1("fPtShape", PowLaw, 0., 24., 4);
   fPtShape->SetName("fPtShape");
   fPtShape->SetParameters(gPtShape->Integral(), 2.6, 2.8, 2.);
-  gPtShape->Fit(fPtShape, "IME0Q", "", 2., 24.);
+  gPtShape->Fit(fPtShape, "IME0Q", "", 1., 24.);
 
   return fPtShape;
 }
