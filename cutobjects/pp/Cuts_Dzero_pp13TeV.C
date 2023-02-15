@@ -31,7 +31,7 @@ AliRDHFCutsD0toKpi *MakeFileForCutsDzeropp13TeV(bool fIsMC = false, TString trig
     float *ptbins;
     ptbins = new float[nptbins + 1];
 
-    ptbins[0] = 1.;
+    ptbins[0] = 0.;
     ptbins[1] = 5.;
     ptbins[2] = 50.;
 
@@ -67,7 +67,7 @@ AliRDHFCutsD0toKpi *MakeFileForCutsDzeropp13TeV(bool fIsMC = false, TString trig
         anacutsval[7][ipt]  = 1.0;   //d0d0
     }
 
-    //pT 1-5
+    //pT 0-5
     anacutsval[0][0] = 0.05;  //minv
     anacutsval[8][0] = 0.75;  //cosp
     anacutsval[9][0] = 0.75;  //cosp xy
@@ -119,7 +119,7 @@ AliRDHFCutsD0toKpi *MakeFileForCutsDzeropp13TeV(bool fIsMC = false, TString trig
     analysiscuts->SetRemoveDaughtersFromPrim(true);
     analysiscuts->SetMinVtxContr(1);
 
-    analysiscuts->SetMinPtCandidate(3.);
+    analysiscuts->SetMinPtCandidate(0.);
     analysiscuts->SetMaxPtCandidate(50.);
 
     std::cout << "This is the object I'm going to save:" << nptbins << std::endl;
