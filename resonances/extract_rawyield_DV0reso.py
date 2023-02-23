@@ -57,18 +57,22 @@ def extract_rawyield(config):
     pdg_reso = cfg["pdg_reso"]
 
     # define titles and labels
+    extra_info_loc = None
     if pdg_reso == 10433:
         name_reso = "Ds1plus"
         label_mass = r"M($\mathrm{D}^{*+}\mathrm{K_S^0}$)$-$M($\mathrm{D}^{*+}$)"
         pdg_v0 = 310
         pdg_d = 413
-        signal_limits = [0.51, 0.53]
+        extra_info_loc = ["lower right", "upper center"]
     elif pdg_reso == 435:
         name_reso = "Ds2starplus"
         label_mass = r"M($\mathrm{D}^+\mathrm{K_S^0}$)$-$M($\mathrm{D}^+$)"
         pdg_v0 = 310
         pdg_d = 411
-        signal_limits = [0.65, 0.75]
+        if "MB" in cfg["input"]:
+            extra_info_loc = ["upper left", "lower right"]
+        elif "HM" in cfg["input"]:
+            extra_info_loc = ["upper right", "lower right"]
     else:
         print(f"ERROR: pdg code {pdg_reso} not supported")
         sys.exit()
@@ -111,7 +115,7 @@ def extract_rawyield(config):
         delta_mass = Particle.from_pdgid(pdg_reso).mass*1e-3 - Particle.from_pdgid(pdg_d).mass*1e-3
         width = Particle.from_pdgid(pdg_reso).width*1.e-3
         fitter_reso.set_signal_initpar(0, "gamma", width, fix=True)
-        fitter_reso.set_signal_initpar(0, "sigma", 0.0008, limits=[0.0004, 0.0020])
+        fitter_reso.set_signal_initpar(0, "sigma", 0.0008, limits=[0.0006, 0.0012])
         fitter_reso.set_particle_mass(0, mass=delta_mass, limits=[delta_mass-0.1, delta_mass+0.1])
         fitter_reso.set_signal_initpar(0, "frac", 0.01, limits=[0., 1.])
         fitter_reso.set_background_initpar(0, "mass", Particle.from_pdgid(pdg_v0).mass*1e-3)
@@ -120,17 +124,20 @@ def extract_rawyield(config):
         fitter_reso.set_background_initpar(0, "c2", 1)
         fitter_reso.mass_zfit()
         fig_reso = fitter_reso.plot_mass_fit(style="ATLAS",
-                                             axis_title=rf"{label_mass} (GeV/$c^2$)")
-        fig_reso_res = fitter_reso.plot_raw_residuals(style="ATLAS", axis_title=rf"{label_mass} (GeV/$c^2$)")
+                                             figsize=(8, 8),
+                                             axis_title=rf"{label_mass} (GeV/$c^2$)",
+                                             show_extra_info=True,
+                                             extra_info_massnhwhm=3.,
+                                             extra_info_loc=extra_info_loc)
+        fig_reso_res = fitter_reso.plot_raw_residuals(style="ATLAS", figsize=(8, 8), axis_title=rf"{label_mass} (GeV/$c^2$)")
         fig_reso.savefig(os.path.join(cfg["output_dir"], f"mass_{name_reso}_pt{pt_min}-{pt_max}_{trigger}.pdf"))
         fig_reso_res.savefig(os.path.join(cfg["output_dir"],
                                           f"mass_residuals_{name_reso}_pt{pt_min}-{pt_max}_{trigger}.pdf"))
 
         rawy, rawy_unc = fitter_reso.get_raw_yield(0)
 
-        # TODO: compute signal region more rigorously (method for CI to be added in flarefly)
-        sign, sign_unc = fitter_reso.get_significance(0, min=signal_limits[0], max=signal_limits[1])
-        soverb, soverb_unc = fitter_reso.get_signal_over_background(0, min=signal_limits[0], max=signal_limits[1])
+        sign, sign_unc = fitter_reso.get_significance(0, nhwhm=3.)
+        soverb, soverb_unc = fitter_reso.get_signal_over_background(0, nhwhm=3.)
         mean, mean_unc = fitter_reso.get_signal_parameter(0, "mu")
         sigma, sigma_unc = fitter_reso.get_signal_parameter(0, "sigma")
 
