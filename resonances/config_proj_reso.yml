@@ -1,5 +1,5 @@
-input_dirs: /Users/fgrosa/cernbox/alice_work/analyses/resonances/all/*/
-output_dir: /Users/fgrosa/cernbox/alice_work/analyses/resonances/outputs/Ds2starplus
+input_dirs: /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/data/*/
+output_dir: /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/outputs/Ds1plus
 
 selections: # taken from previous analyses
   # D mesons
@@ -40,8 +40,7 @@ selections: # taken from previous analyses
         pt_mins: [1, 2, 3, 4, 6, 12]
         pt_maxs: [2, 3, 4, 6, 12, 50]
         BDT_bkg: [0.015, 0.020, 0.050, 0.100, 0.300, 0.500]
-        BDT_prompt: [0., 0., 0., 0., 0., 0.]
-  # V0s
+        BDT_prompt: [0.15, 0.15, 0.15, 0.15, 0.15, 0.15]
   310:
     MB:
       pt_min: 0
@@ -89,9 +88,10 @@ selections: # taken from previous analyses
       mass_max: 0.85
 
 eff:
-  input_files: [/home/stefano/Desktop/Analyses/DmesonAnalysis/inputs/AnalysisResults.root]
+  input_files: [/Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/LHC20k7a2/AnalysisResults.root,
+                /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/LHC20k7b/AnalysisResults.root]
   input_dirs: ['PWGHF_D2H_HFResoBuilderDplustoKpipiDplusK0S', 'PWGHF_D2H_HFResoBuilderDstartoD0piDstarK0S']
   mesons: ['Dplus', 'Dstar']
   v0s: ['K0S']
-  mult: 'MB'
+  mult: 'HM'
   outfile: './ResoEff.root'
