@@ -69,10 +69,7 @@ def extract_rawyield(config):
         label_mass = r"M($\mathrm{D}^+\mathrm{K_S^0}$)$-$M($\mathrm{D}^+$)"
         pdg_v0 = 310
         pdg_d = 411
-        if "MB" in cfg["input"]:
-            extra_info_loc = ["upper left", "lower right"]
-        elif "HM" in cfg["input"]:
-            extra_info_loc = ["upper right", "lower right"]
+        extra_info_loc = ["upper left", "lower right"]
     else:
         print(f"ERROR: pdg code {pdg_reso} not supported")
         sys.exit()

@@ -1,3 +1,7 @@
+"""
+Script for the projection of trees with D-meson resonance candidates
+"""
+
 import os
 import argparse
 import yaml
@@ -8,6 +12,52 @@ from flarefly.data_handler import DataHandler
 from flarefly.fitter import F2MassFitter
 from particle import Particle
 
+import ROOT
+
+# pylint: disable=too-many-arguments
+def get_normalisation(input_dirs, output_dir, name_decay, name_d, name_v0, trigger):
+    """
+    function to get normalisation
+
+    Parameters
+    ----------
+
+    - input_dirs (str): input directories
+    - output_dir (str): output directory
+    - name_decay (str): name of the decay
+    - name_d (str): name of the D meson
+    - name_v0 (str): name of the V0
+    - trigger (str): trigger class (MB or HM)
+    """
+
+    if "*" in input_dirs:
+        input_dirs = input_dirs.split("*")[0]
+
+    n_ev_mb, n_ev_inelgtr0 = 0., 0.
+    for input_dir in os.listdir(input_dirs):
+        input_dir = os.path.join(input_dirs, input_dir)
+        for file_name in os.listdir(input_dir):
+            if ".root" in file_name:
+                file_name = os.path.join(input_dir, file_name)
+                infile = ROOT.TFile.Open(file_name)
+                norm_counter = infile.Get(
+                    f"PWGHF_D2H_HFResoBuilder{name_decay}{name_d}{name_v0}_{trigger}/NormalizationCounter")
+                n_ev_mb += norm_counter.GetNEventsForNorm()
+                n_ev_inelgtr0 += norm_counter.GetNEventsForNorm(1, 10000)
+
+    hist_events = ROOT.TH1F("hist_events", ";;normalisation", 2, -0.5, 1.5)
+    hist_events.GetXaxis().SetBinLabel(1, "MB")
+    hist_events.GetXaxis().SetBinLabel(2, "INEL>0")
+    hist_events.SetBinContent(1, n_ev_mb)
+    hist_events.SetBinContent(2, n_ev_inelgtr0)
+
+    file_root = uproot.recreate(
+        os.path.join(output_dir, f"normalisation_{name_d}_{name_v0}_{trigger}.root"))
+    file_root["hist_events"] = hist_events
+    file_root.close()
+
+
+# pylint: disable=too-many-locals,too-many-branches,too-many-statements
 def project(config, trigger, pdg_d, pdg_v0):
     """
     function for raw yield computation
@@ -15,7 +65,7 @@ def project(config, trigger, pdg_d, pdg_v0):
     Parameters
     ----------
 
-    - config (str): path of config file 
+    - config (str): path of config file
     - trigger (str): trigger class (MB or HM)
     - pdg_d (int): PDG code of the D meson
     - pdg_v0 (int): PDG code of the V0
@@ -63,11 +113,13 @@ def project(config, trigger, pdg_d, pdg_v0):
         else:
             print(f"ERROR: combination of D and V0 pdg codes {pdg_d}-{pdg_v0} not supported")
 
+    get_normalisation(cfg["input_dirs"], cfg["output_dir"], name_decay, name_d, name_v0, trigger)
+
     # get inputs
     df_all = uproot.concatenate(
         os.path.join(f"{cfg['input_dirs']}",
                      "AnalysisResults*.root:"
-                     f"PWGHF_D2H_HFResoBuilder{name_decay}{name_d}K0S_{trigger}/fNtupleCharmReso"),
+                     f"PWGHF_D2H_HFResoBuilder{name_decay}{name_d}{name_v0}_{trigger}/fNtupleCharmReso"),
         library="pd"
     )
 
