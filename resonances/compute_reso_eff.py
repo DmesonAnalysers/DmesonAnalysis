@@ -9,7 +9,7 @@ import numpy as np
 import uproot
 from alive_progress import alive_bar
 from particle import Particle
-from ROOT import TFile, TH2F, TH1F, TCanvas, kRed, kAzure, TLegend, gRandom # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TNtuple, TH2F, TH1F, TCanvas, kRed, kAzure, TLegend, gRandom # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
@@ -17,7 +17,7 @@ SetGlobalStyle(padtopmargin=0.05, padrightmargin=0.15, padleftmargin=0.15, padbo
                palette=55, labelsize=0.03, titlesize=0.03, labeloffset=0.01,
                titleoffsety=1.8, titleoffsetx=1.8, titleoffsetz=1., opttitle=0)
 
-resonances = [413]  # 413, 435, 10433
+resonances = [435]  # 413, 435, 10433
 mults = ['MB', 'HM']
 ptshapes = ['Dsptshape']  # 'Dsptshape' or 'Lcptshape'
 set_seed = 42
@@ -71,6 +71,10 @@ def main():
                 heff_v0 = dau_eff_file.Get(f'K0S_{meson}/hEff_{meson}_K0S')
                 heff_D_prompt = dau_eff_file.Get(f'{meson}_Prompt/h3Eff{meson}Prompt')
                 heff_D_nonprompt = dau_eff_file.Get(f'{meson}_NonPrompt/h3Eff{meson}NonPrompt')
+                heff_v0.SetDirectory(0)
+                heff_D_prompt.SetDirectory(0)
+                heff_D_nonprompt.SetDirectory(0)
+                dau_eff_file.Close()
             else:
                 pi_eff_file = TFile.Open(f'{path}/EfftimesAcc_pTEtaPhiMap_SoftPion_GenKine.root')
                 print(f'\033[1mLoading pi eff data from {pi_eff_file.GetName()}\033[0m')
@@ -79,6 +83,15 @@ def main():
                 heff_v0 = pi_eff_file.Get('Pion_eff_pTEtaPhiMap')
                 heff_D_prompt = d_eff_file.Get('Dzero_eff_pTYPhiMap')
                 heff_D_nonprompt = d_eff_file.Get('Dzero_eff_pTYPhiMap')
+                heff_v0.SetDirectory(0)
+                heff_D_prompt.SetDirectory(0)
+                heff_D_nonprompt.SetDirectory(0)
+                pi_eff_file.Close()
+                d_eff_file.Close()
+            
+            # ______________________________________________________________________________
+            # Create output file
+            outfile = TFile.Open(f'{path}/eff_reso{reso}_{mult}_{ptshape}.root', 'recreate')
 
             # ______________________________________________________________________________
             # Compute efficiency
@@ -116,6 +129,10 @@ def main():
                 hkine_mot_v0.GetYaxis().SetTitle('#it{p}_{T}(D*^{+}) (GeV/#it{c})')
                 hkine_mot_D.GetXaxis().SetTitle('#it{p}_{T}(D) (GeV/#it{c})')
                 hkine_mot_D.GetYaxis().SetTitle('#it{p}_{T}(D*^{+}) (GeV/#it{c})')
+
+            # create TNtuple to store information of "selected" candidates
+            reco_tree = TNtuple('recoTreePrompt', '', 'pt_reso:pt_d:pt_light')
+            reco_tree_np = TNtuple('recoTreeNonPrompt', '', 'pt_reso:pt_d:pt_light')
 
             with alive_bar(len(reso_df_kine), bar='smooth', spinner='classic', title='Computing reso efficiency') as time_bar:
                 for pt_reso, y_reso, pt_D, y_D, phi_D, pt_v0, y_v0, phi_v0, eta_v0, angle_pis in zip(reso_df_kine['pt_reso'].to_numpy(),
@@ -161,6 +178,7 @@ def main():
 
                     if rnd_D < eff_D:
                         hreco_pt.Fill(pt_reso)
+                        reco_tree.Fill(pt_reso, pt_D, pt_v0)
                     if rnd_D < eff_D - eff_D_err:
                         hreco_pt_low.Fill(pt_reso)
                     if rnd_D < eff_D + eff_D_err:
@@ -168,6 +186,7 @@ def main():
 
                     if rnd_D < eff_Dnp:
                         hreco_pt_np.Fill(pt_reso)
+                        reco_tree_np.Fill(pt_reso, pt_D, pt_v0)
                     if rnd_D < eff_Dnp - eff_Dnp_err:
                         hreco_pt_np_low.Fill(pt_reso)
                     if rnd_D < eff_Dnp + eff_Dnp_err:
@@ -211,7 +230,6 @@ def main():
 
             # ______________________________________________________________________________
             # Save output
-            outfile = TFile.Open(f'{path}/eff_reso{reso}_{mult}_{ptshape}.root', 'recreate')
             hgen_pt.Write()
             hreco_pt.Write()
             hreco_pt_low.Write()
@@ -231,6 +249,8 @@ def main():
             canvas.SaveAs(f'{path}/eff_reso{reso}_{mult}_{ptshape}.pdf')
             canvas_kine.Write()
             canvas_kine.SaveAs(f'{path}/kine_reso{reso}_{mult}_{ptshape}.pdf')
+            reco_tree.Write()
+            reco_tree_np.Write()
             outfile.Close()
             input('Press enter to continue...')
 
