@@ -1,15 +1,17 @@
 import sys
 import argparse
+import ctypes
 import numpy as np
 import uproot
 import ROOT
 
 sys.path.insert(0, '..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
+from utils.AnalysisUtils import GetPromptFDFractionCutSet
 
-def propagate(infile_name, outfile_name, kinefile_name,
-              frac_hypo_cent, frac_hypo_min, frac_hypo_max,
-              pt_min_reso, pt_max_reso):
+# pylint: disable=too-many-arguments,too-many-locals,too-many-statements
+def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
+              beautyhypofile_name, pt_min_reso, pt_max_reso):
     """
     function for the propagation of the non-prompt fraction
     from the D daughter to the D resonance mother
@@ -17,24 +19,54 @@ def propagate(infile_name, outfile_name, kinefile_name,
     Parameters
     ----------
 
-    - infile_name (str): input ROOT file
+    - cutvarfile_name (str): input ROOT file with the cut-variation output
+    - efffile_name (str): input ROOT file for the eff x acc factors
+    - kinefile_name (str): input ROOT file with D* -> D kinematics
+    - beautyhypofile_name (str): input ROOT file with Ds/D Np/p ratio for beauty hypo
     - outfile_name (str): output ROOT file
-    - kinefile_name (str): file with D* -> D kinematics
-    - frac_hypo_cent (float): central hypothesis for Dreso/D fraction ratio
-    - frac_hypo_min (float): min hypothesis for Dreso/D fraction ratio
-    - frac_hypo_max (float): max hypothesis for Dreso/D fraction ratio
-    - pt_min_reso (float): min pT for pT integrated fraction
-    - pt_max_reso (float): max pT for pT integrated fraction
+    - pt_min_reso (float): min pT for pT integrated Nnp/Np
+    - pt_max_reso (float): max pT for pT integrated Nnp/Np
     """
 
     ROOT.gROOT.SetBatch()
     SetGlobalStyle(padleftmargin=0.18, padrightmargin=0.1, padbottommargin=0.14)
 
-    infile_npfrac = ROOT.TFile.Open(infile_name)
-    hist_npfrac_d = infile_npfrac.Get("hFDFrac")
+    infile_cutvar = ROOT.TFile.Open(cutvarfile_name)
+    hist_corryield_prompt = infile_cutvar.Get('hCorrYieldPrompt')
+    hist_corryield_nonprompt = infile_cutvar.Get('hCorrYieldFD')
+    hist_cov_pp = infile_cutvar.Get('hCovPromptPrompt')
+    hist_cov_pnp = infile_cutvar.Get('hCovPromptFD')
+    hist_cov_npnp = infile_cutvar.Get('hCovFDFD')
+    hist_corryield_prompt.SetDirectory(0)
+    hist_corryield_nonprompt.SetDirectory(0)
+    hist_cov_pp.SetDirectory(0)
+    hist_cov_pnp.SetDirectory(0)
+    hist_cov_npnp.SetDirectory(0)
+    infile_cutvar.Close()
+
+    infile_eff = ROOT.TFile.Open(efffile_name)
+    hist_acceff_prompt = infile_eff.Get("hAccEffPrompt")
+    hist_acceff_nonprompt = infile_eff.Get("hAccEffFD")
+    hist_acceff_prompt.SetDirectory(0)
+    hist_acceff_nonprompt.SetDirectory(0)
+    infile_eff.Close()
+
+    hist_npfrac_d = hist_corryield_nonprompt.Clone("hist_npfrac_d")
     hist_npfrac_d.SetDirectory(0)
-    SetObjectStyle(hist_npfrac_d, color=ROOT.kAzure+4, markerstyle=ROOT.kFullSquare)
-    spl_npfrac_d = ROOT.TSpline3(hist_npfrac_d)
+
+    for ipt in range(1, hist_npfrac_d.GetNbinsX()+1):
+        frac, unc_frac = GetPromptFDFractionCutSet(
+            hist_acceff_prompt.GetBinContent(ipt),
+            hist_acceff_nonprompt.GetBinContent(ipt),
+            hist_corryield_prompt.GetBinContent(ipt),
+            hist_corryield_nonprompt.GetBinContent(ipt),
+            hist_cov_pp.GetBinContent(ipt),
+            hist_cov_npnp.GetBinContent(ipt),
+            hist_cov_pnp.GetBinContent(ipt)
+        )
+        hist_npfrac_d.SetBinContent(ipt, frac[1])
+        hist_npfrac_d.SetBinError(ipt, unc_frac[1])
+
     pt_mins, pt_maxs = [], []
     for ipt in range(1, hist_npfrac_d.GetNbinsX()+1):
         pt_mins.append(hist_npfrac_d.GetXaxis().GetBinLowEdge(ipt))
@@ -42,7 +74,18 @@ def propagate(infile_name, outfile_name, kinefile_name,
     pt_lims = pt_mins.copy()
     pt_lims.append(pt_maxs[-1])
     nptbins = len(pt_mins)
-    infile_npfrac.Close()
+
+    frac_hypo_cent = 2.
+    frac_hypo_min = 1.
+    frac_hypo_max = 3.
+    if beautyhypofile_name != "":
+        infile_beautyhypo = ROOT.TFile.Open(beautyhypofile_name)
+        graph_double_ratio_dsd_npp = infile_beautyhypo.Get("double_ratio_all")
+        x, y = ctypes.c_double(), ctypes.c_double()
+        graph_double_ratio_dsd_npp.GetPoint(0, x, y)
+        frac_hypo_cent = y.value
+        frac_hypo_min = frac_hypo_cent - graph_double_ratio_dsd_npp.GetErrorYlow(0)
+        frac_hypo_max = frac_hypo_cent + graph_double_ratio_dsd_npp.GetErrorYhigh(0)
 
     hist_npfrac_dreso_vspt_2d = {}
     hist_npfrac_dreso_ptint_distr = {}
@@ -60,17 +103,48 @@ def propagate(infile_name, outfile_name, kinefile_name,
                              int(pt_max_reso) * 2, 0., pt_max_reso,
                              int(pt_max_reso) * 2, 0., pt_max_reso)
 
-    df_kine = uproot.open(kinefile_name)["tupleDreso"].arrays(library="pd")
+    # prompt and non-prompt should be very similar in terms of pT shape
+    df_kine = uproot.open(kinefile_name)["recoTreePrompt"].arrays(library="pd")
+
     for pt_reso, pt_d in zip(df_kine["pt_reso"].to_numpy(), df_kine["pt_d"].to_numpy()):
         hist_pt_corr.Fill(pt_reso, pt_d)
         pt_bin = hist_npfrac_d.GetXaxis().FindBin(pt_d)
-        frac_d = spl_npfrac_d.Eval(pt_d) #hist_npfrac_d.GetBinContent(pt_bin)
-        frac_d_statunc = hist_npfrac_d.GetBinError(pt_bin)
-        frac_d_reso_cent = frac_d * frac_hypo_cent
-        frac_d_reso_hypo_min = frac_d * frac_hypo_min
-        frac_d_reso_hypo_max = frac_d * frac_hypo_max
-        frac_d_reso_stat_min = (frac_d - frac_d_statunc) * frac_hypo_cent
-        frac_d_reso_stat_max = (frac_d + frac_d_statunc) * frac_hypo_cent
+
+        frac_d_reso_cent, frac_d_reso_centunc = GetPromptFDFractionCutSet(
+            hist_acceff_prompt.GetBinContent(pt_bin),
+            hist_acceff_nonprompt.GetBinContent(pt_bin),
+            hist_corryield_prompt.GetBinContent(pt_bin),
+            hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_cent, # multiplication factor enters here
+            hist_cov_pp.GetBinContent(pt_bin),
+            hist_cov_npnp.GetBinContent(pt_bin),
+            hist_cov_pnp.GetBinContent(pt_bin)
+        )
+        frac_d_reso_cent = frac_d_reso_cent[1]
+        frac_d_reso_stat_min = frac_d_reso_cent - frac_d_reso_centunc[1]
+        frac_d_reso_stat_max = frac_d_reso_cent + frac_d_reso_centunc[1]
+
+        frac_d_reso_hypo_min, _ = GetPromptFDFractionCutSet(
+            hist_acceff_prompt.GetBinContent(pt_bin),
+            hist_acceff_nonprompt.GetBinContent(pt_bin),
+            hist_corryield_prompt.GetBinContent(pt_bin),
+            hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_min, # multiplication factor enters here
+            hist_cov_pp.GetBinContent(pt_bin),
+            hist_cov_npnp.GetBinContent(pt_bin),
+            hist_cov_pnp.GetBinContent(pt_bin)
+        )
+        frac_d_reso_hypo_min = frac_d_reso_hypo_min[1]
+
+        frac_d_reso_hypo_max, _ = GetPromptFDFractionCutSet(
+            hist_acceff_prompt.GetBinContent(pt_bin),
+            hist_acceff_nonprompt.GetBinContent(pt_bin),
+            hist_corryield_prompt.GetBinContent(pt_bin),
+            hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_max, # multiplication factor enters here
+            hist_cov_pp.GetBinContent(pt_bin),
+            hist_cov_npnp.GetBinContent(pt_bin),
+            hist_cov_pnp.GetBinContent(pt_bin)
+        )
+        frac_d_reso_hypo_max = frac_d_reso_hypo_max[1]
+
         hist_npfrac_dreso_vspt_2d["cent"].Fill(pt_reso, frac_d_reso_cent)
         hist_npfrac_dreso_vspt_2d["hypo_min"].Fill(pt_reso, frac_d_reso_hypo_min)
         hist_npfrac_dreso_vspt_2d["hypo_max"].Fill(pt_reso, frac_d_reso_hypo_max)
@@ -204,24 +278,23 @@ def propagate(infile_name, outfile_name, kinefile_name,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
-    parser.add_argument("inputfile", metavar="text",
-                        default="fraction_D.root", help="input ROOT file")
+    parser.add_argument("cutvarfile", metavar="text",
+                        default="cutvar.root", help="input ROOT file for cut-variation")
+    parser.add_argument("efffile", metavar="text",
+                        default="eff.root", help="input ROOT file for eff x acc")
     parser.add_argument("kinefile", metavar="text",
                         default="kine.root", help="ROOT file with kinematics")
     parser.add_argument("outputfile", metavar="text",
                         default="fraction_reso.root", help="output ROOT file")
-    parser.add_argument("--f_cent", type=float,
-                        default=2., help="central hypothesis for Dreso/D fraction ratio")
-    parser.add_argument("--f_min", type=float,
-                        default=1., help="min hypothesis for Dreso/D fraction ratio")
-    parser.add_argument("--f_max", type=float,
-                        default=3., help="max hypothesis for Dreso/D fraction ratio")
+    parser.add_argument("file_beauty_hypo", metavar="text",
+                        default="DsOverSumD0Dplus_nonprompt_over_prompt.root",
+                        help="file with hypothesis for strange/nonstrange Np/p ratio")
     parser.add_argument("--pt_min_reso", type=float,
                         default=2., help="min pT for pT integrated fraction")
     parser.add_argument("--pt_max_reso", type=float,
                         default=24., help="max pT for pT integrated fraction")
     args = parser.parse_args()
 
-    propagate(args.inputfile, args.outputfile, args.kinefile,
-              args.f_cent, args.f_min, args.f_max,
+    propagate(args.cutvarfile, args.efffile, args.kinefile,
+              args.file_beauty_hypo, args.outputfile,
               args.pt_min_reso, args.pt_max_reso)
