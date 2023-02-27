@@ -1,5 +1,4 @@
 input_dirs: /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/data/*/
-output_dir: /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/outputs/Ds1plus
 
 selections: # taken from previous analyses
   # D mesons

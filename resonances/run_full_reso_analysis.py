@@ -27,7 +27,9 @@ def run_full_analysis(dir_config_proj, config_fit, trigger, pdg_d, pdg_v0):
         cfg_file = os.path.join(dir_config_proj, cfg_file)
         suffix = cfg_file.split("config_proj_reso")[-1].replace(".yml", "")
         if suffix != "":
-            suffix = f" -s {suffix}"
+            suffix_withopt = f" -s {suffix}"
+        else:
+            suffix_withopt = suffix
 
         if pdg_d == 411:
             name_d = "Dplus"
@@ -42,14 +44,14 @@ def run_full_analysis(dir_config_proj, config_fit, trigger, pdg_d, pdg_v0):
         # projection of data
         print("\n\033[92m Starting data projection\033[0m")
         command_proj = "python3 project_DV0reso.py"
-        args_proj = f"{cfg_file} -t {trigger} -d {pdg_d} -v0 {pdg_v0} -o {dir_config_proj} {suffix}"
+        args_proj = f"{cfg_file} -t {trigger} -d {pdg_d} -v0 {pdg_v0} -o {dir_config_proj} {suffix_withopt}"
         os.system(f"{command_proj} {args_proj}")
 
         # raw yield extraction
         print("\n\033[92m Starting raw yield extraction\033[0m")
         input_4fit = os.path.join(dir_config_proj, f"{name_d}_{name_v0}_{trigger}{suffix}.parquet.gzip")
         command_fit = "python3 extract_rawyield_DV0reso.py"
-        args_fit = f"{input_4fit} {config_fit} -o {dir_config_proj} {suffix}"
+        args_fit = f"{input_4fit} {config_fit} -o {dir_config_proj} {suffix_withopt}"
         os.system(f"{command_fit} {args_fit}")
 
 if __name__ == "__main__":
