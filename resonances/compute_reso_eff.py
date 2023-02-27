@@ -17,10 +17,11 @@ SetGlobalStyle(padtopmargin=0.05, padrightmargin=0.15, padleftmargin=0.15, padbo
                palette=55, labelsize=0.03, titlesize=0.03, labeloffset=0.01,
                titleoffsety=1.8, titleoffsetx=1.8, titleoffsetz=1., opttitle=0)
 
-resonances = [435]  # 413, 435, 10433
+resonances = [435, 10433]  # 413, 435, 10433
 mults = ['MB', 'HM']
 ptshapes = ['Dsptshape']  # 'Dsptshape' or 'Lcptshape'
 set_seed = 42
+pt_int_range = [2., 24.]
 infile_path = '~/Desktop/Analyses/Ds_resonances'
 
 def main():
@@ -88,7 +89,7 @@ def main():
                 heff_D_nonprompt.SetDirectory(0)
                 pi_eff_file.Close()
                 d_eff_file.Close()
-            
+
             # ______________________________________________________________________________
             # Create output file
             outfile = TFile.Open(f'{path}/eff_reso{reso}_{mult}_{ptshape}.root', 'recreate')
@@ -207,7 +208,7 @@ def main():
             heff_np_low.Divide(hreco_pt_np_low, hgen_pt, 1., 1., 'B')
             heff_np_high.Divide(hreco_pt_np_high, hgen_pt, 1., 1., 'B')
 
-            canvas = TCanvas(f'canvas_eff_reso{reso}_{mult}_{ptshape}', '', 800, 800)
+            canvas = TCanvas(f'cEff_reso{reso}_{mult}_{ptshape}', '', 800, 800)
             canvas.cd().SetLogy()
             eff_title = f';#it{{p}}_{{T}} (GeV/#it{{c}}); Acc #times #epsilon ({reso_name}) {mult}'
             canvas.cd().DrawFrame(0., 1.e-4, 25., 10, eff_title)
@@ -229,6 +230,47 @@ def main():
                 histo.Draw('colz')
 
             # ______________________________________________________________________________
+            # Compute integrated efficiency
+            hgen_pt_int = TH1F(f'hgen_int_pT{pt_int_range[0]:.0f}_{pt_int_range[1]:.0f}', '', 1,
+                               np.array(pt_int_range, dtype=np.float32))
+            hreco_pt_int = hgen_pt_int.Clone(f'hreco_int_pT{pt_int_range[0]:.0f}_{pt_int_range[1]:.0f}')
+            hreco_pt_int_np = hgen_pt_int.Clone(f'hreco_int_np_pT{pt_int_range[0]:.0f}_{pt_int_range[1]:.0f}')
+            heff_pt_int = hgen_pt_int.Clone(f'heff_prompt_int_pT{pt_int_range[0]:.0f}_{pt_int_range[1]:.0f}')
+            heff_pt_int_np = hgen_pt_int.Clone(f'heff_nonprompt_int_pT{pt_int_range[0]:.0f}_{pt_int_range[1]:.0f}')
+
+            gen_int = hgen_pt.Integral(hgen_pt.FindBin(pt_int_range[0]*1.001),
+                                       hgen_pt.FindBin(pt_int_range[1]*0.999))
+            reco_int = hreco_pt.Integral(hreco_pt.FindBin(pt_int_range[0]*1.001),
+                                         hreco_pt.FindBin(pt_int_range[1]*0.999))
+            reco_int_np = hreco_pt_np.Integral(hreco_pt_np.FindBin(pt_int_range[0]*1.001),
+                                              hreco_pt_np.FindBin(pt_int_range[1]*0.999))
+            hgen_pt_int.SetBinContent(1, gen_int)
+            hreco_pt_int.SetBinContent(1, reco_int)
+            hreco_pt_int_np.SetBinContent(1, reco_int_np)
+            hgen_pt_int.Sumw2(False)
+            hreco_pt_int.Sumw2(False)
+            hreco_pt_int_np.Sumw2(False)
+
+            heff_pt_int.Divide(hreco_pt_int, hgen_pt_int, 1., 1., 'B')
+            heff_pt_int_np.Divide(hreco_pt_int_np, hgen_pt_int, 1., 1., 'B')
+            SetObjectStyle(heff_pt_int, color=kRed+1, markerstyle=20, markersize=1.2,
+                           linecolor=kRed+1, markercolor=kRed+1, linewidth=2)
+            SetObjectStyle(heff_pt_int_np, color=kAzure+4, markerstyle=20, markersize=1.2,
+                           linecolor=kAzure+4, markercolor=kAzure+4, linewidth=2)
+
+            print((f'Prompt eff in {pt_int_range[0]:.0f}-{pt_int_range[1]:.0f}: '
+                   f'{heff_pt_int.GetBinContent(1):.3e} +/- {heff_pt_int.GetBinError(1):.3e}'))
+            print((f'NonPrompt eff in {pt_int_range[0]:.0f}-{pt_int_range[1]:.0f}: '
+                  f'{heff_pt_int_np.GetBinContent(1):.3e} +/- {heff_pt_int_np.GetBinError(1):.3e}'))
+
+            cEffTot = TCanvas(f'cEff_reso{reso}_{mult}_{ptshape}_Tot', '', 800, 800)
+            cEffTot.cd().SetLogy()
+            cEffTot.cd().DrawFrame(0, 1.e-4, 24, 1, eff_title)
+            heff_pt_int.Draw('same pz')
+            heff_pt_int_np.Draw('same pz')
+            legend.Draw()
+
+            # ______________________________________________________________________________
             # Save output
             hgen_pt.Write()
             hreco_pt.Write()
@@ -237,18 +279,25 @@ def main():
             hreco_pt_np.Write()
             hreco_pt_np_low.Write()
             hreco_pt_np_high.Write()
-            heff.Write('heff_prompt')
-            heff_low.Write('heff_prompt_low')
-            heff_high.Write('heff_prompt_high')
-            heff_np.Write('heff_nonprompt')
-            heff_np_low.Write('heff_nonprompt_low')
-            heff_np_high.Write('heff_nonprompt_high')
+            heff.Write()
+            heff_low.Write()
+            heff_high.Write()
+            heff_np.Write()
+            heff_np_low.Write()
+            heff_np_high.Write()
             hkine_mot_v0.Write()
             hkine_mot_D.Write()
+            hgen_pt_int.Write()
+            hreco_pt_int.Write()
+            hreco_pt_int_np.Write()
+            heff_pt_int.Write()
+            heff_pt_int_np.Write()
             canvas.Write()
             canvas.SaveAs(f'{path}/eff_reso{reso}_{mult}_{ptshape}.pdf')
             canvas_kine.Write()
             canvas_kine.SaveAs(f'{path}/kine_reso{reso}_{mult}_{ptshape}.pdf')
+            cEffTot.Write()
+            cEffTot.SaveAs(f'{path}/eff_tot_reso{reso}_{mult}_{ptshape}.pdf')
             reco_tree.Write()
             reco_tree_np.Write()
             outfile.Close()
