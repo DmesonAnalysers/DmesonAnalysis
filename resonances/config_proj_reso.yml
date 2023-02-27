@@ -88,10 +88,10 @@ selections: # taken from previous analyses
       mass_max: 0.85
 
 eff:
-  input_files: [/Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/LHC20k7a2/AnalysisResults.root,
-                /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/LHC20k7b/AnalysisResults.root]
-  input_dirs: ['PWGHF_D2H_HFResoBuilderDplustoKpipiDplusK0S', 'PWGHF_D2H_HFResoBuilderDstartoD0piDstarK0S']
-  mesons: ['Dplus', 'Dstar']
-  v0s: ['K0S']
-  mult: 'HM'
-  outfile: './ResoEff.root'
+  input_files: [./input/AnalysisResults_train4032_2018_MB.root] # output from reso task
+  input_dirs: ['PWGHF_D2H_HFResoBuilderDplustoKpipiDplusK0S'] # directory in outtask file (Ds2-->'PWGHF_D2H_HFResoBuilderDplustoKpipiDplusK0S', Ds1-->'PWGHF_D2H_HFResoBuilderDstartoD0piDstarK0S', )
+  kine_path: ['/home/stefano/Desktop/Analyses/DmesonAnalysis/resonances/download/'] # path to .root file containing the kinematic of resonance decay
+  resonances: [10433] # PDG code of resonance, keep samo order of directory
+  mult: 'MB' # HM or MB
+  weights: '' # multweights_all, multweights_cand, multweights_candinmass 
+  outfile: './10433_Ds1_Dstar_K0S/MB/ResoEff_10433_MB_frac.root' # outfile name
