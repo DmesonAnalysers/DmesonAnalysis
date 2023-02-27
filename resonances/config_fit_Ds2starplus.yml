@@ -1,11 +1,9 @@
-input: outputs/Ds2starplus/Dplus_K0S_HM_centsel.parquet.gzip
-output_dir: outputs/Ds2starplus
 pdg_reso: 435
 
 fit_config:
   pt_mins: [2.]
-  pt_maxs: [20.]
+  pt_maxs: [24.]
   mass_mins: [0.55]
   mass_maxs: [0.85]
   signal_pdf: ["voigtian"]
-  bkg_pdf: ["chebpol2"]
+  bkg_pdf: ["chebpol1"]

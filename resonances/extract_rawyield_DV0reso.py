@@ -41,14 +41,17 @@ def create_hist(pt_lims, contents, errors, label_pt=r"$p_\mathrm{T}~(\mathrm{GeV
     return histo
 
 
-def extract_rawyield(config):
+def extract_rawyield(input_file, config, output_dir, suffix):
     """
     function for raw yield computation
 
     Parameters
     ----------
 
-    - config (str): path of config file 
+    - input_file (str): path of input file
+    - config (str): path of config file
+    - output_dir (str): output directory
+    - suffix (str): suffix to append to output files
     """
 
     with open(config, "r") as yml_cfg:  # pylint: disable=bad-option-value
@@ -75,12 +78,12 @@ def extract_rawyield(config):
         sys.exit()
 
     trigger = ""
-    if "MB" in cfg["input"]:
+    if "MB" in input_file:
         trigger = "MB"
-    elif "HM" in cfg["input"]:
+    elif "HM" in input_file:
         trigger = "HM"
 
-    df_reso = pd.read_parquet(cfg["input"])
+    df_reso = pd.read_parquet(input_file)
 
     pt_mins_reso = cfg["fit_config"]["pt_mins"]
     pt_maxs_reso = cfg["fit_config"]["pt_maxs"]
@@ -92,8 +95,10 @@ def extract_rawyield(config):
     pt_lims_reso.append(pt_maxs_reso[-1])
 
     # define output file
-    file_root = uproot.recreate(
-        os.path.join(cfg["output_dir"], f"mass_{name_reso}_pt{pt_mins_reso[0]}-{pt_maxs_reso[-1]}_{trigger}.root"))
+    outfile_name = os.path.join(
+        output_dir, f"mass_{name_reso}_pt{pt_mins_reso[0]}-{pt_maxs_reso[-1]}_{trigger}{suffix}.root")
+    file_root = uproot.recreate(outfile_name)
+    file_root.close()
 
     # fit resonance
     signif, signif_unc = [], []
@@ -127,9 +132,10 @@ def extract_rawyield(config):
                                              extra_info_massnhwhm=3.,
                                              extra_info_loc=extra_info_loc)
         fig_reso_res = fitter_reso.plot_raw_residuals(style="ATLAS", figsize=(8, 8), axis_title=rf"{label_mass} (GeV/$c^2$)")
-        fig_reso.savefig(os.path.join(cfg["output_dir"], f"mass_{name_reso}_pt{pt_min}-{pt_max}_{trigger}.pdf"))
-        fig_reso_res.savefig(os.path.join(cfg["output_dir"],
-                                          f"mass_residuals_{name_reso}_pt{pt_min}-{pt_max}_{trigger}.pdf"))
+        fig_reso.savefig(os.path.join(output_dir, f"mass_{name_reso}_pt{pt_min}-{pt_max}_{trigger}{suffix}.pdf"))
+        fig_reso_res.savefig(os.path.join(output_dir,
+                                          f"mass_residuals_{name_reso}_pt{pt_min}-{pt_max}_{trigger}{suffix}.pdf"))
+        fitter_reso.dump_to_root(outfile_name, option="update")
 
         rawy, rawy_unc = fitter_reso.get_raw_yield(0)
 
@@ -149,8 +155,7 @@ def extract_rawyield(config):
         sigmas.append(sigma)
         sigmas_unc.append(sigma_unc)
 
-        # TODO: add dump of root objects for mass fit (PR in flarefly in progress)
-
+    file_root = uproot.update(outfile_name)
     file_root["h_rawyields"] = create_hist(pt_lims_reso, raw_yields, raw_yields_unc)
     file_root["h_significance"] = create_hist(pt_lims_reso, signif, signif_unc)
     file_root["h_soverb"] = create_hist(pt_lims_reso, s_over_b, s_over_b_unc)
@@ -158,13 +163,18 @@ def extract_rawyield(config):
     file_root["h_sigmas"] = create_hist(pt_lims_reso, sigmas, sigmas_unc)
     file_root.close()
 
-    plt.show()
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
+    parser.add_argument("input_file", metavar="text",
+                        default="projected_data.parquet.gzip",
+                        help="input parquet file")
     parser.add_argument("config", metavar="text",
                         default="config_fit.yml", help="input config file")
+    parser.add_argument("--output_dir", "-o", metavar="text",
+                        default=".", help="output directory")
+    parser.add_argument("--suffix", "-s", metavar="text",
+                        default="", help="suffix for output files")
     args = parser.parse_args()
 
-    extract_rawyield(args.config)
+    extract_rawyield(args.input_file, args.config, args.output_dir, args.suffix)
