@@ -237,19 +237,19 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, beautyhypofile_name,
     SetObjectStyle(graph_pfrac_dreso_vspt_stat, color=ROOT.kRed+1)
     SetObjectStyle(graph_pfrac_dreso_hypo, color=ROOT.kRed+1, fillstyle=0)
     SetObjectStyle(graph_pfrac_dreso_vspt_hypo, color=ROOT.kRed+1, fillstyle=0)
-    graph_npfrac_dreso_stat.SetNameTitle(f"graph_npfrac_dreso_stat_pt{pt_min_reso}-{pt_max_reso}",
-                                       ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
+    graph_npfrac_dreso_stat.SetNameTitle("graph_npfrac_dreso_stat_ptint",
+                                         ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
     graph_npfrac_dreso_vspt_stat.SetNameTitle("graph_npfrac_dreso_vspt_stat",
-                                            ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
-    graph_npfrac_dreso_hypo.SetNameTitle(f"graph_npfrac_dreso_hypo_pt{pt_min_reso}-{pt_max_reso}",
-                                       ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
+                                              ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
+    graph_npfrac_dreso_hypo.SetNameTitle("graph_npfrac_dreso_hypo_ptint",
+                                         ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
     graph_npfrac_dreso_vspt_hypo.SetNameTitle("graph_npfrac_dreso_vspt_hypo",
-                                            ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
-    graph_pfrac_dreso_stat.SetNameTitle(f"graph_pfrac_dreso_stat_pt{pt_min_reso}-{pt_max_reso}",
+                                              ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
+    graph_pfrac_dreso_stat.SetNameTitle("graph_pfrac_dreso_stat_ptint",
                                         ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{prompt}")
     graph_pfrac_dreso_vspt_stat.SetNameTitle("graph_pfrac_dreso_vspt_stat",
                                              ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{prompt}")
-    graph_pfrac_dreso_hypo.SetNameTitle(f"graph_pfrac_dreso_hypo_pt{pt_min_reso}-{pt_max_reso}",
+    graph_pfrac_dreso_hypo.SetNameTitle("graph_pfrac_dreso_hypo_ptint",
                                         ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{prompt}")
     graph_pfrac_dreso_vspt_hypo.SetNameTitle("graph_pfrac_dreso_vspt_hypo",
                                              ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{prompt}")

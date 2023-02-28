@@ -16,7 +16,8 @@ def run_full_analysis(dir_config_proj,
                       skip_fit,
                       skip_effmaps,
                       skip_eff,
-                      skip_frac):
+                      skip_frac,
+                      skip_crosssec):
     """
     function for full analysis
 
@@ -37,6 +38,7 @@ def run_full_analysis(dir_config_proj,
     - skip_effmaps (bool): flag to skip efficiency maps
     - skip_eff (bool): flag to skip efficiency propagation
     - skip_frac (bool): flag to skip fraction propagation
+    - skip_crosssec (bool): flag to skip cross section calculation
     """
 
     for cfg_file in os.listdir(dir_config_proj):
@@ -127,13 +129,24 @@ def run_full_analysis(dir_config_proj,
         command_frac = "python3 propagate_frac.py"
         input_4frac = os.path.join(
             dir_config_proj,
-            f"eff_times_acc_{name_reso}_{trigger}_{ptshape}_propagated.root"
+            f"eff_times_acc_{name_reso}_{trigger}_{ptshape}{mult_weights_suffix}_propagated{suffix}"
         )
         args_frac = f"{cutvar_file} {input_4eff} {input_4frac} -b {bhypo_file} {suffix_withopt} -o {dir_config_proj}"
         if not skip_frac:
             print("\n\033[92m Starting fraction propagation\033[0m")
             print(f"\033[92m {command_frac} {args_frac}\033[0m")
             os.system(f"{command_frac} {args_frac}")
+
+        # cross section calculation
+        command_crosssec = "python3 compute_reso_crosssec.py"
+        input_rawy = os.path.join(dir_config_proj, f"mass_{name_reso}_pt2.0-24.0_{trigger}{suffix}.root")
+        input_eff = input_4frac
+        input_frac = os.path.join(dir_config_proj, f"fraction_{name_reso}_{trigger}_{ptshape}{mult_weights_suffix}_propagated{suffix}")
+        args_crosssec = f"{input_rawy} {input_eff} {input_frac} {suffix_withopt} -o {dir_config_proj}"
+        if not skip_crosssec:
+            print("\n\033[92m Starting cross section computation\033[0m")
+            print(f"\033[92m {command_crosssec} {args_crosssec}\033[0m")
+            os.system(f"{command_crosssec} {args_crosssec}")
 
 
 if __name__ == "__main__":
@@ -166,6 +179,8 @@ if __name__ == "__main__":
                         help="Skip efficiency propagation")
     parser.add_argument("--skip_frac", action="store_true", default=False,
                         help="Skip fraction propagation")
+    parser.add_argument("--skip_crosssec", action="store_true", default=False,
+                        help="Skip cross section computation")
     args = parser.parse_args()
 
     run_full_analysis(
@@ -182,5 +197,6 @@ if __name__ == "__main__":
         args.skip_fit,
         args.skip_effmaps,
         args.skip_eff,
-        args.skip_frac
+        args.skip_frac,
+        args.skip_crosssec
     )
