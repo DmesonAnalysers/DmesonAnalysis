@@ -8,8 +8,10 @@ import os
 def run_full_analysis(dir_config_proj,
                       config_fit, trigger,
                       pdg_d, pdg_v0,
+                      mult_weights,
                       skip_data_proj,
-                      skip_fit):
+                      skip_fit,
+                      skip_effmaps):
     """
     function for full analysis
 
@@ -21,8 +23,10 @@ def run_full_analysis(dir_config_proj,
     - trigger (str): trigger class (MB or HM)
     - pdg_d (int): PDG code of the D meson
     - pdg_v0 (int): PDG code of the V0
+    - mult_weights (str): multitplicity weights (all, cand, candinmass)
     - skip_data_proj (bool): flag to skip data projection
     - skip_fit (bool): flag to skip fit
+    - skip_effmaps (bool): flag to skip efficiency maps
     """
 
     for cfg_file in os.listdir(dir_config_proj):
@@ -32,10 +36,13 @@ def run_full_analysis(dir_config_proj,
         # get all parameters needed
         cfg_file = os.path.join(dir_config_proj, cfg_file)
         suffix = cfg_file.split("config_proj_reso")[-1].replace(".yml", "")
+        suffix_withopt = suffix
         if suffix != "":
             suffix_withopt = f" -s {suffix}"
-        else:
-            suffix_withopt = suffix
+
+        mult_weights_opt = mult_weights
+        if mult_weights != "":
+            mult_weights_opt = f" -m {mult_weights}"
 
         if pdg_d == 411:
             name_d = "Dplus"
@@ -64,6 +71,16 @@ def run_full_analysis(dir_config_proj,
             print(f"\033[92m {command_fit} {args_fit}\033[0m")
             os.system(f"{command_fit} {args_fit}")
 
+        # efficiency maps
+        command_effmpas = "python3 compute_resodau_eff.py"
+        args_effmaps = f"{cfg_file} -t {trigger} -d {pdg_d} -v0 {pdg_v0} -o "\
+            f"{dir_config_proj} {suffix_withopt} {mult_weights_opt}"
+        if not skip_effmaps:
+            print("\n\033[92m Starting efficiency maps computaiton\033[0m")
+            print(f"\033[92m {command_effmpas} {args_effmaps}\033[0m")
+            os.system(f"{command_effmpas} {args_effmaps}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("dir_config_proj", metavar="text",
@@ -76,10 +93,14 @@ if __name__ == "__main__":
                         help="pdg code of the D meson (options: [411, 413])")
     parser.add_argument("--pdg_V0", "-v0", type=int, required=True, default=310,
                         help="pdg code of the V0 (options: [310, 3122])")
+    parser.add_argument("--mult_weights", "-m", metavar="text", default="",
+                        help="multiplicity weights for efficiencies")
     parser.add_argument("--skip_data_proj", action="store_true", default=False,
                         help="Skip data projection")
     parser.add_argument("--skip_fit", action="store_true", default=False,
                         help="Skip fit")
+    parser.add_argument("--skip_effmaps", action="store_true", default=False,
+                        help="Skip efficiency maps of daughters")
     args = parser.parse_args()
 
     run_full_analysis(
@@ -88,6 +109,8 @@ if __name__ == "__main__":
         args.trigger,
         args.pdg_D,
         args.pdg_V0,
+        args.mult_weights,
         args.skip_data_proj,
-        args.skip_fit        
+        args.skip_fit,
+        args.skip_effmaps
     )
