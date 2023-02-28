@@ -123,7 +123,7 @@ def project(config, trigger, pdg_d, pdg_v0, output_dir, suffix):
 
     # get inputs
     df_all = uproot.concatenate(
-        os.path.join(f"{cfg['input_dirs']}",
+        os.path.join(f"{cfg['inputs']['data']}",
                      "AnalysisResults*.root:"
                      f"PWGHF_D2H_HFResoBuilder{name_decay}{name_d}{name_v0}_{trigger}/fNtupleCharmReso"),
         library="pd"
