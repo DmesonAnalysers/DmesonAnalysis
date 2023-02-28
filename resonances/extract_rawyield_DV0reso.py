@@ -8,7 +8,6 @@ import argparse
 import yaml
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from hist import Hist
 import uproot
 from flarefly.data_handler import DataHandler

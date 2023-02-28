@@ -403,6 +403,8 @@ def compute_efficiencies(config, trigger, pdg_d, pdg_v0, output_dir, suffix, mul
         h3Eff_mes[-1].Write()
         hy_pt_y_eff.Write(f'h3Dy_pt_y_eff_{name_d}_{origin}')
         h_pt_eff.Write(f'h_pt_eff_{name_d}_{origin}')
+        h_pt_num.Write(f"h_pt_reco_{name_d}_{origin}")
+        h_pt_den.Write(f"h_pt_gen_{name_d}_{origin}")
         hEff_pt_phi_mes[-1].Write()
         hEff_pt_y_mes[-1].Write()
         hEff_phi_y_mes[-1].Write()
