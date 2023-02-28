@@ -129,7 +129,7 @@ def run_full_analysis(dir_config_proj,
         command_frac = "python3 propagate_frac.py"
         input_4frac = os.path.join(
             dir_config_proj,
-            f"eff_times_acc_{name_reso}_{trigger}_{ptshape}{mult_weights_suffix}_propagated{suffix}"
+            f"eff_times_acc_{name_reso}_{trigger}_{ptshape}{mult_weights_suffix}_propagated{suffix}.root"
         )
         args_frac = f"{cutvar_file} {input_4eff} {input_4frac} -b {bhypo_file} {suffix_withopt} -o {dir_config_proj}"
         if not skip_frac:
@@ -141,7 +141,7 @@ def run_full_analysis(dir_config_proj,
         command_crosssec = "python3 compute_reso_crosssec.py"
         input_rawy = os.path.join(dir_config_proj, f"mass_{name_reso}_pt2.0-24.0_{trigger}{suffix}.root")
         input_eff = input_4frac
-        input_frac = os.path.join(dir_config_proj, f"fraction_{name_reso}_{trigger}_{ptshape}{mult_weights_suffix}_propagated{suffix}")
+        input_frac = os.path.join(dir_config_proj, f"fraction_{name_reso}_{trigger}_{ptshape}{mult_weights_suffix}_propagated{suffix}.root")
         args_crosssec = f"{input_rawy} {input_eff} {input_frac} {suffix_withopt} -o {dir_config_proj}"
         if not skip_crosssec:
             print("\n\033[92m Starting cross section computation\033[0m")

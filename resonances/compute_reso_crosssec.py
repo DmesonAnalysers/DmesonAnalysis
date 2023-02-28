@@ -6,7 +6,7 @@ import os
 import argparse
 import sys
 import numpy as np
-from ROOT import TFile, TH1F, TCanvas, kRed, kAzure, TLegend, TGraphAsymmErrors
+from ROOT import TFile, TH1F, TCanvas, kRed, kAzure, TLegend, TGraphAsymmErrors, gROOT
 sys.path.insert(0, '..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 
@@ -17,6 +17,8 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     SetGlobalStyle(padtopmargin=0.05, padleftmargin=0.18,padbottommargin=0.15, palette=55,
                    labelsize=0.04, titlesize=0.05, labeloffset=0.008, titleoffsety=1.7,
                    titleoffsetx=1.2, titleoffsetz=1., opttitle=0, optstat=0)
+
+    gROOT.SetBatch(True)
 
     if 'Ds1plus' in file_rawy:
         reso = 10433
@@ -78,7 +80,7 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     delta_y = 1. # hard coded
 
     # nevents
-    input_dir = rawYieldFile.split("mass_")[0]
+    input_dir = file_rawy.split("mass_")[0]
     file_norm = os.path.join(input_dir, f"normalisation_{d_meson}_{v0}_{trigger}.root")
     normFile = TFile.Open(file_norm)
     hnev = normFile.Get('hist_events')
@@ -162,7 +164,6 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     print(f'BR ({d_meson}): {BR} +- {BR_unc}')
     print(f'sigmaMB (mb): {sigmaMB}')
     print('____________________________________________________')
-    input('Press enter to continue')
 
     #_____________________________________________________________________________
     # compute yield and cross section
@@ -364,7 +365,6 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     hIngredients.Write()
     output.Close()
 
-input('Press enter to exit')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
