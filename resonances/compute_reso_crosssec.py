@@ -23,23 +23,17 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     if 'Ds1plus' in file_rawy:
         reso = 10433
         reso_label = 'Ds1plus'
-        d_meson = 'Dplus'
+        d_meson = 'Dstar'
         v0 = 'K0S'
         reso_label_plot = 'D_{s1}^{+}'
     elif 'Ds2starplus' in file_rawy:
         reso = 435
         reso_label = 'Ds2starplus'
-        d_meson = 'Dstar'
+        d_meson = 'Dplus'
         v0 = 'K0S'
         reso_label_plot = 'D_{s2}^{*+}'
     else:
         raise ValueError('Resonance not supported')
-
-    trigger = ""
-    if "MB" in file_rawy:
-        trigger = "MB"
-    elif "HM" in file_rawy:
-        trigger = "HM"
 
     ptshape = "Dsptshape"
     if "Lcptshape" in file_eff:
