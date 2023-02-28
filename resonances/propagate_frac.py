@@ -180,8 +180,8 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, beautyhypofile_name,
             hist_corryield_prompt.GetBinContent(pt_bin),
             hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_cent, # multiplication factor enters here
             hist_cov_pp.GetBinContent(pt_bin),
-            hist_cov_npnp.GetBinContent(pt_bin),
-            hist_cov_pnp.GetBinContent(pt_bin)
+            hist_cov_npnp.GetBinContent(pt_bin) * frac_hypo_cent**2,
+            hist_cov_pnp.GetBinContent(pt_bin) * frac_hypo_cent
         )
         frac_d_reso_cent = frac_d_reso_cent[1]
         frac_d_reso_stat_min = frac_d_reso_cent - frac_d_reso_centunc[1]
@@ -193,8 +193,8 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, beautyhypofile_name,
             hist_corryield_prompt.GetBinContent(pt_bin),
             hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_min, # multiplication factor enters here
             hist_cov_pp.GetBinContent(pt_bin),
-            hist_cov_npnp.GetBinContent(pt_bin),
-            hist_cov_pnp.GetBinContent(pt_bin)
+            hist_cov_npnp.GetBinContent(pt_bin) * frac_hypo_cent**2,
+            hist_cov_pnp.GetBinContent(pt_bin) * frac_hypo_cent
         )
         frac_d_reso_hypo_min = frac_d_reso_hypo_min[1]
 
@@ -204,8 +204,8 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, beautyhypofile_name,
             hist_corryield_prompt.GetBinContent(pt_bin),
             hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_max, # multiplication factor enters here
             hist_cov_pp.GetBinContent(pt_bin),
-            hist_cov_npnp.GetBinContent(pt_bin),
-            hist_cov_pnp.GetBinContent(pt_bin)
+            hist_cov_npnp.GetBinContent(pt_bin) * frac_hypo_cent**2,
+            hist_cov_pnp.GetBinContent(pt_bin) * frac_hypo_cent
         )
         frac_d_reso_hypo_max = frac_d_reso_hypo_max[1]
 
