@@ -14,7 +14,7 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     """
     """
 
-    SetGlobalStyle(padtopmargin=0.05, padleftmargin=0.18,padbottommargin=0.15, palette=55,
+    SetGlobalStyle(padtopmargin=0.05, padleftmargin=0.18, padbottommargin=0.15, palette=55,
                    labelsize=0.04, titlesize=0.05, labeloffset=0.008, titleoffsety=1.7,
                    titleoffsetx=1.2, titleoffsetz=1., opttitle=0, optstat=0)
 
@@ -75,7 +75,7 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
 
     # nevents
     input_dir = file_rawy.split("mass_")[0]
-    file_norm = os.path.join(input_dir, f"normalisation_{d_meson}_{v0}_{trigger}.root")
+    file_norm = os.path.join(input_dir, f"normalisation_{d_meson}_{v0}_{trigger}{suffix}.root")
     normFile = TFile.Open(file_norm)
     hnev = normFile.Get('hist_events')
     nev_sigma = hnev.GetBinContent(1)
