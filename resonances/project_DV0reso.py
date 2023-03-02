@@ -119,7 +119,7 @@ def project(config, trigger, pdg_d, pdg_v0, output_dir, suffix):
         else:
             print(f"ERROR: combination of D and V0 pdg codes {pdg_d}-{pdg_v0} not supported")
 
-    get_normalisation(cfg["input_dirs"], output_dir, suffix, name_decay, name_d, name_v0, trigger)
+    get_normalisation(cfg["inputs"]["data"], output_dir, suffix, name_decay, name_d, name_v0, trigger)
 
     # get inputs
     df_all = uproot.concatenate(
