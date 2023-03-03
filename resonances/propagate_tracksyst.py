@@ -26,15 +26,18 @@ infile_path = '~/Desktop/Analyses/Ds_resonances'
 for reso in resonances:
     reso_name = Particle.from_pdgid(reso).name
     if reso == 435:
+        reso_tag = 'Ds2starplus'
         meson = 'Dplus'
         decay_chain = f'{reso_name} #rightarrow D^{{+}} K^{{0}}_{{S}}'
-        path = os.path.join(infile_path, 'eff/435_Ds2_Dplus_K0S')
+        path = os.path.join(infile_path, 'eff')
     elif reso == 10433:
+        reso_tag = 'Ds1plus'
         meson = 'Dstar'
         decay_chain = f'{reso_name} #rightarrow D^{{*+}} K^{{0}}_{{S}}'
-        path = os.path.join(infile_path, 'eff/10433_Ds1_Dstar_K0S')
+        path = os.path.join(infile_path, 'eff')
     elif reso == 413:
-        meson = 'Dstar'
+        reso_tag = 'Dstar'
+        meson = 'Dzero'
         decay_chain = f'{reso_name} #rightarrow D^{{0}} #pi^{{+}}'
         path = os.path.join(infile_path, 'check_efficiency_Dstar/compute_reso_eff')
     else:
@@ -55,7 +58,7 @@ for reso in resonances:
     for iPt, syst in enumerate(systs):
         hTrackSystD.SetBinContent(iPt+1, syst)
         hTrackSystD.SetBinError(iPt+1, 1.e-20)
-    
+
     ptMins = inputTrackSyst[reso]['V0']['ptmins']
     ptMaxs = inputTrackSyst[reso]['V0']['ptmaxs']
     systs = inputTrackSyst[reso]['V0']['syst']
@@ -66,7 +69,7 @@ for reso in resonances:
     for iPt, (syst, systMat) in enumerate(zip(systs, systMats)):
         hTrackSystV0.SetBinContent(iPt+1, np.sqrt(syst**2 + systMat**2))
         hTrackSystV0.SetBinError(iPt+1, 1.e-20)
-    
+
     SetObjectStyle(hTrackSystD, color=kOrange+2, fillstyle=0, markersize=0.8)
     SetObjectStyle(hTrackSystV0, color=kOrange+7, fillstyle=0, markersize=0.8)
 
@@ -76,7 +79,7 @@ for reso in resonances:
             print('\033[1m\033[91mERROR: D* efficiency for HM and LC not available\033[0m')
             sys.exit()
 
-        data = f'{path}/eff_reso{reso}_{mult}_{ptshape}.root'
+        data = f'{path}/eff_times_acc_{reso_tag}_{mult}_{ptshape}_multweights_candinmass_propagated.root'
         print(f'\033[1mLoading reco kine data from {data}\033[0m')
         df_kine = uproot.open(data)['recoTreePrompt'].arrays(library='pd')
         df_kine_np = uproot.open(data)['recoTreeNonPrompt'].arrays(library='pd')
@@ -123,8 +126,8 @@ for reso in resonances:
 
         hSystMeanPrompt = hSystVsPtPrompt.ProfileX()
         hSystMeanNonPrompt = hSystVsPtNonPrompt.ProfileX()
-        SetObjectStyle(hSystMeanPrompt, fillstyle=0, markersize=0.8)
-        SetObjectStyle(hSystMeanNonPrompt, fillstyle=0, markersize=0.8)
+        SetObjectStyle(hSystMeanPrompt, linewidht=3, fillstyle=0, markersize=0.8)
+        SetObjectStyle(hSystMeanNonPrompt, linewidht=3, fillstyle=0, markersize=0.8)
 
         hPtDMeanPrompt = hPtDVsPtPrompt.ProfileX()
         hPtV0MeanPrompt = hPtV0VsPtPrompt.ProfileX()
@@ -142,8 +145,9 @@ for reso in resonances:
         hTotSystNonPrompt.SetBinContent(1, hSystVsPtNonPrompt.ProfileY("_pfy", 3, 24).GetMean())
         hTotSystPrompt.SetBinError(1, 1.e-20)
         hTotSystNonPrompt.SetBinError(1, 1.e-20)
-        SetObjectStyle(hTotSystPrompt, color=kRed+1, fillstyle=0, markerstyle=kFullCircle)
-        SetObjectStyle(hTotSystNonPrompt, color=kAzure+4, fillstyle=0, markerstyle=kFullSquare)
+        SetObjectStyle(hTotSystPrompt, color=kRed+1, linewidht=3, fillstyle=0, markerstyle=kFullCircle, markersize=1)
+        SetObjectStyle(hTotSystNonPrompt, color=kAzure+4, linewidht=3, fillstyle=0, markerstyle=kFullSquare,
+                       markersize=1)
 
         legAverage = TLegend(0.15, 0.75, 0.7, 0.9)
         legAverage.SetTextSize(0.045)
