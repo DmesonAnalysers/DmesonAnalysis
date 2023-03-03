@@ -50,10 +50,10 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     mult_weights_suffix = ""
     if "_multweights_all" in file_eff:
         mult_weights_suffix = "_multweights_all"
-    elif "_multweights_cand" in file_eff:
-        mult_weights_suffix = "_multweights_cand"
     elif "_multweights_candinmass" in file_eff:
         mult_weights_suffix = "_multweights_candinmass"
+    elif "_multweights_cand" in file_eff:
+        mult_weights_suffix = "_multweights_cand"
 
     trigger = ""
     if "MB" in file_rawy:
