@@ -1,32 +1,43 @@
 '''
 python script to generate the multitrial ditribution for systematic checks
-run: python generate_multitrial.py
+run: python generate_multitrial.py reffile.root multitrialcheck.root
 '''
 import sys
+import argparse
 from ROOT import TFile, TH1F
 
-pdg_reso = 435
-trigger = "HM"
+parser = argparse.ArgumentParser(description="Arguments")
+parser.add_argument("reffile", metavar="text",
+                    default="reffile.root", help="input file")
+parser.add_argument('oufilename', metavar=('text'),
+                    default="multitrialcheck.root", help='Output file name')
+args = parser.parse_args()
 
-if pdg_reso == 10433:
+if "Ds1" in args.reffile:
     name_reso = "Ds1plus"
     label_mass = r"M($\mathrm{D}^{*+}\mathrm{K_S^0}$)$-$M($\mathrm{D}^{*+}$)"
     pdg_v0 = 310
     pdg_d = 413
-    signal_limits = [0.51, 0.53]
-elif pdg_reso == 435:
+elif "Ds2" in args.reffile:
     name_reso = "Ds2starplus"
     label_mass = r"M($\mathrm{D}^+\mathrm{K_S^0}$)$-$M($\mathrm{D}^+$)"
     pdg_v0 = 310
     pdg_d = 411
-    signal_limits = [0.65, 0.75]
 else:
-    print(f"ERROR: pdg code {pdg_reso} not supported")
+    print(f"ERROR: resonance not recognized, only Ds1 and Ds2 are supported")
+    sys.exit()
+
+if "MB" in args.reffile:
+    trigger = "MB"
+elif "HM" in args.reffile:
+    trigger = "HM"
+else:
+    print(f"ERROR: trigger not recognized, only MB and HM are supported")
     sys.exit()
 
 #______________________________________________________________________________
 # Load reference file
-ref_file = f'/home/stefano/Desktop/cernbox/Ds_resonances/raw_yield/mass_{name_reso}_pt2.0-24.0_{trigger}.root'
+ref_file = args.reffile
 print(f'\033[1m\033[92m Loading input file {ref_file} \033[0m')
 infile_ref = TFile(ref_file, "READ")
 h_data = infile_ref.Get("hdata")
@@ -39,7 +50,7 @@ nbkg = hbkg_all.GetBinContent(1)
 
 #______________________________________________________________________________
 # Generate multi-trial distribution
-outfile = TFile(f"multitrialcheck_{name_reso}_{trigger}.root", "RECREATE")
+outfile = TFile(f"{args.oufilename}", "RECREATE")
 for i in range(100):
     htrial = TH1F()
     htrial = h_data.Clone(f"htrial_{i}")
