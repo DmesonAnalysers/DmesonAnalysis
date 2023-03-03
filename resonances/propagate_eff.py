@@ -91,10 +91,10 @@ def compute_efficiency(
     mult_weights_suffix = ""
     if "_multweights_all" in input_file:
         mult_weights_suffix = "_multweights_all"
-    elif "_multweights_cand" in input_file:
-        mult_weights_suffix = "_multweights_cand"
     elif "_multweights_candinmass" in input_file:
         mult_weights_suffix = "_multweights_candinmass"
+    elif "_multweights_cand" in input_file:
+        mult_weights_suffix = "_multweights_cand"
 
     reso_label = Particle.from_pdgid(reso).name
 

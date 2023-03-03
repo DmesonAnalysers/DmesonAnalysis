@@ -103,6 +103,7 @@ def extract_rawyield(input_file, config, output_dir, suffix):
     signif, signif_unc = [], []
     s_over_b, s_over_b_unc = [], []
     raw_yields, raw_yields_unc = [], []
+    bkgs, bkgs_unc = [], []
     means, means_unc = [], []
     sigmas, sigmas_unc = [], []
     for pt_min, pt_max, mass_min, mass_max, spdf, bpdf in zip(
@@ -116,7 +117,7 @@ def extract_rawyield(input_file, config, output_dir, suffix):
         delta_mass = Particle.from_pdgid(pdg_reso).mass*1e-3 - Particle.from_pdgid(pdg_d).mass*1e-3
         width = Particle.from_pdgid(pdg_reso).width*1.e-3
         fitter_reso.set_signal_initpar(0, "gamma", width, fix=True)
-        fitter_reso.set_signal_initpar(0, "sigma", 0.0008, limits=[0.0006, 0.0012])
+        fitter_reso.set_signal_initpar(0, "sigma", 0.0008, limits=[0.0004, 0.0020])
         fitter_reso.set_particle_mass(0, mass=delta_mass, limits=[delta_mass-0.1, delta_mass+0.1])
         fitter_reso.set_signal_initpar(0, "frac", 0.01, limits=[0., 1.])
         fitter_reso.set_background_initpar(0, "mass", Particle.from_pdgid(pdg_v0).mass*1e-3)
@@ -137,6 +138,7 @@ def extract_rawyield(input_file, config, output_dir, suffix):
         fitter_reso.dump_to_root(outfile_name, option="update")
 
         rawy, rawy_unc = fitter_reso.get_raw_yield(0)
+        bkg, bkg_unc = fitter_reso.get_background(0, min=mass_min, max=mass_max)
 
         sign, sign_unc = fitter_reso.get_significance(0, nhwhm=3.)
         soverb, soverb_unc = fitter_reso.get_signal_over_background(0, nhwhm=3.)
@@ -145,6 +147,8 @@ def extract_rawyield(input_file, config, output_dir, suffix):
 
         raw_yields.append(rawy)
         raw_yields_unc.append(rawy_unc)
+        bkgs.append(bkg)
+        bkgs_unc.append(bkg_unc)
         signif.append(sign)
         signif_unc.append(sign_unc)
         s_over_b.append(soverb)
@@ -156,6 +160,7 @@ def extract_rawyield(input_file, config, output_dir, suffix):
 
     file_root = uproot.update(outfile_name)
     file_root["h_rawyields"] = create_hist(pt_lims_reso, raw_yields, raw_yields_unc)
+    file_root["h_bkg_allrange"] = create_hist(pt_lims_reso, bkgs, bkgs_unc)
     file_root["h_significance"] = create_hist(pt_lims_reso, signif, signif_unc)
     file_root["h_soverb"] = create_hist(pt_lims_reso, s_over_b, s_over_b_unc)
     file_root["h_means"] = create_hist(pt_lims_reso, means, means_unc)

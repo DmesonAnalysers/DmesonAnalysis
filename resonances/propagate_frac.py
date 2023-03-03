@@ -71,10 +71,10 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, beautyhypofile_name,
     mult_weights_suffix = ""
     if "_multweights_all" in efffile_name:
         mult_weights_suffix = "_multweights_all"
-    elif "_multweights_cand" in efffile_name:
-        mult_weights_suffix = "_multweights_cand"
     elif "_multweights_candinmass" in efffile_name:
         mult_weights_suffix = "_multweights_candinmass"
+    elif "_multweights_cand" in efffile_name:
+        mult_weights_suffix = "_multweights_cand"
 
     infile_cutvar = ROOT.TFile.Open(cutvarfile_name)
     hist_corryield_prompt = infile_cutvar.Get('hCorrYieldPrompt')
