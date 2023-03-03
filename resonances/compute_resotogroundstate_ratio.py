@@ -1,6 +1,6 @@
 '''
 python script to compute the ratio of the integrated yields of the resonance to the ground state
-run: python compute_integrated_recoeff.py
+run: python compute_resotogroundstate_ratio.py
 '''
 import sys
 import argparse
@@ -150,19 +150,15 @@ SetObjectStyle(gtheo_shmc, color=kOrange+1, markerstyle=kOpenDiamond, markersize
 #_____________________________________________________________
 # nSigma calculation
 nsigma_mb_SHM = (ratio_MB - gtheo_shmc.GetY()[0])/ratio_MB_stat
-nsigma_mb_SHM_sys = (ratio_MB - gtheo_shmc.GetY()[0])/np.sqrt(ratio_MB_stat**2 + ratio_MB_sys_low**2)
 nsigma_mb_He = (ratio_MB - gtheo_shm.GetY()[0])/ratio_MB_stat
-nsigma_mb_He_sys = (ratio_MB - gtheo_shm.GetY()[0])/np.sqrt(ratio_MB_stat**2 + ratio_MB_sys_low**2)
 nsigma_hm_SHM = (ratio_HM - gtheo_shmc.GetY()[0])/ratio_HM_stat
-nsigma_hm_SHM_sys = (ratio_HM - gtheo_shmc.GetY()[0])/np.sqrt(ratio_HM_stat**2 + ratio_HM_sys_low**2)
 nsigma_hm_He = (ratio_HM - gtheo_shm.GetY()[0])/ratio_HM_stat
-nsigma_hm_He_sys = (ratio_HM - gtheo_shm.GetY()[0])/np.sqrt(ratio_HM_stat**2 + ratio_HM_sys_low**2)
 
 print('\n\033[1m\033[4mnSigma (only stat)\033[0m')
-print(f'nsigma_mb_SHM = {nsigma_mb_SHM} +/- {nsigma_mb_SHM_sys}')
-print(f'nsigma_mb_He = {nsigma_mb_He} +/- {nsigma_mb_He_sys}')
-print(f'nsigma_hm_SHM = {nsigma_hm_SHM} +/- {nsigma_hm_SHM_sys}')
-print(f'nsigma_hm_He = {nsigma_hm_He} +/- {nsigma_hm_He_sys}')
+print(f'nsigma_mb_SHM = {nsigma_mb_SHM}')
+print(f'nsigma_mb_He = {nsigma_mb_He}')
+print(f'nsigma_hm_SHM = {nsigma_hm_SHM}')
+print(f'nsigma_hm_He = {nsigma_hm_He}')
 
 
 #_____________________________________________________________
