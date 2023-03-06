@@ -1,6 +1,6 @@
 '''
 python script to generate the multitrial ditribution for systematic checks
-run: python generate_multitrial.py reffile.root multitrialcheck.root
+run: python generate_multitrial.py reffile.root multitrialcheck.root mult_factor
 '''
 import sys
 import argparse
@@ -9,8 +9,10 @@ from ROOT import TFile, TH1F
 parser = argparse.ArgumentParser(description="Arguments")
 parser.add_argument("reffile", metavar="text",
                     default="reffile.root", help="input file")
-parser.add_argument('oufilename', metavar=('text'),
+parser.add_argument('outfilename', metavar=('text'),
                     default="multitrialcheck.root", help='Output file name')
+parser.add_argument('mult_factor', type=float,
+                    default=1., help='multiplicative factor for signal and background')
 args = parser.parse_args()
 
 if "Ds1" in args.reffile:
@@ -50,13 +52,13 @@ nbkg = hbkg_all.GetBinContent(1)
 
 #______________________________________________________________________________
 # Generate multi-trial distribution
-outfile = TFile(f"{args.oufilename}", "RECREATE")
-for i in range(100):
+outfilename = args.outfilename.replace(".root", f"_multfactor{args.mult_factor}.root")
+outfile = TFile(f"{outfilename}", "RECREATE")
+for i in range(10):
     htrial = TH1F()
-    htrial = h_data.Clone(f"htrial_{i}")
+    htrial = h_data.Clone(f"htrial{i}_multfact{args.mult_factor}")
     htrial.Reset()
-    htrial.SetName(f"htrial_{i}")
-    htrial.FillRandom(hsignal_ref, int(nsignal))
-    htrial.FillRandom(hbkg_ref, int(nbkg))
+    htrial.FillRandom(hsignal_ref, int(nsignal*args.mult_factor)) # TODO: move to unbinned case
+    htrial.FillRandom(hbkg_ref, int(nbkg*args.mult_factor))
     htrial.Write()
 print(f"Output file {outfile.GetName()} saved")
