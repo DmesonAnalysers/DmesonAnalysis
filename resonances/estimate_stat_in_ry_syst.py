@@ -37,10 +37,8 @@ for i, mult in enumerate(mults):
         sigma_unc = histo.GetRMSError()
         mean_unc = histo.GetMeanError()
         hMult[-1].Fill(sigma/mean)
-    meanval = hMult[-1].GetMean()
-    meanval_unc = hMult[-1].GetMeanError()
-    rms.append(meanval)
-    rms_unc.append(meanval_unc)
+    rms.append(hMult[-1].GetMean())
+    rms_unc.append(hMult[-1].GetRMS()/mult)
 
 canvas = TCanvas("canvas", "canvas", 800, 800)
 ymax = max(rms) + 0.1
@@ -67,7 +65,7 @@ for mult in mults:
 f1 = TF1("f1", "[0] + [1]/sqrt(x)", 1.e-2, yhighfit)
 f1.SetLineColor(kRed+1)
 f1.SetLineStyle(2)
-gRMS.Draw('p same')
+gRMS.Draw('PZ same')
 gRMS.Fit(f1, "same r")
 lat = TLatex()
 lat.SetTextSize(0.06)
