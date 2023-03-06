@@ -34,7 +34,7 @@ for i, mult in enumerate(mults):
         mean = histo.GetMean()
         hMult[-1].Fill(sigma/mean)
     rms.append(hMult[-1].GetMean())
-    rms_unc.append(hMult[-1].GetRMS())
+    rms_unc.append(hMult[-1].GetMeanError())
 
 canvas = TCanvas("canvas", "canvas", 800, 800)
 ymax = max(rms) + 0.1
