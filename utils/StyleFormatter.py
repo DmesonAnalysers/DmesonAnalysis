@@ -150,7 +150,7 @@ def SetObjectStyle(obj, **kwargs):
 
     - linecolor (int) default 1 (black)
     - linealpha (float) default 1
-    - linewitdh (int) default 2
+    - linewidth (int) default 2
     - linestyle (int) default 1
 
     - markercolor (int) default 1 (black)

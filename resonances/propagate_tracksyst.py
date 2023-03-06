@@ -126,8 +126,8 @@ for reso in resonances:
 
         hSystMeanPrompt = hSystVsPtPrompt.ProfileX()
         hSystMeanNonPrompt = hSystVsPtNonPrompt.ProfileX()
-        SetObjectStyle(hSystMeanPrompt, linewidht=3, fillstyle=0, markersize=0.8)
-        SetObjectStyle(hSystMeanNonPrompt, linewidht=3, fillstyle=0, markersize=0.8)
+        SetObjectStyle(hSystMeanPrompt, linewidth=3, fillstyle=0, markersize=0.8)
+        SetObjectStyle(hSystMeanNonPrompt, linewidth=3, fillstyle=0, markersize=0.8)
 
         hPtDMeanPrompt = hPtDVsPtPrompt.ProfileX()
         hPtV0MeanPrompt = hPtV0VsPtPrompt.ProfileX()
@@ -145,27 +145,27 @@ for reso in resonances:
         hTotSystNonPrompt.SetBinContent(1, hSystVsPtNonPrompt.ProfileY("_pfy", 3, 24).GetMean())
         hTotSystPrompt.SetBinError(1, 1.e-20)
         hTotSystNonPrompt.SetBinError(1, 1.e-20)
-        SetObjectStyle(hTotSystPrompt, color=kRed+1, linewidht=3, fillstyle=0, markerstyle=kFullCircle, markersize=1)
-        SetObjectStyle(hTotSystNonPrompt, color=kAzure+4, linewidht=3, fillstyle=0, markerstyle=kFullSquare,
+        SetObjectStyle(hTotSystPrompt, color=kRed+1, linewidth=3, fillstyle=0, markerstyle=kFullCircle, markersize=1)
+        SetObjectStyle(hTotSystNonPrompt, color=kAzure+4, linewidth=3, fillstyle=0, markerstyle=kFullSquare,
                        markersize=1)
 
         legAverage = TLegend(0.15, 0.75, 0.7, 0.9)
         legAverage.SetTextSize(0.045)
         legAverage.SetFillStyle(0)
         legAverage.AddEntry(hSystMeanPrompt, 'Average', 'pl')
-        legAverage.AddEntry(hTotSystPrompt, 'p_{T} integrated', 'pl')
+        legAverage.AddEntry(hTotSystPrompt, 'p_{T} averaged', 'pl')
 
         legAverageNonPrompt = TLegend(0.15, 0.75, 0.7, 0.9)
         legAverageNonPrompt.SetTextSize(0.045)
         legAverageNonPrompt.SetFillStyle(0)
         legAverageNonPrompt.AddEntry(hSystMeanNonPrompt, 'Average', 'pl')
-        legAverageNonPrompt.AddEntry(hTotSystNonPrompt, 'p_{T} integrated', 'pl')
+        legAverageNonPrompt.AddEntry(hTotSystNonPrompt, 'p_{T} averaged', 'pl')
 
         leg = TLegend(0.15, 0.75, 0.7, 0.9)
         leg.SetTextSize(0.035)
         leg.SetFillStyle(0)
         leg.AddEntry(hSystMeanPrompt, 'Resonance track. syst.', 'pl')
-        leg.AddEntry(hTotSystPrompt, 'p_{T} integrated', 'pl')
+        leg.AddEntry(hTotSystPrompt, 'p_{T} averaged', 'pl')
         leg.AddEntry(hTrackSystD, 'D-meson track. syst.', 'pl')
         leg.AddEntry(hTrackSystV0, 'V0 track. syst. (w. mat. budget)', 'pl')
 
@@ -178,10 +178,8 @@ for reso in resonances:
         legAverage.Draw()
         cPrompt.cd(2).SetLogz()
         hPtDVsPtPrompt.Draw('colz')
-        hPtDMeanPrompt.DrawCopy('PH][ E0 same')
         cPrompt.cd(3).SetLogz()
         hPtV0VsPtPrompt.Draw('colz')
-        hPtV0MeanPrompt.DrawCopy('PH][ E0 same')
         cPrompt.Modified()
         cPrompt.Update()
 
@@ -194,10 +192,8 @@ for reso in resonances:
         legAverageNonPrompt.Draw()
         cNonPrompt.cd(2).SetLogz()
         hPtDVsPtNonPrompt.Draw('colz')
-        hPtDMeanNonPrompt.DrawCopy('PH][ E0 same')
         cNonPrompt.cd(3).SetLogz()
         hPtV0VsPtNonPrompt.Draw('colz')
-        hPtV0MeanNonPrompt.DrawCopy('PH][ E0 same')
         cNonPrompt.Modified()
         cNonPrompt.Update()
 
