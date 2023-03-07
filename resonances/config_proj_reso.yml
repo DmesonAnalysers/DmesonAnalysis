@@ -1,5 +1,14 @@
-input_dirs: /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/data/*/
-output_dir: /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/outputs/Ds1plus
+inputs: 
+  data: /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/data/*/
+  mc: 
+    MB:
+      [/Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/MC/LHC20f4a/AnalysisResults.root,
+       /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/MC/LHC20f4b/AnalysisResults.root,
+       /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/MC/LHC20f4c/AnalysisResults.root]
+    HM:
+      [/Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/MC/LHC20k7a2/AnalysisResults.root,
+       /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/MC/LHC20k7b/AnalysisResults.root,
+       /Users/fgrosa/cernbox/alice_work/DmesonAnalysis/resonances/all/MC/LHC20k7c/AnalysisResults.root]
 
 selections: # taken from previous analyses
   # D mesons
@@ -86,12 +95,3 @@ selections: # taken from previous analyses
       delta_mass_V0: 3. # number of sigmas
       mass_min: 0.55
       mass_max: 0.85
-
-eff:
-  input_files: [./input/AnalysisResults_train4032_2018_MB.root] # output from reso task
-  input_dirs: ['PWGHF_D2H_HFResoBuilderDplustoKpipiDplusK0S'] # directory in outtask file (Ds2-->'PWGHF_D2H_HFResoBuilderDplustoKpipiDplusK0S', Ds1-->'PWGHF_D2H_HFResoBuilderDstartoD0piDstarK0S', )
-  kine_path: ['/home/stefano/Desktop/Analyses/DmesonAnalysis/resonances/download/'] # path to .root file containing the kinematic of resonance decay
-  resonances: [10433] # PDG code of resonance, keep samo order of directory
-  mult: 'MB' # HM or MB
-  weights: '' # multweights_all, multweights_cand, multweights_candinmass 
-  outfile: './10433_Ds1_Dstar_K0S/MB/ResoEff_10433_MB_frac.root' # outfile name

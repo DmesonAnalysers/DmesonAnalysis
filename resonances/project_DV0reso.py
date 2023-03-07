@@ -15,7 +15,7 @@ from particle import Particle
 import ROOT
 
 # pylint: disable=too-many-arguments
-def get_normalisation(input_dirs, output_dir, name_decay, name_d, name_v0, trigger):
+def get_normalisation(input_dirs, output_dir, suffix, name_decay, name_d, name_v0, trigger):
     """
     function to get normalisation
 
@@ -24,11 +24,15 @@ def get_normalisation(input_dirs, output_dir, name_decay, name_d, name_v0, trigg
 
     - input_dirs (str): input directories
     - output_dir (str): output directory
+    - suffix (str): suffix to append to output files
     - name_decay (str): name of the decay
     - name_d (str): name of the D meson
     - name_v0 (str): name of the V0
     - trigger (str): trigger class (MB or HM)
     """
+
+    if suffix is None:
+        suffix = ""
 
     if "*" in input_dirs:
         input_dirs = input_dirs.split("*")[0]
@@ -52,13 +56,13 @@ def get_normalisation(input_dirs, output_dir, name_decay, name_d, name_v0, trigg
     hist_events.SetBinContent(2, n_ev_inelgtr0)
 
     file_root = uproot.recreate(
-        os.path.join(output_dir, f"normalisation_{name_d}_{name_v0}_{trigger}.root"))
+        os.path.join(output_dir, f"normalisation_{name_d}_{name_v0}_{trigger}{suffix}.root"))
     file_root["hist_events"] = hist_events
     file_root.close()
 
 
 # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-def project(config, trigger, pdg_d, pdg_v0):
+def project(config, trigger, pdg_d, pdg_v0, output_dir, suffix):
     """
     function for raw yield computation
 
@@ -69,6 +73,8 @@ def project(config, trigger, pdg_d, pdg_v0):
     - trigger (str): trigger class (MB or HM)
     - pdg_d (int): PDG code of the D meson
     - pdg_v0 (int): PDG code of the V0
+    - output_dir (str): output directory
+    - suffix (str): suffix to append to output files
 
     """
 
@@ -113,11 +119,11 @@ def project(config, trigger, pdg_d, pdg_v0):
         else:
             print(f"ERROR: combination of D and V0 pdg codes {pdg_d}-{pdg_v0} not supported")
 
-    get_normalisation(cfg["input_dirs"], cfg["output_dir"], name_decay, name_d, name_v0, trigger)
+    get_normalisation(cfg["inputs"]["data"], output_dir, suffix, name_decay, name_d, name_v0, trigger)
 
     # get inputs
     df_all = uproot.concatenate(
-        os.path.join(f"{cfg['input_dirs']}",
+        os.path.join(f"{cfg['inputs']['data']}",
                      "AnalysisResults*.root:"
                      f"PWGHF_D2H_HFResoBuilder{name_decay}{name_d}{name_v0}_{trigger}/fNtupleCharmReso"),
         library="pd"
@@ -174,7 +180,7 @@ def project(config, trigger, pdg_d, pdg_v0):
     elif pdg_v0 == 3122:
         width_v0, _ = fitter_v0.get_signal_parameter(0, "sigma")
 
-    fig_v0.savefig(os.path.join(cfg["output_dir"], f"mass_{name_v0}_{trigger}.pdf"))
+    fig_v0.savefig(os.path.join(output_dir, f"mass_{name_v0}_{trigger}{suffix}.pdf"))
 
     if pdg_d == 411:
         data_hdl_D = DataHandler(df_sel, var_name="inv_mass_D", limits=[1.75, 1.98])
@@ -189,7 +195,7 @@ def project(config, trigger, pdg_d, pdg_v0):
     fig_d = fitter_d.plot_mass_fit(style="ATLAS", bins=200, axis_title=label_mass_d)
     mean_d, _ = fitter_d.get_mass(0)
     width_d, _ = fitter_d.get_sigma(0)
-    fig_d.savefig(os.path.join(cfg["output_dir"], f"mass_{name_d}_{trigger}.pdf"))
+    fig_d.savefig(os.path.join(output_dir, f"mass_{name_d}_{trigger}{suffix}.pdf"))
 
     # plot mass D vs. mass V0
     inv_mass_d = df_sel["inv_mass_D"].to_numpy()
@@ -228,7 +234,7 @@ def project(config, trigger, pdg_d, pdg_v0):
     ax_masscorr["main_ax"].plot([mean_d+3*width_d, mean_d+3*width_d],
                                 [min(inv_mass_v0), max(inv_mass_v0)], color="darkred", ls="--")
 
-    fig_masscorr.savefig(os.path.join(cfg["output_dir"], f"mass{name_d}_vs_mass{name_v0}_{trigger}.pdf"))
+    fig_masscorr.savefig(os.path.join(output_dir, f"mass{name_d}_vs_mass{name_v0}_{trigger}{suffix}.pdf"))
 
     # select signal region
     n_sigma_d = cfg["selections"][pdg_reso][trigger]["delta_mass_D"]
@@ -239,8 +245,8 @@ def project(config, trigger, pdg_d, pdg_v0):
     mass_max_reso = cfg["selections"][pdg_reso][trigger]["mass_max"]
     inv_mass_reso_sel = f"{mass_min_reso} < delta_inv_mass_reso < {mass_max_reso}"
     df_sel.query(f"{inv_mass_d_sel} and {inv_mass_v0_sel} and {inv_mass_reso_sel}", inplace=True)
-    df_sel.to_parquet(os.path.join(cfg["output_dir"],
-                                   f"{name_d}_{name_v0}_{trigger}_centsel.parquet.gzip"), compression="gzip")
+    df_sel.to_parquet(os.path.join(output_dir,
+                                   f"{name_d}_{name_v0}_{trigger}{suffix}.parquet.gzip"), compression="gzip")
 
     # plot mass reso vs pT
     h_massreso_vs_pt = (
@@ -268,9 +274,7 @@ def project(config, trigger, pdg_d, pdg_v0):
                                  side_yerr=True, side_color='black', side_histtype='errorbar',
                                  ax_dict=ax_massvspt)
 
-    fig_massvspt.savefig(os.path.join(cfg["output_dir"], f"mass{name_d}{name_v0}_vs_pt_{trigger}.pdf"))
-
-    plt.show()
+    fig_massvspt.savefig(os.path.join(output_dir, f"mass{name_d}{name_v0}_vs_pt_{trigger}{suffix}.pdf"))
 
 
 if __name__ == "__main__":
@@ -283,6 +287,10 @@ if __name__ == "__main__":
                         help="pdg code of the D meson (options: [411, 413])")
     parser.add_argument("--pdg_V0", "-v0", type=int, required=True, default=310,
                         help="pdg code of the V0 (options: [310, 3122])")
+    parser.add_argument("--output_dir", "-o", metavar="text",
+                        default=".", help="output directory")
+    parser.add_argument("--suffix", "-s", metavar="text",
+                        default="", help="suffix for output files")
     args = parser.parse_args()
 
-    project(args.config, args.trigger, args.pdg_D, args.pdg_V0)
+    project(args.config, args.trigger, args.pdg_D, args.pdg_V0, args.output_dir, args.suffix)

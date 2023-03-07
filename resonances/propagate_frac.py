@@ -1,3 +1,8 @@
+"""
+Script for fraction propagation
+"""
+
+import os
 import sys
 import argparse
 import ctypes
@@ -10,8 +15,8 @@ from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import GetPromptFDFractionCutSet
 
 # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
-def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
-              beautyhypofile_name, pt_min_reso, pt_max_reso):
+def propagate(cutvarfile_name, efffile_name, kinefile_name, beautyhypofile_name,
+              output_dir, pt_min_reso, pt_max_reso, suffix, seed):
     """
     function for the propagation of the non-prompt fraction
     from the D daughter to the D resonance mother
@@ -23,13 +28,53 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
     - efffile_name (str): input ROOT file for the eff x acc factors
     - kinefile_name (str): input ROOT file with D* -> D kinematics
     - beautyhypofile_name (str): input ROOT file with Ds/D Np/p ratio for beauty hypo
-    - outfile_name (str): output ROOT file
+    - output_dir (str): output directory
     - pt_min_reso (float): min pT for pT integrated Nnp/Np
     - pt_max_reso (float): max pT for pT integrated Nnp/Np
+    - suffix (str): suffix for output file
+    - seed (int): seed for random sampling
     """
 
-    ROOT.gROOT.SetBatch()
     SetGlobalStyle(padleftmargin=0.18, padrightmargin=0.1, padbottommargin=0.14)
+
+    ROOT.gROOT.SetBatch(True)
+    ROOT.gRandom.SetSeed(seed)
+
+    if 'Ds2starplus' in kinefile_name:
+        reso_name = 'Ds2starplus'
+        d_name = "Dplus"
+    elif 'Ds1plus' in kinefile_name:
+        reso_name = 'Ds1plus'
+        d_name = "Dstar"
+    else:
+        print(f'\033[1m\033[91mResonance not supported\033[0m')
+        sys.exit()
+
+    ptshape = "Dsptshape"
+    if "Lcptshape" in kinefile_name:
+        ptshape = "Lcptshape"
+    elif "DsHarderptshape" in kinefile_name:
+        ptshape = "DsHarderptshape"
+    elif "DsVeryHarderptshape" in kinefile_name:
+        ptshape = "DsVeryHarderptshape"
+    elif "DsSofterptshape" in kinefile_name:
+        ptshape = "DsSofterptshape"
+    elif "DsVerySofterptshape" in kinefile_name:
+        ptshape = "DsVerySofterptshape"
+
+    trigger = ""
+    if "MB" in kinefile_name:
+        trigger = "MB"
+    elif "HM" in kinefile_name:
+        trigger = "HM"
+
+    mult_weights_suffix = ""
+    if "_multweights_all" in efffile_name:
+        mult_weights_suffix = "_multweights_all"
+    elif "_multweights_candinmass" in efffile_name:
+        mult_weights_suffix = "_multweights_candinmass"
+    elif "_multweights_cand" in efffile_name:
+        mult_weights_suffix = "_multweights_cand"
 
     infile_cutvar = ROOT.TFile.Open(cutvarfile_name)
     hist_corryield_prompt = infile_cutvar.Get('hCorrYieldPrompt')
@@ -45,14 +90,33 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
     infile_cutvar.Close()
 
     infile_eff = ROOT.TFile.Open(efffile_name)
-    hist_acceff_prompt = infile_eff.Get("hAccEffPrompt")
-    hist_acceff_nonprompt = infile_eff.Get("hAccEffFD")
+    hist_reco_prompt = infile_eff.Get(f"{d_name}_Prompt/h_pt_reco_{d_name}_Prompt")
+    hist_gen_prompt = infile_eff.Get(f"{d_name}_Prompt/h_pt_gen_{d_name}_Prompt")
+    hist_reco_nonprompt = infile_eff.Get(f"{d_name}_NonPrompt/h_pt_reco_{d_name}_NonPrompt")
+    hist_gen_nonprompt = infile_eff.Get(f"{d_name}_NonPrompt/h_pt_gen_{d_name}_NonPrompt")
+    nptbins = hist_corryield_prompt.GetNbinsX()
+    ptlims = []
+    for ipt in range(1, nptbins + 1):
+        ptlims.append(hist_corryield_prompt.GetBinLowEdge(ipt))
+    ptlims.append(hist_corryield_prompt.GetXaxis().GetBinUpEdge(nptbins))
+    ptlims = np.array(ptlims)
+
+    hist_reco_prompt_reb = hist_reco_prompt.Rebin(nptbins, "hist_reco_prompt_reb", ptlims)
+    hist_gen_prompt_reb = hist_gen_prompt.Rebin(nptbins, "hist_gen_prompt_reb", ptlims)
+    hist_reco_nonprompt_reb = hist_reco_nonprompt.Rebin(nptbins, "hist_reco_nonprompt_reb", ptlims)
+    hist_gen_nonprompt_reb = hist_gen_nonprompt.Rebin(nptbins, "hist_gen_nonprompt_reb", ptlims)
+
+    hist_acceff_prompt = hist_reco_prompt_reb.Clone("hist_acceff_prompt")
+    hist_acceff_prompt.Divide(hist_reco_prompt_reb, hist_gen_prompt_reb, 1., 1., "B")
+    hist_acceff_nonprompt = hist_reco_nonprompt_reb.Clone("hist_acceff_prompt")
+    hist_acceff_nonprompt.Divide(hist_reco_nonprompt_reb, hist_gen_nonprompt_reb, 1., 1., "B")
     hist_acceff_prompt.SetDirectory(0)
     hist_acceff_nonprompt.SetDirectory(0)
     infile_eff.Close()
 
     hist_npfrac_d = hist_corryield_nonprompt.Clone("hist_npfrac_d")
     hist_npfrac_d.SetDirectory(0)
+    SetObjectStyle(hist_npfrac_d, color=ROOT.kAzure+4)
 
     for ipt in range(1, hist_npfrac_d.GetNbinsX()+1):
         frac, unc_frac = GetPromptFDFractionCutSet(
@@ -116,8 +180,8 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
             hist_corryield_prompt.GetBinContent(pt_bin),
             hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_cent, # multiplication factor enters here
             hist_cov_pp.GetBinContent(pt_bin),
-            hist_cov_npnp.GetBinContent(pt_bin),
-            hist_cov_pnp.GetBinContent(pt_bin)
+            hist_cov_npnp.GetBinContent(pt_bin) * frac_hypo_cent**2,
+            hist_cov_pnp.GetBinContent(pt_bin) * frac_hypo_cent
         )
         frac_d_reso_cent = frac_d_reso_cent[1]
         frac_d_reso_stat_min = frac_d_reso_cent - frac_d_reso_centunc[1]
@@ -129,8 +193,8 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
             hist_corryield_prompt.GetBinContent(pt_bin),
             hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_min, # multiplication factor enters here
             hist_cov_pp.GetBinContent(pt_bin),
-            hist_cov_npnp.GetBinContent(pt_bin),
-            hist_cov_pnp.GetBinContent(pt_bin)
+            hist_cov_npnp.GetBinContent(pt_bin) * frac_hypo_cent**2,
+            hist_cov_pnp.GetBinContent(pt_bin) * frac_hypo_cent
         )
         frac_d_reso_hypo_min = frac_d_reso_hypo_min[1]
 
@@ -140,8 +204,8 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
             hist_corryield_prompt.GetBinContent(pt_bin),
             hist_corryield_nonprompt.GetBinContent(pt_bin) * frac_hypo_max, # multiplication factor enters here
             hist_cov_pp.GetBinContent(pt_bin),
-            hist_cov_npnp.GetBinContent(pt_bin),
-            hist_cov_pnp.GetBinContent(pt_bin)
+            hist_cov_npnp.GetBinContent(pt_bin) * frac_hypo_cent**2,
+            hist_cov_pnp.GetBinContent(pt_bin) * frac_hypo_cent
         )
         frac_d_reso_hypo_max = frac_d_reso_hypo_max[1]
 
@@ -173,19 +237,19 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
     SetObjectStyle(graph_pfrac_dreso_vspt_stat, color=ROOT.kRed+1)
     SetObjectStyle(graph_pfrac_dreso_hypo, color=ROOT.kRed+1, fillstyle=0)
     SetObjectStyle(graph_pfrac_dreso_vspt_hypo, color=ROOT.kRed+1, fillstyle=0)
-    graph_npfrac_dreso_stat.SetNameTitle(f"graph_npfrac_dreso_stat_pt{pt_min_reso}-{pt_max_reso}",
-                                       ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
+    graph_npfrac_dreso_stat.SetNameTitle("graph_npfrac_dreso_stat_ptint",
+                                         ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
     graph_npfrac_dreso_vspt_stat.SetNameTitle("graph_npfrac_dreso_vspt_stat",
-                                            ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
-    graph_npfrac_dreso_hypo.SetNameTitle(f"graph_npfrac_dreso_hypo_pt{pt_min_reso}-{pt_max_reso}",
-                                       ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
+                                              ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
+    graph_npfrac_dreso_hypo.SetNameTitle("graph_npfrac_dreso_hypo_ptint",
+                                         ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
     graph_npfrac_dreso_vspt_hypo.SetNameTitle("graph_npfrac_dreso_vspt_hypo",
-                                            ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
-    graph_pfrac_dreso_stat.SetNameTitle(f"graph_pfrac_dreso_stat_pt{pt_min_reso}-{pt_max_reso}",
+                                              ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{non-prompt}")
+    graph_pfrac_dreso_stat.SetNameTitle("graph_pfrac_dreso_stat_ptint",
                                         ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{prompt}")
     graph_pfrac_dreso_vspt_stat.SetNameTitle("graph_pfrac_dreso_vspt_stat",
                                              ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{prompt}")
-    graph_pfrac_dreso_hypo.SetNameTitle(f"graph_pfrac_dreso_hypo_pt{pt_min_reso}-{pt_max_reso}",
+    graph_pfrac_dreso_hypo.SetNameTitle("graph_pfrac_dreso_hypo_ptint",
                                         ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{prompt}")
     graph_pfrac_dreso_vspt_hypo.SetNameTitle("graph_pfrac_dreso_vspt_hypo",
                                              ";#it{p}_{T}^{reso} (GeV/#it{c}); #it{f}_{prompt}")
@@ -253,6 +317,10 @@ def propagate(cutvarfile_name, efffile_name, kinefile_name, outfile_name,
     graph_pfrac_dreso_hypo.Draw("2")
     graph_pfrac_dreso_stat.Draw("pz")
 
+    outfile_name = os.path.join(
+        output_dir,
+        f"fraction_{reso_name}_{trigger}_{ptshape}{mult_weights_suffix}_propagated{suffix}.root"
+    )
     canv_npfrac_vspt.SaveAs(outfile_name.replace(".root", "_vspt.pdf"))
     canv_frac_ptint.SaveAs(outfile_name.replace(".root", "_ptint.pdf"))
 
@@ -284,17 +352,21 @@ if __name__ == "__main__":
                         default="eff.root", help="input ROOT file for eff x acc")
     parser.add_argument("kinefile", metavar="text",
                         default="kine.root", help="ROOT file with kinematics")
-    parser.add_argument("outputfile", metavar="text",
-                        default="fraction_reso.root", help="output ROOT file")
-    parser.add_argument("file_beauty_hypo", metavar="text",
-                        default="DsOverSumD0Dplus_nonprompt_over_prompt.root",
+    parser.add_argument("--file_beauty_hypo", "-b", metavar="text",
+                        default="",
                         help="file with hypothesis for strange/nonstrange Np/p ratio")
+    parser.add_argument("--outputdir", "-o", metavar="text",
+                        default=".", help="output directory")
     parser.add_argument("--pt_min_reso", type=float,
                         default=2., help="min pT for pT integrated fraction")
     parser.add_argument("--pt_max_reso", type=float,
                         default=24., help="max pT for pT integrated fraction")
+    parser.add_argument("--suffix", "-s", metavar="text",
+                        default="", help="suffix for output files")
+    parser.add_argument("--seed", type=int,
+                        default=42, help="seed for random sampling")
     args = parser.parse_args()
 
     propagate(args.cutvarfile, args.efffile, args.kinefile,
-              args.file_beauty_hypo, args.outputfile,
-              args.pt_min_reso, args.pt_max_reso)
+              args.file_beauty_hypo, args.outputdir,
+              args.pt_min_reso, args.pt_max_reso, args.suffix, args.seed)

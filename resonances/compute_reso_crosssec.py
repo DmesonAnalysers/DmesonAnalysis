@@ -1,90 +1,109 @@
 '''
 python script to compute the integrated reco efficiency for resonances
-run: python compute_reso_crossec.py
 '''
-import sys
+
+import os
 import argparse
-import yaml
+import sys
 import numpy as np
-import pandas as pd
-import uproot
-from  multiprocessing import Process
-from alive_progress import alive_bar
-from particle import Particle
-from ROOT import TFile, TH2F, TH1F, TCanvas, TLatex, kBlack, kRed, kAzure, TLegend, TGraphAsymmErrors
+from ROOT import TFile, TH1F, TCanvas, kRed, kAzure, TLegend, TGraphAsymmErrors, gROOT
 sys.path.insert(0, '..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-from utils.AnalysisUtils import ComputeCrossSection
-SetGlobalStyle(padtopmargin=0.05, padleftmargin=0.18,padbottommargin=0.15, palette=55, labelsize=0.04, titlesize=0.05,
-               labeloffset=0.008, titleoffsety=1.7, titleoffsetx=1.2, titleoffsetz=1.,
-               opttitle=0, optstat=0)
 
-resos = ['10433', '10433']#, '10433', '435', '10433']
-mults = ['MB', 'HM']#, 'HM', 'MB', 'MB']
-pt_min = 2
-pt_max = 24
-delta_pt = pt_max - pt_min
-delta_y = 1
+def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
+    """
+    """
 
-for i, (reso, mult) in enumerate(zip(resos, mults)):
-    if reso == '435':
-        reso_label = 'Ds2starplus'
-        reso_name = Particle.from_pdgid(reso).name
-        d_meson = 'Dplus'
-        v0 = 'K0S'
-        path = f'./435_Ds2_Dplus_K0S/{mult}'
-        reso_label_plot = 'D_{s2}^{*+}'
-    elif reso == '10433':
+    SetGlobalStyle(padtopmargin=0.05, padleftmargin=0.18, padbottommargin=0.15, palette=55,
+                   labelsize=0.04, titlesize=0.05, labeloffset=0.008, titleoffsety=1.7,
+                   titleoffsetx=1.2, titleoffsetz=1., opttitle=0, optstat=0)
+
+    gROOT.SetBatch(True)
+
+    if 'Ds1plus' in file_rawy:
+        reso = 10433
         reso_label = 'Ds1plus'
-        reso_name = Particle.from_pdgid(reso).name
         d_meson = 'Dstar'
         v0 = 'K0S'
-        path = f'./10433_Ds1_Dstar_K0S/{mult}'
         reso_label_plot = 'D_{s1}^{+}'
+    elif 'Ds2starplus' in file_rawy:
+        reso = 435
+        reso_label = 'Ds2starplus'
+        d_meson = 'Dplus'
+        v0 = 'K0S'
+        reso_label_plot = 'D_{s2}^{*+}'
     else:
         raise ValueError('Resonance not supported')
+
+    ptshape = "Dsptshape"
+    if "Lcptshape" in file_eff:
+        ptshape = "Lcptshape"
+    elif "DsHarderptshape" in file_eff:
+        ptshape = "DsHarderptshape"
+    elif "DsVeryHarderptshape" in file_eff:
+        ptshape = "DsVeryHarderptshape"
+    elif "DsSofterptshape" in file_eff:
+        ptshape = "DsSofterptshape"
+    elif "DsVerySofterptshape" in file_eff:
+        ptshape = "DsVerySofterptshape"
+
+    mult_weights_suffix = ""
+    if "_multweights_all" in file_eff:
+        mult_weights_suffix = "_multweights_all"
+    elif "_multweights_candinmass" in file_eff:
+        mult_weights_suffix = "_multweights_candinmass"
+    elif "_multweights_cand" in file_eff:
+        mult_weights_suffix = "_multweights_cand"
+
+    trigger = ""
+    if "MB" in file_rawy:
+        trigger = "MB"
+    elif "HM" in file_rawy:
+        trigger = "HM"
 
     #_____________________________________________________________________________
     # load input files
     # raw yields
-    rawYieldFile = TFile.Open(f'./input/rawyields/{reso_label}/mass_{reso_label}_pt2.0-24.0_{mult}.root')
+    rawYieldFile = TFile.Open(file_rawy)
     hRawYields = rawYieldFile.Get('h_rawyields')
     rawyield = hRawYields.GetBinContent(1)
     rawyiledunc = hRawYields.GetBinError(1)
+    delta_pt = hRawYields.GetBinWidth(1)
+    pt_min = hRawYields.GetXaxis().GetBinLowEdge(1)
+    pt_max = hRawYields.GetXaxis().GetBinUpEdge(1)
+    delta_y = 1. # hard coded
 
     # nevents
-    norm_file = TFile.Open(f'./input/rawyields/{reso_label}/normalisation_{d_meson}_{v0}_{mult}.root')
-    hnev = norm_file.Get('hist_events')
+    input_dir = file_rawy.split("mass_")[0]
+    file_norm = os.path.join(input_dir, f"normalisation_{d_meson}_{v0}_{trigger}{suffix}.root")
+    normFile = TFile.Open(file_norm)
+    hnev = normFile.Get('hist_events')
     nev_sigma = hnev.GetBinContent(1)
     nev_yield = hnev.GetBinContent(2)
 
     # eff. acc.
-    effAccFile = TFile.Open(f'{path}/integrated_recoeff_reso{reso}_{mult}_Dsptshape.root')
-    gEffAccPrompt = effAccFile.Get(f'geff_int_prompt_{reso}_{mult}_Dsptshape')
-    gEffAccFD = effAccFile.Get(f'geff_int_nonprompt_{reso}_{mult}_Dsptshape')
-    hEffAccPromptvspt = effAccFile.Get('hreco_pt') # to check pT-differential spectra
-    hEffAccFDvspt = effAccFile.Get('hreco_pt_np') # to check pT-differential spectra
-    effAcc_prompt = gEffAccPrompt.GetY()[0]
-    effAcc_nonprompt = gEffAccFD.GetY()[0]
+    effAccFile = TFile.Open(file_eff)
+    hEffAccPrompt = effAccFile.Get('heff_prompt_ptint')
+    hEffAccNonPrompt = effAccFile.Get('heff_nonprompt_ptint')
+    effAcc_prompt = hEffAccPrompt.GetBinContent(1)
+    effAcc_nonprompt = hEffAccNonPrompt.GetBinContent(1)
     # TODO: missing systematic uncertainties
-    effAccUncLow_prompt = gEffAccPrompt.GetErrorYlow(0)
-    effAccUncHigh_prompt = gEffAccPrompt.GetErrorYhigh(0)
-    effAccUncLow_nonprompt = gEffAccFD.GetErrorYlow(0)
-    effAccUncHigh_nonprompt = gEffAccFD.GetErrorYhigh(0)
+    effAccUncPrompt = hEffAccPrompt.GetBinError(1)
+    effAccUncNonPrompt = hEffAccNonPrompt.GetBinError(1)
     eff_trigger = 0.92 # to be considered when computing the yields
 
     # fraction of prompt and FD
-    fracFile = TFile.Open(f'{path}/frac_{reso}_{mult}_Feb9.root') if reso == '10433' else TFile.Open(f'{path}/frac_{reso}_{mult}.root') 
-    gFracPrompt = fracFile.Get(f'graph_pfrac_dreso_stat_pt2.0-24.0')
-    gFracNonPrompt = fracFile.Get(f'graph_npfrac_dreso_stat_pt2.0-24.0')
-    gFracPromptSyst = fracFile.Get(f'graph_pfrac_dreso_hypo_pt2.0-24.0')
-    gFracNonPromptSyst = fracFile.Get(f'graph_npfrac_dreso_hypo_pt2.0-24.0')
-    gFracNonPromptvspt = fracFile.Get(f'graph_npfrac_dreso_vspt_stat')
+    fracFile = TFile.Open(file_frac)
+    gFracPrompt = fracFile.Get('graph_pfrac_dreso_stat_ptint')
+    gFracNonPrompt = fracFile.Get('graph_npfrac_dreso_stat_ptint')
+    gFracPromptSyst = fracFile.Get('graph_pfrac_dreso_hypo_ptint')
+    gFracNonPromptSyst = fracFile.Get('graph_npfrac_dreso_hypo_ptint')
+    gFracNonPromptvspt = fracFile.Get('graph_npfrac_dreso_vspt_stat')
     gFracPromptvspt = gFracNonPromptvspt.Clone()
     for i in range(gFracPromptvspt.GetN()):
         gFracPromptvspt.SetPoint(i, gFracNonPromptvspt.GetX()[i],
                                  1. - gFracNonPromptvspt.GetY()[i])
-    
+
     frac_prompt = gFracPrompt.GetY()[0]
     frac_nonprompt = gFracNonPrompt.GetY()[0]
     frac_prompt_statunc = gFracPrompt.GetErrorY(0)
@@ -126,34 +145,33 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
 
     print('\033[1m\033[92mIngredients\033[0m')
     print(f'resonance: {reso}')
-    print(f'multiplicity: {mult}')
+    print(f'trigger: {trigger}')
     print(f'delta pt: {delta_pt}')
     print(f'delta y: {delta_y}')
     print(f'rawyield: {rawyield}, rawyiledunc: {rawyiledunc}')
     print(f'nev_sigma: {nev_sigma}, nev_yield: {nev_yield}')
-    print(f'effAcc_prompt: {effAcc_prompt}, effAccUncLow_prompt: {effAccUncLow_prompt}, effAccUncHigh_prompt: {effAccUncHigh_prompt}')
-    print(f'effAcc_nonprompt: {effAcc_nonprompt}, effAccUncLow_nonprompt: {effAccUncLow_nonprompt}, effAccUncHigh_nonprompt: {effAccUncHigh_nonprompt}')
+    print(f'effAcc_prompt: {effAcc_prompt}, effAccUncPrompt: {effAccUncPrompt}, effAccUncPrompt: {effAccUncPrompt}')
+    print(f'effAcc_nonprompt: {effAcc_nonprompt}, effAccUncNonPrompt: {effAccUncNonPrompt}, effAccUncNonPrompt: {effAccUncNonPrompt}')
     print(f'eff_trigger: {eff_trigger}')
     print(f'frac_prompt: {frac_prompt} +- {frac_prompt_statunc} (stat) - {frac_prompt_systunc_low} (syst low) + {frac_prompt_systunc_high} (syst high)')
     print(f'frac_nonprompt: {frac_nonprompt} +- {frac_nonprompt_statunc} (stat) - {frac_nonprompt_systunc_low} (syst low) + {frac_nonprompt_systunc_high} (syst high)')
     print(f'BR ({d_meson}): {BR} +- {BR_unc}')
     print(f'sigmaMB (mb): {sigmaMB}')
     print('____________________________________________________')
-    input('Press enter to continue')
 
     #_____________________________________________________________________________
     # compute yield and cross section
     print('\033[1m\033[92mCompute yield\033[0m')
     hYieldPrompt = TH1F('hYieldPrompt', 'hYield', 1, -0.5, 0.5)
     gYieldPrompt = TGraphAsymmErrors()
-    gYieldPrompt.SetName(f'gYieldPrompt_{reso}_{mult}')
+    gYieldPrompt.SetName(f'gYieldPrompt_{reso}_{trigger}')
     gYieldPromptSystotal = TGraphAsymmErrors()
-    gYieldPromptSystotal.SetName(f'gYieldPromptSystotal_{reso}_{mult}')
+    gYieldPromptSystotal.SetName(f'gYieldPromptSystotal_{reso}_{trigger}')
     gYieldNonPrompt = TGraphAsymmErrors()
     hYieldNonPrompt = TH1F('hYieldNonPrompt', 'hYield', 1, -0.5, 0.5)
-    gYieldNonPrompt.SetName(f'gYieldNonPrompt_{reso}_{mult}')
+    gYieldNonPrompt.SetName(f'gYieldNonPrompt_{reso}_{trigger}')
     gYieldNonPromptSystotal = TGraphAsymmErrors()
-    gYieldNonPromptSystotal.SetName(f'gYieldNonPromptSystotal_{reso}_{mult}')
+    gYieldNonPromptSystotal.SetName(f'gYieldNonPromptSystotal_{reso}_{trigger}')
 
     # compute yield
     num_prompt = rawyield * frac_prompt * eff_trigger
@@ -162,8 +180,8 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
     den_yield_nonprompt = 2 * delta_pt * delta_y * effAcc_nonprompt * nev_yield * BR
     yield_prompt = num_prompt/den_yield_prompt
     yield_nonprompt = num_nonprompt/den_yield_nonprompt
-    stat_prompt = yield_prompt * np.sqrt((frac_prompt_statunc/frac_prompt)**2 + (rawyiledunc/rawyield)**2 + (effAccUncLow_prompt/effAcc_prompt)**2)
-    stat_nonprompt = yield_nonprompt * np.sqrt((frac_nonprompt_statunc/frac_nonprompt)**2 + (rawyiledunc/rawyield)**2 + (effAccUncLow_nonprompt/effAcc_nonprompt)**2)
+    stat_prompt = yield_prompt * np.sqrt((frac_prompt_statunc/frac_prompt)**2 + (rawyiledunc/rawyield)**2 + (effAccUncPrompt/effAcc_prompt)**2)
+    stat_nonprompt = yield_nonprompt * np.sqrt((frac_nonprompt_statunc/frac_nonprompt)**2 + (rawyiledunc/rawyield)**2 + (effAccUncNonPrompt/effAcc_nonprompt)**2)
 
     # TODO: add other systematic uncertainties
     syst_prompt_high = yield_prompt * np.sqrt((frac_prompt_systunc_high/frac_prompt)**2)
@@ -193,14 +211,14 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
     print('\033[1m\033[92mCompute cross section (mb)\033[0m')
     hCrossSecPrompt = TH1F('hCrossSecPrompt', 'hCrossSec', 1, -0.5, 0.5)
     gCrossSecPrompt = TGraphAsymmErrors()
-    gCrossSecPrompt.SetName(f'gCrossSecPrompt_{reso}_{mult}')
+    gCrossSecPrompt.SetName(f'gCrossSecPrompt_{reso}_{trigger}')
     hCrossSecNonPrompt = TH1F('hCrossSecNonPrompt', 'hCrossSec', 1, -0.5, 0.5)
     gCrossSecPromptSystotal = TGraphAsymmErrors()
-    gCrossSecPromptSystotal.SetName(f'gCrossSecPromptSystotal_{reso}_{mult}')
+    gCrossSecPromptSystotal.SetName(f'gCrossSecPromptSystotal_{reso}_{trigger}')
     gCrossSecNonPrompt = TGraphAsymmErrors()
-    gCrossSecNonPrompt.SetName(f'gCrossSecNonPrompt_{reso}_{mult}')
+    gCrossSecNonPrompt.SetName(f'gCrossSecNonPrompt_{reso}_{trigger}')
     gCrossSecNonPromptSystotal = TGraphAsymmErrors()
-    gCrossSecNonPromptSystotal.SetName(f'gCrossSecNonPromptSystotal_{reso}_{mult}')
+    gCrossSecNonPromptSystotal.SetName(f'gCrossSecNonPromptSystotal_{reso}_{trigger}')
     num_prompt = rawyield * frac_prompt * sigmaMB
     num_nonprompt = rawyield * frac_nonprompt * sigmaMB
     den_crosssec_prompt = 2 * delta_pt * delta_y * effAcc_prompt *  nev_sigma
@@ -210,10 +228,10 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
 
     stat_prompt = cross_prompt * np.sqrt((frac_prompt_statunc/frac_prompt)**2 +
                                          (rawyiledunc/rawyield)**2 +
-                                         (effAccUncLow_prompt/effAcc_prompt)**2)
+                                         (effAccUncPrompt/effAcc_prompt)**2)
     stat_nonprompt = cross_nonprompt * np.sqrt((frac_nonprompt_statunc/frac_nonprompt)**2 +
                                                (rawyiledunc/rawyield)**2 +
-                                               (effAccUncLow_nonprompt/effAcc_nonprompt)**2)
+                                               (effAccUncNonPrompt/effAcc_nonprompt)**2)
 
     # TODO: add other systematic uncertainties
     syst_prompt_high = cross_prompt * np.sqrt((frac_prompt_systunc_high/frac_prompt)**2)
@@ -242,8 +260,8 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
     #_____________________________________________________________________________
     # output
     SetObjectStyle(gYieldPrompt, color=kRed+1, markerstyle=20, markersize=1.2,
-                       linecolor=kRed+1, markercolor=kRed+1, fillalpha=0.2, fillstyle=0,
-                       linewidth=2)
+                   linecolor=kRed+1, markercolor=kRed+1, fillalpha=0.2, fillstyle=0,
+                   linewidth=2)
     SetObjectStyle(gCrossSecPrompt, color=kRed+1, markerstyle=20, markersize=1.2,
                    linecolor=kRed+1, markercolor=kRed+1, fillalpha=0.2, fillstyle=0,
                    linewidth=2)
@@ -255,8 +273,8 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
                    linewidth=2)
 
     SetObjectStyle(gYieldNonPrompt, color=kAzure+4, markerstyle=20, markersize=1.2,
-                       linecolor=kAzure+4, markercolor=kAzure+4, fillalpha=0.2, fillstyle=0,
-                       linewidth=2)
+                   linecolor=kAzure+4, markercolor=kAzure+4, fillalpha=0.2, fillstyle=0,
+                   linewidth=2)
     SetObjectStyle(gCrossSecNonPrompt, color=kAzure+4, markerstyle=20, markersize=1.2,
                    linecolor=kAzure+4, markercolor=kAzure+4, fillalpha=0.2, fillstyle=0,
                    linewidth=2)
@@ -267,24 +285,27 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
                    linecolor=kAzure+4, markercolor=kAzure+4, fillalpha=0.2, fillstyle=0,
                    linewidth=2)
 
-    output = TFile.Open(f'{path}/integrated_crosssec_{reso}_{mult}_pt{pt_min}-{pt_max}_Feb17.root', 'recreate')
+    output = TFile.Open(
+        os.path.join(outputdir, f'integrated_crosssec_pt{pt_min}-{pt_max}_{reso}_{trigger}_{ptshape}{mult_weights_suffix}{suffix}.root'),
+        'recreate'
+    )
     canvas = TCanvas('canvas', 'canvas', 1600, 900)
     canvas.Divide(2)
     leg = TLegend(0.2, 0.75, 0.7, 0.9)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     leg.SetTextSize(0.03)
-    leg.SetHeader(f'{reso_label} - {mult}')
+    leg.SetHeader(f'{reso_label} - {trigger}')
     leg2 = TLegend(0.2, 0.75, 0.7, 0.9)
     leg2.SetBorderSize(0)
     leg2.SetFillStyle(0)
     leg2.SetTextSize(0.03)
-    leg2.SetHeader(f'{reso_label} - {mult}')
-    leg.AddEntry(gYieldPrompt, f'Prompt', 'p')
+    leg2.SetHeader(f'{reso_label} - {trigger}')
+    leg.AddEntry(gYieldPrompt, 'Prompt', 'p')
     leg.AddEntry(gYieldNonPrompt, 'Non-prompt', 'p')
-    leg2.AddEntry(gCrossSecPrompt, f'Prompt', 'p')
+    leg2.AddEntry(gCrossSecPrompt, 'Prompt', 'p')
     leg2.AddEntry(gCrossSecNonPrompt, 'Non-prompt', 'p')
-    
+
     ymin = yield_nonprompt * 1.e-2
     ymax = yield_prompt * 1.e+2
     canvas.cd(1).SetLogy()
@@ -306,7 +327,11 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
     gCrossSecPromptSystotal.Draw('2 same')
     gCrossSecNonPromptSystotal.Draw('2 same')
     leg2.Draw()
-    canvas.SaveAs(f'{path}/integrated_crosssec_{reso}_{mult}_pt{pt_min}-{pt_max}_Feb17.pdf')
+    canvas.SaveAs(
+        os.path.join(
+            outputdir, f'integrated_crosssec_pt{pt_min}-{pt_max}_{reso}_{trigger}_{ptshape}{mult_weights_suffix}{suffix}.pdf'
+        )
+    )
 
     canvas.Write()
     hCrossSecPrompt.Write()
@@ -325,8 +350,8 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
     # save ingredients
     hRawYields.Write()
     hnev.Write()
-    gEffAccPrompt.Write()
-    gEffAccFD.Write()
+    hEffAccPrompt.Write()
+    hEffAccNonPrompt.Write()
     gFracPrompt.Write()
     gFracNonPrompt.Write()
     gFracPromptSyst.Write()
@@ -334,4 +359,25 @@ for i, (reso, mult) in enumerate(zip(resos, mults)):
     hIngredients.Write()
     output.Close()
 
-input('Press enter to exit')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Arguments")
+    parser.add_argument("file_rawy", metavar="text",
+                        default="rawyields.root", help="input ROOT file with raw yields")
+    parser.add_argument("file_eff", metavar="text",
+                        default="effacc.root", help="input ROOT file with eff x acc")
+    parser.add_argument("file_frac", metavar="text",
+                        default="frac.root", help="input ROOT file with fraction")
+    parser.add_argument("--outputdir", "-o", metavar="text",
+                        default=".", help="output directory")
+    parser.add_argument("--suffix", "-s", metavar="text",
+                        default="", help="suffix for output files")
+    args = parser.parse_args()
+
+    compute_crosssec(
+        args.file_rawy,
+        args.file_eff,
+        args.file_frac,
+        args.outputdir,
+        args.suffix
+    )
