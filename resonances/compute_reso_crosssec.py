@@ -170,10 +170,10 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     print('\033[1m\033[92mCompute yield\033[0m')
     hYieldPrompt = TH1F('hYieldPrompt', 'hYield', 1, pt_min, pt_max)
     gYieldPromptSystotal = TGraphAsymmErrors()
-    gYieldPromptSystotal.SetName(f'gYieldPromptSystotal_{reso}_{trigger}')
+    gYieldPromptSystotal.SetName(f'gYieldPromptSystotal')
     hYieldNonPrompt = TH1F('hYieldNonPrompt', 'hYield', 1, pt_min, pt_max)
     gYieldNonPromptSystotal = TGraphAsymmErrors()
-    gYieldNonPromptSystotal.SetName(f'gYieldNonPromptSystotal_{reso}_{trigger}')
+    gYieldNonPromptSystotal.SetName(f'gYieldNonPromptSystotal')
 
     # compute yield
     yield_prompt, stat_prompt = ComputeCrossSection(rawYield, rawYieldUnc, frac_prompt, frac_prompt_statunc,
@@ -218,9 +218,9 @@ def compute_crosssec(file_rawy, file_eff, file_frac, outputdir, suffix):
     hCrossSecPrompt = TH1F('hCrossSecPrompt', 'hCrossSec', 1, pt_min, pt_max)
     hCrossSecNonPrompt = TH1F('hCrossSecNonPrompt', 'hCrossSec', 1, pt_min, pt_max)
     gCrossSecPromptSystotal = TGraphAsymmErrors()
-    gCrossSecPromptSystotal.SetName(f'gCrossSecPromptSystotal_{reso}_{trigger}')
+    gCrossSecPromptSystotal.SetName(f'gCrossSecPromptSystotal')
     gCrossSecNonPromptSystotal = TGraphAsymmErrors()
-    gCrossSecNonPromptSystotal.SetName(f'gCrossSecNonPromptSystotal_{reso}_{trigger}')
+    gCrossSecNonPromptSystotal.SetName(f'gCrossSecNonPromptSystotal')
 
     cross_prompt, stat_prompt = ComputeCrossSection(rawYield, rawYieldUnc, frac_prompt, frac_prompt_statunc,
                                                     effAcc_prompt, delta_pt, delta_y, sigmaMB, nev_sigma, BR, 'uncorr')
