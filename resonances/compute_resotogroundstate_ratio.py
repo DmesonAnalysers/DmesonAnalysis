@@ -39,9 +39,9 @@ for reso in reso_list:
     infile_reso_HM = TFile.Open(f'{base_path}/corr_yields/integrated_crosssec_pt2.0-24.0_{reso}_HM_Dsptshape_multweights_candinmass.root')
     infile_reso_MB = TFile.Open(f'{base_path}/corr_yields/integrated_crosssec_pt2.0-24.0_{reso}_MB_Dsptshape_multweights_candinmass.root')
     hreso_HM = infile_reso_HM.Get('hYieldPrompt')
-    greso_HM_syst = infile_reso_HM.Get(f'gYieldPromptSystotal_{reso}_HM')
+    greso_HM_syst = infile_reso_HM.Get(f'gYieldPromptSystotal')
     hreso_MB = infile_reso_MB.Get('hYieldPrompt')
-    greso_MB_syst = infile_reso_MB.Get(f'gYieldPromptSystotal_{reso}_MB')
+    greso_MB_syst = infile_reso_MB.Get(f'gYieldPromptSystotal')
 
     # Ground state
     infile_gs = TFile.Open(f'{base_path}/Ds_pp13TeV_vsMult/V0M_ptintegratedyields_D0DsLc_pt2-24.root') # from Luuk
