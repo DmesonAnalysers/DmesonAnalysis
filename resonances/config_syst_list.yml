@@ -1,0 +1,46 @@
+# branching ratios
+Dplus: # https://pdglive.lbl.gov/Particle.action?init=0&node=S031&home=MXXX035
+  BR: 9.38e-2
+  BR_unc: 0.16e-2
+Dstar:  # https://pdglive.lbl.gov/Particle.action?init=0&node=S032&home=MXXX035 and https://pdglive.lbl.gov/Particle.action?init=0&node=M062&home=MXXX035
+  BR: 2.67e-2
+  BR_unc: 0.03e-2
+K0s: # https://pdglive.lbl.gov/Particle.action?init=0&node=S012&home=MXXX020
+  BR: 69.20e-2
+  BR_unc: 0.05e-2
+
+# systematic uncertainties
+10433: # Ds1+, pT 2-24
+  MB:
+    raw_yield: 0.05
+    eff: 0.1
+    np_frac: 0.07 # for reference only
+    pT_shape: 0.1
+    mult: 0.01
+    tracking: 0.06
+
+  HM:
+    raw_yield: 0.06
+    eff: 0.1
+    np_frac: 0.04  # for reference only
+    pT_shape: 0.12
+    mult: 0.02
+    tracking: 0.06
+
+
+435: # Ds2*+, pT 2-24
+  MB:
+    raw_yield: 0.14 # 0.07
+    eff: 0.1
+    np_frac: 0.04  # for reference only
+    pT_shape: 0.13
+    mult: 0.01
+    tracking: 0.065
+
+  HM:
+    raw_yield: 0.18 # 0.12
+    eff: 0.1
+    np_frac: 0.04  # for reference only
+    pT_shape: 0.13
+    mult: 0.
+    tracking: 0.065
