@@ -38,7 +38,7 @@ K0s: # https://pdglive.lbl.gov/Particle.action?init=0&node=S012&home=MXXX020
     tracking: 0.065
 
   HM:
-    raw_yield: 0.12 # 0.18 multi-trial, 0.12 reduced with toy MC study
+    raw_yield: 0.14 # 0.18 multi-trial, 0.14 reduced with toy MC study
     eff: 0.1
     np_frac: 0.04  # for reference only
     pT_shape: 0.13
