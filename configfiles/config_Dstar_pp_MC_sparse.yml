@@ -1,0 +1,23 @@
+isMC: yes
+filename: [~/Desktop/Analyses/Ds_resonances/check_efficiency_Dstar/inputs/AnalysisResults_LHC20f4a_train4197.root,
+           ~/Desktop/Analyses/Ds_resonances/check_efficiency_Dstar/inputs/AnalysisResults_LHC20f4b_train4196.root,
+           ~/Desktop/Analyses/Ds_resonances/check_efficiency_Dstar/inputs/AnalysisResults_LHC20f4c_train4195.root]
+isReducedVariables: no
+isWithBinfo: no
+dirname: PWGHF_D2H_TreeDstartoD0piLoose_MB
+listname: coutputTreeDstartoD0piLoose_MB
+sparsenameAll: null
+sparsenamePrompt: fnSparseReco_fromC
+sparsenameFD: fnSparseReco_fromB
+enableRef: no #reflection for D0
+sparsenameRefl: fnSparseReco_refl
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableSecPeak: no #second peak for Ds
+sparsenamePromptSecPeak: null
+sparsenameFDSecPeak: null
+sparsenameGenPromptSecPeak: null
+sparsenameGenFDSecPeak: null
+normname: NormalizationCounter
+histoevname: hNEvents
+shiftForRedVariables: 7 # dependent on the sparse defined in the AliPhysics task
