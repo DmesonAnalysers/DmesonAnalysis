@@ -4,8 +4,8 @@ run: python compute_resotogroundstate_ratio.py
 '''
 import sys
 import numpy as np
-from ROOT import TFile, TCanvas, TLatex, TLegend, TGraphAsymmErrors, TGraph # pylint: disable=import-error,no-name-in-module
-from ROOT import kBlack, kRed, kAzure, kOrange, kSpring, kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TColor, TCanvas, TLatex, TLegend, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from ROOT import kBlack, kRed, kAzure, kGreen, kOrange, kFullCross, kFullSquare # pylint: disable=import-error,no-name-in-module
 sys.path.insert(0, '..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
@@ -106,41 +106,72 @@ for reso in reso_list:
     gratio.SetPointError(1, 0, 0, ratio_HM_stat, ratio_HM_stat)
     gratio_sys.SetPoint(1, avg_mults[1], ratio_HM)
     gratio_sys.SetPointError(1, 1., 1., ratio_HM_sys_low, ratio_HM_sys_high)
-    color = kOrange+1 if reso == 435 else kRed+1
-    marker = kFullSquare if reso == 435 else kFullCircle
-    SetObjectStyle(gratio, color=color, markerstyle=marker, markersize=1.2, fillstyle=0, linewidth=2)
-    SetObjectStyle(gratio_sys, color=color, markerstyle=marker, markersize=1.2, fillstyle=0, linewidth=2)
+    color = kGreen+3 if reso == 435 else kRed+2
+    marker = kFullCross if reso == 435 else kFullSquare
+    markersize = 1.4 if reso == 435 else 1.2
+    SetObjectStyle(gratio, color=color, markerstyle=marker, markersize=markersize, fillstyle=0, linewidth=2)
+    SetObjectStyle(gratio_sys, color=color, markerstyle=marker, markersize=markersize, fillstyle=0, linewidth=2)
 
     #_____________________________________________________________
     # Collect theoretical prediction
     br_reso = 23.35e-2 if reso == 435 else 22.e-2 # taken from AN (see also https://indico.cern.ch/event/1253172/)
+    br_reso_unc = 0. if reso == 435 else 2.e-2
     if reso == 435:
         pred_shm = 0.075 # taken from ./predictions/MinHe/
         pred_shmc = 0.034 / 0.357 # taken from Ds2*+/D0 = 0.034 and Ds/D0 = 0.357
-        pred_shm *= br_reso
-        pred_shmc *= br_reso
+        pred_shm_cent = pred_shm * br_reso
+        pred_shm_low = pred_shm * (br_reso - br_reso_unc)
+        pred_shm_up = pred_shm * (br_reso + br_reso_unc)
+        pred_shmc_cent = pred_shmc * br_reso
+        pred_shmc_low = pred_shmc * (br_reso - br_reso_unc)
+        pred_shmc_up = pred_shmc * (br_reso + br_reso_unc)
+        br_str = f'BR = {br_reso*100:.2f}%'
+        paper_str = 'PRD 93 (2016) 034035'
+        model_leg_opt = 'l'
+        linewidth = 3
+
     else:
         pred_shm = 0.054 # taken from ./predictions/MinHe/
         pred_shmc = 0.026 / 0.357 # taken from Ds1+/D0 = 0.026 and Ds/D0 = 0.357
-        pred_shm *= br_reso
-        pred_shmc *= br_reso
+        pred_shm_cent = pred_shm * br_reso
+        pred_shm_low = pred_shm * (br_reso - br_reso_unc)
+        pred_shm_up = pred_shm * (br_reso + br_reso_unc)
+        pred_shmc_cent = pred_shmc * br_reso
+        pred_shmc_low = pred_shmc * (br_reso - br_reso_unc)
+        pred_shmc_up = pred_shmc * (br_reso + br_reso_unc)
+        br_str = f'BR = ({br_reso*100:.0f} #pm {br_reso_unc*100:.0f})%'
+        paper_str = 'PRD 93 (2016) 034035 and PTEP 2022 083C01'
+        model_leg_opt = 'f'
+        linewidth = 0
 
-    gtheo_shm, gtheo_shmc = TGraph(), TGraph()
-    gtheo_shm.SetPoint(0, 4, pred_shm)
-    gtheo_shm.SetPoint(1, 36, pred_shm) # no explicit multiplicity dependence indicated from theoreticians
-    gtheo_shmc.SetPoint(0, 4, pred_shmc)
-    gtheo_shmc.SetPoint(1, 36, pred_shmc) # no explicit multiplicity dependence indicated from theoreticians
-    SetObjectStyle(gtheo_shm, color=kAzure+4, markersize=1.5,
-                linewidth=3, fillalpha=0.5, fillcolor=kAzure+4, linestyle=5)
-    SetObjectStyle(gtheo_shmc, color=kSpring-1, markersize=1.5,
-                    linewidth=3, fillalpha=0.5, fillcolor=kSpring-1, linestyle=2)
+    gtheo_shm, gtheo_shmc = TGraphAsymmErrors(), TGraphAsymmErrors()
+     # no explicit multiplicity dependence indicated from theoreticians
+    gtheo_shm.SetPoint(0, 4, pred_shm_cent)
+    gtheo_shm.SetPointError(0, 0., 0., pred_shm_cent - pred_shm_low, pred_shm_up - pred_shm_cent)
+    gtheo_shm.SetPoint(1, 36, pred_shm_cent)
+    gtheo_shm.SetPointError(1, 0., 0., pred_shm_cent - pred_shm_low, pred_shm_up - pred_shm_cent)
+    gtheo_shmc.SetPoint(0, 4, pred_shmc_cent)
+    gtheo_shmc.SetPointError(0, 0., 0., pred_shmc_cent - pred_shmc_low, pred_shmc_up - pred_shmc_cent)
+    gtheo_shmc.SetPoint(1, 36, pred_shmc_cent)
+    gtheo_shmc.SetPointError(1, 0., 0., pred_shmc_cent - pred_shmc_low, pred_shmc_up - pred_shmc_cent)
+
+    # define custom colors to mimic transparency
+    kAzureMy = TColor.GetFreeColorIndex()
+    cAzureMy = TColor(kAzureMy, 194./255, 213./255, 237./255, 'kAzureMy', 1.0)
+    kOrangeMy = TColor.GetFreeColorIndex()
+    cOrangeMy = TColor(kOrangeMy, 255./255, 190./255, 92./255, 'kOrangeMy', 1.0)
+    SetObjectStyle(gtheo_shm, linecolor=kAzure+4, linewidth=linewidth, fillcolor=kAzureMy, linestyle=5)
+    SetObjectStyle(gtheo_shmc, linecolor=kOrange-3, linewidth=linewidth, fillcolor=kOrangeMy, linestyle=2)
 
     #_____________________________________________________________
     # nSigma calculation
-    nsigma_mb_SHM = (ratio_MB - gtheo_shmc.GetY()[0])/ratio_MB_stat
-    nsigma_mb_He = (ratio_MB - gtheo_shm.GetY()[0])/ratio_MB_stat
-    nsigma_hm_SHM = (ratio_HM - gtheo_shmc.GetY()[0])/ratio_HM_stat
-    nsigma_hm_He = (ratio_HM - gtheo_shm.GetY()[0])/ratio_HM_stat
+    # use lower syst. unc. since model predictions are lower than data
+    ratio_tot_unc_MB = np.sqrt(ratio_MB_stat**2 + ratio_MB_sys_low**2)
+    ratio_tot_unc_HM = np.sqrt(ratio_HM_stat**2 + ratio_HM_sys_low**2)
+    nsigma_mb_SHM = (ratio_MB - gtheo_shmc.GetY()[0]) / ratio_tot_unc_MB
+    nsigma_mb_He = (ratio_MB - gtheo_shm.GetY()[0]) / ratio_tot_unc_MB
+    nsigma_hm_SHM = (ratio_HM - gtheo_shmc.GetY()[0]) / ratio_tot_unc_HM
+    nsigma_hm_He = (ratio_HM - gtheo_shm.GetY()[0]) / ratio_tot_unc_HM
 
     print('\n\033[1m\033[4mnSigma (only stat)\033[0m')
     print(f'nsigma_mb_SHM = {nsigma_mb_SHM:.2f}')
@@ -148,18 +179,17 @@ for reso in reso_list:
     print(f'nsigma_hm_SHM = {nsigma_hm_SHM:.2f}')
     print(f'nsigma_hm_He = {nsigma_hm_He:.2f}\n\n')
 
-
     #_____________________________________________________________
     # Plot and save output
 
-    leg = TLegend(0.4, 0.6, 0.9, 0.8)
+    leg = TLegend(0.4, 0.65, 0.9, 0.8)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     leg.SetTextFont(42)
     leg.SetTextSize(0.035)
     leg.AddEntry(gratio, 'Data #scale[0.8]{(2 < #it{p}_{T} < 24 GeV/#it{c})}', 'p')
-    leg.AddEntry(gtheo_shm, 'SHM M. He, R. Rapp #scale[0.8]{(#it{p}_{T} > 0)}', 'l')
-    leg.AddEntry(gtheo_shmc, 'SHMc GSI-Heidelberg #scale[0.8]{(#it{p}_{T} > 0)}', 'l')
+    leg.AddEntry(gtheo_shm, 'SHM M. He, R. Rapp #scale[0.8]{(#it{p}_{T} > 0)}', model_leg_opt)
+    leg.AddEntry(gtheo_shmc, 'SHMc GSI#minusHeidelberg #scale[0.8]{(#it{p}_{T} > 0)}', model_leg_opt)
 
     latALICE = TLatex()
     latALICE.SetNDC()
@@ -173,20 +203,29 @@ for reso in reso_list:
     latLabel.SetTextFont(42)
     latLabel.SetTextColor(kBlack)
 
+    latNote = TLatex()
+    latNote.SetNDC()
+    latNote.SetTextSize(0.035)
+    latNote.SetTextFont(42)
+    latNote.SetTextColor(kBlack)
+
     canvas = TCanvas('canvas', 'canvas', 800, 800)
     decay_tag = f'{reso_label_plot} #times BR({reso_label_plot} #rightarrow {meson_label_plot} K^{{0}}_{{S}})'
-    ytitle = f';#LTd#it{{N}}_{{ch}}/d#eta#GT_{{|#eta| < 0.5}}; {decay_tag} / D_{{s}}^{{+}}'
-    ymax = 0.159 if reso == 435 else 0.069
+    ytitle = f';#LTd#it{{N}}_{{ch}}/d#it{{#eta}}#GT_{{|#it{{#eta}}| < 0.5}}; {decay_tag} / D_{{s}}^{{+}}'
+    ymax = 0.109 if reso == 435 else 0.054
     hFrame = canvas.cd().DrawFrame(0., 0., 39, ymax, ytitle)
     latALICE.DrawLatex(0.19, 0.89, 'ALICE Preliminary')
-    latLabel.DrawLatex(0.19, 0.83, 'pp, #sqrt{#it{s}} = 13 TeV, |y| < 0.5')
-    gtheo_shm.Draw('csame')
-    gtheo_shmc.Draw('csame')
+    latLabel.DrawLatex(0.19, 0.83, 'pp, #sqrt{#it{s}} = 13 TeV, |#it{y}| < 0.5')
+    latNote.DrawLatex(0.19, 0.21, 'Model predictions only')
+    latNote.DrawLatex(0.19, 0.175, f'{br_str} #scale[0.8]{{{paper_str}}}')
+    gtheo_shm.Draw('c3 same')
+    gtheo_shmc.Draw('c3 same')
     gratio_sys.Draw('2 same')
     gratio.Draw('same pz')
     leg.Draw()
 
     canvas.SaveAs(f'{base_path}/prel_figures/Ds{reso}_over_Ds_ratio_vs_mult.pdf')
+    canvas.SaveAs(f'{base_path}/prel_figures/Ds{reso}_over_Ds_ratio_vs_mult.eps')
     outfile = TFile(f'{base_path}/prel_figures/Ds{reso}_over_Ds_ratio_vs_mult.root', 'recreate')
     canvas.Write()
     gratio.Write()
