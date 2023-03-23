@@ -2,7 +2,7 @@
 Script with helper methods for style settings
 '''
 
-from ROOT import gStyle, gROOT, TGaxis # pylint: disable=import-error,no-name-in-module
+from ROOT import gStyle, gROOT, TGaxis, TPad # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kWhite, kGray, kRed, kBlue, kGreen # pylint: disable=import-error,no-name-in-module
 from ROOT import kMagenta, kAzure, kCyan, kOrange, kYellow, kSpring, kTeal, kViolet, kPink # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCircle, kFullSquare, kFullDiamond, kFullCross, kFullTriangleUp, kFullTriangleDown # pylint: disable=import-error,no-name-in-module
@@ -19,7 +19,7 @@ def SetGlobalStyle(**kwargs):
     - padrightmargin (float), default = 0.035
     - padleftmargin (float), default = 0.12
     - padtopmargin (float), default = 0.035
-    - padbottommargin (float), default = 0.12
+    - padbottommargin (float), default = 0.1
 
     - titlesize (float), default = 0.050
     - titlesizex (float), default = 0.050
@@ -289,6 +289,121 @@ def DivideCanvas(canv, nPads):
     else:
         canv.Divide(int((nPads+1)/2), 2)
 
+ # pylint: disable=too-many-statements
+def ReturnAdjacentPads(nrows, ncols, leftmargin=0.12, rightmargin=0.035, bottommargin=0.1,
+                       topmargin=0.035, corrfactwidth=0., corrfactheight=0.):
+    '''
+    Method that returns a list of adjacent TPads
+
+    Inputs
+    ----------
+    - number of rows in the canvas
+    - number of columns in the canvas
+
+    Optional
+    - left margin (float), default = 0.12
+    - right margin (float), default = 0.035
+    - bottom margin (float), default = 0.10
+    - top margin (float), default = 0.035
+    - correction factor to fill remaining spaces in the horizontal direction
+    - correction factor to fill remaining spaces in the vertical direction
+
+    Returns
+    ----------
+    - list of TPads with correct sizes and margins
+    '''
+
+    middleWidthMargin = (leftmargin+rightmargin)
+    if ncols == 3:
+        middleWidthMargin /= 2
+    middleHeightMargin = (topmargin+bottommargin)
+    padWidth = (1. / ncols)
+    padHeight = (1. / nrows)
+
+    x1Coord, x2Coord, y1Coord, y2Coord = ([] for iList in range(4))
+    for iRow in range(nrows):
+        x1Coord.append([])
+        x2Coord.append([])
+        y1Coord.append([])
+        y2Coord.append([])
+        for iCol in range(ncols):
+            if ncols == 1:
+                x1Coord[iRow].append(0)
+                x2Coord[iRow].append(1)
+            else:
+                if iCol == 0:
+                    x1Coord[iRow].append(0)
+                    x2Coord[iRow].append(padWidth+middleWidthMargin/(2*ncols)+corrfactwidth)
+                elif iCol == ncols-1:
+                    x1Coord[iRow].append(1-padWidth-middleWidthMargin/(2*ncols)-corrfactwidth)
+                    x2Coord[iRow].append(1)
+                else:
+                    x1Coord[iRow].append(x2Coord[iRow][iCol-1]-2*middleWidthMargin/(2*ncols)-corrfactwidth)
+                    x2Coord[iRow].append(x1Coord[iRow][iCol]+padWidth+middleWidthMargin/(2*ncols)+corrfactwidth)
+
+            if nrows == 1:
+                y1Coord[iRow].append(0)
+                y2Coord[iRow].append(1)
+            else:
+                if iRow == 0:
+                    y1Coord[iRow].append(1-padHeight-middleHeightMargin/(2*nrows)-corrfactheight)
+                    y2Coord[iRow].append(1)
+                elif iRow == nrows-1:
+                    y1Coord[iRow].append(0)
+                    y2Coord[iRow].append(padHeight+middleHeightMargin/(2*nrows)+corrfactheight)
+                else:
+                    y2Coord[iRow].append(y1Coord[iRow-1][iCol]+middleHeightMargin/(2*nrows)+corrfactheight)
+                    y1Coord[iRow].append(y2Coord[iRow][iCol]-padHeight-2*middleHeightMargin/(2*nrows)-corrfactheight)
+
+    outPads = []
+    for iRow in range(nrows):
+        outPads.append([])
+        for iCol in range(ncols):
+            outPads[iRow].append(TPad(f'pad{iCol}{iRow}', '',
+                                      x1Coord[iRow][iCol], y1Coord[iRow][iCol],
+                                      x2Coord[iRow][iCol], y2Coord[iRow][iCol]))
+
+            if nrows == 1:
+                outPads[iRow][iCol].SetTopMargin(topmargin)
+                outPads[iRow][iCol].SetBottomMargin(bottommargin)
+            else:
+                if iRow == 0:
+                    outPads[iRow][iCol].SetTopMargin(topmargin)
+                    if topmargin < bottommargin:
+                        outPads[iRow][iCol].SetBottomMargin(bottommargin-topmargin)
+                    else:
+                        outPads[iRow][iCol].SetBottomMargin(0.)
+                elif iRow == nrows-1:
+                    outPads[iRow][iCol].SetBottomMargin(bottommargin)
+                    if bottommargin < topmargin :
+                        outPads[iRow][iCol].SetTopMargin(topmargin-bottommargin)
+                    else:
+                        outPads[iRow][iCol].SetTopMargin(0.)
+                else:
+                    outPads[iRow][iCol].SetBottomMargin(middleHeightMargin)
+                    outPads[iRow][iCol].SetTopMargin(middleHeightMargin)
+
+            if ncols == 1:
+                outPads[iRow][iCol].SetLeftMargin(leftmargin)
+                outPads[iRow][iCol].SetLeftMargin(rightmargin)
+            else:
+                if iCol == 0:
+                    outPads[iRow][iCol].SetLeftMargin(leftmargin)
+                    if leftmargin < rightmargin:
+                        outPads[iRow][iCol].SetRightMargin(rightmargin-leftmargin)
+                    else:
+                        outPads[iRow][iCol].SetRightMargin(0.)
+                elif iCol == ncols-1:
+                    outPads[iRow][iCol].SetRightMargin(rightmargin)
+                    if rightmargin < leftmargin:
+                        outPads[iRow][iCol].SetLeftMargin(leftmargin-rightmargin)
+                    else:
+                        outPads[iRow][iCol].SetLeftMargin(0.)
+                else:
+                    outPads[iRow][iCol].SetRightMargin(0.)
+                    outPads[iRow][iCol].SetLeftMargin(middleWidthMargin)
+
+    return outPads
 
 def GetROOTColor(color='kBlack'):
     '''
