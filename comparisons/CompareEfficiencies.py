@@ -1,19 +1,22 @@
 import sys
 from os.path import join
 from ROOT import TCanvas, TFile, TLegend # pylint: disable=import-error,no-name-in-module
-from ROOT import kRed, kBlack, kBlue, kAzure, kOrange, kFullCircle, kFullSquare, kFullDiamond # pylint: disable=import-error,no-name-in-module,unused-import
+from ROOT import kRed, kBlack, kBlue,kGreen, kAzure, kOrange,kFullCircle, kOpenCircle, kFullSquare, kFullDiamond,kOpenDiamond, kFullCross, kOpenCross, kOpenSquare # pylint: disable=import-error,no-name-in-module,unused-import
 sys.path.append('..')
 from utils.AnalysisUtils import ComputeRatioDiffBins #pylint: disable=wrong-import-position,import-error
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
-inDir = 'inputdir'
-inFileNames = ['file1.root', 'file2.root']
-histoNames = ['hAccEff', 'hAccEff']
-colors = [kRed+1, kAzure+4]
-markers = [kFullSquare, kFullCircle]
-legNames = ['title1', 'title2']
-outDir = 'outputdir'
-outSuffix = 'suffix'
+inDir = ''
+inFileNames = ['/home/fchinu/Ds_pp_13TeV/output_analysis/final/AccTimesEfficiencyDs_pp13TeV.root',
+    '/home/fchinu/Ds_pp_13TeV/output_analysis/stefano/Eff_times_Acc_Ds_Ds_pp13TeV_PromptEn_22112021.root',
+    '/home/fchinu/Ds_pp_13TeV/output_analysis/stefano/AccxEff_Ds_CentralConsPID_LHC20f4_ptwhisto.root',
+    '/home/fchinu/Ds_pp_13TeV/output_analysis/stefano/AccxEff_Ds_CentralStrongPID_LHC20f4_ptwhisto.root']
+histoNames = ['hAccEff', 'hAccEff', 'hAxe', 'hAxe']
+colors= [kAzure+3,  kBlack,  kGreen-2, kOrange-3]
+markers= [kFullCircle, kFullDiamond, kFullSquare,  kFullCross]
+legNames = ['Binary', 'Multiclass', 'Std (Cons. PID)','Std (Strong PID)']
+outDir = '/home/fchinu/Ds_pp_13TeV/output_analysis/final'
+outSuffix = 'Comp_binary_multiclass_standard'
 showUnc = True
 
 SetGlobalStyle(padleftmargin=0.16, padtopmargin=0.05, padbottommargin=0.14,
@@ -28,9 +31,14 @@ leg.SetTextSize(0.04)
 
 for iFile, inFileName in enumerate(inFileNames):
     inFileName = join(inDir, inFileName)
+    print(inFileName)
     inFile = TFile.Open(inFileName)
-    hEffPrompt.append(inFile.Get(f'{histoNames[iFile]}Prompt'))
-    hEffFD.append(inFile.Get(f'{histoNames[iFile]}FD'))
+    if not (inFileName=='/home/fchinu/Ds_pp_13TeV/output_analysis/stefano/AccxEff_Ds_CentralConsPID_LHC20f4_ptwhisto.root' or inFileName=='/home/fchinu/Ds_pp_13TeV/output_analysis/stefano/AccxEff_Ds_CentralStrongPID_LHC20f4_ptwhisto.root'):
+        hEffPrompt.append(inFile.Get(f'{histoNames[iFile]}Prompt'))
+        hEffFD.append(inFile.Get(f'{histoNames[iFile]}FD'))
+    else:
+        hEffPrompt.append(inFile.Get(f'{histoNames[iFile]}Prompt'))
+        hEffFD.append(inFile.Get(f'{histoNames[iFile]}Feeddw'))
     hEffPrompt[iFile].SetDirectory(0)
     hEffFD[iFile].SetDirectory(0)
     hEffPrompt[iFile].GetYaxis().SetRangeUser(1e-4, 1.)
@@ -91,7 +99,7 @@ for iFile in range(len(inFileNames)):
         continue
     hEffFDRatio[iFile].Draw('same')
 
-cPrompt.SaveAs(f'{outDir}/PromptEfficiencyComparison_{outSuffix}.pdf')
-cFD.SaveAs(f'{outDir}/FDEfficiencyComparison_{outSuffix}.pdf')
+cPrompt.SaveAs(f'{outDir}/PromptEfficiencyComparison_{outSuffix}.png')
+cFD.SaveAs(f'{outDir}/FDEfficiencyComparison_{outSuffix}.png')
 
 input('Press enter to exit')

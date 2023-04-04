@@ -7,7 +7,7 @@ import sys
 import numpy as np
 import pandas as pd
 from ROOT import TH1F, TList, TGraph, TGraphErrors, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from .FitUtils import BkgFitFuncCreator
+#from .FitUtils import BkgFitFuncCreator
 
 def ComputeEfficiency(recoCounts, genCounts, recoCountsError, genCountsError):
     '''

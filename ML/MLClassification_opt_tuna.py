@@ -156,7 +156,7 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
 
     # hyperparams optimization
     if inputCfg['ml']['hyper_par_opt']['do_hyp_opt']:
-        print('Perform bayesian optimization')
+        print('Perform opt tuna optimization')
 
         OptTunaConfig = inputCfg['ml']['hyper_par_opt']['opt_tuna_config']
         if not isinstance(OptTunaConfig, dict):
@@ -176,13 +176,30 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
                 metric = f'roc_auc_{roc_method}'
         else:
             metric = 'roc_auc'
+        
+        if isinstance(OptTunaConfig['max_depth'][0],float) or isinstance(OptTunaConfig['max_depth'][1],float):
+            print('\033[93mWARNING: max_depth limits are not integers!\033[0m')
+        if isinstance(OptTunaConfig['n_estimators'][0],float) or isinstance(OptTunaConfig['n_estimators'][1],float):
+            print('\033[93mWARNING: n_estimators limits are not integers!\033[0m')
+        if isinstance(OptTunaConfig['learning_rate'][0],int) or isinstance(OptTunaConfig['learning_rate'][1],int):
+            print('\033[93mWARNING: learning_rate limits are not floats!\033[0m')
+        if isinstance(OptTunaConfig['min_child_weight'][0],int) or isinstance(OptTunaConfig['min_child_weight'][1],int):
+            print('\033[93mWARNING: min_child_weight limits are not integers!\033[0m')
+        if isinstance(OptTunaConfig['subsample'][0],int) or isinstance(OptTunaConfig['subsample'][1],int):
+            print('\033[93mWARNING: subsample limits are not integers!\033[0m')
+        if isinstance(OptTunaConfig['colsample_bytree'][0],int) or isinstance(OptTunaConfig['colsample_bytree'][1],int):
+            print('\033[93mWARNING: colsample_bytree limits are not integers!\033[0m')
 
         print('Performing hyper-parameters optimisation: ...', end='\r')
+        if (inputCfg['ml']['hyper_par_opt']['timeout'] is None) and (inputCfg['ml']['hyper_par_opt']['niter'] is None):
+            print('\033[93mWARNING: timeout and niter were both set to null in configuration file!\033[0m')
+
         OutFileHypPars = open(f'{OutPutDirPt}/HyperParOpt_pT_{PtBin[0]}_{PtBin[1]}.txt', 'wt')
         sys.stdout = OutFileHypPars
-        ModelHandl.optimize_params_optuna(TrainTestData, OptTunaConfig, cross_val_scoring='roc_auc', timeout=120,
+
+        ModelHandl.optimize_params_optuna(TrainTestData, OptTunaConfig, cross_val_scoring='roc_auc', timeout=inputCfg['ml']['hyper_par_opt']['timeout'],
                                  n_jobs=inputCfg['ml']['hyper_par_opt']['njobs'], 
-                                 n_trials=100,
+                                 n_trials=inputCfg['ml']['hyper_par_opt']['n_trials'],
                                  direction='maximize')
         OutFileHypPars.close()
         sys.stdout = sys.__stdout__

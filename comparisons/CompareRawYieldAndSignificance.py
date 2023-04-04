@@ -1,27 +1,78 @@
 import sys
+from os.path import join
 import math
 from ROOT import TCanvas, TFile, TLegend # pylint: disable=import-error,no-name-in-module
-from ROOT import kRed, kAzure # pylint: disable=import-error,no-name-in-module
-from ROOT import kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
+from ROOT import kRed, kBlack, kBlue,kGreen, kAzure, kOrange,kFullCircle, kOpenCircle, kFullSquare, kFullDiamond,kOpenDiamond, kFullCross, kOpenCross, kOpenSquare # pylint: disable=import-error,no-name-in-module,unused-import
 sys.path.append('..')
 from utils.AnalysisUtils import ComputeRatioDiffBins #pylint: disable=wrong-import-position,import-error
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 
-inputdir = 'inputdir'
-inputfilenames = ['file1.root', 'file2.root']
-outputdir = 'outputdir'
-outputsuffix = 'suffix'
-signalhistonames = ['hRawYields', 'hRawYields']
-bkghistonames = ['hRawYieldsBkg', 'hRawYieldsBkg']
-SoverBhistonames = ['hRawYieldsSoverB', 'hRawYieldsSoverB']
-signifhistonames = ['hRawYieldsSignificance', 'hRawYieldsSignificance']
-evhistonames = ['hEvForNorm', 'hEvForNorm']
-colors = [kRed+1, kAzure+4]
-markers = [kFullSquare, kFullCircle]
-legendnames = ['title1', 'title2']
+inputdir = '/home/fchinu/Ds_pp_13TeV/output_analysis'
+inputfilenames = ['/final/RawYieldDs_data_pp13TeV.root',
+                '/stefano/RawYieldsDs_Ds_pp13TeV_PromptEn_22112021.root',
+                '/stefano/RawYieldsDs_CentralConsPID.root',
+                '/stefano/RawYieldsDs_CentralStrongPID.root']
+mergeFileNames=['/stefano/RawYieldsDs_CentralConsPID.root',
+                '/stefano/RawYieldsDs_CentralStrongPID.root']
+outputdir = '/home/fchinu/Ds_pp_13TeV/output_analysis/final/thesis'
+outputsuffix = '_final_binary_multiclass_standard'
+signalhistonames = ['hRawYields', 'hRawYields', 'hRawYields', 'hRawYields']
+bkghistonames = ['hRawYieldsBkg', 'hRawYieldsBkg', 'hRawYieldsBkg', 'hRawYieldsBkg']
+SoverBhistonames = ['hRawYieldsSoverB', 'hRawYieldsSoverB', 'hRawYieldsSoverB', 'hRawYieldsSoverB']
+signifhistonames = ['hRawYieldsSignificance', 'hRawYieldsSignificance', 'hRawYieldsSignificance', 'hRawYieldsSignificance']
+evhistonames = ['hEvForNorm', 'hEvForNorm', 'hEvForNorm', 'hEvForNorm']
+colors = [kAzure+3, kGreen-2, kOrange-3]
+markers = [kFullCircle, kFullDiamond, kFullSquare,  kFullCross]
+legendnames = ['Binary', 'Multiclass', 'Standard','Std (Strong PID)']
 
 SetGlobalStyle(padleftmargin=0.18, padtopmargin=0.05, padbottommargin=0.14,
                titleoffsety=1.8, titlesize=0.045, labelsize=0.04, maxdigits=2)
+
+def StdMerge(hCons, hStrong, ptSwitch = 6):
+    '''
+    Helper function to merge the standard histograms
+    '''
+    hMerged = hCons.Clone(f'hMergedStd')
+    for iBin in range(hMerged.GetNbinsX()):
+        if (hStrong.GetBinLowEdge(iBin+1)) >= ptSwitch:        
+            hMerged.SetBinContent(iBin+1, hCons.GetBinContent(iBin+1))
+            hMerged.SetBinError(iBin+1, hCons.GetBinError(iBin+1))
+        else:
+            hMerged.SetBinContent(iBin+1, hStrong.GetBinContent(iBin+1))
+            hMerged.SetBinError(iBin+1, hStrong.GetBinError(iBin+1))
+        
+    return  hMerged
+
+temphSignal, temphRatioSignal, temphBackground, temphRatioBkg, temphSoverB, temphSignif, temphRatioSignif, temphEv = [], [], [], [], [], [], [], []
+
+for iFile, inFileName in enumerate(mergeFileNames):
+    inFileName = inputdir+ inFileName
+    print(inFileName)
+    inFile = TFile.Open(inFileName)
+    temphSignal.append(inFile.Get('hRawYields'))
+    temphBackground.append(inFile.Get('hRawYieldsBkg'))
+    temphSoverB.append(inFile.Get('hRawYieldsSoverB'))
+    temphSignif.append(inFile.Get('hRawYieldsSignificance'))
+    temphEv.append(inFile.Get('hEvForNorm'))
+    temphSignal[iFile].SetDirectory(0)
+    temphBackground[iFile].SetDirectory(0)
+    temphSoverB[iFile].SetDirectory(0)
+    temphSignif[iFile].SetDirectory(0)
+    temphEv[iFile].SetDirectory(0)
+    inFile.Close()
+
+file = TFile.Open('/home/fchinu/Ds_pp_13TeV/output_analysis/stefano/mergedrawyields.root','recreate')
+StdMerge(temphSignal[0],temphSignal[1]).Write('hRawYields')
+StdMerge(temphBackground[0],temphBackground[1]).Write('hRawYieldsBkg')
+StdMerge(temphSoverB[0],temphSoverB[1]).Write('hRawYieldsSoverB')
+StdMerge(temphSignif[0],temphSignif[1]).Write('hRawYieldsSignificance')
+StdMerge(temphEv[0],temphEv[1]).Write('hEvForNorm')
+file.Close()
+
+inputfilenames.pop()
+inputfilenames.pop()
+inputfilenames.append('/stefano/mergedrawyields.root')
+
 
 hSignal, hRatioSignal, hBackground, hRatioBkg, hSoverB, hSignif, hRatioSignif, hEv = [], [], [], [], [], [], [], []
 
@@ -70,6 +121,8 @@ for histo in hSignal:
         PtMin = histo.GetBinLowEdge(1)
     if histo.GetBinLowEdge(histo.GetNbinsX())+histo.GetBinWidth(histo.GetNbinsX()) > PtMax:
         PtMax = histo.GetBinLowEdge(histo.GetNbinsX())+histo.GetBinWidth(histo.GetNbinsX())
+
+PtMax=36
 
 cSignal = TCanvas('cSignal', '', 1000, 500)
 cSignal.Divide(2, 1)
@@ -136,11 +189,11 @@ for iFile, _ in enumerate(inputfilenames):
     hSignif[iFile].Draw('same')
 leg.Draw()
 
-cSignal.SaveAs(f'{outputdir}/SignalPerEventComparison_{outputsuffix}.pdf')
-cRatioSignal.SaveAs(f'{outputdir}/SignalPerEventRatio_{outputsuffix}.pdf')
-cBkg.SaveAs(f'{outputdir}/BkgPerEventComparison_{outputsuffix}.pdf')
-cSoverB.SaveAs(f'{outputdir}/SoverB_{outputsuffix}.pdf')
-cSignificance.SaveAs(f'{outputdir}/SignificancePerEventComparison_{outputsuffix}.pdf')
-cSignifOnly.SaveAs(f'{outputdir}/SignifPerEventComp_NoRatio_{outputsuffix}.pdf')
+cSignal.SaveAs(f'{outputdir}/SignalPerEventComparison_{outputsuffix}.png')
+cRatioSignal.SaveAs(f'{outputdir}/SignalPerEventRatio_{outputsuffix}.png')
+cBkg.SaveAs(f'{outputdir}/BkgPerEventComparison_{outputsuffix}.png')
+cSoverB.SaveAs(f'{outputdir}/SoverB_{outputsuffix}.png')
+cSignificance.SaveAs(f'{outputdir}/SignificancePerEventComparison_{outputsuffix}.png')
+cSignifOnly.SaveAs(f'{outputdir}/SignifPerEventComp_NoRatio_{outputsuffix}.png')
 
 input('Press enter to exit')

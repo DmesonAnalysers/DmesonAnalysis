@@ -82,21 +82,21 @@ def make_cuts():
                 yaml.dump(cutset_mod, outfile_mod, default_flow_style=False)
 
 def make_cuts_ml():
-    var_key = ['ML_output_FD'] # ['ML_output_FD', 'ML_output_Bkg']
-    var_tag = ['outFD'] # ['outFD', 'outBkg'] # used in file names to reduce length
-    step_variation = [{"4": 0.02, "6": 0.02}]
+    var_key = ['ML_output'] # ['ML_output_FD', 'ML_output_Bkg']
+    var_tag = ['ML_prob'] # ['outFD', 'outBkg'] # used in file names to reduce length
+    step_variation = [{"2": 0.006, "4": 0.005, "6": 0.005, "8": 0.007}]
         # {"2": 0.0001, "3": 0.00005, "4": 0.00005, "5": 0.00005, "6": 0.0001, "8": 0.0002, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001}]
         # {"2": 0.00005, "3": 0.00005, "4": 0.00005, "5": 0.00005, "6": 0.0001, "8": 0.0002, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001} 0-10%
         # {"2": 0.0001, "3": 0.0001, "4": 0.0001, "5": 0.0001, "6": 0.0002, "8": 0.001, "12": 0.002, "16": 0.002, "24": 0.002, "36": 0.001} 30-50%
         # [{"2": 0.01, "4": 0.01, "6": 0.01, "8": 0.01, "12": 0.01},
         #  {"2": 0.0005, "4": 0.0005, "6": 0.001, "8": 0.001, "12": 0.0005}]
-    num_step_pos = 13
-    num_step_neg = 10
+    num_step_pos = 50
+    num_step_neg = 50
     edge_to_vary = ['min'] # ['min', 'max']
 
-    in_dir = 'configfiles/cutsets/LctopK0s/'
-    cut_file_central = 'cutset_LctopK0s_13TeV_presel_FDEn.yml'
-    out_dir = 'configfiles/cutsets/LctopK0s/'
+    in_dir = '/home/fchinu/DmesonAnalysis/configfiles/cutsets/Xic0/'
+    cut_file_central = 'cutset_Xic05TeV_binary.yml'
+    out_dir = '/home/fchinu/DmesonAnalysis/configfiles/cutsets/Xic0/syst/'
     out_file_tag = 'cutset_ML'
 
     if not os.path.exists(out_dir):
@@ -113,6 +113,7 @@ def make_cuts_ml():
     n_combinations = len(var_key)
 
     for prod_steps in product(steps, repeat=n_combinations):
+        print(prod_steps)
         cutset_mod = copy.deepcopy(cutset)
         file_tag = str()
         for i, step in enumerate(prod_steps):
@@ -122,6 +123,7 @@ def make_cuts_ml():
                 if edge_to_vary[i] == 'min':
                     new_value = min_val + step * step_variation[i][f'{pt_min:.0f}']
                     if(new_value < 0. or new_value >= max_val):
+                        print("Warning: cut is negative or min value is greater then max value")
                         new_value = min_val
                 else:
                     new_value = max_val + step * step_variation[i][f'{pt_min:.0f}']

@@ -10,6 +10,7 @@ import numpy as np
 import yaml
 from ROOT import TCanvas, TFile, TLegend, TLine # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
+sys.path.append('/home/fchinu/DmesonAnalysis')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker #pylint: disable=wrong-import-position,import-error
 from utils.AnalysisUtils import ComputeRatioDiffBins, ScaleGraph, ComputeRatioGraph #pylint: disable=wrong-import-position,import-error
 from utils.DfUtils import GetObjectFromFile #pylint: disable=wrong-import-position,import-error
@@ -74,7 +75,7 @@ legTextSize = inputCfg['options']['legend']['textsize']
 ncolumns = inputCfg['options']['legend']['ncolumns']
 
 # set global style
-SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14, titleoffsety=1.5)
+SetGlobalStyle(padleftmargin=0.15, padbottommargin=0.14, titleoffsety=1.4)
 
 leg = TLegend(xLegLimits[0], yLegLimits[0], xLegLimits[1], yLegLimits[1])
 leg.SetFillStyle(0)
@@ -94,6 +95,7 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
     if inFile == None:
         print(f"ERROR: cannot open {inFileName}. Check your config. Exit!")
         sys.exit()
+    print(inFileName)
     objToCompare = GetObjectFromFile(inFile, objName)
     if objToCompare == None:
         print(f"ERROR: couldn't load the histogram \'{objName}\' in \'{inFileName}\'. Check your config. Exit! ")
@@ -138,6 +140,7 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
                 hToCompare[iFile].GetErrorYlow(iBin) * lambdaParam,
                 hToCompare[iFile].GetErrorYhigh(iBin) * lambdaParam)
     if doRatio:
+        print(objType)
         if 'TH' in objType:
             if drawRatioUnc:
                 if ratioUncCorr:
@@ -197,7 +200,6 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
             doCompareUnc = False
 
     leg.AddEntry(hToCompare[iFile], legNames[iFile], legOpt[iFile])
-
 ratios, RMS, shift = [], [], []
 if doRatio and displayRMS:
     if 'TH' in objType:
@@ -249,11 +251,18 @@ hFrame.GetYaxis().SetDecimals()
 
 for histo, objType, drawOpt in zip(hToCompare, objTypes, drawOptions):
     if 'TH' in objType:
+        histo.SetOption(drawOpt)
         histo.DrawCopy(f'{drawOpt}same')
     else:
         histo.Draw(drawOpt)
 if  not avoidLeg:
     leg.Draw()
+
+#lineAtOne = TLine(xLimits[0], 1., xLimits[1], 1.)
+#lineAtOne.SetLineColor(GetROOTColor('kBlack'))
+#lineAtOne.SetLineWidth(2)
+#lineAtOne.SetLineStyle(9)
+#lineAtOne.Draw()
 
 if doRatio:
     hFrameRatio = cOut.cd(ratioPad).DrawFrame(xLimits[0], yLimitsRatio[0], xLimits[1], yLimitsRatio[1],
@@ -306,4 +315,4 @@ for ext in outExtensions:
     else:
         cOut.SaveAs(f'{outFileName}.{ext}')
 
-input("Press enter to exit")
+#input("Press enter to exit")

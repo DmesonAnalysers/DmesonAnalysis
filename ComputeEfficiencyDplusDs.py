@@ -6,7 +6,9 @@ run: python ComputeEfficiencyDplusDs.py fitConfigFileName.yml centClass inputFil
 import argparse
 import ctypes
 import numpy as np
+import pandas as pd
 import yaml
+import uproot
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, kRed, kAzure, kFullCircle, kOpenSquare # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import ComputeEfficiency
@@ -20,6 +22,8 @@ parser.add_argument('inFileName', metavar='text', default='')
 parser.add_argument('outFileName', metavar='text', default='')
 parser.add_argument("--batch", help="suppress video output", action="store_true")
 args = parser.parse_args()
+
+cuts=[1.6,1.2,1.0,1.0]
 
 with open(args.fitConfigFileName, 'r') as ymlfitConfigFile:
     fitConfig = yaml.load(ymlfitConfigFile, yaml.FullLoader)
@@ -39,6 +43,8 @@ elif args.centClass == 'kpp13TeVPrompt':
     cent = 'pp13TeVPrompt'
 elif args.centClass == 'kpp13TeVFD':
     cent = 'pp13TeVFD'
+elif args.centClass == 'kXic0pPb5TeVPrompt':
+    cent = 'Xic0pPb5TeVPrompt'
 else: 
     print(f'ERROR: centrality {args.centClass} is not supported! Exit')
     exit()
@@ -69,10 +75,21 @@ hRecoPrompt, hRecoFD, hGenPrompt, hGenFD = ([] for iHisto in range(4))
 
 infile = TFile(args.inFileName)
 for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
+    Tree= uproot.open((f'/home/fchinu/Xic0_pPb_5TeV/Cutscan/wSDDnewtrains/Aod224/pt_{ptMin:.0f}-{ptMax:.0f}/cut_{cuts[iPt]}/ml_application/Eff_pT_{ptMin:.0f}_{ptMax:.0f}_ModelApplied.root'))
+    dfTest=Tree['treeML'].arrays(library='pd')
+    num_test=len(dfTest)
+    print(num_test)
+    del dfTest
+    dfsel=pd.read_parquet(f'/home/fchinu/Xic0_pPb_5TeV/Cutscan/wSDDnewtrains/Data/MC/pt_{ptMin:.0f}-{ptMax:.0f}/cut_{cuts[iPt]}/all_PandaForTraining_pPb_{ptMin:.0f}_{ptMax:.0f}_20220728.parquet.gzip')
+    num_sel=len(dfsel)
+    print(num_sel)
+    del dfsel
     hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
     hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
     hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
     hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+    hRecoPrompt[-1].Scale(num_sel/num_test)
+    print(num_sel/num_test)
 
     # get unweighted yields (for uncertainty)
     nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (ctypes.c_double() for _ in range(4))
@@ -104,7 +121,7 @@ leg.AddEntry(hEffPrompt, "Prompt", "p")
 leg.AddEntry(hEffFD, "Feed-down", "p")
 
 cEff = TCanvas('cEff', '', 800, 800)
-cEff.DrawFrame(ptMins[0], 1.e-5, ptMaxs[nPtBins-1], 1.,
+cEff.DrawFrame(ptMins[0], 5.e-3, ptMaxs[nPtBins-1], 1.,
                ';#it{p}_{T} (GeV/#it{c});Efficiency;')
 cEff.SetLogy()
 hEffPrompt.Draw('same')
@@ -112,6 +129,13 @@ hEffFD.Draw('same')
 leg.Draw()
 
 outFile = TFile(args.outFileName, 'recreate')
+
+hRecoPrompt[0].Write()
+hRecoPrompt[1].Write()
+hRecoPrompt[2].Write()
+hGenPrompt[0].Write()
+hGenPrompt[1].Write()
+hGenPrompt[2].Write()
 hEffPrompt.Write()
 hEffFD.Write()
 hYieldPromptGen.Write()
@@ -120,7 +144,7 @@ hYieldPromptReco.Write()
 hYieldFDReco.Write()
 outFile.Close()
 
-outFileNamePDF = args.outFileName.replace('.root', '.pdf')
+outFileNamePDF = args.outFileName.replace('.root', '.png')
 cEff.SaveAs(outFileNamePDF)
 
 if not args.batch:

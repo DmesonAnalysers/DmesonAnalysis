@@ -36,7 +36,7 @@ using namespace std;
 
 //________________________________________________________________________________________________________________
 // function prototypes
-void PlotCutVariationsOnePtBin(TString cfgFileName = "cfgFile.yml");
+void PlotCutVariationsOnePtBin(TString cfgFileName = "/home/fchinu/DmesonAnalysis/systematics/seleff/config_cutvar_Xic0prompt_pPb.yml");
 void SetStyle();
 
 
@@ -119,7 +119,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
             cerr << "ERROR: cross section histogram not found! Please check it." << endl;
             return;
         }
-        
+
         hCrossSection[iFile]->SetDirectory(0);
         hPromptFrac[iFile]->SetDirectory(0);
         hFDFrac[iFile]->SetDirectory(0);
@@ -146,7 +146,7 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
         hEffFD[iFile]->SetDirectory(0);
         infile_eff->Close();
     }
-  
+
     const int nPtBins = hRawYield[0]->GetNbinsX();
     const int nSystBins = static_cast<const int>(relAssignedSyst.size());
     if(nSystBins < nPtBins) { // fill syst unc with zeros if not provided
@@ -360,14 +360,14 @@ void PlotCutVariationsOnePtBin(TString cfgFileName) {
             if(iFile!=0) {
                 if(hchi2[iFile]->GetBinContent(iPt+1) > maxChi2)
                     continue;
-                if(TMath::Abs(1-hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < fillThrRelEff && 
-                   TMath::Abs(1-hEffFD[iFile]->GetBinContent(iPt+1)/hEffFD[0]->GetBinContent(iPt+1)) < fillThrRelEff)
+                if(TMath::Abs(1-hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < fillThrRelEff )//&& 
+                   //TMath::Abs(1-hEffFD[iFile]->GetBinContent(iPt+1)/hEffFD[0]->GetBinContent(iPt+1)) < fillThrRelEff)
                     continue;
-                if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < minRelEff || 
-                   (hEffFD[iFile]->GetBinContent(effptbin)/hEffFD[0]->GetBinContent(effptbin)) < minRelEff)
+                if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) < minRelEff) //|| 
+                   //(hEffFD[iFile]->GetBinContent(effptbin)/hEffFD[0]->GetBinContent(effptbin)) < minRelEff)
                     continue;
-                if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) > maxRelEff ||
-                   (hEffFD[iFile]->GetBinContent(effptbin)/hEffFD[0]->GetBinContent(effptbin)) > maxRelEff)
+                if((hEffPrompt[iFile]->GetBinContent(effptbin)/hEffPrompt[0]->GetBinContent(effptbin)) > maxRelEff) //||
+                   //(hEffFD[iFile]->GetBinContent(effptbin)/hEffFD[0]->GetBinContent(effptbin)) > maxRelEff)
                     continue;
                 if(hSignificance[iFile]->GetBinContent(iPt+1) < minSignif)
                     continue;

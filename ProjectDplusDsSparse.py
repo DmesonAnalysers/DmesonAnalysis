@@ -18,7 +18,7 @@ import argparse
 import yaml
 import uproot
 from scipy.interpolate import InterpolatedUnivariateSpline
-from alive_progress import alive_bar
+#from alive_progress import alive_bar
 from ROOT import TFile, TH1F  # pylint: disable=import-error,no-name-in-module
 from utils.TaskFileLoader import LoadSparseFromTask, LoadNormObjFromTask
 from utils.AnalysisUtils import MergeHists

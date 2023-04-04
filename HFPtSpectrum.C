@@ -50,16 +50,16 @@ enum rapidity{ kdefault, k08to04, k07to04, k04to01, k01to01, k01to04, k04to07, k
 enum particularity{ kTopological, kLowPt, kPP7TeVPass4, kBDT };
 
 void HFPtSpectrum (Int_t decayChan=kDsKKpi,
-		    const char *mcfilename="models/fonll/feeddown/DmesonLcPredictions_502TeV_y05_FFee_BRpythia8_SepContr_PDG2020.root",
-		    const char *efffilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/eff/EffAcc_Ds_norm_pt1_24.root",
-		    const char *recofilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/raw_yield/RawYield_Ds_data_norm_pt1_24.root",
+		    const char *mcfilename="/home/fchinu/Xic0_pPb_5TeV/hepdata/Cross-section.root",
+		    const char *efffilename="/home/fchinu/Xic0_pPb_5TeV/Cutscan/wSDDnewtrains/Aod224/Crossection.root",
+		    const char *recofilename="/home/fchinu/Xic0_pPb_5TeV/Dmesoncode/wSDD_newtrains/RawYieldsData.root",
 		    const char *recohistoname="hRawYields",
-        const char *effhistonameprompt="hAccEffPrompt",
-        const char *effhistonameFD="hAccEffFD",
+        const char *effhistonameprompt="heff",
+        const char *effhistonameFD="heffFD",
 		    const char *nevhistoname="hEvForNorm",
-		    const char *outfilename="../../Analyses/pp5TeV/Ds_wML_mult/outputs/100320/cross_sec/HFPtSpectrum_Ds_norm_pt1_24.root",
+		    const char *outfilename="/home/fchinu/Xic0_pPb_5TeV/Dmesoncode/wSDD_newtrains/HFPTSpectrumDs_sigmafixed_pp13TeV.root",
 		    Int_t fdMethod=kNb,
-		    Double_t sigma=50.87e+9, // sigma[pb], 1. for PbPb and 50.87e+9 for pp
+		    Double_t sigma=2.09e12, // sigma[pb], 1. for PbPb and 50.87e+9 for pp
 		    Bool_t isParticlePlusAntiParticleYield=true,
 		    Int_t cc=kpp5,
 		    Int_t year=k2017,
@@ -1095,6 +1095,6 @@ void HFPtSpectrum (Int_t decayChan=kDsKKpi,
   // Draw the cross-section
   //  spectra->DrawSpectrum(gPrediction);
 
-  //  out->Close();
+  out->Close();
 
 }

@@ -9,7 +9,7 @@ Either prompt or FD (or both) must be set
 import sys
 import argparse
 import numpy as np
-from ROOT import TFile, TCanvas, TGraphAsymmErrors, TLegend, TLine, TLatex # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas,TPad, TGraphAsymmErrors, TLegend, TLine, TLatex # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
@@ -42,7 +42,7 @@ elif args.Ds:
     BR = 0.0227
     mesonName = 'D_{s}^{+}'
 
-SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14, titleoffsety=1.6, maxdigits=2, optstat=0)
+SetGlobalStyle(padleftmargin=0.1, padbottommargin=0.14, titleoffsety=0.7, maxdigits=2, optstat=0)
 
 if args.prompt:
     infilePrompt = TFile.Open(args.prompt)
@@ -98,7 +98,7 @@ if args.prompt:
     hFONLLPromptCentral.SetStats(0)
     hFONLLPromptMin.SetStats(0)
     hFONLLPromptMax.SetStats(0)
-    gFONLLPrompt = TGraphAsymmErrors(0)
+    gFONLLPrompt = TGraphAsymmErrors(hFONLLPromptCentral.GetNbinsX())
     for iPt in range(hFONLLPromptCentral.GetNbinsX()):
         gFONLLPrompt.SetPoint(iPt, hFONLLPromptCentral.GetBinCenter(iPt+1), hFONLLPromptCentral.GetBinContent(iPt+1))
         gFONLLPrompt.SetPointError(iPt, hFONLLPromptCentral.GetBinWidth(iPt+1)/2,
@@ -219,9 +219,9 @@ if args.logx and ptMin <= 0:
     print('WARNING: disabling log scale for x axis because minimum pT <= 0!')
     args.logx = False
 
-cCrossSec = TCanvas('cCrossSec', '', 700, 800)
+cCrossSec = TCanvas('cCrossSec', '', 1000, 700)
 hFrame = cCrossSec.DrawFrame(ptMin, sigmaMin, ptMax, sigmaMax,
-                             ';#it{p}_{T} (GeV/#it{c});#frac{d#sigma}{d#it{p}_{T}} (#mub GeV^{-1} #it{c})')
+                             ';#it{p}_{T} (GeV/#it{c});#frac{d^{2}#sigma}{dp_{T}dy} (#mub GeV^{-1}c)')
 hFrame.GetXaxis().SetMoreLogLabels()
 cCrossSec.SetLogy()
 if args.logx:
@@ -268,7 +268,7 @@ lat.SetTextColor(kBlack)
 lat.SetTextFont(42)
 
 cCrossSec.Update()
-cCrossSec.SaveAs(args.outFileName)
+cCrossSec.SaveAs(args.outFileName.replace('.pdf', '.png'))
 
 if args.FD and args.prompt:
     cRatioToFONLL = TCanvas('cRatioToFONLL', '', 500, 1000)
@@ -303,6 +303,7 @@ else:
         hFramePrompt = cRatioToFONLL.DrawFrame(ptMinPrompt, 0., ptMaxPrompt, 5.,
                                                ';#it{p}_{T} (GeV/#it{c});Data / FONLL')
         hFramePrompt.GetYaxis().SetDecimals()
+        hFramePrompt.GetYaxis().SetTitleOffset(1.1)
         gFONLLPromptUnc.Draw('2')
         lineFONLLPrompt.Draw('same')
         hRatioPromptOverFONLL.DrawCopy('same')
@@ -320,7 +321,7 @@ else:
             gRatioFDOverFONLL.Draw('2')
         lat.DrawLatex(0.6, 0.85, f'Non-prompt {mesonName}')
 
-outFileRatioName = args.outFileName.replace('.pdf', '_RatioToFONLL.pdf')
+outFileRatioName = args.outFileName.replace('.png', '_RatioToFONLL.png')
 cRatioToFONLL.Update()
 cRatioToFONLL.SaveAs(outFileRatioName)
 

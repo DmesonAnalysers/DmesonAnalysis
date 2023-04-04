@@ -37,6 +37,8 @@ elif args.centClass == 'kpp13TeVFD':
     cent = 'pp13TeVFD'
 elif args.centClass == 'kpp13TeVPrompt':
     cent = 'pp13TeVPrompt'
+elif args.centClass == 'kXic0pPb5TeVPrompt':
+    cent = 'Xic0pPb5TeVPrompt'
 else:
     print(f"ERROR: cent class \'{args.centClass}\' is not supported! Exit")
     sys.exit()
@@ -118,8 +120,10 @@ elif particleName == 'Dstar':
     massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'
 elif particleName == 'D0':
     massAxisTit = '#it{M}(K#pi) (GeV/#it{c}^{2})'
+elif particleName == 'Xic0':
+    massAxisTit = '#it{M}(#Xi#pi) (GeV/#it{c}^{2})'
 else:
-    print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dplus, Ds, Dstar, and Lc. Exit!')
+    print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dplus, Ds, Dstar, Xic0 and Lc. Exit!')
     sys.exit()
 
 # load inv-mass histos
@@ -311,6 +315,7 @@ massDs = TDatabasePDG.Instance().GetParticle(431).Mass()
 massLc = TDatabasePDG.Instance().GetParticle(4122).Mass()
 massDstar = TDatabasePDG.Instance().GetParticle(413).Mass() - TDatabasePDG.Instance().GetParticle(421).Mass()
 massD0 = TDatabasePDG.Instance().GetParticle(421).Mass()
+massXic0 = TDatabasePDG.Instance().GetParticle(4132).Mass()
 
 if particleName == 'Dplus':
     massForFit=massDplus
@@ -320,6 +325,8 @@ elif particleName == 'Dstar':
     massForFit = massDstar
 elif particleName == 'D0':
     massForFit = massD0
+elif particleName == 'Xic0':
+    massForFit = massXic0
 else:
     massForFit = massLc
 
@@ -368,6 +375,7 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
         if sgnEnum == AliHFInvMassFitter.kGaus:
             if not (secPeak and particleName == 'Ds'):
                 massFunc = TF1(f'massFunc{iPt}', SingleGaus, massMin, massMax, 3)
+                massFunc.SetNpx(1000)
                 massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010)
             else:
                 massFunc = TF1(f'massFunc{iPt}', DoublePeakSingleGaus, massMin, massMax, 6)
@@ -635,7 +643,6 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
         hMassForFit[iPt].GetYaxis().SetRangeUser(hMassForFit[iPt].GetMinimum()*0.95, hMassForFit[iPt].GetMaximum()*1.2)
         massFitter[iPt].GetSignalFunc().SetNpx(500)
         massFitter[iPt].GetMassFunc().SetNpx(500)
-
         massFitter[iPt].DrawHere(gPad)
 
         # residuals
@@ -644,7 +651,6 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
         else:
             cResiduals[iCanv].cd()
         massFitter[iPt].DrawHistoMinusFit(gPad)
-
     cMass[iCanv].Modified()
     cMass[iCanv].Update()
     cResiduals[iCanv].Modified()
@@ -701,8 +707,8 @@ if not args.isMC:
     dirSB.Close()
 outFile.Close()
 
-outFileNamePDF = args.outFileName.replace('.root', '.pdf')
-outFileNameResPDF = outFileNamePDF.replace('.pdf', '_Residuals.pdf')
+outFileNamePDF = args.outFileName.replace('.root', '.png')
+outFileNameResPDF = outFileNamePDF.replace('.png', '_Residuals.png')
 for iCanv, (cM, cR) in enumerate(zip(cMass, cResiduals)):
     if iCanv == 0 and nCanvases > 1:
         cM.SaveAs(f'{outFileNamePDF}[')

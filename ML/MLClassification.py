@@ -4,6 +4,7 @@ run: python MLClassification.py cfgFileNameML.yml [--train, --apply]
 --train -> to perform only the training and save the models in pkl
 --apply -> to perform only the application loading saved models
 '''
+#from msilib.schema import Feature
 import os
 import sys
 import argparse
@@ -16,8 +17,18 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 from hipe4ml import plot_utils
-from hipe4ml.model_handler import ModelHandler
+from hipe4ml.model_handler import ModelHandler, ModelHandlerNN
 from hipe4ml.tree_handler import TreeHandler
+
+
+#pytorch
+import torch
+from torch import nn
+from torchmetrics import AUROC  
+from torchmetrics.functional import accuracy
+from torch.utils.data import DataLoader
+from torch.utils.data import Dataset
+import pytorch_lightning as pl
 
 def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylint: disable=too-many-statements, too-many-branches
     '''
@@ -42,7 +53,7 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
             out = 'signal'
             out2 = 'signal'
         else:
-            nCandToKeep = min([nPrompt, nFD, nBkg])
+            nCandToKeep = min([nPrompt, nFD, nBkg, 10])
             out = 'prompt, FD'
             out2 = 'prompt'
         print((f'Keep same number of {out} and background (minimum) for training and '
@@ -112,9 +123,10 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
         sys.exit()
 
     # plots
+    
     VarsToDraw = inputCfg['plots']['plotting_columns']
     LegLabels = [inputCfg['output']['leg_labels']['Bkg'],
-                 inputCfg['output']['leg_labels']['Prompt']]
+                    inputCfg['output']['leg_labels']['Prompt']]
     if inputCfg['output']['leg_labels']['FD'] is not None:
         LegLabels.append(inputCfg['output']['leg_labels']['FD'])
     OutputLabels = [inputCfg['output']['out_labels']['Bkg'],
@@ -124,7 +136,7 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
     ListDf = [BkgDf, PromptDf] if FDDf.empty else [BkgDf, PromptDf, FDDf]
     #_____________________________________________
     plot_utils.plot_distr(ListDf, VarsToDraw, 100, LegLabels, figsize=(12, 7),
-                          alpha=0.3, log=True, grid=False, density=True)
+                            alpha=0.3, log=True, grid=False, density=True)
     plt.subplots_adjust(left=0.06, bottom=0.06, right=0.99, top=0.96, hspace=0.55, wspace=0.55)
     plt.savefig(f'{OutPutDirPt}/DistributionsAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     plt.close('all')
@@ -136,6 +148,91 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
         Fig.savefig(f'{OutPutDirPt}/CorrMatrix{Lab}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
 
     return TrainTestData, PromptDfSelForEff, FDDfSelForEff
+
+
+class LitModel(pl.LightningModule):
+            def create_model(self, n_layers, in_size, n_units):
+                    layers = []
+                    for i in range(n_layers):
+                        layers.append(nn.Linear(in_size, n_units[i]))
+                        layers.append(nn.ReLU())
+                        in_size = n_units[i]
+                    layers.append(nn.Linear(in_size, self.n_classes))
+                    return nn.Sequential(*layers)
+
+            def __init__(self,n_layers,in_size,n_classes,n_units=None,lr=0.1):
+                super().__init__()
+                self.__module__=pl.LightningModule.__module__
+                self.in_size=in_size
+                self.n_classes=n_classes
+                if n_units is None:
+                    n_units=[10]*n_layers
+                self.params={'n_layers': n_layers, 'n_units':n_units, 'learning_rate':lr}
+                self.linear_relu_stack=self.create_model(self.params['n_layers'], self.in_size,self.params['n_units'] )
+                self.softmax=nn.Softmax(dim=1)
+                self.flatten=nn.Flatten()
+
+
+            def forward(self, x):
+                x = self.flatten(x)
+                x = self.linear_relu_stack(x)
+                return x
+            
+            def set_params(self,**params):
+                for pars in params:
+                    if 'n_units' in pars and pars!='n_units':
+                        if int(pars[7:])<len(self.params['n_units']):
+                            self.params['n_units'][int(pars[7:])]=params[pars]
+                        else:
+                            self.params['n_units'].append(params[pars])
+                    else:
+                        self.params[pars]=params[pars]
+                self.linear_relu_stack=self.create_model(self.params['n_layers'], self.in_size ,self.params['n_units'] )
+
+            def get_params(self):
+                return self.params
+
+            def training_step(self, batch, batch_idx):
+                x, y = batch
+                y_hat = self(x)
+
+                if self.n_classes<=2:
+                    loss_fn=nn.BCELoss()
+                    y_hat=self.softmax(y_hat)
+                    loss = loss_fn(y_hat[:,1], y.float())
+                else:
+                    loss_fn = nn.CrossEntropyLoss()
+                    loss = loss_fn(y_hat, y)
+                return loss
+
+            def test_step(self, batch, batch_idx):
+                x, y = batch
+                y_hat = self(x)
+                if self.n_classes<=2:
+                    loss_fn=nn.BCELoss()
+                    y_hat=self.softmax(y_hat)
+                    test_loss = loss_fn(y_hat[:,1], y.float())
+                else:
+                    loss_fn = nn.CrossEntropyLoss()
+                    test_loss = loss_fn(y_hat, y)
+                self.log("test_loss", test_loss)
+                return accuracy(y_hat, y)
+            
+            def validation_step(self, batch, batch_idx):
+                x, y = batch
+                y_hat = self(x)
+                auroc = AUROC(self.n_classes)
+                roucauc=auroc(y_hat, y)
+                self.log('rocauc', roucauc)
+
+            def configure_optimizers(self):
+                optimizer = torch.optim.SGD(self.parameters(), lr=self.params['learning_rate'])
+                return optimizer
+
+            def predict_step(self, batch, batch_idx):
+                x, y = batch
+                pred = self(x)
+                return pred
 
 
 def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disable=too-many-statements, too-many-branches
@@ -193,63 +290,119 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
     else:
         ModelHandl.set_model_params(HyperPars)
 
-    # train and test the model with the updated hyper-parameters
-    yPredTest = ModelHandl.train_test_model(TrainTestData, True, output_margin=inputCfg['ml']['raw_output'],
+
+    pytorch = True
+    if pytorch:
+        n_layers=3
+        in_size=len(TrainCols)
+                
+        model = LitModel(n_layers,in_size,n_classes,[10]*n_layers)
+        ModelHandl=ModelHandlerNN(model,TrainCols,max_epochs=7, accelerator='gpu', devices=1)
+        #ModelHandl=ModelHandlerNN()
+        #ModelHandl.load_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.pickle')
+        #model=ModelHandl.get_original_model()
+        print('####', ModelHandl.get_task_type())
+        ModelHandl.set_model_params({'learning_rate':0.2})
+        OptTunaConfig = inputCfg['ml']['hyper_par_opt']['bayes_opt_config']
+        ModelHandl.optimize_params_optuna(TrainTestData,OptTunaConfig,metric='rocauc', n_trials=10)
+        print(ModelHandl.get_model_params())
+        score=ModelHandl.train_test_model(TrainTestData, True, output_margin=inputCfg['ml']['raw_output'],
                                             average=inputCfg['ml']['roc_auc_average'],
-                                            multi_class_opt=inputCfg['ml']['roc_auc_approach'])
-    yPredTrain = ModelHandl.predict(TrainTestData[0], inputCfg['ml']['raw_output'])
+                                            multi_class_opt=inputCfg['ml']['roc_auc_approach'],batch_size=100, num_workers=0)
+        scoretrain=ModelHandl.predict(TrainTestData[0])
 
-    # save model handler in pickle
-    ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.pickle')
-    ModelHandl.dump_original_model(f'{OutPutDirPt}/XGBoostModel_pT_{PtBin[0]}_{PtBin[1]}.model', True)
+        LegLabels = [inputCfg['output']['leg_labels']['Bkg'],
+                     inputCfg['output']['leg_labels']['Prompt']]
+        if inputCfg['output']['leg_labels']['FD'] is not None:
+            LegLabels.append(inputCfg['output']['leg_labels']['FD'])
+        OutputLabels = [inputCfg['output']['out_labels']['Bkg'],
+                        inputCfg['output']['out_labels']['Prompt']]
+        if inputCfg['output']['out_labels']['FD'] is not None:
+            OutputLabels.append(inputCfg['output']['out_labels']['FD'])
 
-    #plots
-    LegLabels = [inputCfg['output']['leg_labels']['Bkg'],
-                 inputCfg['output']['leg_labels']['Prompt']]
-    if inputCfg['output']['leg_labels']['FD'] is not None:
-        LegLabels.append(inputCfg['output']['leg_labels']['FD'])
-    OutputLabels = [inputCfg['output']['out_labels']['Bkg'],
-                    inputCfg['output']['out_labels']['Prompt']]
-    if inputCfg['output']['out_labels']['FD'] is not None:
-        OutputLabels.append(inputCfg['output']['out_labels']['FD'])
-    #_____________________________________________
-    plt.rcParams["figure.figsize"] = (10, 7)
-    MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'],
-                                                    LegLabels, inputCfg['plots']['train_test_log'], density=True)
-    if n_classes > 2:
-        for Fig, Lab in zip(MLOutputFig, OutputLabels):
-            Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
-    else:
-        MLOutputFig.savefig(f'{OutPutDirPt}/MLOutputDistr_pT_{PtBin[0]}_{PtBin[1]}.pdf')
-    #_____________________________________________
-    plt.rcParams["figure.figsize"] = (10, 9)
-    ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], yPredTest, None, LegLabels, inputCfg['ml']['roc_auc_average'],
-                                      inputCfg['ml']['roc_auc_approach'])
-    ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
-    pickle.dump(ROCCurveFig, open(f'{OutPutDirPt}/ROCCurveAll_pT_{PtBin[0]}_{PtBin[1]}.pkl', 'wb'))
-    #_____________________________________________
-    plt.rcParams["figure.figsize"] = (10, 9)
-    ROCCurveTTFig = plot_utils.plot_roc_train_test(TrainTestData[3], yPredTest, TrainTestData[1], yPredTrain, None,
-                                                   LegLabels, inputCfg['ml']['roc_auc_average'],
-                                                   inputCfg['ml']['roc_auc_approach'])
-    ROCCurveTTFig.savefig(f'{OutPutDirPt}/ROCCurveTrainTest_pT_{PtBin[0]}_{PtBin[1]}.pdf')
-    #_____________________________________________
-    PrecisionRecallFig = plot_utils.plot_precision_recall(TrainTestData[3], yPredTest, LegLabels)
-    PrecisionRecallFig.savefig(f'{OutPutDirPt}/PrecisionRecallAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
-    #_____________________________________________
-    plt.rcParams["figure.figsize"] = (12, 7)
-    FeaturesImportanceFig = plot_utils.plot_feature_imp(TrainTestData[2][TrainCols], TrainTestData[3], ModelHandl,
-                                                        LegLabels)
-    n_plot = n_classes if n_classes > 2 else 1
-    for iFig, Fig in enumerate(FeaturesImportanceFig):
-        if iFig < n_plot:
-            label = OutputLabels[iFig] if n_classes > 2 else ''
-            Fig.savefig(f'{OutPutDirPt}/FeatureImportance{label}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        plt.rcParams["figure.figsize"] = (10, 9)
+        ROCCurveFig = plot_utils.plot_roc(TrainTestData[3], score, None, LegLabels, inputCfg['ml']['roc_auc_average'],
+                                          inputCfg['ml']['roc_auc_approach'])
+        ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAllTorch_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        pickle.dump(ROCCurveFig, open(f'{OutPutDirPt}/ROCCurveAllTorch_pT_{PtBin[0]}_{PtBin[1]}.pkl', 'wb'))
+        
+
+        # save the model and predictions
+        #ModelHandl.save_model(f'{OutPutDirPt}/Model_pT_{PtBin[0]}_{PtBin[1]}.h5')
+        #np.savetxt(f'{OutPutDirPt}/PredTrain_pT_{PtBin[0]}_{PtBin[1]}.txt', yPredTrain, fmt='%1.4f')
+        #np.savetxt(f'{OutPutDirPt}/PredTest_pT_{PtBin[0]}_{PtBin[1]}.txt', yPredTest, fmt='%1.4f')
+
+
+        #
+
+        # plot training history
+        #plt.plot(history.history['loss'])
+        #plt.plot(history.history['val_loss'])
+        #plt.yscale('log')
+        #plt.title('Training History')
+        #plt.ylabel('loss')
+        #plt.xlabel('epoch')
+        #plt.legend(['training', 'validation'], loc='upper right')
+        #plt.savefig(f'{OutPutDirPt}/TrainingHistory_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        #input('Press ENTER to continue...')
+
+        # save model handler in pickle
+        ModelHandl.dump_model_handler(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.pickle')
+        #ModelHandl.dump_original_model(f'{OutPutDirPt}/XGBoostModel_pT_{PtBin[0]}_{PtBin[1]}.model', True)
+
+        #plots
+        LegLabels = [inputCfg['output']['leg_labels']['Bkg'],
+                    inputCfg['output']['leg_labels']['Prompt']]
+        if inputCfg['output']['leg_labels']['FD'] is not None:
+            LegLabels.append(inputCfg['output']['leg_labels']['FD'])
+        OutputLabels = [inputCfg['output']['out_labels']['Bkg'],
+                        inputCfg['output']['out_labels']['Prompt']]
+        if inputCfg['output']['out_labels']['FD'] is not None:
+            OutputLabels.append(inputCfg['output']['out_labels']['FD'])
+        #_____________________________________________
+        
+        plt.rcParams["figure.figsize"] = (10, 7)
+        MLOutputFig = plot_utils.plot_output_train_test(ModelHandl, TrainTestData, 80, inputCfg['ml']['raw_output'],
+                                                        LegLabels, inputCfg['plots']['train_test_log'], density=True)
+        if n_classes > 2:
+            for Fig, Lab in zip(MLOutputFig, OutputLabels):
+                Fig.savefig(f'{OutPutDirPt}/MLOutputDistr{Lab}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
         else:
-            Fig.savefig(f'{OutPutDirPt}/FeatureImportanceAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+            MLOutputFig.savefig(f'{OutPutDirPt}/MLOutputDistr_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        
+        print('\033[92mINFO: ouput scores \033[0m')
+        #print(yPredTrain[0])
+        input('Press ENTER to continue...')
+        #_____________________________________________
+        #_____________________________________________
+        plt.rcParams["figure.figsize"] = (10, 9)
 
-    return ModelHandl
 
+        
+
+        ROCCurveTTFig = plot_utils.plot_roc_train_test(TrainTestData[3], score, TrainTestData[1], scoretrain, None,
+                                                    LegLabels, inputCfg['ml']['roc_auc_average'],
+                                                    inputCfg['ml']['roc_auc_approach'])
+        ROCCurveTTFig.savefig(f'{OutPutDirPt}/ROCCurveTrainTest_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        #_____________________________________________
+        PrecisionRecallFig = plot_utils.plot_precision_recall(TrainTestData[3], score, LegLabels)
+
+        PrecisionRecallFig.savefig(f'{OutPutDirPt}/PrecisionRecallAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        #_____________________________________________
+        plt.rcParams["figure.figsize"] = (12, 7)
+        #FeaturesImportanceFig = plot_utils.plot_feature_imp(TrainTestData[2][TrainCols], TrainTestData[3], ModelHandl,
+        #                                                   LegLabels)
+        #n_plot = n_classes if n_classes > 2 else 1
+        #
+        #for iFig, Fig in enumerate(FeaturesImportanceFig):
+        #    if iFig < n_plot:
+        #        label = OutputLabels[iFig] if n_classes > 2 else ''
+        #        Fig.savefig(f'{OutPutDirPt}/FeatureImportance{label}_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        #    else:
+        #        Fig.savefig(f'{OutPutDirPt}/FeatureImportanceAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
+        #
+        #return ModelHandl
+        
 
 def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelForEff, FDDfPtSelForEff):
     OutputLabels = [inputCfg['output']['out_labels']['Bkg'],

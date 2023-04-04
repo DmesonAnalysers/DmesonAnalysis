@@ -35,7 +35,8 @@
 
 //________________________________________________________________________________________________________________
 // function prototypes
-int RawYieldSystematics(TString cfgFileName = "cfgFile.yml");
+//int RawYieldSystematics(TString cfgFileName = "config_multi_trial_Xic0.yml");
+int RawYieldSystematics();
 double min(TH1F *histo);
 double max(TH1F *histo);
 int LoadRefFiles(std::string refFileName, std::string refFileNameMC, TH1F *&hRawYieldRef, TH1F *&hSigmaRef,
@@ -45,7 +46,9 @@ void SetStyle();
 
 //________________________________________________________________________________________________________________
 // function implementations
-int RawYieldSystematics(TString cfgFileName) {
+//int RawYieldSystematics(TString cfgFileName) {
+int RawYieldSystematics() {
+    TString cfgFileName = "/home/fchinu/DmesonAnalysis/systematics/rawyields/config_multi_trial_Xic0.yml";
 
     // load inputs
     YAML::Node config = YAML::LoadFile(cfgFileName.Data());
@@ -79,6 +82,7 @@ int RawYieldSystematics(TString cfgFileName) {
     double massDplus = TDatabasePDG::Instance()->GetParticle(411)->Mass();
     double massD0 = TDatabasePDG::Instance()->GetParticle(421)->Mass();
     double massLc = TDatabasePDG::Instance()->GetParticle(4122)->Mass();
+    double massXic0 = TDatabasePDG::Instance()->GetParticle(4132)->Mass();
     double mass = -1;
     if(particleName == "Ds")
         mass = massDs;
@@ -88,6 +92,8 @@ int RawYieldSystematics(TString cfgFileName) {
         mass = massD0;
     else if(particleName == "Lc")
         mass = massLc;
+    else if(particleName == "Xic0")
+        mass = massXic0;
     else {
         std::cerr << "ERROR: you must specify if it is D+, Ds+ D0 or Lc! Exit." << std::endl;
         return -1;
@@ -127,6 +133,7 @@ int RawYieldSystematics(TString cfgFileName) {
     TH1F *hBinCount[nBinCounting][nPtBins];
     TH1F *hSigma[nPtBins];
     TH1F *hMean[nPtBins];
+    TH1F *hSignif[nPtBins];
     TH1F *hChiSquare[nPtBins];
     TH1F *hRawYieldVsTrial[nPtBins];
     TH1F *hPurityVsTrial[nPtBins];
@@ -327,6 +334,9 @@ int RawYieldSystematics(TString cfgFileName) {
             lMeanRefVsTrial[iPt]->SetLineWidth(2);
         }
 
+        double signifMin = ntupleFit[iPt]->GetMinimum("signif") * (1 - 0.005);
+        double signifMax = ntupleFit[iPt]->GetMaximum("signif") * (1 + 0.005);
+
         int nBins = 100;
 
         hRawYield[iPt] = new TH1F(Form("hRawYield_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), 
@@ -360,6 +370,14 @@ int RawYieldSystematics(TString cfgFileName) {
         hMean[iPt]->SetLineColor(kBlue + 1);
         hMean[iPt]->SetFillColor(kBlue + 1);
         ntupleFit[iPt]->Draw(Form("mean>>hMean_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
+
+        //hSignif[iPt] = new TH1F(Form("hSignif_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
+        //                      Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};signif (GeV/c^{2});entries", PtLims[iPt], PtLims[iPt+1]), nBins, signifMin, signifMax);
+        //hSignif[iPt]->SetFillStyle(3004);
+        //hSignif[iPt]->SetLineWidth(2);
+        //hSignif[iPt]->SetLineColor(kBlue + 1);
+        //hSignif[iPt]->SetFillColor(kBlue + 1);
+        //ntupleFit[iPt]->Draw(Form("signif>>hSignif_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10), Form("chi2 > %f && chi2 < %f", minChi2, maxChi2));
 
         hChiSquare[iPt] = new TH1F(Form("hChiSquare_pT_%0.f-%0.f", PtLims[iPt]*10, PtLims[iPt+1]*10),
                                    Form("%0.1f < #it{p}_{T} < %0.1f GeV/#it{c};#chi^{2}/ndf;entries", PtLims[iPt], PtLims[iPt+1]), nBins, 0., maxChi2);

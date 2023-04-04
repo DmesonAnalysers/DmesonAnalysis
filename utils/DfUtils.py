@@ -7,7 +7,7 @@ import sys
 import uproot
 from ROOT import TFile, TTree, TList, TDirectoryFile
 import numpy as np
-from alive_progress import alive_bar
+#from alive_progress import alive_bar
 
 def GetMaskOfBits(bits):
     '''
@@ -124,7 +124,8 @@ def GetObjectFromFile(inFile, pathToObj):
         sys.exit()
 
     outObj = inFile.Get(pathElements.pop(0))
-    outObj.SetDirectory(0)
+    if 'TH' in outObj.ClassName():
+        outObj.SetDirectory(0)
     inFile.Close()
 
     for iContainer, containerName in enumerate(pathElements):

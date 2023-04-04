@@ -1,22 +1,23 @@
 import sys
 import argparse
 from ROOT import TCanvas, TFile, TLegend, TLine, TDatabasePDG # pylint: disable=import-error,no-name-in-module
-from ROOT import gStyle, kRed, kAzure, kBlack, kBlue, kOrange, kGreen # pylint: disable=import-error,no-name-in-module,unused-import
+from ROOT import gStyle, kRed,kCyan, kAzure, kMagenta, kBlack, kBlue, kOrange, kGreen, kPink, kSpring # pylint: disable=import-error,no-name-in-module,unused-import
 from ROOT import kFullCircle, kOpenCircle, kFullSquare, kFullDiamond, kFullCross, kOpenCross, kOpenSquare # pylint: disable=import-error,no-name-in-module,unused-import
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle #pylint: disable=wrong-import-position,import-error
 from utils.AnalysisUtils import ComputeRatioDiffBins #pylint: disable=wrong-import-position,import-error
 
 def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-statements,too-many-locals
-    inputdir = '../../AnalysisNonPromptDpp2017/Dplus/outputs/rawyields'
-    input_files = ['RawYieldsDplus_pp5TeV_prompt_central.root', 'RawYieldsDplus_pp5TeV_FD_central_freesigma.root']
-    input_files_MC = ['RawYieldsDplusMC_pp5TeV_prompt_central.root', 'RawYieldsDplusMC_pp5TeV_FD_central.root']
-    colors = [kOrange+7, kAzure+2, kRed+1, kAzure+4]
-    markers = [kOpenCircle, kOpenSquare, kFullCircle, kFullSquare]
-    legendnames = ['MC - prompt enhanced', 'MC - FD enhanced', 'data - prompt enhanced', 'data - FD enhanced']
-    suffix = 'CompMCData'
-    min_pt = 2.
-    max_pt = 16.
+    inputdir = '/home/fchinu/Ds_pp_13TeV/output_analysis'
+    input_files = ['/final/RawYieldDs_data_pp13TeV.root','/stefano/RawYieldsDs_Ds_pp13TeV_PromptEn_22112021.root','/stefano/RawYieldsDs_CentralConsPID.root','/stefano/RawYieldsDs_CentralStrongPID.root']
+    input_files_MC = ['/final/RawYieldDs_MC_pp13TeV.root','/stefano/RawYieldsDs_CentralConsPID_MC.root','/stefano/RawYieldsDs_CentralStrongPID_MC.root']
+    colors = [kAzure+3, kGreen-2, kOrange-3, kAzure+3, kBlack, kGreen-2, kOrange-3]
+    markers = [kOpenCircle, kOpenSquare, kFullCross, kFullCircle,kFullDiamond,kFullSquare, kOpenCross]
+    legendnames = ['MC', 'MC - std (Cons. PID)', 'MC - std (Strong PID)', 'data - binary' ,'data - multiclass', 'data - std (Cons. PID)', 'data - std (Strong PID)'  ]
+    suffix = 'final_Comp_binary_multiclass_standard'
+    min_pt = 1.
+    max_pt = 36.
+
 
     SetGlobalStyle(padleftmargin=0.18, padtopmargin=0.05, padbottommargin=0.14,
                    titleoffsety=1.6, titlesize=0.045, labelsize=0.04)
@@ -33,15 +34,15 @@ def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-sta
     lineMass.SetLineColor(kBlack)
     lineMass.SetLineStyle(9)
 
-    legSigma = TLegend(0.2, 0.78, 0.8, 0.93)
+    legSigma = TLegend(0.2, 0.68, 0.8, 0.93)
     legSigma.SetFillStyle(0)
     legSigma.SetBorderSize(0)
-    legSigma.SetTextSize(0.04)
+    legSigma.SetTextSize(0.035)
 
-    legMean = TLegend(0.4, 0.73, 0.7, 0.93)
+    legMean = TLegend(0.4, 0.63, 0.7, 0.93)
     legMean.SetFillStyle(0)
     legMean.SetBorderSize(0)
-    legMean.SetTextSize(0.04)
+    legMean.SetTextSize(0.035)
     legMean.AddEntry(lineMass, "PDG", 'l')
 
     for file_path, color, marker, legend_name in zip(input_files, colors, markers, legendnames):
@@ -123,6 +124,8 @@ def comp_fit_pars(do_ratio=False, meson='Ds'): #pylint: disable-msg=too-many-sta
 
     cMean.SaveAs(f'{inputdir}/Mean_{suffix}.pdf')
     cSigma.SaveAs(f'{inputdir}/Sigma_{suffix}.pdf')
+    cMean.SaveAs(f'{inputdir}/Mean_{suffix}.png')
+    cSigma.SaveAs(f'{inputdir}/Sigma_{suffix}.png')
     input('Press enter to exit')
 
 def main():

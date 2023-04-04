@@ -80,8 +80,10 @@ elif particle == 'Dstar':
     mD = TDatabasePDG.Instance().GetParticle(413).Mass() - TDatabasePDG.Instance().GetParticle(421).Mass()
 elif particle == 'Lc':
     mD = TDatabasePDG.Instance().GetParticle(4122).Mass()
+elif particle == 'Xic0':
+    mD = TDatabasePDG.Instance().GetParticle(4132).Mass()
 else:
-    print('Error: only Dplus, Ds, Dstar particles and Lc supported. Exit!')
+    print('Error: only Dplus, Ds, Dstar, Xic0 particles and Lc supported. Exit!')
     sys.exit()
 massBins = 500
 if particle == 'Dstar':
@@ -296,10 +298,12 @@ if isMC:
                 else:
                     hPtPrompt.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtPrompt.GetBinContent(iPt))
         else:
-            for value in dataFramePromptSel['pt_cand'].to_numpy():
+            #for value in dataFramePromptSel['pt_cand'].to_numpy():
+            for value in dataFramePromptSel['pt_Xic0'].to_numpy():
                 hPtPrompt.Fill(value)
             hPtPrompt.Sumw2()
-        for mass in  dataFramePromptSel['inv_mass'].to_numpy():
+        #for mass in  dataFramePromptSel['inv_mass'].to_numpy():
+        for mass in  dataFramePromptSel['mass_Xic0'].to_numpy():
             hInvMassPrompt.Fill(mass)
 
         if args.ptweightsB or args.ptweights or args.multweights:
@@ -315,10 +319,11 @@ if isMC:
                 else:
                     hPtFD.SetBinError(iPt, 1./np.sqrt(hTmp.GetBinContent(iPt))*hPtFD.GetBinContent(iPt))
         else:
-            for value in dataFrameFDSel['pt_cand'].to_numpy():
+            #for value in dataFrameFDSel['pt_cand'].to_numpy():
+            for value in dataFrameFDSel['pt_Xic0'].to_numpy():
                 hPtFD.Fill(value)
             hPtFD.Sumw2()
-        for mass in  dataFrameFDSel['inv_mass'].to_numpy():
+        for mass in  dataFrameFDSel['mass_Xic0'].to_numpy():
             hInvMassFD.Fill(mass)
 
         promptDict['InvMass'].append(hInvMassPrompt)
@@ -363,9 +368,13 @@ else:
         dataFrameSel = dataFrame.astype(float).query(cuts)
         hPt = TH1F(f'hPt_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', nPtBins, ptLimLow, ptLimHigh)
         hInvMass = TH1F(f'hMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}', '', massBins, massLimLow, massLimHigh)
-        for pt in dataFrameSel['pt_cand'].to_numpy():
+        #for pt in dataFrameSel['pt_cand'].to_numpy():
+        #    hPt.Fill(pt)
+        #for mass in dataFrameSel['inv_mass'].to_numpy():
+        #    hInvMass.Fill(mass)
+        for pt in dataFrameSel['pt_Xic0'].to_numpy():
             hPt.Fill(pt)
-        for mass in dataFrameSel['inv_mass'].to_numpy():
+        for mass in dataFrameSel['mass_Xic0'].to_numpy():
             hInvMass.Fill(mass)
         allDict['InvMass'].append(hInvMass)
         allDict['Pt'].append(hPt)
@@ -415,7 +424,7 @@ hEvForNorm.GetXaxis().SetBinLabel(2, "accepted events")
 hEvForNorm.SetBinContent(1, normCounter.GetNEventsForNorm())
 for iBin in range(1, hEv.GetNbinsX() + 1):
     binLabel = hEv.GetXaxis().GetBinLabel(iBin)
-    if 'isEvSelected' in binLabel or 'accepted' in binLabel:
+    if 'isEvSelected' in binLabel or 'accepted' in binLabel or 'IsEventSelected' in binLabel:
         hEvForNorm.SetBinContent(2, hEv.GetBinContent(iBin))
         break
 outFile.cd()
