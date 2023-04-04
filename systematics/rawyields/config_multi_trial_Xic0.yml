@@ -1,0 +1,32 @@
+particle: Xic0
+
+reffilenames:
+    data: /home/fchinu/Xic0_pPb_5TeV/Dmesoncode/wSDD_newtrains/RawYieldsData.root
+    MC: /home/fchinu/Xic0_pPb_5TeV/Dmesoncode/wSDD_newtrains/RawYieldsMC.root
+
+output:
+    filename: /home/fchinu/Xic0_pPb_5TeV/Dmesoncode/Systematics/RawYields/2-4/RawYieldSyst_2_4_Expo_Free_Fixed_Xic0.root
+    drawpurity: 0 # 0: False, 1: True
+
+multitrial:
+    ptbins: [1] #list of pt bins, set null if you want to keep them all
+    mins: [ 2.26, 2.28, 2.30, 2.32, 2.34] # lower fit limit
+    maxs: [ 2.61, 2.63, 2.65, 2.67, 2.69 ] # upper fit limit
+    rebins: [ 4, 5, 6, 7, 8, 9, 10 ] # mass rebin values
+    sgnfuncs: [ kGaus] # signal functions of AliHFInvMassFitter
+    bkgfuncs: [ kExpo] # bkg functions of AliHFInvMassFitter       kExpo, kLin, 
+    sigma: [ kFree, kFixed] # kFree, kFixed
+    # all possibilities: 
+    # kFree, kFixed, kFixedMinus10Perc, kFixedPlus10Perc, kFixedMinus15Perc, kFixedPlus15Perc, kFixedMinus20Perc, kFixedPlus20Perc, kFixedMinusUnc, kFixedPlusUnc
+    # those with variations (Plus/Minus) are exclusive (i.e. it is not possible to run with 10% and 15% variation at the same time)
+    mean: [ kFree] # other possibilities: kFixed
+    # all possibilities: 
+    # kFixed, kFree, kFixedMinusUnc, kFixedPlusUnc
+    bincounting:
+        nsigma: [ 2,3 ] # multi-trial will be repeated for each nsigma value
+    nsigma4purity: 3
+
+quality:
+    chisquare:
+        min: 0.
+        max: 2.

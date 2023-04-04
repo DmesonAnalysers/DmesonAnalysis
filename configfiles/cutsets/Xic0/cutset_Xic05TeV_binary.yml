@@ -1,0 +1,14 @@
+cutvars: 
+    InvMass: 
+        axisnum: 0
+        name: 'mass_Xic0'
+    Pt: 
+        axisnum: 1
+        min: [ 2., 4., 6., 8.]
+        max: [ 4., 6., 8., 12.]
+        name: 'pt_Xic0'
+    ML_output:
+        axisnum: 999
+        min: [0.3, 0.25, 0.25, 0.35]
+        max: [1.,1.,1.,1.]
+        name: 'ML_prob'

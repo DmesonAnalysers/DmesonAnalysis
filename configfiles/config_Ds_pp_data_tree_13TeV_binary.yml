@@ -1,0 +1,36 @@
+isMC: no
+filename: [ /data/shared/Ds_pp_13TeV/data/AnalysisResultsDs_LHC2016_deghjop_train3629.root,
+            /data/shared/Ds_pp_13TeV/data/AnalysisResultsDs_LHC2017_train3631.root,
+            /data/shared/Ds_pp_13TeV/data/AnalysisResultsDs_LHC2016_kl_train3630.root,
+            /data/shared/Ds_pp_13TeV/data/AnalysisResultsDs_LHC2018_train3635.root
+]
+dirname: PWGHF_D2H_InvMassDs_Ds_Loose_kINT7
+listname: coutputDs_Ds_Loose_kINT7
+sparsenameAll: null
+sparsenamePrompt: fnSparseReco_fromC
+sparsenameFD: fnSparseReco_fromB
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableRef: no #reflection for D0
+enableSecPeak: yes
+sparsenamePromptSecPeak: fnSparseRecoDplus_fromC
+sparsenameFDSecPeak: fnSparseRecoDplus_fromB
+sparsenameGenPromptSecPeak: fnSparseAccDplus_fromC
+sparsenameGenFDSecPeak: fnSparseAccDplus_fromB
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: Ds #needed to define binning for invariant-mass histo
+    filenameAll: [/home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt12_50/Data_pT_12_50_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt1_2/Data_pT_1_2_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt2_4/Data_pT_2_4_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt4_6/Data_pT_4_6_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt6_8/Data_pT_6_8_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt8_12/Data_pT_8_12_ModelApplied.parquet.gzip
+                     ] #not needed for MC
+    filenamePrompt: null
+    filenameFD: null
+    dirname: PWGHF_D2H_InvMassDs_Ds_Loose_kMB
+    treename: treeMLDs

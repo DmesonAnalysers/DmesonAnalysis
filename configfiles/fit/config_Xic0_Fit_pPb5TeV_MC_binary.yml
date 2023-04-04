@@ -1,0 +1,24 @@
+Xic0pPb5TeVPrompt:
+    Particle: 'Xic0'
+    FixSigma: 0
+    SigmaFile: ''
+    SigmaMultFactor: 1.
+    FixMean: 0
+    MeanFile: ''
+    PtMin: [ 2., 4., 6., 8.]
+    PtMax: [ 4., 6., 8., 12.] 
+    MassMin: [2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3, 2.3]
+    MassMax: [2.65, 2.65, 2.65, 2.65, 2.65, 2.65, 2.65, 2.65, 2.65, 2.65]
+    Rebin: [6, 6, 6, 6, 6, 8, 8, 10, 14, 14]
+    InclSecPeak: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    SigmaSecPeak: [0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008]
+    SigmaFileSecPeak: ''
+    SigmaMultFactorSecPeak: 1.
+    FixSigmaToFirstPeak: 0
+    UseLikelihood: 1
+    BkgFunc: ['kPol2', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo']
+    SgnFunc: ['kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus']
+    FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+    SigmaRatioFile: ""
+    BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
+    EnableRef: false

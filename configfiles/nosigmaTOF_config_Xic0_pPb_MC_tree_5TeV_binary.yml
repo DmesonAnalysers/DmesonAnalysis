@@ -1,0 +1,34 @@
+isMC: yes
+filename: /home/fchinu/Xic0_pPb_5TeV/THnSparses/MCSparses.root
+dirname: Sparses
+listname: Sparse
+sparsenameAll: null
+sparsenamePrompt: null
+sparsenameFD: null
+sparsenameGenPrompt: GenPrompt
+sparsenameGenFD: GenFD
+enableRef: no #reflection for D0
+enableSecPeak: no
+sparsenamePromptSecPeak: fnSparseRecoDplus_fromC
+sparsenameFDSecPeak: fnSparseRecoDplus_fromB
+sparsenameGenPromptSecPeak: fnSparseAccDplus_fromC
+sparsenameGenFDSecPeak: fnSparseAccDplus_fromB
+normname: Counter_std
+histoevname: fHistEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: Xic0 #needed to define binning for invariant-mass histo
+    filenameAll: null #not needed for MC
+    filenamePrompt: [/home/fchinu/Xic0_pPb_5TeV/Cutscan/nonsigmaTOF/Aod224/pt_2-4/cut_1.6/ml_application/Eff_pT_2_4_ModelApplied.root,
+                     /home/fchinu/Xic0_pPb_5TeV/Cutscan/nonsigmaTOF/Aod224/pt_4-6/cut_1.2/ml_application/Eff_pT_4_6_ModelApplied.root,
+                     /home/fchinu/Xic0_pPb_5TeV/Cutscan/nonsigmaTOF/Aod224/pt_6-8/cut_1.0/ml_application/Eff_pT_6_8_ModelApplied.root,
+                     /home/fchinu/Xic0_pPb_5TeV/Cutscan/nonsigmaTOF/Aod224/pt_8-12/cut_1.0/ml_application/Eff_pT_8_12_ModelApplied.root
+                     ]
+    filenameFD: [/home/fchinu/Xic0_pPb_5TeV/Cutscan/nonsigmaTOF/Aod224/pt_2-4/cut_1.6/ml_application/FD_pT_2_4_ModelApplied.root,
+                     /home/fchinu/Xic0_pPb_5TeV/Cutscan/nonsigmaTOF/Aod224/pt_4-6/cut_1.2/ml_application/FD_pT_4_6_ModelApplied.root,
+                     /home/fchinu/Xic0_pPb_5TeV/Cutscan/nonsigmaTOF/Aod224/pt_6-8/cut_1.0/ml_application/FD_pT_6_8_ModelApplied.root,
+                     /home/fchinu/Xic0_pPb_5TeV/Cutscan/nonsigmaTOF/Aod224/pt_8-12/cut_1.0/ml_application/FD_pT_8_12_ModelApplied.root
+                 ]
+    dirname: null
+    treename: treeML

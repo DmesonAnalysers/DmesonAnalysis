@@ -1,0 +1,38 @@
+isMC: yes
+filename: /data/shared/Ds_pp_13TeV/MC/LHC20f4/AnalysisResultsDsMC_LHC20f4_Tot.root
+dirname: PWGHF_D2H_InvMassDs_Ds_Loose_kMB
+listname: coutputDs_Ds_Loose_kMB
+sparsenameAll: null
+sparsenamePrompt: fnSparseReco_fromC
+sparsenameFD: fnSparseReco_fromB
+sparsenameGenPrompt: fnSparseAcc_fromC
+sparsenameGenFD: fnSparseAcc_fromB
+enableRef: no #reflection for D0
+enableSecPeak: no
+sparsenamePromptSecPeak: fnSparseRecoDplus_fromC
+sparsenameFDSecPeak: fnSparseRecoDplus_fromB
+sparsenameGenPromptSecPeak: fnSparseAccDplus_fromC
+sparsenameGenFDSecPeak: fnSparseAccDplus_fromB
+normname: NormalizationCounter
+histoevname: hNEvents
+
+#info for trees (files can be different if trees are filtered or with applied ML models)
+tree:
+    particle: Ds #needed to define binning for invariant-mass histo
+    filenameAll: null #not needed for MC
+    filenamePrompt: [/home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/Prompt/test_fraction=0.2/pt1_2/Signal_pT_1_2_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/Prompt/test_fraction=0.2/pt2_4/Signal_pT_2_4_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/Prompt/test_fraction=0.2/pt4_6/Signal_pT_4_6_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/Prompt/test_fraction=0.2/pt6_8/Signal_pT_6_8_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/Prompt/test_fraction=0.2/pt8_12/Signal_pT_8_12_ModelApplied.parquet.gzip,
+                     /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/Prompt/test_fraction=0.2/pt12_50/Signal_pT_12_50_ModelApplied.parquet.gzip
+                     ]
+    filenameFD: [/home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt1_2/Signal_pT_1_2_ModelApplied.parquet.gzip,
+                 /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt2_4/Signal_pT_2_4_ModelApplied.parquet.gzip,
+                 /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt4_6/Signal_pT_4_6_ModelApplied.parquet.gzip,
+                 /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt6_8/Signal_pT_6_8_ModelApplied.parquet.gzip,
+                 /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt8_12/Signal_pT_8_12_ModelApplied.parquet.gzip,
+                 /home/fchinu/Ds_pp_13TeV/ml_training/Adjusted mass/results/FD/test_fraction=0.2/pt12_50/Signal_pT_12_50_ModelApplied.parquet.gzip
+                 ]
+    dirname: PWGHF_D2H_InvMassDs_Ds_Loose_kMB
+    treename: treeMLDs

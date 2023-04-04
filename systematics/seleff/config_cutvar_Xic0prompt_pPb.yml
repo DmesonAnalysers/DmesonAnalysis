@@ -1,0 +1,116 @@
+inputs:
+    directory: /home/fchinu/Xic0_pPb_5TeV/Dmesoncode/Systematics/BDT
+    commonfilenames:
+        rawyield: RawYields/RawYields_data_ML_ML_prob
+        efficiency: Efficiency/Efficiency_Xic0_ML_ML_prob
+        crosssection: CrossSec/HFPtSpectrumXic0_ML_ML_prob
+    cutsets: ["_pos00",
+              "_pos01",
+              "_pos02",
+              "_pos03",
+              "_pos04",
+              "_pos05",
+              "_pos06",
+              "_pos07",
+              "_pos08",
+              "_pos09",
+              "_pos10",
+              "_pos11",
+              "_pos12",
+              "_pos13",
+              "_pos14",
+              "_pos15",
+              "_pos16",
+              "_pos17",
+              "_pos18",
+              "_pos19",
+              "_pos20",
+              "_pos21",
+              "_pos22",
+              "_pos23",
+              "_pos24",
+              "_pos25",
+              "_pos26",
+              "_pos27",
+              "_pos28",
+              "_pos29",
+              "_pos30",
+              #"_pos31",
+              #"_pos32",
+              #"_pos33",
+              #"_pos34",
+              #"_pos35",
+              #"_pos36",
+              #"_pos37",
+              #"_pos38",
+              #"_pos39",
+
+
+              #"_neg01",
+              #"_neg02",
+              #"_neg03",
+              #"_neg04",
+              #"_neg05",
+              #"_neg06",
+              #"_neg07",
+              #"_neg08",
+              #"_neg09",
+              #"_neg10",
+              #"_neg11",
+              "_neg12",
+              "_neg13",
+              "_neg14",
+              "_neg15",
+              "_neg16",
+              "_neg17",
+              "_neg18",
+              "_neg19",
+              "_neg20",
+              "_neg21",
+              "_neg22",
+              "_neg23",
+              "_neg24",
+              "_neg25",
+              "_neg26",
+              "_neg27",
+              "_neg28",
+              "_neg29",
+              "_neg30",
+              "_neg31",
+              "_neg32",
+              "_neg33",
+              "_neg34",
+              "_neg35",
+              "_neg36",
+              "_neg37",
+              "_neg38",
+              "_neg39",
+              "_neg40",
+              "_neg41",
+              #"_neg42",
+              #"_neg43",
+              #"_neg44",
+              #"_neg45",
+              #"_neg46",
+              #"_neg47",
+              #"_neg48",
+              #"_neg49",
+              #"_neg50"
+              
+
+              ] # the first one must be the default
+
+outfilename: /home/fchinu/Xic0_pPb_5TeV/Dmesoncode/Systematics/BDT/CutVariationSystematics_Xic0.root
+
+quality:
+    maxchisquare: 2.
+    minsignif: 2.5
+    minrelsignif: 0.5
+    minreleff: 0.6
+    maxreleff: 1.4
+    fillthrreleff: 0.02
+
+plots:
+    plotrelativevar: 1 # 0 -> false, 1 -> true
+    relassignedsyst: [0.06, 0.10, 0.11, 0.06, 0.03, 0.03, 0.03, 0.03, 0.03] # list of values to be plotted, null if you don't want to plot it
+  
