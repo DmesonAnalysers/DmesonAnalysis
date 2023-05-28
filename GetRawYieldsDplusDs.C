@@ -583,7 +583,7 @@ int GetRawYieldsDplusDs(int cent, bool isMC, TString infilename, TString refFile
           
             if(enableRef) {
                 double rOverS = hMassForSig[iPt]->Integral(hMassForSig[iPt]->FindBin(MassMin[iPt] * 1.0001), hMassForSig[iPt]->FindBin(MassMax[iPt] * 0.999));
-                rOverS /= hMassForRel[iPt]->Integral(hMassForRel[iPt]->FindBin(MassMin[iPt] * 1.0001), hMassForRel[iPt]->FindBin(MassMax[iPt] * 0.999));
+                rOverS = hMassForRel[iPt]->Integral(hMassForRel[iPt]->FindBin(MassMin[iPt] * 1.0001), hMassForRel[iPt]->FindBin(MassMax[iPt] * 0.999)) / rOverS;
                 massFitter->SetFixReflOverS(rOverS);
                 massFitter->SetTemplateReflections(hMassRef[iPt], "2gaus", MassMin[iPt], MassMax[iPt]);
             }
