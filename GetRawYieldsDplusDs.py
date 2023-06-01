@@ -533,9 +533,9 @@ for iPt, (hM, ptMin, ptMax, reb, sgnEnum, bkgEnum, secPeak, massMin, massMax) in
                 hMassForSig[iPt].FindBin(massMin * 1.0001),
                 hMassForSig[iPt].FindBin(massMax * 0.999)
             )
-            rOverS /= hMassForRel[iPt].Integral(
+            rOverS = hMassForRel[iPt].Integral(
                 hMassForRel[iPt].FindBin(massMin * 1.0001),
-                hMassForRel[iPt].FindBin(massMax * 0.999)
+                hMassForRel[iPt].FindBin(massMax * 0.999) / rOverS
             )
             massFitter[iPt].SetFixReflOverS(rOverS)
             massFitter[iPt].SetTemplateReflections(hRel[iPt], "2gaus", massMin, massMax)
