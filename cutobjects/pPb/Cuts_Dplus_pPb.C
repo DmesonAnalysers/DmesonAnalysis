@@ -98,7 +98,7 @@ AliRDHFCutsDplustoKpipi *MakeFileForCutsDpluspPb5TeV_TreeML()
 
     analysiscuts->SetUseCentrality(AliRDHFCuts::kCentOff); //kCentOff,kCentV0M,kCentTRK,kCentTKL,kCentCL1,kCentInvalid
     analysiscuts->SetTriggerClass("");
-    analysiscuts->SetTriggerMask(AliVEvent::kINT7); // high multiplicity V0M
+    analysiscuts->SetTriggerMask(AliVEvent::kINT7);
     analysiscuts->SetUseImpParProdCorrCut(false);
 
     analysiscuts->SetOptPileup(AliRDHFCuts::kRejectMVPileupEvent);
