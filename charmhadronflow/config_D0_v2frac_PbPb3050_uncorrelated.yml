@@ -1,0 +1,30 @@
+#the input v2 from the CharmHadronVnAnalysis.C
+#the input fraction from the ComputeDataDrivenFraction.py
+
+
+v2:
+    inputdir: npv2_ana_5TeVPbPb/output/v2/uncorrelated
+    inputfiles: [
+                  Dzerov2_EvShapeSP_q2_0-100_0.root,
+                  Dzerov2_EvShapeSP_q2_0-100_1.root,
+                  Dzerov2_EvShapeSP_q2_0-100_2.root,
+                  Dzerov2_EvShapeSP_q2_0-100_3.root,
+     ]
+    histoname: gvnSimFithist
+    graphname: gvnSimFit
+
+
+npfraction:
+    inputdir: npv2_ana_5TeVPbPb/output/datadrivenfrac/uncorrelated
+    inputfiles: [
+                  Fraction_D0_D0_PbPb5TeV_FD0_uncorrelated.root,
+                  Fraction_D0_D0_PbPb5TeV_FD1_uncorrelated.root,
+                  Fraction_D0_D0_PbPb5TeV_FD2_uncorrelated.root,
+                  Fraction_D0_D0_PbPb5TeV_FD3_uncorrelated.root,
+
+                  ]
+    histonamesFD: hFDFrac
+    histonamesPrompt: hPromptFrac
+
+
+
