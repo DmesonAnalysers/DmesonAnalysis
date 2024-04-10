@@ -1,0 +1,54 @@
+InputFile:
+    FileName: ['npv2_ana_5TeVPbPb/input/data_mc/DATA_20220510_all_final.root']
+    Suffix: '_v2_3050_MLappVZEROC'
+    Meson: 'Dzero'
+    FlowMethod: 'EvShapeSP'
+
+OutputDir:
+    Analysis: 'npv2_ana_5TeVPbPb/output/v2'
+    FitSystematics: 'npv2_ana_5TeVPbPb/output/sys'
+
+AnalysisOptions:
+    Harmonic: 2
+    qnMin: 0.
+    qnMax: 100.
+    #each element of the lists corresponds to a pT bin
+    #PtMin: [  1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 16 ]
+    #PtMax: [  2, 3, 4, 5, 6, 7, 8, 10, 12, 16, 24 ]
+    PtMin: [2,3, 4, 5,6,8]
+    PtMax: [3,4, 5, 6,8,12]
+    MassMin: [ 1.72, 1.72, 1.72, 1.72, 1.72, 1.72, 1.72, 1.72, 1.72, 1.72, 1.72 ]
+    MassMax: [ 2.05, 2.05, 2.05, 2.05, 2.05, 2.05, 2.05, 2.05, 2.05, 2.05, 2.05 ]
+    Rebin: [ 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4 ]
+    BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+    SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+    VnBkgFunc: [ 'kPol2', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin' ]
+    FixMeanVnVsMassFit: 1 # 0->don't fix, 1->set initial value from prefit, 2->fix value from prefit
+    FixSigmaVnVsMassFit: 2 # 0->don't fix, 1->set initial value from prefit, 2->fix value from prefit
+    UseVarMassBinning: 1 # 0->false, 1->true
+    VnVsMassBins: [1.72,1.75,1.80,1.82,1.83,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.91,1.92,1.94,1.99,2.04]
+    IncludeReflections: 1 # 0->false, 1->true
+    ReflFileName: "npv2_ana_5TeVPbPb/output/efficiencies/correlated/Distr_D0_MC_D0_PbPb5TeV_FD16.root"
+    ReflOpt: "2gaus"
+    FixMeanSecondPeak: 0 # 0->false, 1->true, used for Ds
+    FixSigmaSecondPeak: 0 # 0->false, 1->true, used for Ds
+    SigmaFileName: "npv2_ana_5TeVPbPb/input/configfiles/RawYields_D0_D0_PbPb5TeV_promptenhanced.root" # file with MC D+ peak width
+    IncludeSecondPeakV2: [] # list [0, 1, 1, 0, ...] include D+ peak in Ds v2 fit, 0->false, 1->true
+    #application of ML selection
+    MLSelection:
+        ApplyML: 1 # 0->false, 1->true, enable only if you applied your ML model in the vn task
+        #each element of the lists corresponds to a pT bin
+        CutValuesMin_Bkg: [0., 0., 0., 0., 0., 0., 0., 0., 0., 0, 0.]
+        #0.01, 0.025, 0.045,0.055,0.012,0.058,0.15, 0.15,0.2,0.25
+        CutValuesMax_Bkg: [ 0.0015, 0.0025, 0.003, 0.005, 0.02, 0.025]
+        CutValuesMin_FD: [0.82, 0.82, 0.82, 0.82, 0.82, 0.82]
+        CutValuesMax_FD: [1. , 1.,  1., 1. ,1. ,1.]
+
+FitSystematicsOptions: #common for all pT bins
+    Rebin: [ 1, 2, 3, 4, 5 ]
+    MassMin: [ 1.66, 1.68, 1.70, 1.72, 1.74 ]
+    MassMax: [ 1.96, 1.98, 2.00, 2.02, 2.04 ]
+    BkgFunc: [ 'kExpo', 'kLin', 'kPol2' ]
+    SgnFunc: [ 'kGaus' ]
+    VnBkgFunc: [ 'kLin', 'kPol2' ]
+    MaxRedChi2: 2. #only for histos, ntuple filled with all trials
