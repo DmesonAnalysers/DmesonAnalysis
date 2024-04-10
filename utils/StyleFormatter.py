@@ -90,9 +90,9 @@ def SetGlobalStyle(**kwargs):
     if 'labelsizex' in kwargs:
         gStyle.SetLabelSize(kwargs['labelsizex'], 'x')
     if 'labelsizey' in kwargs:
-        gStyle.SetLabelSize(kwargs['labelsizex'], 'y')
+        gStyle.SetLabelSize(kwargs['labelsizey'], 'y')
     if 'labelsizez' in kwargs:
-        gStyle.SetLabelSize(kwargs['labelsizex'], 'z')
+        gStyle.SetLabelSize(kwargs['labelsizez'], 'z')
 
     # title offsets
     if 'titleoffset' in kwargs:
