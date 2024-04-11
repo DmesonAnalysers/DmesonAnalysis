@@ -8,6 +8,7 @@ import os
 def run_full_analysis(config,
                       an_res_file,
                       centrality,
+                      outputdir,
                       suffix,
                       doEP,
                       skip_resolution,
@@ -23,6 +24,7 @@ def run_full_analysis(config,
     - config (str): path of directory with config files
     - an_res_file (str): path of directory with analysis results
     - centrality (str): centrality class
+    - outputdir (str): output directory
     - suffix (str): suffix for output files
     - doEP (bool): do EP resolution
     - skip_resolution (bool): skip resolution extraction
@@ -37,13 +39,23 @@ def run_full_analysis(config,
         suffix = an_res_file.split("AnalysisResults")[-1].replace(".root", "")
         suffix_withopt = f" -s {suffix}"
     if doEP:
-        outputdir = "~/flowD/ep"
+        outputdir = f"{outputdir}/ep"
     else:
-        outputdir = "~/flowD/sp"
+        outputdir = f"{outputdir}/sp"
+    cent_withopt = f" -c {centrality}"
 
+    if skip_resolution and skip_projection and skip_rawyield:
+        print("\033[91m Nothing to do, all steps are skipped\033[0m")
+        return
+
+    if not os.path.exists(outputdir):
+        print(f"\033[92m Creating output directory {outputdir}\033[0m")
+        os.makedirs(outputdir)
 
     if not skip_resolution:
         # resolution extraction
+        if not os.path.exists(f"{outputdir}/resolution"):
+            os.makedirs(f"{outputdir}/resolution")
         outputdir_reso = f"-o {outputdir}/resolution/"
         command_reso = f"python3 compute_reso.py {an_res_file} {suffix_withopt} {outputdir_reso}"
         if doEP:
@@ -54,8 +66,10 @@ def run_full_analysis(config,
 
     if not skip_projection:
         # projection
+        if not os.path.exists(f"{outputdir}/proj"):
+            os.makedirs(f"{outputdir}/proj")
         outputdir_proj = f"-o {outputdir}/proj"
-        command_proj = f"python3 project_thnsparse.py {config} {an_res_file} {suffix_withopt} {outputdir_proj}"
+        command_proj = f"python3 project_thnsparse.py {config} {an_res_file} {cent_withopt} {suffix_withopt} {outputdir_proj}"
         if doEP:
             command_proj += " --doEP"
         print("\n\033[92m Starting projection\033[0m")
@@ -64,6 +78,8 @@ def run_full_analysis(config,
 
     if not skip_rawyield:
         # raw yield
+        if not os.path.exists(f"{outputdir}/ry"):
+            os.makedirs(f"{outputdir}/ry")
         outputdir_rawyield = f"-o {outputdir}/ry"
         proj_file = f"{outputdir}/proj/"
         if doEP:
@@ -84,6 +100,8 @@ if __name__ == "__main__":
                         default="an_res.root", help="input ROOT file with anres")
     parser.add_argument("--centrality", "-c", metavar="text",
                         default="k3050", help="centrality class")
+    parser.add_argument("--outputdir", "-o", metavar="text",
+                        default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
     parser.add_argument("--doEP", action="store_true", default=False,
@@ -100,6 +118,7 @@ if __name__ == "__main__":
         args.config,
         args.an_res_file,
         args.centrality,
+        args.outputdir,
         args.suffix,
         args.doEP,
         args.skip_resolution,

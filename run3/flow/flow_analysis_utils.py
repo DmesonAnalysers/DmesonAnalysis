@@ -149,3 +149,35 @@ def compute_resolution(subMean):
     else:
         print('ERROR: dets must be a list of 2 or 3 subsystems')
         sys.exit(1)
+
+def get_centrality_bins(centrality):
+    '''
+    Get centrality bins
+
+    Input:
+        - centrality:
+            str, centrality class (e.g. 'k3050')
+
+    Output:
+        - cent_bins:
+            list of floats, centrality bins
+        - cent_label:
+            str, centrality label
+    '''
+    if centrality == 'k010':
+        return '0_10', [0, 10]
+    if centrality == 'k2030':
+        return '20_30', [20, 30]
+    elif centrality == 'k3040':
+        return '30_40', [30, 40]
+    elif centrality == 'k3050':
+        return '30_50', [30, 50]
+    elif centrality == 'k4050':
+        return '40_50', [40, 50]
+    elif centrality == 'k4060':
+        return '40_60', [40, 60]
+    elif centrality == 'k6080':
+        return '60_80', [60, 80]
+    else:
+        print(f"ERROR: cent class \'{centrality}\' is not supported! Exit")
+    sys.exit()

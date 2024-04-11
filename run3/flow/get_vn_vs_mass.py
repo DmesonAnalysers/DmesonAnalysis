@@ -11,6 +11,7 @@ import numpy as np
 import yaml
 from ROOT import TFile, TCanvas, TH1D, TH1F, TF1, TDatabasePDG, TDirectoryFile, AliHFInvMassFitter, AliVertexingHFUtils, AliHFVnVsMassFitter, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, kBlack, kRed, kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
+from flow_analysis_utils import get_centrality_bins
 sys.path.append('../../')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
@@ -31,30 +32,7 @@ parser.add_argument('--isMC', action='store_true', default=False)
 parser.add_argument('--batch', help='suppress video output', action='store_true')
 args = parser.parse_args()
 
-cent = ''
-if args.centClass == 'k010':
-    cent = '0_10'
-if args.centClass == 'k2030':
-    cent = '20_30'
-elif args.centClass == 'k3040':
-    cent = '30_40'
-elif args.centClass == 'k3050':
-    cent = '30_50'
-elif args.centClass == 'k4050':
-    cent = '40_50'
-elif args.centClass == 'k4060':
-    cent = '40_60'
-elif args.centClass == 'k6080':
-    cent = '60_80'
-elif args.centClass == 'kpp5TeVPrompt':
-    cent = 'pp5TeVPrompt'
-elif args.centClass == 'kpp13TeVFD':
-    cent = 'pp13TeVFD'
-elif args.centClass == 'kpp13TeVPrompt':
-    cent = 'pp13TeVPrompt'
-else:
-    print(f"ERROR: cent class \'{args.centClass}\' is not supported! Exit")
-    sys.exit()
+cent, _ = get_centrality_bins(args.centClass)
 
 
 with open(args.fitConfigFileName, 'r', encoding='utf8') as ymlfitConfigFile:
@@ -67,6 +45,7 @@ ptMins = fitConfig['ptmins']
 ptMaxs = fitConfig['ptmaxs']
 fixSigma = fitConfig['FixSigma']
 fixMean = fitConfig['FixMean']
+harmonic = fitConfig['harmonic']
 if 'EnableRef' not in fitConfig:
     enableRef = False
 else:
@@ -129,9 +108,9 @@ for iPt, (bkgStr, sgnStr, bkgVnStr) in enumerate(zip(BkgFuncStr, SgnFuncStr, Bkg
         BkgFuncVn.append(AliHFInvMassFitter.kLin)
     elif bkgVnStr == 'kPol2':
         BkgFuncVn.append(AliHFInvMassFitter.kPol2)
-    #else:
-    #    print('ERROR: only kExpo, kLin, and kPol2 background functions supported for vn! Exit')
-    #    sys.exit()
+    else:
+        print('ERROR: only kExpo, kLin, and kPol2 background functions supported for vn! Exit')
+        sys.exit()
 
     if sgnStr == 'kGaus':
         SgnFunc.append(AliHFInvMassFitter.kGaus)
@@ -621,7 +600,7 @@ for iPt, (hM, hV, ptMin, ptMax, reb, sgnEnum, bkgEnum, bkgVnEnum, secPeak, massM
         massFitter[iPt].Background(3, bkg, bkgerr)
 
         vnFitter.append(AliHFVnVsMassFitter(hMassForFit[iPt], hVnForFit[iPt], massMin, massMax, bkgEnum, sgnEnum, bkgVnEnum))
-        vnFitter[iPt].SetHarmonic(2) # TODO: add possibility to set harmonic in config file
+        vnFitter[iPt].SetHarmonic(harmonic)
         vnFitter[iPt].SetInitialGaussianMean(massForFit, 1)
         vnFitter[iPt].SetInitialGaussianSigma(sigma, 1)
         if secPeak and particleName == 'Ds':
