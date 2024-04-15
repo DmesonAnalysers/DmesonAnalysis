@@ -174,10 +174,63 @@ def get_centrality_bins(centrality):
         return '30_50', [30, 50]
     elif centrality == 'k4050':
         return '40_50', [40, 50]
+    elif centrality == 'k2060':
+        return '20_60', [20, 60]
     elif centrality == 'k4060':
         return '40_60', [40, 60]
     elif centrality == 'k6080':
         return '60_80', [60, 80]
+    elif centrality == 'k0100':
+        return '0_100', [0, 100]
     else:
         print(f"ERROR: cent class \'{centrality}\' is not supported! Exit")
     sys.exit()
+
+def compute_r2(reso_file, cent_min, cent_max, detA, detB, detC, do_ep):
+    '''
+    Compute resolution for SP or EP method
+    
+    Input:
+        - reso_file:
+            TFile, resolution file
+        - cent_min:
+            int, minimum centrality bin
+        - cent_max:
+            int, maximum centrality bin
+        - detA:
+            str, detector A
+        - detB:
+            str, detector B
+        - detC:
+            str, detector C
+        - do_ep:
+            bool, if True, compute EP resolution
+            if False, compute SP resolution
+
+    Output:
+        - reso:
+            float, resolution value
+    '''
+    if do_ep:
+        hist_name = 'hf-task-flow-charm-hadrons/epReso/hEpReso'
+    else:
+        hist_name = 'hf-task-flow-charm-hadrons/spReso/hSpReso'
+
+    detA_detB = reso_file.Get(f'{hist_name}{detA}{detB}')
+    detA_detC = reso_file.Get(f'{hist_name}{detA}{detC}')
+    detB_detC = reso_file.Get(f'{hist_name}{detB}{detC}')
+
+    cent_bin_min = detA_detB.GetXaxis().FindBin(cent_min)
+    cent_bin_max = detA_detB.GetXaxis().FindBin(cent_max)
+
+    proj_detA_detB = detA_detB.ProjectionY(f'{hist_name}{detA}{detB}_proj{cent_min}_{cent_max}', cent_bin_min, cent_bin_max)
+    proj_detA_detC = detA_detC.ProjectionY(f'{hist_name}{detA}{detC}_proj{cent_min}_{cent_max}', cent_bin_min, cent_bin_max)
+    proj_detB_detC = detB_detC.ProjectionY(f'{hist_name}{detB}{detC}_proj{cent_min}_{cent_max}', cent_bin_min, cent_bin_max)
+
+    average_detA_detB = proj_detA_detB.GetMean()
+    average_detA_detC = proj_detA_detC.GetMean()
+    average_detB_detC = proj_detB_detC.GetMean()
+
+    reso = (average_detA_detB * average_detA_detC) / average_detB_detC if average_detB_detC != 0 else -999
+    reso = np.sqrt(reso) if reso > 0 else -999
+    return reso

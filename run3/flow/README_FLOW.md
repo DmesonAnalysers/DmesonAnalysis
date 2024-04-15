@@ -4,7 +4,7 @@ Code for the measurement of D meson flow starting from the outputs of the [taskF
 
 ## Analysis steps
 The analysis is organized as follows:
-- `compute_reso.py: compute SP/EP resolution term
+- `compute_reso.py`: compute SP/EP resolution term
 - `project_thnsparse.py`: projcect ThnSparse as a function of pT/centrality from AnalysisResults.root
 - `get_vn_vs_mass.py`: Simultaneous fit to the projected inv. mass and EP/SP
 

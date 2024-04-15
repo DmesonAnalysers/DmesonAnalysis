@@ -11,26 +11,39 @@ axes: {mass: 0,
 harmonic: 2 # 2: v2, 3: v3, etc.
 
 # pt bins
-ptmins: [4] #, 5, 6, 7] #, 8, 12, 16, 24, 36]
-ptmaxs: [6] #, 6, 7, 8] #, 10, 16, 24, 36, 50]
+ptmins: [1, 2, 3, 4, 5, 6] 
+ptmaxs: [2, 3, 4, 5, 6, 7]
 
 # inv_mass_bins (one for each pt bin)
 inv_mass_bins: [[1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],
+                [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],
+                [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],
+                [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],
+                [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],
+                [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],
+                [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],
+                [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],
                 [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],]
 
+
+
 # bdt cut
-bdt_cut: {
-       bkg: { 
-              min: [0.002, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-              max: [0.05, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4],
-              step: [0.002, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
-                },
-       sig: { 
-              min: [0.5, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
-              max: [1.0, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-              step: [0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
-                }     
-}
+apply_btd_cuts: false # apply bdt cuts
+bkg_ml_cuts: [0.08, 0.08, 0.08, 0.08, 0.08, 0.08] # max probability for bkg, one for each pt bin
+sig_ml_cuts: [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]       # min probability for sig, one for each pt bin
+cut_variation:
+       bdt_cut: {
+              bkg: { 
+                     min: [0.002, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                     max: [0.05, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4],
+                     step: [0.002, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+                       },
+              sig: { 
+                     min: [0.5, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+                     max: [1.0, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+                     step: [0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+                       }     
+       }
 
 
 # ep/sp subevents
@@ -56,7 +69,7 @@ FixSigmaToFirstPeak: 0
 UseLikelihood: 1
 BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
 SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
-BkgFuncVn: ['kLin', kLin', 'kPol3', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin' ]
+BkgFuncVn: ['kLin', kLin', 'kPol2', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin' ]
 FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
 SigmaRatioFile: ""
 BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
