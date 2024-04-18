@@ -9,7 +9,7 @@ import argparse
 import ctypes
 import numpy as np
 import yaml
-from ROOT import TFile, TCanvas, TH1D, TH1F, TF1, TDatabasePDG, TDirectoryFile, AliHFInvMassFitter, AliVertexingHFUtils, AliHFVnVsMassFitter, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from ROOT import TLatex, TFile, TCanvas, TH1D, TH1F, TDatabasePDG, AliHFInvMassFitter, AliVertexingHFUtils, AliHFVnVsMassFitter, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, kBlack, kRed, kFullCircle, kFullSquare # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins
 sys.path.append('../../')
@@ -33,7 +33,6 @@ parser.add_argument('--batch', help='suppress video output', action='store_true'
 args = parser.parse_args()
 
 cent, _ = get_centrality_bins(args.centClass)
-
 
 with open(args.fitConfigFileName, 'r', encoding='utf8') as ymlfitConfigFile:
     fitConfig = yaml.load(ymlfitConfigFile, yaml.FullLoader)
@@ -151,6 +150,7 @@ if enableRef:
 
 hRel, hSig, hMassForRel, hMassForSig  = [], [], [], []
 hMass, hMassForFit, hVn, hVnForFit = [], [], [], []
+fTotFuncMass, fTotFuncVn = [], []
 inclSecPeak = [inclSecPeak] * len(ptMins) if not isinstance(inclSecPeak, list) else inclSecPeak
 for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
     if not args.isMC:
@@ -182,25 +182,7 @@ for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
     hMass[iPt].Sumw2()
     SetObjectStyle(hMass[iPt], color=kBlack, markerstyle=kFullCircle)
     SetObjectStyle(hVn[iPt], color=kBlack, markerstyle=kFullCircle)
-
-#hEv = infile.Get('hEvForNorm')
-hEv = TH1D('', '', 1, 0, 1)
-hEv.SetDirectory(0)
-hEv.Sumw2()
-SetObjectStyle(hEv, color=kBlack, markerstyle=kFullCircle)
 infile.Close()
-
-hSigmaToFix = None
-if sum(fixSigma) > 0:
-    infileSigma = TFile.Open(fitConfig['SigmaFile'])
-    if not infileSigma:
-        print(f'ERROR: file "{infileSigma}" cannot be opened! Exit!')
-        sys.exit()
-    hSigmaToFix = infileSigma.Get('hRawYieldsSigma')
-    hSigmaToFix.SetDirectory(0)
-    if hSigmaToFix.GetNbinsX() != nPtBins:
-        print('WARNING: Different number of bins for this analysis and histo for fix sigma')
-    infileSigma.Close()
 
 if fitConfig['FixSigmaRatio']:
     # load sigma of first gaussian
@@ -256,71 +238,39 @@ if infileSigmaSecPeak:
 ptBinsArr = np.asarray(ptLims, 'd')
 ptTit = '#it{p}_{T} (GeV/#it{c})'
 
-hRawYields = TH1D('hRawYields', f';{ptTit};raw yield', nPtBins, ptBinsArr)
-hRawYieldsSigma = TH1D('hRawYieldsSigma', f';{ptTit};width (GeV/#it{{c}}^{{2}})', nPtBins, ptBinsArr)
-hRawYieldsSigma2 = TH1D('hRawYieldsSigma2', f';{ptTit};width (GeV/#it{{c}}^{{2}})', nPtBins, ptBinsArr)
-hRawYieldsMean = TH1D('hRawYieldsMean', f';{ptTit};mean (GeV/#it{{c}}^{{2}})', nPtBins, ptBinsArr)
-hRawYieldsFracGaus2 = TH1D('hRawYieldsFracGaus2', f';{ptTit};second-gaussian fraction', nPtBins, ptBinsArr)
-hRawYieldsSignificance = TH1D('hRawYieldsSignificance', f';{ptTit};significance (3#sigma)', nPtBins, ptBinsArr)
-hRawYieldsSoverB = TH1D('hRawYieldsSoverB', f';{ptTit};S/B (3#sigma)', nPtBins, ptBinsArr)
-hRawYieldsSignal = TH1D('hRawYieldsSignal', f';{ptTit};Signal (3#sigma)', nPtBins, ptBinsArr)
-hRawYieldsBkg = TH1D('hRawYieldsBkg', f';{ptTit};Background (3#sigma)', nPtBins, ptBinsArr)
-hRawYieldsChiSquare = TH1D('hRawYieldsChiSquare', f';{ptTit};#chi^{{2}}/#it{{ndf}}', nPtBins, ptBinsArr)
-hRawYieldsSecPeak = TH1D('hRawYieldsSecondPeak', f';{ptTit};raw yield second peak', nPtBins, ptBinsArr)
-hRawYieldsMeanSecPeak = TH1D('hRawYieldsMeanSecondPeak', f';{ptTit};mean second peak (GeV/#it{{c}}^{{2}})',
-                             nPtBins, ptBinsArr)
-hRawYieldsSigmaSecPeak = TH1D('hRawYieldsSigmaSecondPeak', f';{ptTit};width second peak (GeV/#it{{c}}^{{2}})',
-                              nPtBins, ptBinsArr)
-hRawYieldsSignificanceSecPeak = TH1D('hRawYieldsSignificanceSecondPeak',
-                                     f';{ptTit};signficance second peak (3#sigma)', nPtBins, ptBinsArr)
-hRawYieldsSigmaRatioSecondFirstPeak = TH1D('hRawYieldsSigmaRatioSecondFirstPeak',
-                                           f';{ptTit};width second peak / width first peak', nPtBins, ptBinsArr)
-hRawYieldsSoverBSecPeak = TH1D('hRawYieldsSoverBSecondPeak', f';{ptTit};S/B second peak (3#sigma)',
-                               nPtBins, ptBinsArr)
-hRawYieldsSignalSecPeak = TH1D('hRawYieldsSignalSecondPeak', f';{ptTit};Signal second peak (3#sigma)',
-                               nPtBins, ptBinsArr)
-hRawYieldsBkgSecPeak = TH1D('hRawYieldsBkgSecondPeak', f';{ptTit};Background second peak (3#sigma)',
-                            nPtBins, ptBinsArr)
-hRawYieldsTrue = TH1D('hRawYieldsTrue', f';{ptTit};true signal', nPtBins, ptBinsArr)
-hRawYieldsSecPeakTrue = TH1D('hRawYieldsSecondPeakTrue', f';{ptTit};true signal second peak',
-                             nPtBins, ptBinsArr)
-hRelDiffRawYieldsFitTrue = TH1D('hRelDiffRawYieldsFitTrue', f';{ptTit}; (Y_{{fit}} - Y_{{true}}) / Y_{{true}}',
-                                nPtBins, ptBinsArr)
-hRelDiffRawYieldsSecPeakFitTrue = TH1D('hRelDiffRawYieldsSecondPeakFitTrue',
-                                       f';{ptTit};(Y_{{fit}} - Y_{{true}}) / Y_{{true}} second peak',
-                                       nPtBins, ptBinsArr)
-
 hSigmaSimFit = TH1D('hSigmaSimFit', f';{ptTit};#sigma', nPtBins, ptBinsArr)
 hMeanSimFit = TH1D('hMeanSimFit', f';{ptTit};mean', nPtBins, ptBinsArr)
+hMeanSecPeakFitMass = TH1D('hMeanSecondPeakFitMass', f';{ptTit};mean second peak mass fit', nPtBins, ptBinsArr)
+hMeanSecPeakFitVn = TH1D('hMeanSecondPeakFitVn', f';{ptTit};mean second peak vn fit', nPtBins, ptBinsArr)
+hSigmaSecPeakFitMass = TH1D('hSigmaSecondPeakFitMass', f';{ptTit};width second peak mass fit', nPtBins, ptBinsArr)
+hSigmaSecPeakFitVn = TH1D('hSigmaSecondPeakFitVn', f';{ptTit};width second peak vn fit', nPtBins, ptBinsArr)
+hRawYieldsSimFit = TH1D('hRawYieldsSimFit', f';{ptTit};raw yield', nPtBins, ptBinsArr)
+hRawYieldsSecPeakSimFit = TH1D('hRawYieldsSecondPeakSimFit', f';{ptTit};raw yield second peak', nPtBins, ptBinsArr)
+hRawYieldsSignificanceSimFit = TH1D('hRawYieldsSignificanceSimFit', f';{ptTit};significance', nPtBins, ptBinsArr)
+hRawYieldsSoverBSimFit = TH1D('hRawYieldsSoverBSimFit', f';{ptTit};S/B', nPtBins, ptBinsArr)
 hRedChi2SimFit = TH1D('hRedChi2SimFit', f';{ptTit};#chi^{{2}}/#it{{ndf}}', nPtBins, ptBinsArr)
 hProbSimFit = TH1D('hProbSimFit', f';{ptTit};prob', nPtBins, ptBinsArr)
 hRedChi2SBVnPrefit = TH1D('hRedChi2SBVnPrefit', f';{ptTit};#chi^{{2}}/#it{{ndf}}', nPtBins, ptBinsArr)
 hProbSBVnPrefit = TH1D('hProbSBVnPrefit', f';{ptTit};prob', nPtBins, ptBinsArr)
 gvnSimFit = TGraphAsymmErrors(1)
+gvnSimFit.SetName('gvnSimFit')
+gvnSimFitSecPeak = TGraphAsymmErrors(1)
+gvnSimFitSecPeak.SetName('gvnSimFitSecPeak')
 
-
-SetObjectStyle(hRawYields, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsSigma, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsSigma2, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsMean, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsFracGaus2, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsSignificance, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsSoverB, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsSignal, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsBkg, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsChiSquare, color=kBlack, markerstyle=kFullCircle)
-SetObjectStyle(hRawYieldsSecPeak, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsMeanSecPeak, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsSigmaSecPeak, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsSignificanceSecPeak, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsSigmaRatioSecondFirstPeak, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsSoverBSecPeak, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsSignalSecPeak, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsBkgSecPeak, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsTrue, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRawYieldsSecPeakTrue, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRelDiffRawYieldsFitTrue, color=kRed, markerstyle=kFullSquare)
-SetObjectStyle(hRelDiffRawYieldsSecPeakFitTrue, color=kRed, markerstyle=kFullSquare)
+SetObjectStyle(hSigmaSimFit, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hMeanSimFit, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hMeanSecPeakFitMass, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hSigmaSecPeakFitMass, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hMeanSecPeakFitVn, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hSigmaSecPeakFitVn, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hRawYieldsSimFit, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hRawYieldsSecPeakSimFit, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hRawYieldsSignificanceSimFit, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hRawYieldsSoverBSimFit, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hRedChi2SimFit, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hProbSimFit, color=kBlack, markerstyle=kFullCircle)
+SetObjectStyle(hRedChi2SBVnPrefit, color=kRed, markerstyle=kFullSquare)
+SetObjectStyle(hProbSBVnPrefit, color=kRed, markerstyle=kFullSquare)
 
 # additional S, B, S/B, and significance histos for different Nsigma values (filled only in case of data)
 nSigma4SandB = [1.5, 1.75, 2., 2.25, 2.5, 2.75]
@@ -363,23 +313,11 @@ canvSizes = [1920, 1080]
 if nPtBins == 1:
     canvSizes = [500, 500]
 
-nMaxCanvases = 20 # do not put more than 20 bins per canvas to make them visible
-nCanvases = int(np.ceil(nPtBins / nMaxCanvases))
-cMass, cResiduals = [], []
-for iCanv in range(nCanvases):
-    nPads = nPtBins if nCanvases == 1 else nMaxCanvases
-    cMass.append(TCanvas(f'cMass{iCanv}', f'cMass{iCanv}', canvSizes[0], canvSizes[1]))
-    DivideCanvas(cMass[iCanv], nPads)
-    cResiduals.append(TCanvas(f'cResiduals{iCanv}', f'cResiduals{iCanv}', canvSizes[0], canvSizes[1]))
-    DivideCanvas(cResiduals[iCanv], nPads)
-
 cSimFit = []
 for i in range(nPtBins):
     ptLow = ptMins[i]
     ptHigh = ptMaxs[i]
     cSimFit.append(TCanvas(f'cSimFit_Pt{ptLow}_{ptHigh}', f'cSimFit_Pt{ptLow}_{ptHigh}', 400, 900))
-    #DivideCanvas(cSimFit[iCanv], nPads)
-print('cSimFit', cSimFit)
 
 massFitter, vnFitter = [], []
 
@@ -397,7 +335,7 @@ if not isinstance(massMaxs, list):
 
 for iPt, (hM, hV, ptMin, ptMax, reb, sgnEnum, bkgEnum, bkgVnEnum, secPeak, massMin, massMax) in enumerate(
         zip(hMass, hVn, ptMins, ptMaxs, rebins, SgnFunc, BkgFunc, BkgFuncVn, inclSecPeak, massMins, massMaxs)):
-    iCanv = int(np.floor(iPt / nMaxCanvases))
+    iCanv = iPt
     hMassForFit.append(TH1F())
     hVnForFit.append(TH1F())
     AliVertexingHFUtils.RebinHisto(hM, reb).Copy(hMassForFit[iPt]) #to cast TH1D to TH1F
@@ -409,6 +347,8 @@ for iPt, (hM, hV, ptMin, ptMax, reb, sgnEnum, bkgEnum, bkgVnEnum, secPeak, massM
         hDummy.SetBinError(iBin, hV.GetBinError(iBin))
     hVnForFit[iPt] = hDummy
     hVnForFit[iPt].SetDirectory(0)
+    hVnForFit[iPt].GetXaxis().SetTitle(massAxisTit)
+    hVnForFit[iPt].GetYaxis().SetTitle(f'#it{{v}}{harmonic}')
     binWidth = hMassForFit[iPt].GetBinWidth(1)
     hMassForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};'
                                f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
@@ -425,411 +365,143 @@ for iPt, (hM, hV, ptMin, ptMax, reb, sgnEnum, bkgEnum, bkgVnEnum, secPeak, massM
     SetObjectStyle(hMassForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=markerSize)
     SetObjectStyle(hVnForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=markerSize)
 
-    # MC
-    if args.isMC:
-        parRawYield, parMean, parSigma1 = 0, 1, 2 # always the same
-        parSigma2, parFrac2Gaus, parRawYieldSecPeak, parMeanSecPeak, parSigmaSecPeak = (-1 for _ in range(5))
+    print(f'Fitting {ptMin} - {ptMax} GeV/c')
+    vnFitter.append(AliHFVnVsMassFitter(hMassForFit[iPt], hVnForFit[iPt], massMin, 2.15, bkgEnum, sgnEnum, bkgVnEnum))
+    vnFitter[iPt].SetHarmonic(harmonic)
 
-        if sgnEnum == AliHFInvMassFitter.kGaus:
-            if not (secPeak and particleName == 'Ds'):
-                massFunc = TF1(f'massFunc{iPt}', SingleGaus, massMin, massMax, 3)
-                massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010)
-            else:
-                massFunc = TF1(f'massFunc{iPt}', DoublePeakSingleGaus, massMin, massMax, 6)
-                massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010,
-                                       hMassForFit[iPt].Integral() * binWidth, massDplus, 0.010)
-                parRawYieldSecPeak = 3
-                parMeanSecPeak = 4
-                parSigmaSecPeak = 5
-
-        elif sgnEnum == AliHFInvMassFitter.k2Gaus:
-            parSigma2 = 3
-            parFrac2Gaus = 4
-            if not (secPeak and particleName == 'Ds'):
-                massFunc = TF1(f'massFunc{iPt}', DoubleGaus, massMin, massMax, 5)
-                if not particleName == 'Dstar':
-                    massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9)
-                else:
-                    massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.0010, 0.0030, 0.9)
-            else:
-                massFunc = TF1(f'massFunc{iPt}', DoublePeakDoubleGaus, massMin, massMax, 8)
-                massFunc.SetParameters(hMassForFit[iPt].Integral() * binWidth, massForFit, 0.010, 0.030, 0.9,
-                                       hMassForFit[iPt].Integral() * binWidth, massDplus, 0.010)
-                parRawYieldSecPeak = 5
-                parMeanSecPeak = 6
-                parSigmaSecPeak = 7
-        else:
-            print("ERROR: Only kGaus and k2Gaus are supported for MC. Exit!") #TODO: add support for k2GausSigmaRatioPar
-            sys.exit()
-
-        if nPtBins > 1:
-            cMass[iCanv].cd(iPt-nMaxCanvases*iCanv+1)
-        else:
-            cMass[iCanv].cd()
-        hMassForFit[iPt].Fit(massFunc, 'E')  # fit with chi2
-
-        rawyield = massFunc.GetParameter(parRawYield)
-        rawyielderr = massFunc.GetParError(parRawYield)
-        sigma = massFunc.GetParameter(parSigma1)
-        sigmaerr = massFunc.GetParError(parSigma1)
-        mean = massFunc.GetParameter(parMean)
-        meanerr = massFunc.GetParError(parMean)
-        redchi2 = massFunc.GetChisquare() / massFunc.GetNDF()
-
-        hRawYields.SetBinContent(iPt+1, rawyield)
-        hRawYields.SetBinError(iPt+1, rawyielderr)
-        hRawYieldsSigma.SetBinContent(iPt+1, sigma)
-        hRawYieldsSigma.SetBinError(iPt+1, sigmaerr)
-        hRawYieldsMean.SetBinContent(iPt+1, mean)
-        hRawYieldsMean.SetBinError(iPt+1, meanerr)
-        hRawYieldsChiSquare.SetBinContent(iPt+1, redchi2)
-        hRawYieldsChiSquare.SetBinError(iPt+1, 0.)
-
-        hRawYieldsTrue.SetBinContent(iPt+1, hMassForFit[iPt].Integral())
-        hRawYieldsTrue.SetBinError(iPt+1, np.sqrt(hMassForFit[iPt].Integral()))
-        hRelDiffRawYieldsFitTrue.SetBinContent(iPt+1, rawyield-hMassForFit[iPt].Integral())
-        hRelDiffRawYieldsFitTrue.SetBinError(iPt+1, np.sqrt(rawyielderr*rawyielderr+hMassForFit[iPt].Integral()))
-
-        if secPeak and particleName == 'Ds':
-            rawyieldSecPeak = massFunc.GetParameter(parRawYieldSecPeak)
-            rawyieldSecPeakerr = massFunc.GetParError(parRawYieldSecPeak)
-            sigmaSecPeak = massFunc.GetParameter(parSigmaSecPeak)
-            sigmaSecPeakerr = massFunc.GetParError(parSigmaSecPeak)
-            meanSecPeak = massFunc.GetParameter(parMeanSecPeak)
-            meanSecPeakerr = massFunc.GetParError(parMeanSecPeak)
-            hRawYieldsSecPeak.SetBinContent(iPt+1, rawyieldSecPeak)
-            hRawYieldsSecPeak.SetBinError(iPt+1, rawyieldSecPeakerr)
-            hRawYieldsMeanSecPeak.SetBinContent(iPt+1, meanSecPeak)
-            hRawYieldsMeanSecPeak.SetBinError(iPt+1, meanSecPeakerr)
-            hRawYieldsSigmaSecPeak.SetBinContent(iPt+1, sigmaSecPeak)
-            hRawYieldsSigmaSecPeak.SetBinError(iPt+1, sigmaSecPeakerr)
-            hRawYieldsSigmaRatioSecondFirstPeak.SetBinContent(iPt+1, sigmaSecPeak/sigma)
-            hRawYieldsSigmaRatioSecondFirstPeak.SetBinError(iPt+1, \
-                np.sqrt(sigmaerr**2/sigma**2+sigmaSecPeakerr**2/sigmaSecPeak**2)*sigmaSecPeak/sigma)
-
-            hRawYieldsSecPeakTrue.SetBinContent(iPt+1, rawyield)
-            hRelDiffRawYieldsSecPeakFitTrue.SetBinContent(iPt+1, rawyield)
-
-        if sgnEnum == AliHFInvMassFitter.k2Gaus:
-            sigma2 = massFunc.GetParameter(parSigma2)
-            sigma2err = massFunc.GetParError(parSigma2)
-            frac2gaus = massFunc.GetParameter(parFrac2Gaus)
-            frac2gauserr = massFunc.GetParError(parFrac2Gaus)
-            hRawYieldsSigma2.SetBinContent(iPt+1, sigma2)
-            hRawYieldsSigma2.SetBinError(iPt+1, sigma2err)
-            hRawYieldsFracGaus2.SetBinContent(iPt+1, frac2gaus)
-            hRawYieldsFracGaus2.SetBinError(iPt+1, frac2gauserr)
-
-    else:  # data
-        massFitter.append(AliHFInvMassFitter(hMassForFit[iPt], massMin, massMax, bkgEnum, sgnEnum))
-        if degPol[iPt] > 0:
-            massFitter[iPt].SetPolDegreeForBackgroundFit(degPol[iPt])
-
-        if fitConfig['UseLikelihood']:
-            massFitter[iPt].SetUseLikelihoodFit()
-        if fixMean[iPt]:
-            massFitter[iPt].SetFixGaussianMean(hMeanToFix.GetBinContent(iPt+1))
-        if fitConfig['BoundMean']:
-            massFitter[iPt].SetBoundGaussianMean(massForFit, massMin, massMax)
-        else:
-            massFitter[iPt].SetInitialGaussianMean(massForFit)
-        if fitConfig['FixSigmaRatio']:
-            massFitter[iPt].SetFixRatio2GausSigma(
-                hSigmaToFix.GetBinContent(iPt+1)/hSigmaToFix2.GetBinContent(iPt+1))
-
+    # set the parameters for the fit
+    # Mean
+    vnFitter[iPt].SetInitialGaussianMean(massForFit, 1)
+    if fixMean[iPt]:
+        vnFitter[iPt].FixMeanFromMassFit(hMeanToFix.GetBinContent(iPt+1))
+    # Sigma
+    vnFitter[iPt].SetInitialGaussianSigma(fitConfig['Sigma'][iPt], 1)
+    if fixSigma[iPt]:
+        vnFitter[iPt].FixSigmaFromMassFit()
+    # Second peak (Ds specific)
+    if secPeak and particleName == 'Ds':
+        vnFitter[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], False, 1)
         if fixSigma[iPt]:
-            if isinstance(fitConfig['SigmaMultFactor'], (float, int)):
-                massFitter[iPt].SetFixGaussianSigma(
-                    hSigmaToFix.GetBinContent(iPt+1)*fitConfig['SigmaMultFactor'])
-            else:
-                if fitConfig['SigmaMultFactor'] == 'MinusUnc':
-                    massFitter[iPt].SetFixGaussianSigma(
-                        hSigmaToFix.GetBinContent(iPt+1)-hSigmaToFix.GetBinError(iPt+1))
-                elif fitConfig['SigmaMultFactor'] == 'PlusUnc':
-                    massFitter[iPt].SetFixGaussianSigma(
-                        hSigmaToFix.GetBinContent(iPt+1)+hSigmaToFix.GetBinError(iPt+1))
-                else:
-                    print('WARNING: impossible to fix sigma! Wrong mult factor set in config file!')
-        else:
-            if hSigmaToFix:
-                massFitter[iPt].SetInitialGaussianSigma(
-                    hSigmaToFix.GetBinContent(iPt+1)*fitConfig['SigmaMultFactor'])
-            else:
-                if particleName == 'Dstar':
-                    massFitter[iPt].SetInitialGaussianSigma(0.001)
-                else:
-                    massFitter[iPt].SetInitialGaussianSigma(0.008)
+            vnFitter[iPt].FixSigma2GausFromMassFit()
+    vnFitter[iPt].FixFrac2GausFromMassFit()
+    # TODO: Add the reflections
+    vnFitter[iPt].SimultaneusFit(False)
 
-        if secPeak and particleName == 'Ds':
-            if hSigmaToFixSecPeak:
-                sigmaToFix = hSigmaToFixSecPeak.GetBinContent(iPt+1) * fitConfig['SigmaMultFactorSecPeak']
-                massFitter[iPt].IncludeSecondGausPeak(massDplus, False, sigmaToFix, True)
-                if fitConfig['FixSigmaToFirstPeak']:
-                    # fix D+ peak to sigmaMC(D+)/sigmaMC(Ds+)*sigmaData(Ds+)
-                    massFitter[iPt].MassFitter(False)
-                    sigmaFirstPeak = massFitter[iPt].GetSigma()
-                    sigmaRatioMC = hSigmaToFixSecPeak.GetBinContent(iPt+1) / hSigmaFirstPeakMC.GetBinContent(iPt+1)
-                    massFitter[iPt].IncludeSecondGausPeak(massDplus, False, sigmaRatioMC * sigmaFirstPeak, True)
-            else:
-                massFitter[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], True)
-        if enableRef:
-            rOverS = hMassForSig[iPt].Integral(
-                hMassForSig[iPt].FindBin(massMin * 1.0001),
-                hMassForSig[iPt].FindBin(massMax * 0.999)
-            )
-            rOverS = hMassForRel[iPt].Integral(
-                hMassForRel[iPt].FindBin(massMin * 1.0001),
-                hMassForRel[iPt].FindBin(massMax * 0.999) / rOverS
-            )
-            massFitter[iPt].SetFixReflOverS(rOverS)
-            massFitter[iPt].SetTemplateReflections(hRel[iPt], "2gaus", massMin, massMax)
-        massFitter[iPt].MassFitter(False)
+    # collect the results
+    vn = vnFitter[iPt].GetVn()
+    vnUnc = vnFitter[iPt].GetVnUncertainty()
+    mean = vnFitter[iPt].GetMean()
+    meanUnc = vnFitter[iPt].GetMeanUncertainty()
+    sigma = vnFitter[iPt].GetSigma()
+    sigmaUnc = vnFitter[iPt].GetSigmaUncertainty()
+    ry = vnFitter[iPt].GetRawYield()
+    ryUnc = vnFitter[iPt].GetRawYieldUncertainty()
+    chi2 = vnFitter[iPt].GetReducedChiSquare()
+    prob = vnFitter[iPt].GetFitProbability()
+    fTotFuncMass.append(vnFitter[iPt].GetMassTotFitFunc())
+    # _________________________
+    # fTotFuncVn parameters:
+    # 0: BkgInt
+    # 1: BkgSlope
+    # 2: SgnInt
+    # 3: Mean
+    # 4: Sigma
+    # 5: SecPeakInt
+    # 6: SecPeakMean
+    # 7: SecPeakSigma
+    # 8: ConstVnBkg
+    # 9: SlopeVnBkg
+    # 10: v2Sgn
+    # 11: v2SecPeak
+    # _________________________
+    fTotFuncVn.append(vnFitter[iPt].GetVnVsMassTotFitFunc())
 
-        rawyield = massFitter[iPt].GetRawYield()
-        rawyielderr = massFitter[iPt].GetRawYieldError()
-        sigma = massFitter[iPt].GetSigma()
-        sigmaerr = massFitter[iPt].GetSigmaUncertainty()
-        mean = massFitter[iPt].GetMean()
-        meanerr = massFitter[iPt].GetMeanUncertainty()
-        redchi2 = massFitter[iPt].GetReducedChiSquare()
-        signif, signiferr = ctypes.c_double(), ctypes.c_double()
-        sgn, sgnerr = ctypes.c_double(), ctypes.c_double()
-        bkg, bkgerr = ctypes.c_double(), ctypes.c_double()
-        massFitter[iPt].Significance(3, signif, signiferr)
-        massFitter[iPt].Signal(3, sgn, sgnerr)
-        massFitter[iPt].Background(3, bkg, bkgerr)
+    hSigmaSimFit.SetBinContent(iPt+1, sigma)
+    hSigmaSimFit.SetBinError(iPt+1, sigmaUnc)
+    hMeanSimFit.SetBinContent(iPt+1, mean)
+    hMeanSimFit.SetBinError(iPt+1, meanUnc)
+    hRedChi2SimFit.SetBinContent(iPt+1, chi2)
+    hRedChi2SimFit.SetBinError(iPt+1, 1.e-20)
+    hProbSimFit.SetBinContent(iPt+1, prob)
+    hProbSimFit.SetBinError(iPt+1, 1.e-20)
+    hRawYieldsSimFit.SetBinContent(iPt+1, ry)
+    hRawYieldsSimFit.SetBinError(iPt+1, ryUnc)
+    gvnSimFit.SetPoint(iPt, (ptMin+ptMax)/2, vn)
+    gvnSimFit.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, vnUnc, vnUnc)
 
-        vnFitter.append(AliHFVnVsMassFitter(hMassForFit[iPt], hVnForFit[iPt], massMin, massMax, bkgEnum, sgnEnum, bkgVnEnum))
-        vnFitter[iPt].SetHarmonic(harmonic)
-        vnFitter[iPt].SetInitialGaussianMean(massForFit, 1)
-        vnFitter[iPt].SetInitialGaussianSigma(sigma, 1)
-        if secPeak and particleName == 'Ds':
-            vnFitter[iPt].IncludeSecondGausPeak(massDplus, False, 0.010)
-        #if useRefl:
-        #    vnFitter[iPt].SetTemplateReflections(hRel[iPt], reflopt, massMin, massMax)
-        #    vnFitter[iPt].SetFixReflOverS(SoverR)
-        #    vnFitter[iPt].SetReflVnOption(AliHFVnVsMassFitter.kSameVnSignal)
+    if secPeak:
+        secPeakMeanMass = fTotFuncMass[iPt].GetParameter(7)
+        secPeakMeanMassUnc = fTotFuncMass[iPt].GetParError(7)
+        secPeakSigmaMass = fTotFuncMass[iPt].GetParameter(8)
+        secPeakSigmaMassUnc = fTotFuncMass[iPt].GetParError(8)
+        secPeakMeanVn = fTotFuncVn[iPt].GetParameter(7)
+        secPeakMeanVnUnc = fTotFuncVn[iPt].GetParError(7)
+        secPeakSigmaVn = fTotFuncVn[iPt].GetParameter(8)
+        secPeakSigmaVnUnc = fTotFuncVn[iPt].GetParError(8)
+        vnSecPeak = fTotFuncVn[iPt].GetParameter(11)
+        vnSecPeakUnc = fTotFuncVn[iPt].GetParError(11)
 
-        vnFitter[iPt].SimultaneusFit(False)
-        hSigmaSimFit.SetBinContent(iPt+1, vnFitter[iPt].GetSigma())
-        hSigmaSimFit.SetBinError(iPt+1, vnFitter[iPt].GetSigmaUncertainty())
-        hMeanSimFit.SetBinContent(iPt+1, vnFitter[iPt].GetMean())
-        hMeanSimFit.SetBinError(iPt+1, vnFitter[iPt].GetMeanUncertainty())
-        hRedChi2SimFit.SetBinContent(iPt+1, vnFitter[iPt].GetReducedChiSquare())
-        hRedChi2SimFit.SetBinError(iPt+1, 1.e-20)
-        hProbSimFit.SetBinContent(iPt+1, vnFitter[iPt].GetFitProbability())
-        hProbSimFit.SetBinError(iPt+1, 1.e-20)
-        hRedChi2SBVnPrefit.SetBinContent(iPt+1, vnFitter[iPt].GetSBVnPrefitReducedChiSquare())
-        hRedChi2SBVnPrefit.SetBinError(iPt+1, 1.e-20)
-        hProbSBVnPrefit.SetBinContent(iPt+1, vnFitter[iPt].GetSBVnPrefitProbability())
-        hProbSBVnPrefit.SetBinError(iPt+1, 1.e-20)
-        vnSimFit = vnFitter[iPt].GetVn()
-        vnSimFitUnc = vnFitter[iPt].GetVnUncertainty()
-        print(f'vnSimFit = {vnSimFit} +- {vnSimFitUnc}')
-        gvnSimFit.SetPoint(iPt, (ptMin+ptMax)/2, vnSimFit)
-        gvnSimFit.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, vnSimFitUnc, vnSimFitUnc)
+        hMeanSecPeakFitMass.SetBinContent(iPt+1, secPeakMeanMass)
+        hMeanSecPeakFitMass.SetBinError(iPt+1, secPeakMeanMassUnc)
+        hSigmaSecPeakFitMass.SetBinContent(iPt+1, secPeakSigmaMass)
+        hSigmaSecPeakFitMass.SetBinError(iPt+1, secPeakSigmaMassUnc)
+        hMeanSecPeakFitVn.SetBinContent(iPt+1, secPeakMeanVn)
+        hMeanSecPeakFitVn.SetBinError(iPt+1, secPeakMeanVnUnc)
+        hSigmaSecPeakFitVn.SetBinContent(iPt+1, secPeakSigmaVn)
+        hSigmaSecPeakFitVn.SetBinError(iPt+1, secPeakSigmaVnUnc)
+        gvnSimFitSecPeak.SetPoint(iPt, (ptMin+ptMax)/2, vnSecPeak)
+        gvnSimFitSecPeak.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, vnSecPeakUnc, vnSecPeakUnc)
 
-        if vnSimFit != 0:
-            cSimFit[iPt].cd()
-            vnFitter[iPt].DrawHere(gPad)
-
-        hRawYields.SetBinContent(iPt+1, rawyield)
-        hRawYields.SetBinError(iPt+1, rawyielderr)
-        hRawYieldsSigma.SetBinContent(iPt+1, sigma)
-        hRawYieldsSigma.SetBinError(iPt+1, sigmaerr)
-        hRawYieldsMean.SetBinContent(iPt+1, mean)
-        hRawYieldsMean.SetBinError(iPt+1, meanerr)
-        hRawYieldsSignificance.SetBinContent(iPt+1, signif.value)
-        hRawYieldsSignificance.SetBinError(iPt+1, signiferr.value)
-        hRawYieldsSoverB.SetBinContent(iPt+1, sgn.value/bkg.value)
-        if bkg.value != 0 and sgn.value != 0:
-            hRawYieldsSoverB.SetBinError(iPt+1, sgn.value/bkg.value*np.sqrt(
-                sgnerr.value**2/sgn.value**2+bkgerr.value**2/bkg.value**2))
-        hRawYieldsSignal.SetBinContent(iPt+1, sgn.value)
-        hRawYieldsSignal.SetBinError(iPt+1, sgnerr.value)
-        hRawYieldsBkg.SetBinContent(iPt+1, bkg.value)
-        hRawYieldsBkg.SetBinError(iPt+1, bkgerr.value)
-        hRawYieldsChiSquare.SetBinContent(iPt+1, redchi2)
-        hRawYieldsChiSquare.SetBinError(iPt+1, 1.e-20)
-
-        for iS, _ in enumerate(nSigma4SandB):
-            massFitter[iPt].Significance(nSigma4SandB[iS],signif,signiferr)
-            massFitter[iPt].Signal(nSigma4SandB[iS],sgn,sgnerr)
-            massFitter[iPt].Background(nSigma4SandB[iS],bkg,bkgerr)
-
-            hRawYieldsSignalDiffSigma[iS].SetBinContent(iPt+1,sgn.value)
-            hRawYieldsSignalDiffSigma[iS].SetBinError(iPt+1,sgnerr.value)
-            hRawYieldsBkgDiffSigma[iS].SetBinContent(iPt+1,bkg.value)
-            hRawYieldsBkgDiffSigma[iS].SetBinError(iPt+1,bkgerr.value)
-            hRawYieldsSoverBDiffSigma[iS].SetBinContent(iPt+1,sgn.value/bkg.value)
-            #hRawYieldsSoverBDiffSigma[iS].SetBinError(
-            #    iPt+1,
-            #    sgn.value/bkg.value*np.sqrt(sgnerr.value**2/sgn.value**2+bkgerr.value**2/bkg.value**2)
-            #)
-            hRawYieldsSignifDiffSigma[iS].SetBinContent(iPt+1,signif.value)
-            hRawYieldsSignifDiffSigma[iS].SetBinError(iPt+1,signiferr.value)
-
-        fTotFunc = massFitter[iPt].GetMassFunc()
-        fBkgFunc = massFitter[iPt].GetBackgroundRecalcFunc()
-
-        parFrac2Gaus, parsecondsigma = -1, -1
-        if sgnEnum == AliHFInvMassFitter.k2Gaus:
-            if not (inclSecPeak and particleName == 'Ds'):
-                parFrac2Gaus = fTotFunc.GetNpar()-2
-                parsecondsigma = fTotFunc.GetNpar()-1
-            else:
-                parFrac2Gaus = fTotFunc.GetNpar()-5
-                parsecondsigma = fTotFunc.GetNpar()-4
-
-            sigma2 = fTotFunc.GetParameter(parsecondsigma)
-            sigma2err = fTotFunc.GetParError(parsecondsigma)
-            frac2gaus = fTotFunc.GetParameter(parFrac2Gaus)
-            frac2gauserr = fTotFunc.GetParError(parFrac2Gaus)
-            hRawYieldsSigma2.SetBinContent(iPt+1, sigma2)
-            hRawYieldsSigma2.SetBinError(iPt+1, sigma2err)
-            hRawYieldsFracGaus2.SetBinContent(iPt+1, frac2gaus)
-            hRawYieldsFracGaus2.SetBinError(iPt+1, frac2gauserr)
-
-        if inclSecPeak and particleName == 'Ds':
-            paryieldSecPeak = fTotFunc.GetNpar()-3
-            parMeanSecPeak = fTotFunc.GetNpar()-2
-            parSigmaSecPeak = fTotFunc.GetNpar()-1
-
-            rawyieldSecPeak = fTotFunc.GetParameter(paryieldSecPeak) / binWidth
-            rawyieldSecPeakerr = fTotFunc.GetParError(paryieldSecPeak) / binWidth
-            meanSecPeak = fTotFunc.GetParameter(parMeanSecPeak)
-            meanSecPeakerr = fTotFunc.GetParError(parMeanSecPeak)
-            sigmaSecPeak = fTotFunc.GetParameter(parSigmaSecPeak)
-            sigmaSecPeakerr = fTotFunc.GetParError(parSigmaSecPeak)
-
-            bkgSecPeak = fBkgFunc.Integral(meanSecPeak - 3*sigmaSecPeak, meanSecPeak + 3*sigmaSecPeak) / binWidth
-            bkgSecPeakerr = np.sqrt(bkgSecPeak)
-            signalSecPeak = fTotFunc.Integral(meanSecPeak - 3*sigmaSecPeak, meanSecPeak + 3*sigmaSecPeak) / binWidth \
-                            - bkgSecPeak
-            signalSecPeakerr = np.sqrt(signalSecPeak+bkgSecPeak)
-            signifSecPeak, signifSecPeakerr = ctypes.c_double(), ctypes.c_double()
-            AliVertexingHFUtils.ComputeSignificance(signalSecPeak, signalSecPeakerr, bkgSecPeak, bkgSecPeakerr,
-                                                    signifSecPeak, signifSecPeakerr)
-
-            hRawYieldsSecPeak.SetBinContent(iPt+1, rawyieldSecPeak)
-            hRawYieldsSecPeak.SetBinError(iPt+1, rawyieldSecPeakerr)
-            hRawYieldsMeanSecPeak.SetBinContent(iPt+1, meanSecPeak)
-            hRawYieldsMeanSecPeak.SetBinError(iPt+1, meanSecPeakerr)
-            hRawYieldsSigmaSecPeak.SetBinContent(iPt+1, sigmaSecPeak)
-            hRawYieldsSigmaSecPeak.SetBinError(iPt+1, sigmaSecPeakerr)
-            hRawYieldsSignificanceSecPeak.SetBinContent(iPt+1, signifSecPeak.value)
-            hRawYieldsSignificanceSecPeak.SetBinError(iPt+1, signifSecPeakerr.value)
-            hRawYieldsSigmaRatioSecondFirstPeak.SetBinContent(iPt+1, sigmaSecPeak/sigma)
-            hRawYieldsSigmaRatioSecondFirstPeak.SetBinError(iPt+1, \
-                np.sqrt(sigmaerr**2/sigma**2+sigmaSecPeakerr**2/sigmaSecPeak**2)*sigmaSecPeak/sigma)
-            hRawYieldsSoverBSecPeak.SetBinContent(iPt+1, signalSecPeak/bkgSecPeak)
-            hRawYieldsSoverBSecPeak.SetBinError(iPt+1, \
-                signalSecPeak/bkgSecPeak*np.sqrt(signalSecPeakerr**2/signalSecPeak**2+bkgSecPeakerr**2/bkgSecPeak**2))
-            hRawYieldsSignalSecPeak.SetBinContent(iPt+1, signalSecPeak)
-            hRawYieldsSignalSecPeak.SetBinError(iPt+1, signalSecPeakerr)
-            hRawYieldsBkgSecPeak.SetBinContent(iPt+1, bkgSecPeak)
-            hRawYieldsBkgSecPeak.SetBinError(iPt+1, bkgSecPeakerr)
-
-        if nPtBins > 1:
-            cMass[iCanv].cd(iPt-nMaxCanvases*iCanv+1)
-        else:
-            cMass[iCanv].cd()
-
-        hMassForFit[iPt].GetYaxis().SetRangeUser(hMassForFit[iPt].GetMinimum()*0.95, hMassForFit[iPt].GetMaximum()*1.2)
-        massFitter[iPt].GetSignalFunc().SetNpx(500)
-        massFitter[iPt].GetMassFunc().SetNpx(500)
-
-        massFitter[iPt].DrawHere(gPad)
-
-        # residuals
-        if nPtBins > 1:
-            cResiduals[iCanv].cd(iPt-nMaxCanvases*iCanv+1)
-        else:
-            cResiduals[iCanv].cd()
-        massFitter[iPt].DrawHistoMinusFit(gPad)
-
-    cMass[iCanv].Modified()
-    cMass[iCanv].Update()
-    cResiduals[iCanv].Modified()
-    cResiduals[iCanv].Update()
+    if vn != 0:
+        cSimFit[iPt].cd()
+        vnFitter[iPt].DrawHere(gPad)
+        latex = TLatex()
+        latex.SetNDC()
+        latex.SetTextSize(0.04)
+        latex.DrawLatex(0.5, 0.15, f'{ptMin:.1f} < #it{{p}}_{{T}} < {ptMax:.1f} GeV/#it{{c}}')
     cSimFit[iCanv].Modified()
     cSimFit[iCanv].Update()
 
 #save output histos
 print(f'Saving output to {args.outputdir}')
-for icanv, canv in enumerate(cSimFit):
-    canv.SaveAs(f'{args.outputdir}/SimFit{args.suffix}_{particleName}_{icanv}.pdf')
+for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
+    if iPt == 0:
+        suffix = '('
+    elif iPt == nPtBins-1:
+        suffix = ')'
+    else:
+        suffix = ''
+    cSimFit[iPt].SaveAs(f'{args.outputdir}/SimFit{args.suffix}_{particleName}.pdf{suffix}')
 outfile_name = f'{args.outputdir}/raw_yields{args.suffix}.root'
 outFile = TFile(outfile_name, 'recreate')
-for canv in cMass:
+for canv in cSimFit:
     canv.Write()
-if not args.isMC:
-    for canv in cResiduals:
-        canv.Write()
 for hist in hMass:
     hist.Write()
-for fitter, ptLow, ptHigh in zip(massFitter, ptMins, ptMaxs):
-    fitter.GetMassFunc().SetName(f'fTot_{ptLow}_{ptHigh}')
-    fitter.GetSignalFunc().SetName(f'fSgn_{ptLow}_{ptHigh}')
-    fitter.GetBackgroundRecalcFunc().SetName(f'fBkg_{ptLow}_{ptHigh}')
-    fitter.GetMassFunc().Write()
-    fitter.GetSignalFunc().Write()
-    fitter.GetBackgroundRecalcFunc().Write()
-hRawYields.Write()
-hRawYieldsSigma.Write()
-hRawYieldsMean.Write()
-hRawYieldsSignificance.Write()
-hRawYieldsSoverB.Write()
-hRawYieldsSignal.Write()
-hRawYieldsBkg.Write()
-hRawYieldsChiSquare.Write()
-hRawYieldsSigma2.Write()
-hRawYieldsFracGaus2.Write()
-hRawYieldsSecPeak.Write()
-hRawYieldsMeanSecPeak.Write()
-hRawYieldsSigmaSecPeak.Write()
-hRawYieldsSignificanceSecPeak.Write()
-hRawYieldsSigmaRatioSecondFirstPeak.Write()
-hRawYieldsSoverBSecPeak.Write()
-hRawYieldsSignalSecPeak.Write()
-hRawYieldsBkgSecPeak.Write()
-hRawYieldsTrue.Write()
-hRawYieldsSecPeakTrue.Write()
-hRelDiffRawYieldsFitTrue.Write()
-hRelDiffRawYieldsSecPeakFitTrue.Write()
-gvnSimFit.Write()
+for hist in hVn:
+    hist.Write()
+for ipt, (ptmin, ptmax) in enumerate(zip(ptMins, ptMaxs)):
+    fTotFuncMass[ipt].Write(f'fTotFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+for ipt, (ptmin, ptmax) in enumerate(zip(ptMins, ptMaxs)):
+    fTotFuncVn[ipt].Write(f'fTotFuncVn_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+hSigmaSimFit.Write()
 hMeanSimFit.Write()
+hMeanSecPeakFitMass.Write()
+hMeanSecPeakFitVn.Write()
+hSigmaSecPeakFitMass.Write()
+hSigmaSecPeakFitVn.Write()
+hRawYieldsSimFit.Write()
+hRawYieldsSecPeakSimFit.Write()
+hRawYieldsSignificanceSimFit.Write()
+hRawYieldsSoverBSimFit.Write()
 hRedChi2SimFit.Write()
 hProbSimFit.Write()
 hRedChi2SBVnPrefit.Write()
 hProbSBVnPrefit.Write()
-hEv.Write()
-if not args.isMC:
-    dirSB = TDirectoryFile('SandBDiffNsigma', 'SandBDiffNsigma')
-    dirSB.Write()
-    dirSB.cd()
-    for iS, _ in enumerate(nSigma4SandB):
-        hRawYieldsSignalDiffSigma[iS].Write()
-        hRawYieldsBkgDiffSigma[iS].Write()
-        hRawYieldsSoverBDiffSigma[iS].Write()
-        hRawYieldsSignifDiffSigma[iS].Write()
-    dirSB.Close()
-outFile.Close()
+gvnSimFit.Write()
+gvnSimFitSecPeak.Write()
 
-outFileNamePDF = outfile_name.replace('.root', '.pdf')
-outFileNameResPDF = outFileNamePDF.replace('.pdf', '_Residuals.pdf')
-for iCanv, (cM, cR) in enumerate(zip(cMass, cResiduals)):
-    if iCanv == 0 and nCanvases > 1:
-        cM.SaveAs(f'{outFileNamePDF}[')
-    cM.SaveAs(outFileNamePDF)
-    if iCanv == nCanvases-1 and nCanvases > 1:
-        cM.SaveAs(f'{outFileNamePDF}]')
-    if not args.isMC:
-        if iCanv == 0 and nCanvases > 1:
-            cR.SaveAs(f'{outFileNameResPDF}[')
-        cR.SaveAs(outFileNameResPDF)
-        if iCanv == nCanvases-1 and nCanvases > 1:
-            cR.SaveAs(f'{outFileNameResPDF}]')
+outFile.Close()
 
 if not args.batch:
     input('Press enter to exit')
