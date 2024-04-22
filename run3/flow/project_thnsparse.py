@@ -5,7 +5,7 @@ import numpy as np
 from alive_progress import alive_bar
 from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, compute_r2
 
-def check_anres(config, an_res_file, centrality, outputdir, suffix, do_ep):
+def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, do_ep):
     with open(config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
@@ -29,7 +29,9 @@ def check_anres(config, an_res_file, centrality, outputdir, suffix, do_ep):
         sig_ml_cuts = config['sig_ml_cuts']
 
     infile = ROOT.TFile(an_res_file, 'READ')
-    thnsparse = infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm')
+    if wagon_id != '':
+        wagon_id = f'_id{wagon_id}'
+    thnsparse = infile.Get(f'hf-task-flow-charm-hadrons{wagon_id}/hSparseFlowCharm')
 
     outfile = ROOT.TFile(f'{outputdir}/proj{suffix}.root', 'RECREATE')
     hist_reso = ROOT.TH1F('hist_reso', 'hist_reso', len(cent_bins) - 1, cent_bins[0], cent_bins[-1])
@@ -37,12 +39,11 @@ def check_anres(config, an_res_file, centrality, outputdir, suffix, do_ep):
     cent_max = cent_bins[1]
     thnsparse_selcent = thnsparse.Clone(f'thnsparse_selcent{cent_min}_{cent_max}')
     thnsparse_selcent.GetAxis(axis_cent).SetRangeUser(cent_min, cent_max)
-    reso = 1#compute_r2(infile, cent_min, cent_max, det_A, det_B, det_C, do_ep)
+    reso = 1#compute_r2(infile, wagon_id, cent_min, cent_max, det_A, det_B, det_C, do_ep)
     hist_reso.SetBinContent(hist_reso.FindBin(cent_min), reso)
 
     with alive_bar(len(pt_mins)) as bar:
         for ipt, (pt_min, pt_max) in enumerate(zip(pt_mins, pt_maxs)):
-            print(f'Processing pt bin {pt_min} - {pt_max}')
             inv_mass_bin = inv_mass_bins[ipt]
             outfile.mkdir(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
             thnsparse_selcent.GetAxis(axis_pt).SetRangeUser(pt_min, pt_max)
@@ -53,7 +54,7 @@ def check_anres(config, an_res_file, centrality, outputdir, suffix, do_ep):
             
             if do_ep:
                 hist_vn_ep = get_vn_versus_mass(thnsparse_selcent, inv_mass_bin,
-                                                axis_mass, axis_deltaphi, False)
+                                                axis_mass, axis_deltaphi, True)
                 hist_vn_ep.SetName(f'hist_vn_ep_pt{pt_min}_{pt_max}')
                 hist_vn_ep.SetDirectory(0)
                 if reso > 0:
@@ -86,6 +87,8 @@ if __name__ == "__main__":
                         default="an_res.root", help="input ROOT file with anres")
     parser.add_argument("--centrality", "-c", metavar="text",
                         default="k3050", help="centrality class")
+    parser.add_argument("--wagon_id", "-w", metavar="text",
+                        default="", help="wagon ID", required=False)
     parser.add_argument("--outputdir", "-o", metavar="text",
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
@@ -98,6 +101,7 @@ if __name__ == "__main__":
         config=args.config,
         an_res_file=args.an_res_file,
         centrality=args.centrality,
+        wagon_id=args.wagon_id,
         outputdir=args.outputdir,
         suffix=args.suffix,
         do_ep=args.doEP

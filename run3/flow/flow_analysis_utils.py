@@ -50,13 +50,15 @@ def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False
     
     return hist_mass_proj
 
-def get_resolution(resolution_file_name, dets, centMin, centMax, doEP=False):
+def get_resolution(resolution_file_name, wagon_id, dets, centMin, centMax, doEP=False):
     '''
     Compute resolution for SP or EP method
 
     Input:
         - resolution_file_name: 
             str, path to the resolution file
+        - wagon_id:
+            str, wagon ID
         - dets: 
             list of strings, subsystems to compute the resolution
             if 2 subsystems are given, the resolution is computed as the product of the two
@@ -86,11 +88,13 @@ def get_resolution(resolution_file_name, dets, centMin, centMax, doEP=False):
     dets = [f'{detA}{detB}', f'{detA}{detC}', f'{detB}{detC}'] if len(dets) == 3 else [f'{detA}{detB}']
     
     # set path and prefix
+    if wagon_id != '':
+        wagon_id = f'_id{wagon_id}'
     if doEP:
-        path = 'hf-task-flow-charm-hadrons/epReso/'
+        path = f'hf-task-flow-charm-hadrons{wagon_id}/epReso/'
         prefix = 'EpReso'
     else:
-        path = 'hf-task-flow-charm-hadrons/spReso/'
+        path = f'hf-task-flow-charm-hadrons{wagon_id}/spReso/'
         prefix = 'SpReso'
    
     # collect the qvecs and the prepare histo for mean and resolution
@@ -186,13 +190,15 @@ def get_centrality_bins(centrality):
         print(f"ERROR: cent class \'{centrality}\' is not supported! Exit")
     sys.exit()
 
-def compute_r2(reso_file, cent_min, cent_max, detA, detB, detC, do_ep):
+def compute_r2(reso_file, wagon_id, cent_min, cent_max, detA, detB, detC, do_ep):
     '''
     Compute resolution for SP or EP method
     
     Input:
         - reso_file:
             TFile, resolution file
+        - wagon_id:
+            str, wagon ID
         - cent_min:
             int, minimum centrality bin
         - cent_max:
@@ -211,10 +217,12 @@ def compute_r2(reso_file, cent_min, cent_max, detA, detB, detC, do_ep):
         - reso:
             float, resolution value
     '''
+    if wagon_id != '':
+        wagon_id = f'_id{wagon_id}'
     if do_ep:
-        hist_name = 'hf-task-flow-charm-hadrons/epReso/hEpReso'
+        hist_name = f'hf-task-flow-charm-hadrons{wagon_id}/epReso/hEpReso'
     else:
-        hist_name = 'hf-task-flow-charm-hadrons/spReso/hSpReso'
+        hist_name = f'hf-task-flow-charm-hadrons{wagon_id}/spReso/hSpReso'
 
     detA_detB = reso_file.Get(f'{hist_name}{detA}{detB}')
     detA_detC = reso_file.Get(f'{hist_name}{detA}{detC}')
@@ -223,9 +231,12 @@ def compute_r2(reso_file, cent_min, cent_max, detA, detB, detC, do_ep):
     cent_bin_min = detA_detB.GetXaxis().FindBin(cent_min)
     cent_bin_max = detA_detB.GetXaxis().FindBin(cent_max)
 
-    proj_detA_detB = detA_detB.ProjectionY(f'{hist_name}{detA}{detB}_proj{cent_min}_{cent_max}', cent_bin_min, cent_bin_max)
-    proj_detA_detC = detA_detC.ProjectionY(f'{hist_name}{detA}{detC}_proj{cent_min}_{cent_max}', cent_bin_min, cent_bin_max)
-    proj_detB_detC = detB_detC.ProjectionY(f'{hist_name}{detB}{detC}_proj{cent_min}_{cent_max}', cent_bin_min, cent_bin_max)
+    proj_detA_detB = detA_detB.ProjectionY(f'{hist_name}{detA}{detB}_proj{cent_min}_{cent_max}',
+                                           cent_bin_min, cent_bin_max)
+    proj_detA_detC = detA_detC.ProjectionY(f'{hist_name}{detA}{detC}_proj{cent_min}_{cent_max}',
+                                           cent_bin_min, cent_bin_max)
+    proj_detB_detC = detB_detC.ProjectionY(f'{hist_name}{detB}{detC}_proj{cent_min}_{cent_max}',
+                                           cent_bin_min, cent_bin_max)
 
     average_detA_detB = proj_detA_detB.GetMean()
     average_detA_detC = proj_detA_detC.GetMean()

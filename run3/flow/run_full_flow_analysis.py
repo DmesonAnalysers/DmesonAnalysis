@@ -11,6 +11,7 @@ def run_full_analysis(config,
                       outputdir,
                       suffix,
                       doEP,
+                      wagon_id,
                       skip_resolution,
                       skip_projection,
                       skip_rawyield
@@ -27,6 +28,7 @@ def run_full_analysis(config,
     - outputdir (str): output directory
     - suffix (str): suffix for output files
     - doEP (bool): do EP resolution
+    - wagon_id (str): wagon ID
     - skip_resolution (bool): skip resolution extraction
     - skip_projection (bool): skip projection extraction
     - skip_rawyield (bool): skip raw yield extraction
@@ -43,6 +45,7 @@ def run_full_analysis(config,
     else:
         outputdir = f"{outputdir}/sp"
     cent_withopt = f" -c {centrality}"
+    wagon_id_withopt = f" -w {wagon_id}"
 
     if skip_resolution and skip_projection and skip_rawyield:
         print("\033[91m Nothing to do, all steps are skipped\033[0m")
@@ -58,6 +61,8 @@ def run_full_analysis(config,
             os.makedirs(f"{outputdir}/resolution")
         outputdir_reso = f"-o {outputdir}/resolution/"
         command_reso = f"python3 compute_reso.py {an_res_file} {suffix_withopt} {outputdir_reso}"
+        if wagon_id != "":
+            command_reso += f" {wagon_id_withopt}"
         if doEP:
             command_reso += " --doEP"
         print("\n\033[92m Starting resolution extraction\033[0m")
@@ -70,6 +75,8 @@ def run_full_analysis(config,
             os.makedirs(f"{outputdir}/proj")
         outputdir_proj = f"-o {outputdir}/proj"
         command_proj = f"python3 project_thnsparse.py {config} {an_res_file} {cent_withopt} {suffix_withopt} {outputdir_proj}"
+        if wagon_id != "":
+            command_proj += f" {wagon_id_withopt}"
         if doEP:
             command_proj += " --doEP"
         print("\n\033[92m Starting projection\033[0m")
@@ -106,6 +113,8 @@ if __name__ == "__main__":
                         default="", help="suffix for output files")
     parser.add_argument("--doEP", action="store_true", default=False,
                         help="do EP resolution")
+    parser.add_argument("--wagon_id", "-w", metavar="text",
+                        default="", help="wagon ID", required=False)
     parser.add_argument("--skip_resolution", action="store_true", default=False,
                         help="skip resolution extraction")
     parser.add_argument("--skip_projection", action="store_true", default=False,
@@ -121,6 +130,7 @@ if __name__ == "__main__":
         args.outputdir,
         args.suffix,
         args.doEP,
+        args.wagon_id,
         args.skip_resolution,
         args.skip_projection,
         args.skip_rawyield
