@@ -38,17 +38,19 @@ def LatLabel(label, x, y, size):
     latex.SetTextSize(size)
     latex.DrawLatex(x, y, label)
 
-def compute_reso(an_res_file, doEP, outputdir, suffix):
+def compute_reso(an_res_file, wagon_id, doEP, outputdir, suffix):
 
     detA = ['FT0c', 'FT0c', 'FT0c', 'FT0c']
     detB = ['FT0a', 'FT0a', 'FT0a', 'TPCpos']
     detC = ['FV0a', 'TPCpos', 'TPCneg', 'TPCneg']
+    print(f'Wagon ID: {wagon_id}')
 
     outfile_name = f'{outputdir}resoSP{suffix}.root' if not doEP else f'{outputdir}resoEP{suffix}.root'
     outfile = ROOT.TFile(outfile_name, 'RECREATE')
     for i, (det_a, det_b, det_c) in enumerate(zip(detA, detB, detC)):
         hist_reso, histos_det,\
         histo_means = get_resolution(an_res_file,
+                                     wagon_id,
                                      [det_a, det_b, det_c],
                                      0,
                                      100,
@@ -101,7 +103,7 @@ def compute_reso(an_res_file, doEP, outputdir, suffix):
         hist_reso.Write()
         outfile.cd('..')
 
-    input(f'Press enter to continue')
+    input('Press enter to continue')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
@@ -109,6 +111,8 @@ if __name__ == "__main__":
                         default="an_res.root", help="input ROOT file with anres")
     parser.add_argument("--doEP",  action="store_true", default=False,
                         help="do EP resolution")
+    parser.add_argument("--wagon_id", "-w", metavar="text",
+                        default="", help="wagon ID", required=False)
     parser.add_argument("--outputdir", "-o", metavar="text",
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
@@ -118,6 +122,7 @@ if __name__ == "__main__":
     compute_reso(
         an_res_file=args.an_res_file,
         doEP=args.doEP,
+        wagon_id=args.wagon_id,
         outputdir=args.outputdir,
         suffix=args.suffix
         )
