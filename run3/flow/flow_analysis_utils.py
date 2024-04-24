@@ -245,3 +245,91 @@ def compute_r2(reso_file, wagon_id, cent_min, cent_max, detA, detB, detC, do_ep)
     reso = (average_detA_detB * average_detA_detC) / average_detB_detC if average_detB_detC != 0 else -999
     reso = np.sqrt(reso) if reso > 0 else -999
     return reso
+
+def get_invmass_vs_deltaphi(thnSparse, deltaphiaxis, invmassaxis):
+    '''
+    Project invariant mass versus deltaphi
+    
+    Input:
+        - thnSparse:
+            THnSparse, input THnSparse obeject
+        - deltaphiaxis:
+            int, axis number for deltaphi
+        - invmassaxis:
+            int, axis number for invariant mass
+
+    Output:
+        - hist_invMass_in:
+            TH1D, histogram with invariant mass for in-plane
+        - hist_invMass_out:
+            TH1D, histogram with invariant mass for out-of-plane
+    ''' 
+    thn_inplane = thnSparse.Clone('thn_inplane')
+    thn_outplane = thnSparse.Clone('thn_outplane')
+    hist_cosDeltaPhi_inplane = thn_inplane.Projection(deltaphiaxis, invmassaxis)
+    hist_cosDeltaPhi_outplane = thn_outplane.Projection(deltaphiaxis, invmassaxis)
+    # In-plane (|cos(deltaphi)| < pi/4)
+    hist_cosDeltaPhi_inplane.GetYaxis().SetRangeUser(0, 1)
+    hist_invMass_in = hist_cosDeltaPhi_inplane.ProjectionX()
+    # Out-of-plane (|cos(deltaphi)| > pi/4)
+    hist_cosDeltaPhi_outplane.GetYaxis().SetRangeUser(-1, 0)
+    hist_invMass_out = hist_cosDeltaPhi_outplane.ProjectionX()
+    hist_invMass_in.SetLineColor(ROOT.kRed)
+    del thn_inplane, thn_outplane, hist_cosDeltaPhi_inplane, hist_cosDeltaPhi_outplane
+    
+    return hist_invMass_in, hist_invMass_out
+
+def get_vnfitter_results(vnFitter, secPeak):
+    '''
+    Get vn fitter results:
+    0: BkgInt
+    1: BkgSlope
+    2: SgnInt
+    3: Mean
+    4: Sigma
+    5: SecPeakInt
+    6: SecPeakMean
+    7: SecPeakSigma
+    8: ConstVnBkg
+    9: SlopeVnBkg
+    10: v2Sgn
+    11: v2SecPeak
+
+    Input:
+        - vnfitter:
+            AliHFVnVsMassFitter, vn fitter object
+        - secPeak:
+            bool, if True, save secondary peak results
+
+    Output:
+        - vn_results:
+            dict, dictionary with vn results
+    '''
+    vn_results = {}
+    
+    vn_results['vn'] = vnFitter.GetVn()
+    vn_results['vnUnc'] = vnFitter.GetVnUncertainty()
+    vn_results['mean'] = vnFitter.GetMean()
+    vn_results['meanUnc'] = vnFitter.GetMeanUncertainty()
+    vn_results['sigma'] = vnFitter.GetSigma()
+    vn_results['sigmaUnc'] = vnFitter.GetSigmaUncertainty()
+    vn_results['ry'] = vnFitter.GetRawYield()
+    vn_results['ryUnc'] = vnFitter.GetRawYieldUncertainty()
+    vn_results['chi2'] = vnFitter.GetReducedChiSquare()
+    vn_results['prob'] = vnFitter.GetFitProbability()
+    vn_results['fTotFuncMass'] = vnFitter.GetMassTotFitFunc()
+    vn_results['fTotFuncVn'] = vnFitter.GetVnVsMassTotFitFunc()
+
+    if secPeak:
+        vn_results['secPeakMeanMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(6))
+        vn_results['secPeakMeanMassUnc'] = vn_results['fTotFuncMass'].GetParError(6)
+        vn_results['secPeakSigmaMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(7))
+        vn_results['secPeakSigmaMassUnc'] = vn_results['fTotFuncMass'].GetParError(7)
+        vn_results['secPeakMeanVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(6))
+        vn_results['secPeakMeanVnUnc'] = vn_results['fTotFuncVn'].GetParError(6)
+        vn_results['secPeakSigmaVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(7))
+        vn_results['secPeakSigmaVnUnc'] = vn_results['fTotFuncVn'].GetParError(7)
+        vn_results['vnSecPeak'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(11))
+        vn_results['vnSecPeakUnc'] = vn_results['fTotFuncVn'].GetParError(11)
+
+    return vn_results
