@@ -10,7 +10,7 @@ def run_full_analysis(config,
                       centrality,
                       outputdir,
                       suffix,
-                      doEP,
+                      vn_method,
                       wagon_id,
                       skip_resolution,
                       skip_projection,
@@ -27,7 +27,7 @@ def run_full_analysis(config,
     - centrality (str): centrality class
     - outputdir (str): output directory
     - suffix (str): suffix for output files
-    - doEP (bool): do EP resolution
+    - vn_method (str): vn technique (sp, ep, deltaphi)
     - wagon_id (str): wagon ID
     - skip_resolution (bool): skip resolution extraction
     - skip_projection (bool): skip projection extraction
@@ -40,10 +40,11 @@ def run_full_analysis(config,
     else:
         suffix = an_res_file.split("AnalysisResults")[-1].replace(".root", "")
         suffix_withopt = f" -s {suffix}"
-    if doEP:
-        outputdir = f"{outputdir}/ep"
-    else:
-        outputdir = f"{outputdir}/sp"
+    if vn_method not in ["sp", "ep", "deltaphi"]:
+        print("\033[91m Invalid vn method. Only sp, ep, deltaphi implemented. Exit!\033[0m")
+        return
+    outputdir = f"{outputdir}/{vn_method}"
+    vn_method_withopt = f" -vn {vn_method}"
     cent_withopt = f" -c {centrality}"
     wagon_id_withopt = f" -w {wagon_id}"
 
@@ -60,11 +61,9 @@ def run_full_analysis(config,
         if not os.path.exists(f"{outputdir}/resolution"):
             os.makedirs(f"{outputdir}/resolution")
         outputdir_reso = f"-o {outputdir}/resolution/"
-        command_reso = f"python3 compute_reso.py {an_res_file} {suffix_withopt} {outputdir_reso}"
+        command_reso = f"python3 compute_reso.py {an_res_file} {suffix_withopt} {outputdir_reso} {cent_withopt} {vn_method_withopt}"
         if wagon_id != "":
             command_reso += f" {wagon_id_withopt}"
-        if doEP:
-            command_reso += " --doEP"
         print("\n\033[92m Starting resolution extraction\033[0m")
         print(f"\033[92m {command_reso}\033[0m")
         os.system(command_reso)
@@ -74,11 +73,9 @@ def run_full_analysis(config,
         if not os.path.exists(f"{outputdir}/proj"):
             os.makedirs(f"{outputdir}/proj")
         outputdir_proj = f"-o {outputdir}/proj"
-        command_proj = f"python3 project_thnsparse.py {config} {an_res_file} {cent_withopt} {suffix_withopt} {outputdir_proj}"
+        command_proj = f"python3 project_thnsparse.py {config} {an_res_file} {cent_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt}"
         if wagon_id != "":
             command_proj += f" {wagon_id_withopt}"
-        if doEP:
-            command_proj += " --doEP"
         print("\n\033[92m Starting projection\033[0m")
         print(f"\033[92m {command_proj}\033[0m")
         os.system(command_proj)
@@ -89,15 +86,11 @@ def run_full_analysis(config,
             os.makedirs(f"{outputdir}/ry")
         outputdir_rawyield = f"-o {outputdir}/ry"
         proj_file = f"{outputdir}/proj/"
-        if doEP:
-            proj_file += f"proj{suffix}.root"
-            command_sim_fit = f"python3 get_vn_vs_mass.py {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} --doEP"
-        else:
-            proj_file += f"proj{suffix}.root"
-            command_sim_fit = f"python3 get_vn_vs_mass.py {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt}"
-        print("\n\033[92m Starting simultaneous fit\033[0m")
-        print(f"\033[92m {command_sim_fit}\033[0m")
-        os.system(command_sim_fit)
+        proj_file += f"proj{suffix}.root"
+        command_vn = f"python3 get_vn_vs_mass.py {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} {vn_method_withopt}"
+        print("\n\033[92m Starting vn extraction\033[0m")
+        print(f"\033[92m {command_vn}\033[0m")
+        os.system(command_vn)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
@@ -111,8 +104,8 @@ if __name__ == "__main__":
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
-    parser.add_argument("--doEP", action="store_true", default=False,
-                        help="do EP resolution")
+    parser.add_argument("--vn_method", "-vn", metavar="text",
+                        default="sp", help="vn technique (sp, ep, deltaphi)")
     parser.add_argument("--wagon_id", "-w", metavar="text",
                         default="", help="wagon ID", required=False)
     parser.add_argument("--skip_resolution", action="store_true", default=False,
@@ -129,7 +122,7 @@ if __name__ == "__main__":
         args.centrality,
         args.outputdir,
         args.suffix,
-        args.doEP,
+        args.vn_method,
         args.wagon_id,
         args.skip_resolution,
         args.skip_projection,
