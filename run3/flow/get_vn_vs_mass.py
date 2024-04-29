@@ -10,8 +10,8 @@ import ctypes
 import numpy as np
 import yaml
 from ROOT import TLatex, TFile, TCanvas, TH1D, TH1F, TDatabasePDG, AliHFInvMassFitter, AliVertexingHFUtils, AliHFVnVsMassFitter, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, gPad, kBlack, kRed, kAzure, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
-from flow_analysis_utils import get_centrality_bins, get_vnfitter_results # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, gPad, kBlack, kRed, kAzure, kGray, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
+from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
@@ -158,7 +158,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             hMassOuts.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_outplane_cent{cent}_pt{ptMin}_{ptMax}'))
             hMassIns[iPt].SetDirectory(0)
             hMassOuts[iPt].SetDirectory(0)
-        else:  
+        else:
             print(f'loading: cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_vn_{vn_method}_pt{ptMin}_{ptMax}')
             hMass.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_cent{cent}_pt{ptMin}_{ptMax}'))
             hVn.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_vn_{vn_method}_pt{ptMin}_{ptMax}'))
@@ -192,48 +192,92 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         infileSigma2.Close()
 
     # create histos for fit results
-    hSigmaSimFit = TH1D('hSigmaSimFit', f';{ptTit};#sigma', nPtBins, ptBinsArr)
-    hMeanSimFit = TH1D('hMeanSimFit', f';{ptTit};mean', nPtBins, ptBinsArr)
-    hMeanSecPeakFitMass = TH1D('hMeanSecondPeakFitMass', f';{ptTit};mean second peak mass fit', nPtBins, ptBinsArr)
-    hMeanSecPeakFitVn = TH1D('hMeanSecondPeakFitVn', f';{ptTit};mean second peak vn fit', nPtBins, ptBinsArr)
-    hSigmaSecPeakFitMass = TH1D('hSigmaSecondPeakFitMass', f';{ptTit};width second peak mass fit', nPtBins, ptBinsArr)
-    hSigmaSecPeakFitVn = TH1D('hSigmaSecondPeakFitVn', f';{ptTit};width second peak vn fit', nPtBins, ptBinsArr)
-    hRawYieldsSimFit = TH1D('hRawYieldsSimFit', f';{ptTit};raw yield', nPtBins, ptBinsArr)
-    hRawYieldsSecPeakSimFit = TH1D('hRawYieldsSecondPeakSimFit', f';{ptTit};raw yield second peak', nPtBins, ptBinsArr)
-    hRawYieldsSignificanceSimFit = TH1D('hRawYieldsSignificanceSimFit', f';{ptTit};significance', nPtBins, ptBinsArr)
-    hRawYieldsSoverBSimFit = TH1D('hRawYieldsSoverBSimFit', f';{ptTit};S/B', nPtBins, ptBinsArr)
-    hRedChi2SimFit = TH1D('hRedChi2SimFit', f';{ptTit};#chi^{{2}}/#it{{ndf}}', nPtBins, ptBinsArr)
-    hProbSimFit = TH1D('hProbSimFit', f';{ptTit};prob', nPtBins, ptBinsArr)
-    hRedChi2SBVnPrefit = TH1D('hRedChi2SBVnPrefit', f';{ptTit};#chi^{{2}}/#it{{ndf}}', nPtBins, ptBinsArr)
-    hProbSBVnPrefit = TH1D('hProbSBVnPrefit', f';{ptTit};prob', nPtBins, ptBinsArr)
-    gvnSimFit = TGraphAsymmErrors(1)
-    gvnSimFit.SetName('gvnSimFit')
-    gvnSimFitSecPeak = TGraphAsymmErrors(1)
-    gvnSimFitSecPeak.SetName('gvnSimFitSecPeak')
+    if vn_method == 'sp' or vn_method == 'ep':
+        hSigmaSimFit = TH1D('hSigmaSimFit', f';{ptTit};#sigma', nPtBins, ptBinsArr)
+        hMeanSimFit = TH1D('hMeanSimFit', f';{ptTit};mean', nPtBins, ptBinsArr)
+        hMeanSecPeakFitMass = TH1D('hMeanSecondPeakFitMass', f';{ptTit};mean second peak mass fit', nPtBins, ptBinsArr)
+        hMeanSecPeakFitVn = TH1D('hMeanSecondPeakFitVn', f';{ptTit};mean second peak vn fit', nPtBins, ptBinsArr)
+        hSigmaSecPeakFitMass = TH1D('hSigmaSecondPeakFitMass', f';{ptTit};width second peak mass fit', nPtBins, ptBinsArr)
+        hSigmaSecPeakFitVn = TH1D('hSigmaSecondPeakFitVn', f';{ptTit};width second peak vn fit', nPtBins, ptBinsArr)
+        hRawYieldsSimFit = TH1D('hRawYieldsSimFit', f';{ptTit};raw yield', nPtBins, ptBinsArr)
+        hRawYieldsSecPeakSimFit = TH1D('hRawYieldsSecondPeakSimFit', f';{ptTit};raw yield second peak', nPtBins, ptBinsArr)
+        hRawYieldsSignificanceSimFit = TH1D('hRawYieldsSignificanceSimFit', f';{ptTit};significance', nPtBins, ptBinsArr)
+        hRawYieldsSoverBSimFit = TH1D('hRawYieldsSoverBSimFit', f';{ptTit};S/B', nPtBins, ptBinsArr)
+        hRedChi2SimFit = TH1D('hRedChi2SimFit', f';{ptTit};#chi^{{2}}/#it{{ndf}}', nPtBins, ptBinsArr)
+        hProbSimFit = TH1D('hProbSimFit', f';{ptTit};prob', nPtBins, ptBinsArr)
+        hRedChi2SBVnPrefit = TH1D('hRedChi2SBVnPrefit', f';{ptTit};#chi^{{2}}/#it{{ndf}}', nPtBins, ptBinsArr)
+        hProbSBVnPrefit = TH1D('hProbSBVnPrefit', f';{ptTit};prob', nPtBins, ptBinsArr)
+        gvnSimFit = TGraphAsymmErrors(1)
+        gvnSimFit.SetName('gvnSimFit')
+        gvnSimFitSecPeak = TGraphAsymmErrors(1)
+        gvnSimFitSecPeak.SetName('gvnSimFitSecPeak')
 
-    SetObjectStyle(hSigmaSimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hMeanSimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hMeanSecPeakFitMass, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hSigmaSecPeakFitMass, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hMeanSecPeakFitVn, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hSigmaSecPeakFitVn, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hRawYieldsSimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hRawYieldsSecPeakSimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hRawYieldsSignificanceSimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hRawYieldsSoverBSimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hRedChi2SimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hProbSimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(hRedChi2SBVnPrefit, color=kRed, markerstyle=kFullSquare)
-    SetObjectStyle(hProbSBVnPrefit, color=kRed, markerstyle=kFullSquare)
-    SetObjectStyle(gvnSimFit, color=kBlack, markerstyle=kFullCircle)
-    SetObjectStyle(gvnSimFitSecPeak, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hSigmaSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hMeanSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hMeanSecPeakFitMass, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hSigmaSecPeakFitMass, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hMeanSecPeakFitVn, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hSigmaSecPeakFitVn, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hRawYieldsSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hRawYieldsSecPeakSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hRawYieldsSignificanceSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hRawYieldsSoverBSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hRedChi2SimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hProbSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hRedChi2SBVnPrefit, color=kRed, markerstyle=kFullSquare)
+        SetObjectStyle(hProbSBVnPrefit, color=kRed, markerstyle=kFullSquare)
+        SetObjectStyle(gvnSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(gvnSimFitSecPeak, color=kBlack, markerstyle=kFullCircle)
+    else:
+        hRawYieldsIn = TH1D('hRawYieldsIn', f';{ptTit};raw yield in-plane', nPtBins, ptBinsArr)
+        hRawYieldsOut = TH1D('hRawYieldsOut', f';{ptTit};raw yield out-of-plane', nPtBins, ptBinsArr)
+        hSigmaIn = TH1D('hSigmaIn', f';{ptTit};#sigma in-plane', nPtBins, ptBinsArr)
+        hSigmaOut = TH1D('hSigmaOut', f';{ptTit};#sigma out-of-plane', nPtBins, ptBinsArr)
+        hMeanIn = TH1D('hMeanIn', f';{ptTit};mean in-plane', nPtBins, ptBinsArr)
+        hMeanOut = TH1D('hMeanOut', f';{ptTit};mean out-of-plane', nPtBins, ptBinsArr)
+        hRedChi2In = TH1D('hRedChi2In', f';{ptTit};#chi^{{2}}/#it{{ndf}} in-plane', nPtBins, ptBinsArr)
+        hRedChi2Out = TH1D('hRedChi2Out', f';{ptTit};#chi^{{2}}/#it{{ndf}} out-of-plane', nPtBins, ptBinsArr)
+        hProbIn = TH1D('hProbIn', f';{ptTit};prob in-plane', nPtBins, ptBinsArr)
+        hProbOut = TH1D('hProbOut', f';{ptTit};prob out-of-plane', nPtBins, ptBinsArr)
+        hRawYieldsSignificanceIn = TH1D('hRawYieldsSignificanceIn', f';{ptTit};significance in-plane',
+                                        nPtBins, ptBinsArr)
+        hRawYieldsSignificanceOut = TH1D('hRawYieldsSignificanceOut', f';{ptTit};significance out-of-plane',
+                                         nPtBins, ptBinsArr)
+        hRawYieldsSoverBIn = TH1D('hRawYieldsSoverBIn', f';{ptTit};S/B in-plane', nPtBins, ptBinsArr)
+        hRawYieldsSoverBOut = TH1D('hRawYieldsSoverBOut', f';{ptTit};S/B out-of-plane', nPtBins, ptBinsArr)
+        hSigmaSecPeakFitIn = TH1D('hSigmaSecPeakFitIn', f';{ptTit};width second peak in-plane', nPtBins, ptBinsArr)
+        hSigmaSecPeakFitOut = TH1D('hSigmaSecPeakFitOut', f';{ptTit};width second peak out-of-plane',
+                                   nPtBins, ptBinsArr)
+        gvnSimFit = TGraphAsymmErrors(1)
+        gvnSimFit.SetName('gvnSimFit')
+        gvnSimFitSecPeak = TGraphAsymmErrors(1)
+        gvnSimFitSecPeak.SetName('gvnSimFitSecPeak')
+
+        SetObjectStyle(hRawYieldsIn, color=kRed, markerstyle=kFullCircle)
+        SetObjectStyle(hRawYieldsOut, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(hSigmaIn, color=kRed, markerstyle=kFullCircle)
+        SetObjectStyle(hSigmaOut, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(hMeanIn, color=kRed, markerstyle=kFullCircle)
+        SetObjectStyle(hMeanOut, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(hRedChi2In, color=kRed, markerstyle=kFullCircle)
+        SetObjectStyle(hRedChi2Out, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(hProbIn, color=kRed, markerstyle=kFullCircle)
+        SetObjectStyle(hProbOut, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(hRawYieldsSignificanceIn, color=kRed, markerstyle=kFullCircle)
+        SetObjectStyle(hRawYieldsSignificanceOut, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(hRawYieldsSoverBIn, color=kRed, markerstyle=kFullCircle)
+        SetObjectStyle(hRawYieldsSoverBOut, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(hSigmaSecPeakFitIn, color=kRed, markerstyle=kFullCircle)
+        SetObjectStyle(hSigmaSecPeakFitOut, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(gvnSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(gvnSimFitSecPeak, color=kBlack, markerstyle=kOpenCircle)
 
     # create canvases
     canvSizes = [1920, 1080]
     nMaxCanvases = 10 # do not put more than 20 bins per canvas to make them visible
     nCanvases = 1
     if nPtBins == 1:
-    canvSizes = [500, 500]
+        canvSizes = [500, 500]
     latex = TLatex()
     latex.SetNDC()
     latex.SetTextSize(0.04)
@@ -344,8 +388,14 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     #_____________________________________________________
     # Mass fit
     else:
-        for iPt, (hMassIn, hMassOut, ptMin, ptMax, reb, sgnEnum, bkgEnum, bkgVnEnum, secPeak, massMin, massMax) in enumerate(
-            zip(hMassIns, hMassOuts, ptMins, ptMaxs, rebins, SgnFunc, BkgFunc, BkgFuncVn, inclSecPeak, massMins, massMaxs)):
+        for iPt, (hMassIn, hMassOut,\
+                  ptMin, ptMax,\
+                  reb, sgnEnum, bkgEnum, bkgVnEnum,\
+                  secPeak, massMin, massMax) in enumerate(zip(hMassIns, hMassOuts,
+                                                              ptMins, ptMaxs,
+                                                              rebins, SgnFunc, BkgFunc,
+                                                              BkgFuncVn, inclSecPeak,
+                                                              massMins, massMaxs)):
             iCanv = iPt
             hMassInsForFit.append(TH1F())
             hMassOutsForFit.append(TH1F())
@@ -360,7 +410,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             hMassOutsForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};'
                                             f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
             hMassOutsForFit[iPt].SetName(f'MassOutForFit{iPt}')
-            SetObjectStyle(hMassInsForFit[iPt], color=kRed-3, markerstyle=kOpenCircle, markersize=0.8)
+            SetObjectStyle(hMassInsForFit[iPt], color=kRed-3, markerstyle=kFullCircle, markersize=0.8)
             SetObjectStyle(hMassOutsForFit[iPt], color=kAzure-3, markerstyle=kOpenCircle, markersize=0.8)
 
             print(f'Fitting {ptMin} - {ptMax} GeV/c')
@@ -454,16 +504,19 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
 
             cMass.cd(iPt+1)
             hMassInsForFit[iPt].GetYaxis().SetRangeUser(0, hMassInsForFit[iPt].GetMaximum()*2)
+            hMassInsForFit[iPt].GetXaxis().SetRangeUser(massMin, massMax)
             hMassInsForFit[iPt].Draw('PE')
             hMassOutsForFit[iPt].Draw('PE same')
             fTotFuncMassIn = massFitterIns[iPt].GetMassFunc()
             fTotFuncMassOut = massFitterOuts[iPt].GetMassFunc()
-            fTotFuncMassIn.SetLineColor(kRed)
-            fTotFuncMassIn.SetLineStyle(2)
-            fTotFuncMassIn.SetLineWidth(3)
-            fTotFuncMassOut.SetLineColor(kAzure)
-            fTotFuncMassOut.SetLineStyle(9)
-            fTotFuncMassOut.SetLineWidth(3)
+            fBkgFuncMassIn = massFitterIns[iPt].GetBackgroundRecalcFunc()
+            fBkgFuncMassOut = massFitterOuts[iPt].GetBackgroundRecalcFunc()
+            SetObjectStyle(fTotFuncMassIn, color=kRed, linestyle=2, linewidth=3)
+            SetObjectStyle(fTotFuncMassOut, color=kAzure, linestyle=9, linewidth=3)
+            SetObjectStyle(fBkgFuncMassIn, color=kGray+1, linestyle=9, linewidth=1)
+            SetObjectStyle(fBkgFuncMassOut, color=kGray+1, linestyle=9, linewidth=1)
+            fBkgFuncMassIn.Draw('same')
+            fBkgFuncMassOut.Draw('same')
             fTotFuncMassIn.Draw('same')
             fTotFuncMassOut.Draw('same')
             latex.SetTextColor(kRed)
@@ -472,26 +525,46 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             latex.DrawLatex(0.15, 0.70, f'S = {rawyield_in:.0f} #pm {rawyielderr_in:.0f}')
             latex.DrawLatex(0.15, 0.65, f'S/B = {sgn_in.value/bkg_in.value:.2f}')
             latex.DrawLatex(0.15, 0.60, f'#chi^{{2}}/ndf = {redchi2_in:.2f}')
-            latex.DrawLatex(0.15, 0.55, f'Significance = {signif_in.value:.2f} #pm {signiferr_in.value:.2f}')
+            latex.DrawLatex(0.15, 0.55, f'Signif. = {signif_in.value:.2f} #pm {signiferr_in.value:.2f}')
             latex.SetTextColor(kAzure)
             latex.DrawLatex(0.6, 0.80, f'#mu = {mean_out:.3f} #pm {meanerr_out:.3f} GeV/c^{2}')
             latex.DrawLatex(0.6, 0.75, f'#sigma = {sigma_out:.3f} #pm {sigmaerr_out:.3f} GeV/c^{2}')
             latex.DrawLatex(0.6, 0.70, f'S = {rawyield_out:.0f} #pm {rawyielderr_out:.0f}')
             latex.DrawLatex(0.6, 0.65, f'S/B = {sgn_out.value/bkg_out.value:.2f}')
             latex.DrawLatex(0.6, 0.60, f'#chi^{{2}}/ndf = {redchi2_out:.2f}')
-            latex.DrawLatex(0.6, 0.55, f'Significance = {signif_out.value:.2f} #pm {signiferr_out.value:.2f}')
+            latex.DrawLatex(0.6, 0.55, f'Signif. = {signif_out.value:.2f} #pm {signiferr_out.value:.2f}')
             cMass.Modified()
             cMass.Update()
 
+            hRawYieldsIn.SetBinContent(iPt+1, rawyield_in)
+            hRawYieldsIn.SetBinError(iPt+1, rawyielderr_in)
+            hSigmaIn.SetBinContent(iPt+1, sigma_in)
+            hSigmaIn.SetBinError(iPt+1, sigmaerr_in)
+            hMeanIn.SetBinContent(iPt+1, mean_in)
+            hMeanIn.SetBinError(iPt+1, meanerr_in)
+            hRedChi2In.SetBinContent(iPt+1, redchi2_in)
+            hRedChi2In.SetBinError(iPt+1, 1.e-20)
+            hRawYieldsSignificanceIn.SetBinContent(iPt+1, signif_in.value)
+            hRawYieldsSignificanceIn.SetBinError(iPt+1, signiferr_in.value)
+            hRawYieldsSoverBIn.SetBinContent(iPt+1, sgn_in.value/bkg_in.value)
+            hRawYieldsSoverBIn.SetBinError(iPt+1, 1.e-20)
+            hRawYieldsOut.SetBinContent(iPt+1, rawyield_out)
+            hRawYieldsOut.SetBinError(iPt+1, rawyielderr_out)
+            hSigmaOut.SetBinContent(iPt+1, sigma_out)
+            hSigmaOut.SetBinError(iPt+1, sigmaerr_out)
+            hMeanOut.SetBinContent(iPt+1, mean_out)
+            hMeanOut.SetBinError(iPt+1, meanerr_out)
+            hRedChi2Out.SetBinContent(iPt+1, redchi2_out)
+            hRedChi2Out.SetBinError(iPt+1, 1.e-20)
+            hRawYieldsSignificanceOut.SetBinContent(iPt+1, signif_out.value)
+            hRawYieldsSignificanceOut.SetBinError(iPt+1, signiferr_out.value)
+            hRawYieldsSoverBOut.SetBinContent(iPt+1, sgn_out.value/bkg_out.value)
+            hRawYieldsSoverBOut.SetBinError(iPt+1, 1.e-20)
+
             # vn
-            if (rawyield_in + rawyield_out) > 0:
-                vn = (np.pi / 4) * (rawyield_in - rawyield_out) / (rawyield_in + rawyield_out)
-            else:
-                vn = 0
-            if (rawyield_in != 0 and rawyield_out != 0): # TODO: check if this is correct
-                vnUnc = vn * np.sqrt((rawyielderr_in/rawyield_in)**2 + (rawyielderr_out/rawyield_out)**2)
-            else:
-                vnUnc = 0
+            vn, vnUnc = get_ep_vn(harmonic,
+                                  rawyield_in, rawyielderr_in,
+                                  rawyield_out, rawyielderr_out)
             gvnSimFit.SetPoint(iPt, (ptMin+ptMax)/2, vn)
             gvnSimFit.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, vnUnc, vnUnc)
 
@@ -516,7 +589,6 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         for hist in hVn:
             hist.Write()
         for ipt, (ptmin, ptmax) in enumerate(zip(ptMins, ptMaxs)):
-            print(f'Writing {ptmin} - {ptmax} GeV/c')
             fTotFuncMass[ipt].Write(f'fTotFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
         for ipt, (ptmin, ptmax) in enumerate(zip(ptMins, ptMaxs)):
             fTotFuncVn[ipt].Write(f'fTotFuncVn_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
@@ -547,6 +619,20 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             fTotFuncMassOut = massFitterOuts[ipt].GetMassFunc()
             fTotFuncMassIn.Write(f'fTotFuncMassIn_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
             fTotFuncMassOut.Write(f'fTotFuncMassOut_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+        hRawYieldsIn.Write()
+        hRawYieldsOut.Write()
+        hSigmaIn.Write()
+        hSigmaOut.Write()
+        hMeanIn.Write()
+        hMeanOut.Write()
+        hRedChi2In.Write()
+        hRedChi2Out.Write()
+        hRawYieldsSignificanceIn.Write()
+        hRawYieldsSignificanceOut.Write()
+        hRawYieldsSoverBIn.Write()
+        hRawYieldsSoverBOut.Write()
+        hSigmaSecPeakFitIn.Write()
+        hSigmaSecPeakFitOut.Write()
 
     gvnSimFit.Write()
     gvnSimFitSecPeak.Write()
@@ -555,7 +641,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
 
     if not batch:
         input('Press enter to exit')
-    
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')

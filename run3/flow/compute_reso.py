@@ -60,10 +60,10 @@ def compute_reso(an_res_file, wagon_id, doEP, outputdir, suffix):
         hist_reso.GetXaxis().SetTitle('centrality (%)')
         hist_reso.GetYaxis().SetTitle(f'#it{{R}}_{{2}}{{SP}} ({det_a}, {det_b}, {det_c})') if not doEP else hist_reso.GetYaxis().SetTitle(f'#it{{R}}_{{2}}{{EP}} ({det_a}, {det_b}, {det_c})')
 
+        outfile.cd()
+        outfile.mkdir(f'{det_a}_{det_b}_{det_c}')
+        outfile.cd(f'{det_a}_{det_b}_{det_c}')
         for i, (hist_det, hist_mean) in enumerate(zip(histos_det, histo_means)):
-            outfile.cd()
-            outfile.mkdir(f'{det_a}_{det_b}_{det_c}')
-            outfile.cd(f'{det_a}_{det_b}_{det_c}')
             SetObjectStyle(hist_mean, color=ROOT.kRed, markerstyle=ROOT.kFullCircle,
                    markersize=1, fillstyle=0, linewidth=2)
             canv_name = hist_det.GetName().replace('h', 'canv')
