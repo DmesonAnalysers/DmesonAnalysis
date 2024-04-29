@@ -51,9 +51,9 @@ def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn
     cent_max = cent_bins[1]
     thnsparse_selcent = thnsparse.Clone(f'thnsparse_selcent{cent_min}_{cent_max}')
     thnsparse_selcent.GetAxis(axis_cent).SetRangeUser(cent_min, cent_max)
-    reso = 1#compute_r2(infile, wagon_id, cent_min, cent_max, det_A, det_B, det_C, do_ep)
+    reso = 1#compute_r2(infile, wagon_id, cent_min, cent_max, det_A, det_B, det_C, vn_method)
     hist_reso.SetBinContent(hist_reso.FindBin(cent_min), reso)
-    vn_axis = axis_sp
+    vn_axis = axis_sp if vn_method == 'sp' else axis_deltaphi
 
     with alive_bar(len(pt_mins), title='Processing pt bins') as bar:
         # loop over pt bins

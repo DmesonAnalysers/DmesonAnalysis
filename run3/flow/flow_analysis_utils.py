@@ -190,7 +190,7 @@ def get_centrality_bins(centrality):
         print(f"ERROR: cent class \'{centrality}\' is not supported! Exit")
     sys.exit()
 
-def compute_r2(reso_file, wagon_id, cent_min, cent_max, detA, detB, detC, do_ep):
+def compute_r2(reso_file, wagon_id, cent_min, cent_max, detA, detB, detC, vn_method):
     '''
     Compute resolution for SP or EP method
     
@@ -218,8 +218,8 @@ def compute_r2(reso_file, wagon_id, cent_min, cent_max, detA, detB, detC, do_ep)
             float, resolution value
     '''
     if wagon_id != '':
-        wagon_id = f'_id{wagon_id}'
-    if do_ep:
+        wagon_id = f'{wagon_id}'
+    if vn_method != 'sp':
         hist_name = f'hf-task-flow-charm-hadrons{wagon_id}/epReso/hEpReso'
     else:
         hist_name = f'hf-task-flow-charm-hadrons{wagon_id}/spReso/hSpReso'
@@ -246,6 +246,7 @@ def compute_r2(reso_file, wagon_id, cent_min, cent_max, detA, detB, detC, do_ep)
     reso = np.sqrt(reso) if reso > 0 else -999
     return reso
 
+# TODO: extend to vn not only v2
 def get_invmass_vs_deltaphi(thnSparse, deltaphiaxis, invmassaxis):
     '''
     Project invariant mass versus deltaphi
@@ -333,3 +334,49 @@ def get_vnfitter_results(vnFitter, secPeak):
         vn_results['vnSecPeakUnc'] = vn_results['fTotFuncVn'].GetParError(11)
 
     return vn_results
+
+def get_ep_vn(harmonic, nIn, nInUnc, nOut, nOutUnc, resol=1, corr=0):
+    '''
+    Compute EP vn
+
+    Input:
+        - harmonic:
+            int, harmonic number
+        - nIn:
+            float, number of in-plane particles
+        - nInUnc:
+            float, uncertainty of the number of in-plane particles
+        - nOut:
+            float, number of out-of-plane particles
+        - nOutUnc:
+            float, uncertainty of the number of out-of-plane particles
+        - resol:
+            float, resolution value (default: 1)
+        - corr:
+            float, correlation between nIn and nOut (default: 1)
+
+    Output:
+        - vn:
+            float, vn value
+        - vnunc:
+            float, uncertainty of vn value
+    '''
+    print(corr)
+    if nIn + nOut == 0:
+        print('\033[91m ERROR: nIn + nOut = 0. Return 0, 0 \033[0m')
+        return 0, 0
+    anis = (nIn - nOut) / (nIn + nOut)
+    anisDerivIn  = 2 * nOut / ((nIn + nOut)*(nIn + nOut))
+    anisDerivOut = -2 * nIn / ((nIn + nOut)*(nIn + nOut))
+    anisunc = anisDerivIn * anisDerivIn * nInUnc * nInUnc +\
+              anisDerivOut * anisDerivOut * nOutUnc * nOutUnc + \
+              2 * anisDerivIn * anisDerivOut * nInUnc * nOutUnc * corr
+    if anisunc < 0:
+        print('\033[91m ERROR: anisunc < 0. Return 0, 0 \033[0m')
+        return 0, 0
+    anisunc = np.sqrt(anisunc)
+
+    vn = np.pi / harmonic / harmonic / resol * anis
+    vnunc = np.pi / harmonic / harmonic / resol * anisunc
+
+    return vn, vnunc

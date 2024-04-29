@@ -14,7 +14,7 @@ def run_full_analysis(config,
                       wagon_id,
                       skip_resolution,
                       skip_projection,
-                      skip_rawyield
+                      skip_vn
                       ):
     """
     function for full analysis
@@ -31,24 +31,26 @@ def run_full_analysis(config,
     - wagon_id (str): wagon ID
     - skip_resolution (bool): skip resolution extraction
     - skip_projection (bool): skip projection extraction
-    - skip_rawyield (bool): skip raw yield extraction
+    - skip_vn (bool): skip raw yield extraction
     """
 
     # get all parameters needed
+    if vn_method not in ["sp", "ep", "deltaphi"]:
+        print("\033[91m Invalid vn method. Only sp, ep, deltaphi implemented. Exit!\033[0m")
+        return
     if suffix != "":
         suffix_withopt = f" -s {suffix}"
     else:
         suffix = an_res_file.split("AnalysisResults")[-1].replace(".root", "")
         suffix_withopt = f" -s {suffix}"
-    if vn_method not in ["sp", "ep", "deltaphi"]:
-        print("\033[91m Invalid vn method. Only sp, ep, deltaphi implemented. Exit!\033[0m")
-        return
+    if wagon_id != "":
+        outputdir = f"{outputdir}/{wagon_id}"
     outputdir = f"{outputdir}/{vn_method}"
     vn_method_withopt = f" -vn {vn_method}"
     cent_withopt = f" -c {centrality}"
     wagon_id_withopt = f" -w {wagon_id}"
 
-    if skip_resolution and skip_projection and skip_rawyield:
+    if skip_resolution and skip_projection and skip_vn:
         print("\033[91m Nothing to do, all steps are skipped\033[0m")
         return
 
@@ -61,7 +63,9 @@ def run_full_analysis(config,
         if not os.path.exists(f"{outputdir}/resolution"):
             os.makedirs(f"{outputdir}/resolution")
         outputdir_reso = f"-o {outputdir}/resolution/"
-        command_reso = f"python3 compute_reso.py {an_res_file} {suffix_withopt} {outputdir_reso} {cent_withopt} {vn_method_withopt}"
+        command_reso = f"python3 compute_reso.py {an_res_file} {suffix_withopt} {outputdir_reso}"
+        if vn_method != "sp":
+            command_reso += " --doEP"
         if wagon_id != "":
             command_reso += f" {wagon_id_withopt}"
         print("\n\033[92m Starting resolution extraction\033[0m")
@@ -80,7 +84,7 @@ def run_full_analysis(config,
         print(f"\033[92m {command_proj}\033[0m")
         os.system(command_proj)
 
-    if not skip_rawyield:
+    if not skip_vn:
         # raw yield
         if not os.path.exists(f"{outputdir}/ry"):
             os.makedirs(f"{outputdir}/ry")
@@ -91,6 +95,13 @@ def run_full_analysis(config,
         print("\n\033[92m Starting vn extraction\033[0m")
         print(f"\033[92m {command_vn}\033[0m")
         os.system(command_vn)
+
+    # copy config file
+    if not os.path.exists(f"{outputdir}/config"):
+        os.makedirs(f"{outputdir}/config")
+    os.system(f"cp {config} {outputdir}/config/{config.split('/')[-1]}{suffix}.yml")
+
+    print("\n\033[92m Full analysis done\033[0m")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
@@ -112,8 +123,8 @@ if __name__ == "__main__":
                         help="skip resolution extraction")
     parser.add_argument("--skip_projection", action="store_true", default=False,
                         help="skip projection extraction")
-    parser.add_argument("--skip_rawyield", action="store_true", default=False,
-                        help="skip raw yield extraction")
+    parser.add_argument("--skip_vn", action="store_true", default=False,
+                        help="skip vn estimation")
     args = parser.parse_args()
 
     run_full_analysis(
@@ -126,5 +137,5 @@ if __name__ == "__main__":
         args.wagon_id,
         args.skip_resolution,
         args.skip_projection,
-        args.skip_rawyield
+        args.skip_vn
     )
