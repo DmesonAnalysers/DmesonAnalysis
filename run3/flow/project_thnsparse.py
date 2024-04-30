@@ -21,7 +21,9 @@ def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn
     axis_sp = config['axes']['sp']
     axis_deltaphi = config['axes']['deltaphi']
     inv_mass_bins = config['inv_mass_bins']
-
+    use_inv_mass_bins = config['use_inv_mass_bins']
+    if use_inv_mass_bins:
+        print('\033[93m WARNING: Using inv_mass_bins from input file\033[0m')
     # sanity check
     if len(pt_mins) != len(pt_maxs) or len(pt_mins) != len(inv_mass_bins):
         sys.exit('\033[91m FATAL: pt_mins, pt_maxs, and inv_mass_bins must have the same length\033[0m')
@@ -43,6 +45,8 @@ def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn
     if wagon_id != '':
         wagon_id = f'_id{wagon_id}'
     thnsparse = infile.Get(f'hf-task-flow-charm-hadrons{wagon_id}/hSparseFlowCharm')
+    if not thnsparse:
+        sys.exit(f'\033[91m FATAL: Could not find thnsparse in {an_res_file}\033[0m')
 
     # output file
     outfile = ROOT.TFile(f'{outputdir}/proj{suffix}.root', 'RECREATE')
@@ -58,9 +62,19 @@ def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn
     with alive_bar(len(pt_mins), title='Processing pt bins') as bar:
         # loop over pt bins
         for ipt, (pt_min, pt_max) in enumerate(zip(pt_mins, pt_maxs)):
-            inv_mass_bin = inv_mass_bins[ipt]
             outfile.mkdir(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
             thnsparse_selcent.GetAxis(axis_pt).SetRangeUser(pt_min, pt_max)
+            if use_inv_mass_bins:
+                inv_mass_bins[ipt] = []
+                rebin = config['Rebin'][ipt]
+                hmass_dummy = thnsparse_selcent.Projection(axis_mass)
+                hmass_dummy = hmass_dummy.Rebin(rebin, f'hmass_dummy_{ipt}')
+                for ibin in range(1, hmass_dummy.GetNbinsX() + 1):
+                    inv_mass_bins[ipt].append(hmass_dummy.GetBinLowEdge(ibin))
+                    if ibin == hmass_dummy.GetNbinsX():
+                        inv_mass_bins[ipt].append(hmass_dummy.GetBinLowEdge(ibin) + hmass_dummy.GetBinWidth(ibin))
+                del hmass_dummy
+            inv_mass_bin = inv_mass_bins[ipt]
             # apply BDT cuts
             if apply_btd_cuts:
                 print('Applying BDT cuts')
