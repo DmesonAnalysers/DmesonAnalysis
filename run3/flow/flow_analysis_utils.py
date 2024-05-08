@@ -106,7 +106,9 @@ def get_resolution(dets, det_lables, cent_min_max):
             histo_means[-1].SetBinContent(ihist+1, histo_projs[-1][ihist].GetMean())
 
     # Compute resolution for 1% centrality bins
-    histo_reso = ROOT.TH1F('', '', cent_min_max[1]-cent_min_max[0], cent_min_max[0], cent_min_max[1])
+    histo_reso = ROOT.TH1F('histo_reso', 'histo_reso',
+                           cent_min_max[1]-cent_min_max[0],
+                           cent_min_max[0], cent_min_max[1])
     histo_reso.SetDirectory(0)
     for icent in range(cent_min_max[0], cent_min_max[1]):
         reso = compute_resolution([histo_means[i].GetBinContent(icent-cent_min_max[0]) for i in range(len(dets))])
@@ -114,7 +116,8 @@ def get_resolution(dets, det_lables, cent_min_max):
         histo_reso.SetBinContent(centbin, reso)
 
     # Compute resolution for CentMin-CentMax
-    histo_reso_delta_cent = ROOT.TH1F('', '', 1, cent_min_max[0], cent_min_max[1])
+    histo_reso_delta_cent = ROOT.TH1F('histo_reso_delta_cent', 'histo_reso_delta_cent',
+                                      1, cent_min_max[0], cent_min_max[1])
     res_deltacent = compute_resolution([histo_means_deltacent[i].GetBinContent(1) for i in range(len(dets))])
     histo_reso_delta_cent.SetBinContent(1, res_deltacent)
     histo_reso_delta_cent.SetDirectory(0)

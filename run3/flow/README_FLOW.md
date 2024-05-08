@@ -18,6 +18,7 @@ For instance, the code can be run with the following command:
 
 where `[OPTIONS]` are:
 - `--centrality` or `-c` (`-c k3050`): set the centrality class
+- `--resolution` or `-r` (`-r 1.`): set the resolution value or the path to the resolution file computed with `compute_reso.py`
 - `--outputdir` or `-o` (`-o output_directory`): set the output directory (subdirectories will be automatically made)
 - `--suffix` or `-s` (`-s suffix`): set the suffix of the output (if the input AnalysisResults.root already has a suffix, this will be used as a default)
 - `--vn_method` or `-v` (`-vn sp`): set the `vn` method. Only `sp` (default), `ep`, `deltaphi` are available.

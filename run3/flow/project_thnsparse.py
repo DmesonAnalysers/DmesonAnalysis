@@ -5,7 +5,8 @@ import sys
 from alive_progress import alive_bar
 from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, compute_r2, get_invmass_vs_deltaphi
 
-def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn_method):
+def check_anres(config, an_res_file, centrality, resolution,
+                wagon_id, outputdir, suffix, vn_method):
     with open(config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
     # read configuration
@@ -23,7 +24,7 @@ def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn
     inv_mass_bins = config['inv_mass_bins']
     use_inv_mass_bins = config['use_inv_mass_bins']
     if use_inv_mass_bins:
-        print('\033[93m WARNING: Using inv_mass_bins from input file\033[0m')
+        print('\033[93m WARNING: Using inv_mass_bins from '+ an_res_file +'\033[0m')
     # sanity check
     if len(pt_mins) != len(pt_maxs) or len(pt_mins) != len(inv_mass_bins):
         sys.exit('\033[91m FATAL: pt_mins, pt_maxs, and inv_mass_bins must have the same length\033[0m')
@@ -31,6 +32,20 @@ def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn
         for ibin, (bin_low, bin_high) in enumerate(zip(inv_mass_bin[:-1], inv_mass_bin[1:])):
             if bin_low > bin_high:
                 sys.exit(f'\033[91m FATAL: bin_low > bin_high for bin {ibin} in inv_mass_bins\033[0m')
+
+    # resolution (TODO: add the possibility to use a file with resolutions for deltacent bins)
+    if '.root' in resolution:
+        reso_file = ROOT.TFile(resolution, 'READ')
+        hist_reso = reso_file.Get(f'{det_A}_{det_B}_{det_C}/histo_reso')
+        if not hist_reso:
+            sys.exit(f'\033[91m FATAL: Could not find hist_reso in {resolution}\033[0m')
+        reso = 0.
+        for ibin in range(1, hist_reso.GetNbinsX() + 1):
+            reso += hist_reso.GetBinContent(ibin)
+        reso /= hist_reso.GetNbinsX()
+        reso_file.Close()
+    else:
+        reso = float(resolution)
 
     # BDT cuts
     axis_bdt_bkg = config['axes']['bdt_bkg']
@@ -55,7 +70,6 @@ def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn
     cent_max = cent_bins[1]
     thnsparse_selcent = thnsparse.Clone(f'thnsparse_selcent{cent_min}_{cent_max}')
     thnsparse_selcent.GetAxis(axis_cent).SetRangeUser(cent_min, cent_max)
-    reso = 1#compute_r2(infile, wagon_id, cent_min, cent_max, det_A, det_B, det_C, vn_method)
     hist_reso.SetBinContent(hist_reso.FindBin(cent_min), reso)
     vn_axis = axis_sp if vn_method == 'sp' else axis_deltaphi
 
@@ -93,6 +107,9 @@ def check_anres(config, an_res_file, centrality, wagon_id, outputdir, suffix, vn
                 hist_mass_outplane.SetName(f'hist_mass_outplane_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
                 hist_mass_inplane.SetDirectory(0)
                 hist_mass_outplane.SetDirectory(0)
+                if reso > 0:
+                    hist_mass_inplane.Scale(1./reso)
+                    hist_mass_outplane.Scale(1./reso)
                 hist_mass_inplane.Write()
                 hist_mass_outplane.Write()
             else:
@@ -123,6 +140,8 @@ if __name__ == "__main__":
                         default="an_res.root", help="input ROOT file with anres")
     parser.add_argument("--centrality", "-c", metavar="text",
                         default="k3050", help="centrality class")
+    parser.add_argument("--resolution", "-r",  default=1.,
+                        help="resolution file/value", required=False)
     parser.add_argument("--wagon_id", "-w", metavar="text",
                         default="", help="wagon ID", required=False)
     parser.add_argument("--outputdir", "-o", metavar="text",
@@ -137,6 +156,7 @@ if __name__ == "__main__":
         config=args.config,
         an_res_file=args.an_res_file,
         centrality=args.centrality,
+        resolution=args.resolution,
         wagon_id=args.wagon_id,
         outputdir=args.outputdir,
         suffix=args.suffix,

@@ -40,12 +40,11 @@ def compute_reso(an_res_file, vn_method,
     # prepare output file
     if vn_method == 'sp':
         ytitle = 'Q^{A} Q^{B}'
-        outfile_name = f'{outputdir}resoSP{suffix}.root'
     elif vn_method == 'ep' or vn_method == 'deltaphi':
         ytitle = 'cos(2(#Psi^{A}-#Psi^{B}))'
-        outfile_name = f'{outputdir}resoEP{suffix}.root'
     else:
         sys.exit('\033[91mFATAL: Invalid vn_method. Only sp, ep, deltaphi implemented. Exit!\033[0m')
+    outfile_name = f'{outputdir}reso{vn_method}{suffix}.root'
     outfile = ROOT.TFile(outfile_name, 'RECREATE')
 
     # loop over all possible combinations of detectors

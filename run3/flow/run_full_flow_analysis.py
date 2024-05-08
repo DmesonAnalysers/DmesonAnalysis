@@ -8,6 +8,7 @@ import os
 def run_full_analysis(config,
                       an_res_file,
                       centrality,
+                      resolution,
                       outputdir,
                       suffix,
                       vn_method,
@@ -25,6 +26,7 @@ def run_full_analysis(config,
     - config (str): path of directory with config files
     - an_res_file (str): path of directory with analysis results
     - centrality (str): centrality class
+    - resolution (str/int): resolution file or resolution value
     - outputdir (str): output directory
     - suffix (str): suffix for output files
     - vn_method (str): vn technique (sp, ep, deltaphi)
@@ -58,7 +60,12 @@ def run_full_analysis(config,
         print(f"\033[92m Creating output directory {outputdir}\033[0m")
         os.makedirs(outputdir)
 
-    if not skip_resolution:
+
+    if resolution and not skip_resolution:
+        # warning
+        print("\033[93m WARNING: resolution is provided but resolution extraction is requested. Using provided resolution.\033[0m")
+        skip_resolution = True
+    if not skip_resolution and not resolution:
         # resolution extraction
         if not os.path.exists(f"{outputdir}/resolution"):
             os.makedirs(f"{outputdir}/resolution")
@@ -74,8 +81,20 @@ def run_full_analysis(config,
         # projection
         if not os.path.exists(f"{outputdir}/proj"):
             os.makedirs(f"{outputdir}/proj")
+        if not skip_resolution and not resolution: # if resolution is not provided, use the one extracted
+            reso_file = f"{outputdir}/resolution/"
+            reso_file += f"reso{vn_method}{suffix}.root"
+        if resolution:
+            reso_file = resolution
+            
+            #if resolution != 1.:
+            #elif resolution:
+            #    reso_file = resolution
+        else:
+            reso_file = 1.
+        reso_file_withopt = f" -r {reso_file}"
         outputdir_proj = f"-o {outputdir}/proj"
-        command_proj = f"python3 project_thnsparse.py {config} {an_res_file} {cent_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt}"
+        command_proj = f"python3 project_thnsparse.py {config} {an_res_file} {cent_withopt} {reso_file_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt}"
         if wagon_id != "":
             command_proj += f" {wagon_id_withopt}"
         print("\n\033[92m Starting projection\033[0m")
@@ -109,6 +128,8 @@ if __name__ == "__main__":
                         default="an_res.root", help="input ROOT file with anres")
     parser.add_argument("--centrality", "-c", metavar="text",
                         default="k3050", help="centrality class")
+    parser.add_argument("--resolution", "-r",  default="",
+                        help="resolution file/value", required=False)
     parser.add_argument("--outputdir", "-o", metavar="text",
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
@@ -129,6 +150,7 @@ if __name__ == "__main__":
         args.config,
         args.an_res_file,
         args.centrality,
+        args.resolution,
         args.outputdir,
         args.suffix,
         args.vn_method,
