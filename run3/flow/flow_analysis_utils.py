@@ -3,6 +3,8 @@ Analysis utilities for flow analysis
 '''
 import ROOT
 import sys
+import ctypes
+from itertools import combinations
 import numpy as np
 
 def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False):
@@ -50,81 +52,126 @@ def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False
     
     return hist_mass_proj
 
-def get_resolution(resolution_file_name, wagon_id, dets, centMin, centMax, doEP=False):
+
+def get_resolution(dets, det_lables, cent_min_max):
     '''
     Compute resolution for SP or EP method
 
     Input:
-        - resolution_file_name: 
-            str, path to the resolution file
-        - wagon_id:
-            str, wagon ID
-        - dets: 
-            list of strings, subsystems to compute the resolution
-            if 2 subsystems are given, the resolution is computed as the product of the two
-            if 3 subsystems are given, the resolution is computed as the product of the first two divided by the third
-        - centMin:
-            int, minimum centrality bin
-        - centMax:
-            int, maximum centrality bin
-        - doEP:
-            bool, if True, compute EP resolution
-            if False, compute SP resolution (default)
+        - dets:
+            list of TH2D, list of TH2D objects with the SP product or EP cos(deltaphi) values vs centrality
+        - det_lables:
+            list of strings, list of detector labels
+        - cent_min_max:
+            list of floats, max and min centrality bins
 
     Output:
-        - histo_reso:
-            TH1D, histogram with the resolution value as a function of centrality
-        - histo_dets:
-            list of TH1D, list of projections used to compute the resolution
         - histo_means:
-            list of TH1D, list of histograms with the mean value of the projections as a function of centrality
+            list of TH1D, list of histograms with the mean value of the projections as a function of centrality for 1% bins
+        - histo_means_deltacent:
+            list of TH1D, list of histograms with the mean value of the projections as a function of centrality for CentMin-CentMax
+        - histo_reso:
+            TH1D, histogram with the resolution value as a function of centrality for 1% bins
+        - histo_reso_delta_cent:
+            TH1D, histogram with the resolution value as a function of centrality for CentMin-CentMax
     '''
-    infile = ROOT.TFile(resolution_file_name, 'READ')
-    histo_projs, histo_dets, histo_means = [], [], []
-    detA = dets[0]
-    detB = dets[1]
-    if len(dets) == 3:
-        detC = dets[2]
-    dets = [f'{detA}{detB}', f'{detA}{detC}', f'{detB}{detC}'] if len(dets) == 3 else [f'{detA}{detB}']
-    
-    # set path and prefix
-    if wagon_id != '':
-        wagon_id = f'_id{wagon_id}'
-    if doEP:
-        path = f'hf-task-flow-charm-hadrons{wagon_id}/epReso/'
-        prefix = 'EpReso'
-    else:
-        path = f'hf-task-flow-charm-hadrons{wagon_id}/spReso/'
-        prefix = 'SpReso'
-   
-    # collect the qvecs and the prepare histo for mean and resolution
-    for det in dets:
-        histo_dets.append(infile.Get(f'{path}h{prefix}{det}'))
-        histo_dets[-1].SetDirectory(0)
-        histo_dets[-1].SetName(f'h{prefix}{det}')
-        histo_means.append(histo_dets[-1].ProjectionX(f'proj_{histo_dets[-1].GetName()}_mean'))
+    histo_projs, histo_means, histo_means_deltacent = [], [], []
+
+    # collect the qvecs and prepare histo for mean and resolution
+    for i, (det, det_label) in enumerate(zip(dets, det_lables)):
+        # th1 for mean 1% centrality bins
+        histo_means.append(ROOT.TH1F('', '', cent_min_max[1]-cent_min_max[0], cent_min_max[0], cent_min_max[1]))
         histo_means[-1].SetDirectory(0)
-        histo_means[-1].Reset()
+        histo_means[-1].SetName(f'proj_{det_label}_mean')
+        # th1 for mean CentMin-CentMax
         histo_projs.append([])
+        hist_proj_dummy = det.ProjectionY(f'proj_{det.GetName()}_mean_deltacent',
+                                          det.GetXaxis().FindBin(cent_min_max[0]),
+                                          det.GetXaxis().FindBin(cent_min_max[1]))
+        histo_means_deltacent.append(ROOT.TH1F('', '', 1, cent_min_max[0], cent_min_max[1]))
+        histo_means_deltacent[-1].SetDirectory(0)
+        # Set mean values for CentMin-CentMax
+        histo_means_deltacent[-1].SetBinContent(1, hist_proj_dummy.GetMean())
+        histo_means_deltacent[-1].SetBinError(1, hist_proj_dummy.GetMeanError())
+        histo_means_deltacent[-1].SetName(f'proj_{det_label}_mean_deltacent')
+        del hist_proj_dummy
 
-        # collect projections
-        for cent in range(centMin, centMax):
-            bin_cent_low = histo_dets[-1].GetXaxis().FindBin(cent) # common binning
-            bin_cent_high = histo_dets[-1].GetXaxis().FindBin(cent)
-            histo_projs[-1].append(histo_dets[-1].ProjectionY(f'proj_{histo_dets[-1].GetName()}_{cent}_{cent}', bin_cent_low, bin_cent_high))
-            histo_projs[-1][-1].SetDirectory(0)
+        # collect projections 1% centrality bins
+        for cent in range(cent_min_max[0], cent_min_max[1]):
+            bin_cent = det.GetXaxis().FindBin(cent) # common binning
+            histo_projs[-1].append(det.ProjectionY(f'proj_{det_label}_{cent}_{cent}',
+                                                          bin_cent, bin_cent))
+        # Set mean values for 1% centrality bins
+        for ihist, _ in enumerate(histo_projs[-1]):
+            histo_means[-1].SetBinContent(ihist+1, histo_projs[-1][ihist].GetMean())
 
-        # Appllying absolute value to the projections
-        for ihist, _ in enumerate(histo_projs[-1]): histo_means[-1].SetBinContent(ihist+1, histo_projs[-1][ihist].GetMean())
-    infile.Close()
-
-    histo_reso = ROOT.TH1F('', '', 100, 0, 100)
+    # Compute resolution for 1% centrality bins
+    histo_reso = ROOT.TH1F('', '', cent_min_max[1]-cent_min_max[0], cent_min_max[0], cent_min_max[1])
     histo_reso.SetDirectory(0)
-    for icent in range(centMin, centMax):
-        histo_reso.SetBinContent(icent+1, compute_resolution([histo_means[i].GetBinContent(icent+1) for i in range(len(dets))]))
+    for icent in range(cent_min_max[0], cent_min_max[1]):
+        reso = compute_resolution([histo_means[i].GetBinContent(icent-cent_min_max[0]) for i in range(len(dets))])
+        centbin = histo_reso.GetXaxis().FindBin(icent)
+        histo_reso.SetBinContent(centbin, reso)
 
-    return histo_reso, histo_dets, histo_means
+    # Compute resolution for CentMin-CentMax
+    histo_reso_delta_cent = ROOT.TH1F('', '', 1, cent_min_max[0], cent_min_max[1])
+    res_deltacent = compute_resolution([histo_means_deltacent[i].GetBinContent(1) for i in range(len(dets))])
+    histo_reso_delta_cent.SetBinContent(1, res_deltacent)
+    histo_reso_delta_cent.SetDirectory(0)
 
+    return histo_means, histo_means_deltacent, histo_reso, histo_reso_delta_cent
+
+def getListOfHisots(an_res_file, wagon_id, vn_method):
+    '''
+    Get list of histograms for SP or EP resolution
+
+    Input:
+        - an_res_file:
+            str, resolution file
+        - wagon_id:
+            str, wagon ID
+        - vn_method:
+            str, vn method (sp or ep)
+
+    Output:
+        - correct_histo_triplets:
+            list of TH2D, list of TH2D objects with the SP product or EP cos(deltaphi) values vs centrality
+        - correct_histo_labels:
+            list of strings, list of detector labels
+    '''
+    infile_path = f'hf-task-flow-charm-hadrons'
+    if wagon_id:
+        infile_path = f'{wagon_id}/{infile_path}'
+    if vn_method != 'sp':
+        infile_path = f'{infile_path}/{vn_method}Reso'
+        prefix = f'hEpReso'
+    else:
+        infile_path = f'{infile_path}/spReso'
+        prefix = 'hSpReso'
+
+    infile = ROOT.TFile(an_res_file, 'READ')
+    directory = infile.GetDirectory(infile_path)
+    histos = [key.ReadObj() for key in directory.GetListOfKeys()]
+    pairs = [key.GetName() for key in directory.GetListOfKeys()]
+
+    # generate triplets of pairs (AB, AC, BC)
+    triplets = []
+    detsA = ['FT0c', 'FT0a', 'FV0a', 'TPCpos', 'FT0m', 'TPCneg']
+    triplets = list(combinations(pairs, 3))
+    histo_triplets = list(combinations(histos, 3))
+    correct_histo_triplets = []
+    correct_histo_labels = []
+    for i, triplet in enumerate(triplets):
+        for detA in detsA:
+            detB = triplet[0].replace(prefix, '').replace(detA, '')
+            detC = triplet[1].replace(prefix, '').replace(detA, '')
+            if (detA in triplet[0] and detA in triplet[1]) and \
+               (detB in triplet[0] and detB in triplet[2]) and \
+               (detC in triplet[1] and detC in triplet[2]):
+                correct_histo_triplets.append(histo_triplets[i])
+                correct_histo_labels.append((detA, detB, detC))
+
+    return correct_histo_triplets, correct_histo_labels
 
 def compute_resolution(subMean):
     '''
@@ -305,9 +352,30 @@ def get_vnfitter_results(vnFitter, secPeak):
     Output:
         - vn_results:
             dict, dictionary with vn results
+            vn: vn value
+            vnUnc: uncertainty of vn value
+            mean: mean value
+            meanUnc: uncertainty of mean value
+            sigma: sigma value
+            sigmaUnc: uncertainty of sigma value
+            ry: raw yield
+            ryUnc: uncertainty of raw yield
+            chi2: reduced chi2
+            prob: fit probability
+            fTotFuncMass: total fit function for mass
+            fTotFuncVn: total fit function for vn
+            secPeakMeanMass: secondary peak mean mass
+            secPeakMeanMassUnc: uncertainty of secondary peak mean mass
+            secPeakSigmaMass: secondary peak sigma mass
+            secPeakSigmaMassUnc: uncertainty of secondary peak sigma mass
+            secPeakMeanVn: secondary peak mean vn
+            secPeakMeanVnUnc: uncertainty of secondary peak mean vn
+            secPeakSigmaVn: secondary peak sigma vn
+            secPeakSigmaVnUnc: uncertainty of secondary peak sigma vn
+            vnSecPeak: vn secondary peak
+            vnSecPeakUnc: uncertainty of vn secondary peak
     '''
     vn_results = {}
-    
     vn_results['vn'] = vnFitter.GetVn()
     vn_results['vnUnc'] = vnFitter.GetVnUncertainty()
     vn_results['mean'] = vnFitter.GetMean()
@@ -320,6 +388,16 @@ def get_vnfitter_results(vnFitter, secPeak):
     vn_results['prob'] = vnFitter.GetFitProbability()
     vn_results['fTotFuncMass'] = vnFitter.GetMassTotFitFunc()
     vn_results['fTotFuncVn'] = vnFitter.GetVnVsMassTotFitFunc()
+    vn_results['fBkgFuncMass'] = vnFitter.GetMassBkgFitFunc()
+    vn_results['fBkgFuncVn'] = vnFitter.GetVnVsMassBkgFitFunc()
+    bkg, bkgUnc = ctypes.c_double(), ctypes.c_double()
+    vnFitter.Background(3, bkg, bkgUnc)
+    vn_results['bkg'] = bkg.value
+    vn_results['bkgUnc'] = bkgUnc.value
+    sgn, sgnUnc = ctypes.c_double(), ctypes.c_double()
+    vnFitter.Significance(3, sgn, sgnUnc)
+    vn_results['sgn'] = sgn.value
+    vn_results['sgnUnc'] = sgnUnc.value
 
     if secPeak:
         vn_results['secPeakMeanMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(6))
