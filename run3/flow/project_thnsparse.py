@@ -2,6 +2,7 @@ import ROOT
 import yaml
 import argparse
 import sys
+import numpy as np
 from alive_progress import alive_bar
 from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, compute_r2, get_invmass_vs_deltaphi
 
@@ -25,9 +26,11 @@ def check_anres(config, an_res_file, centrality, resolution,
     use_inv_mass_bins = config['use_inv_mass_bins']
     if use_inv_mass_bins:
         print('\033[93m WARNING: Using inv_mass_bins from '+ an_res_file +'\033[0m')
+        inv_mass_bins = []
     # sanity check
-    if len(pt_mins) != len(pt_maxs) or len(pt_mins) != len(inv_mass_bins):
-        sys.exit('\033[91m FATAL: pt_mins, pt_maxs, and inv_mass_bins must have the same length\033[0m')
+    else:
+        if len(pt_mins) != len(pt_maxs) or len(pt_mins) != len(inv_mass_bins):
+            sys.exit('\033[91m FATAL: pt_mins, pt_maxs, and inv_mass_bins must have the same length\033[0m')
     for inv_mass_bin in inv_mass_bins:
         for ibin, (bin_low, bin_high) in enumerate(zip(inv_mass_bin[:-1], inv_mass_bin[1:])):
             if bin_low > bin_high:
@@ -63,6 +66,12 @@ def check_anres(config, an_res_file, centrality, resolution,
     if not thnsparse:
         sys.exit(f'\033[91m FATAL: Could not find thnsparse in {an_res_file}\033[0m')
 
+    # sanity check of the pt bins
+    bin_edges = [thnsparse.GetAxis(axis_pt).GetBinLowEdge(bin) for bin in range(1, thnsparse.GetAxis(axis_pt).GetNbins() + 1)]
+    bin_edges.append(thnsparse.GetAxis(axis_pt).GetBinUpEdge(thnsparse.GetAxis(axis_pt).GetNbins()))
+    if any(pt_min not in bin_edges or pt_max not in bin_edges for pt_min, pt_max in zip(pt_mins, pt_maxs)):
+        sys.exit('\033[91m FATAL: Too granular pt bins, pt_min or pt_max not in the bin edges\033[0m')
+
     # output file
     outfile = ROOT.TFile(f'{outputdir}/proj{suffix}.root', 'RECREATE')
     hist_reso = ROOT.TH1F('hist_reso', 'hist_reso', len(cent_bins) - 1, cent_bins[0], cent_bins[-1])
@@ -72,6 +81,8 @@ def check_anres(config, an_res_file, centrality, resolution,
     thnsparse_selcent.GetAxis(axis_cent).SetRangeUser(cent_min, cent_max)
     hist_reso.SetBinContent(hist_reso.FindBin(cent_min), reso)
     vn_axis = axis_sp if vn_method == 'sp' else axis_deltaphi
+    if use_inv_mass_bins:
+        inv_mass_bins = [[] for _ in range(len(pt_mins))]
 
     with alive_bar(len(pt_mins), title='Processing pt bins') as bar:
         # loop over pt bins
@@ -79,15 +90,16 @@ def check_anres(config, an_res_file, centrality, resolution,
             outfile.mkdir(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
             thnsparse_selcent.GetAxis(axis_pt).SetRangeUser(pt_min, pt_max)
             if use_inv_mass_bins:
-                inv_mass_bins[ipt] = []
+                inv_mass_bins_ipt = []
                 rebin = config['Rebin'][ipt]
                 hmass_dummy = thnsparse_selcent.Projection(axis_mass)
                 hmass_dummy = hmass_dummy.Rebin(rebin, f'hmass_dummy_{ipt}')
                 for ibin in range(1, hmass_dummy.GetNbinsX() + 1):
-                    inv_mass_bins[ipt].append(hmass_dummy.GetBinLowEdge(ibin))
+                    inv_mass_bins_ipt.append(hmass_dummy.GetBinLowEdge(ibin))
                     if ibin == hmass_dummy.GetNbinsX():
-                        inv_mass_bins[ipt].append(hmass_dummy.GetBinLowEdge(ibin) + hmass_dummy.GetBinWidth(ibin))
+                        inv_mass_bins_ipt.append(hmass_dummy.GetBinLowEdge(ibin) + hmass_dummy.GetBinWidth(ibin))
                 del hmass_dummy
+                inv_mass_bins[ipt] = inv_mass_bins_ipt
             inv_mass_bin = inv_mass_bins[ipt]
             # apply BDT cuts
             if apply_btd_cuts:
@@ -107,9 +119,6 @@ def check_anres(config, an_res_file, centrality, resolution,
                 hist_mass_outplane.SetName(f'hist_mass_outplane_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
                 hist_mass_inplane.SetDirectory(0)
                 hist_mass_outplane.SetDirectory(0)
-                if reso > 0:
-                    hist_mass_inplane.Scale(1./reso)
-                    hist_mass_outplane.Scale(1./reso)
                 hist_mass_inplane.Write()
                 hist_mass_outplane.Write()
             else:

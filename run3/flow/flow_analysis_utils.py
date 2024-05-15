@@ -2,6 +2,7 @@
 Analysis utilities for flow analysis
 '''
 import ROOT
+import os
 import sys
 import ctypes
 from itertools import combinations
@@ -32,10 +33,10 @@ def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False
     hist_mass_proj.Reset()
     invmass_bins = np.array(inv_mass_bins)
     hist_mass_proj = ROOT.TH1D('hist_mass_proj', 'hist_mass_proj', len(invmass_bins)-1, invmass_bins)
-    
+
     if debug:
         outfile = ROOT.TFile('debug.root', 'RECREATE')
-    
+
     for i in range(hist_mass_proj.GetNbinsX()):
         bin_low = hist_vn_proj.GetXaxis().FindBin(invmass_bins[i])
         bin_high = hist_vn_proj.GetXaxis().FindBin(invmass_bins[i+1])
@@ -44,12 +45,12 @@ def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False
         mean_sp_err = profile.GetMeanError()
         hist_mass_proj.SetBinContent(i+1, mean_sp)
         hist_mass_proj.SetBinError(i+1, mean_sp_err)
-    
+
     if debug:
         hist_vn_proj.Write()
         hist_mass_proj.Write()
         outfile.Close()
-    
+
     return hist_mass_proj
 
 
@@ -100,7 +101,7 @@ def get_resolution(dets, det_lables, cent_min_max):
         for cent in range(cent_min_max[0], cent_min_max[1]):
             bin_cent = det.GetXaxis().FindBin(cent) # common binning
             histo_projs[-1].append(det.ProjectionY(f'proj_{det_label}_{cent}_{cent}',
-                                                          bin_cent, bin_cent))
+                                                          bin_cent, bin_cent+1))
         # Set mean values for 1% centrality bins
         for ihist, _ in enumerate(histo_projs[-1]):
             histo_means[-1].SetBinContent(ihist+1, histo_projs[-1][ihist].GetMean())
@@ -232,8 +233,12 @@ def get_centrality_bins(centrality):
         return '20_60', [20, 60]
     elif centrality == 'k4060':
         return '40_60', [40, 60]
+    elif centrality == 'k6070':
+        return '60_70', [60, 70]
     elif centrality == 'k6080':
         return '60_80', [60, 80]
+    elif centrality == 'k7080':
+        return '70_80', [70, 80]
     elif centrality == 'k0100':
         return '0_100', [0, 100]
     else:
@@ -457,7 +462,46 @@ def get_ep_vn(harmonic, nIn, nInUnc, nOut, nOutUnc, resol=1, corr=0):
         return 0, 0
     anisunc = np.sqrt(anisunc)
 
-    vn = np.pi / harmonic / harmonic / resol * anis
-    vnunc = np.pi / harmonic / harmonic / resol * anisunc
+    vn = (np.pi * anis) / (harmonic * harmonic * resol)
+    vnunc = (np.pi * anisunc) / (harmonic * harmonic * resol)
 
     return vn, vnunc
+
+def check_file_exists(file_path):
+    '''
+    Check if file exists
+
+    Input:
+        - file_path:
+            str, file path
+
+    Output:
+        - file_exists:
+            bool, if True, file exists
+    '''
+    file_exists = False
+    if os.path.exists(file_path):
+        file_exists = True
+    return file_exists
+
+def check_histo_exists(file, histo_name):
+    '''
+    Check if histogram exists in file
+
+    Input:
+        - file:
+            TFile, ROOT file
+        - histo_name:
+            str, histogram name
+
+    Output:
+        - histo_exists:
+            bool, if True, histogram exists
+    '''
+    if not check_file_exists(file):
+        return False
+    file = ROOT.TFile(file, 'READ')
+    histo_exists = False
+    if file.Get(histo_name):
+        histo_exists = True
+    return histo_exists
