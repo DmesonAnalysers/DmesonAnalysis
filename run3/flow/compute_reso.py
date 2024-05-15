@@ -1,12 +1,12 @@
 import sys
 import argparse
 import ROOT
-from flow_analysis_utils import get_resolution
+from flow_analysis_utils import get_resolution, get_centrality_bins, getListOfHisots
 sys.path.append('../../')
 from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle
-SetGlobalStyle(padleftmargin=0.15, padlebottommargin=0.25,
+SetGlobalStyle(padleftmargin=0.15, padbottommargin=0.15,
                padrightmargin=0.15, titleoffsety=1.1, maxdigits=3, titlesizex=0.03,
-               labelsizey=0.04, setoptstat=0, setopttitle=0)
+               labelsizey=0.04, setoptstat=0, setopttitle=0, palette=ROOT.kGreyScale)
 
 ROOT.gROOT.SetBatch(False)
 
@@ -31,49 +31,57 @@ def SetFrameStyle(hFrame, xtitle, ytitle, ytitleoffset, ytitlesize, ylabelsize,
     hFrame.GetYaxis().CenterTitle(ycentertitle)
     hFrame.GetYaxis().SetMaxDigits(ymaxdigits)
 
-# TODO: move this to the StyleFormatter
-def LatLabel(label, x, y, size):
+def compute_reso(an_res_file, vn_method,
+                 centClass, wagon_id, outputdir, suffix):
+
+    _, cent_min_max = get_centrality_bins(centClass)
+    histos_triplets, histos_triplets_lables = getListOfHisots(an_res_file, wagon_id, vn_method)
+
+    # prepare output file
+    if vn_method == 'sp':
+        ytitle = 'Q^{A} Q^{B}'
+    elif vn_method == 'ep' or vn_method == 'deltaphi':
+        ytitle = 'cos(2(#Psi^{A}-#Psi^{B}))'
+    else:
+        sys.exit('\033[91mFATAL: Invalid vn_method. Only sp, ep, deltaphi implemented. Exit!\033[0m')
+    outfile_name = f'{outputdir}reso{vn_method}{suffix}.root'
+    outfile = ROOT.TFile(outfile_name, 'RECREATE')
+
+    # loop over all possible combinations of detectors
     latex = ROOT.TLatex()
     latex.SetNDC()
-    latex.SetTextSize(size)
-    latex.DrawLatex(x, y, label)
-
-def compute_reso(an_res_file, wagon_id, doEP, outputdir, suffix):
-
-    detA = ['FT0c', 'FT0c', 'FT0c', 'FT0c']
-    detB = ['FT0a', 'FT0a', 'FT0a', 'TPCpos']
-    detC = ['FV0a', 'TPCpos', 'TPCneg', 'TPCneg']
-    print(f'Wagon ID: {wagon_id}')
-
-    outfile_name = f'{outputdir}resoSP{suffix}.root' if not doEP else f'{outputdir}resoEP{suffix}.root'
-    outfile = ROOT.TFile(outfile_name, 'RECREATE')
-    for i, (det_a, det_b, det_c) in enumerate(zip(detA, detB, detC)):
-        hist_reso, histos_det,\
-        histo_means = get_resolution(an_res_file,
-                                     wagon_id,
-                                     [det_a, det_b, det_c],
-                                     0,
-                                     100,
-                                     doEP)
-        hist_reso.SetDirectory(0)
-        hist_reso.SetName(f'hist_reso_{det_a}_{det_b}_{det_c}')
-        hist_reso.GetXaxis().SetTitle('centrality (%)')
-        hist_reso.GetYaxis().SetTitle(f'#it{{R}}_{{2}}{{SP}} ({det_a}, {det_b}, {det_c})') if not doEP else hist_reso.GetYaxis().SetTitle(f'#it{{R}}_{{2}}{{EP}} ({det_a}, {det_b}, {det_c})')
-
+    latex.SetTextSize(0.05)
+    for i, (histo_triplet, histo_triplet_label) in enumerate(zip(histos_triplets, histos_triplets_lables)):
+        histos_mean, histos_mean_deltacent, histo_reso, histo_reso_deltacent = get_resolution(histo_triplet,
+                                                                                              histo_triplet_label,
+                                                                                              cent_min_max)
+        detA_label = histo_triplet_label[0]
+        detB_label = histo_triplet_label[1]
+        detC_label = histo_triplet_label[2]
         outfile.cd()
-        outfile.mkdir(f'{det_a}_{det_b}_{det_c}')
-        outfile.cd(f'{det_a}_{det_b}_{det_c}')
-        for i, (hist_det, hist_mean) in enumerate(zip(histos_det, histo_means)):
+        outfile.mkdir(f'{detA_label}_{detB_label}_{detC_label}')
+        outfile.cd(f'{detA_label}_{detB_label}_{detC_label}')
+        canvas = ROOT.TCanvas(f'canvas_{detA_label}_{detB_label}_{detC_label}',
+                              f'canvas_{detA_label}_{detB_label}_{detC_label}',
+                              2400, 800)
+        canvas.Divide(3, 1)
+        leg = ROOT.TLegend(0.2, 0.2, 0.5, 0.3)
+        leg.SetBorderSize(0)
+        leg.SetFillStyle(0)
+        leg.SetTextSize(0.03)
+        for i, (hist_det, hist_mean, histo_mean_deltacent) in enumerate(zip(histo_triplet,
+                                                                            histos_mean,
+                                                                            histos_mean_deltacent)):
             SetObjectStyle(hist_mean, color=ROOT.kRed, markerstyle=ROOT.kFullCircle,
-                   markersize=1, fillstyle=0, linewidth=2)
-            canv_name = hist_det.GetName().replace('h', 'canv')
-            canvas = ROOT.TCanvas(canv_name, canv_name, 800, 800)
-            canvas.SetLogz()
-            hFrame = canvas.cd().DrawFrame(0, -2, 100, 2)
-            
+                           markersize=1, fillstyle=0, linewidth=2)
+            SetObjectStyle(histo_mean_deltacent, color=ROOT.kBlue, markerstyle=ROOT.kOpenCircle,
+                           markersize=1, fillstyle=0, linestyle=2, linewidth=3)
+            canvas.cd(i+1)
+            canvas.cd(i+1).SetLogz()
+            hFrame = canvas.cd(i+1).DrawFrame(0, -2, 100, 2)
             SetFrameStyle(hFrame,
                           xtitle='Cent. FT0c (%)',
-                          ytitle='cos(2(#Psi^{A}-#Psi^{B}))' if doEP else 'Q^{A} Q^{B}',
+                          ytitle=ytitle,
                           ytitleoffset=1.15,
                           ytitlesize=0.05,
                           ylabelsize=0.04,
@@ -82,35 +90,44 @@ def compute_reso(an_res_file, wagon_id, doEP, outputdir, suffix):
                           yticklength=0.03,
                           xtitlesize=0.05,
                           xlabelsize=0.04,
-                          xtitleoffset=0.9,
+                          xtitleoffset=1.1,
                           xlabeloffset=0.020,
                           ydivisions=406,
                           xmoreloglabels=True,
                           ycentertitle=True,
-                          ymaxdigits=5,)
+                          ymaxdigits=5)
             hist_det.Draw('same colz')
+            histo_mean_deltacent.Draw('same pl')
             hist_mean.Draw('same pl')
             if i == 0:
-                LatLabel(f'A: {det_a}, B: {det_b}', 0.2, 0.85, 0.05)
+                leg.AddEntry(hist_mean, 'Average 1% centrality', 'lp')
+                leg.AddEntry(histo_mean_deltacent,
+                             f'Average {cent_min_max[1]-cent_min_max[0]}% centrality', 'lp')
+                leg.Draw()
+                latex.DrawLatex(0.2, 0.85, f'A: {detA_label}, B: {detB_label}')
             elif i == 1:
-                LatLabel(f'A: {det_a}, B: {det_c}', 0.2, 0.85, 0.05)
-            elif i == 2:
-                LatLabel(f'A: {det_b}, B: {det_c}', 0.2, 0.85, 0.05)
-            canvas.Write()
+                latex.DrawLatex(0.2, 0.85, f'A: {detA_label}, B: {detC_label}')
+            else:
+                latex.DrawLatex(0.2, 0.85, f'A: {detB_label}, B: {detC_label}')
+            histo_mean_deltacent.Write()
             hist_mean.Write()
             hist_det.Write()
-        hist_reso.SetDirectory(outfile)
-        hist_reso.Write()
+        canvas.Update()
+        canvas.Write()
+        histo_reso.SetDirectory(outfile)
+        histo_reso_deltacent.SetDirectory(outfile)
+        histo_reso.Write()
+        histo_reso_deltacent.Write()
         outfile.cd('..')
 
-    input('Press enter to continue')
+    input('Resolutions computed. Press any key to continue')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("an_res_file", metavar="text",
                         default="an_res.root", help="input ROOT file with anres")
-    parser.add_argument("--doEP",  action="store_true", default=False,
-                        help="do EP resolution")
+    parser.add_argument('--centClass', '-c', metavar='text', default='k0100')
+    parser.add_argument('--vn_method', '-vn', metavar='text', default='sp')
     parser.add_argument("--wagon_id", "-w", metavar="text",
                         default="", help="wagon ID", required=False)
     parser.add_argument("--outputdir", "-o", metavar="text",
@@ -121,7 +138,8 @@ if __name__ == "__main__":
 
     compute_reso(
         an_res_file=args.an_res_file,
-        doEP=args.doEP,
+        vn_method=args.vn_method,
+        centClass=args.centClass,
         wagon_id=args.wagon_id,
         outputdir=args.outputdir,
         suffix=args.suffix
