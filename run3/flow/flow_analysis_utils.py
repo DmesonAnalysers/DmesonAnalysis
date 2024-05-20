@@ -79,7 +79,8 @@ def get_resolution(dets, det_lables, cent_min_max):
     histo_projs, histo_means, histo_means_deltacent = [], [], []
 
     # collect the qvecs and prepare histo for mean and resolution
-    for i, (det, det_label) in enumerate(zip(dets, det_lables)):
+    for _, (det, det_label) in enumerate(zip(dets, det_lables)):
+        print(f'Processing {det_label}')
         # th1 for mean 1% centrality bins
         histo_means.append(ROOT.TH1F('', '', cent_min_max[1]-cent_min_max[0], cent_min_max[0], cent_min_max[1]))
         histo_means[-1].SetDirectory(0)
@@ -88,20 +89,21 @@ def get_resolution(dets, det_lables, cent_min_max):
         histo_projs.append([])
         hist_proj_dummy = det.ProjectionY(f'proj_{det.GetName()}_mean_deltacent',
                                           det.GetXaxis().FindBin(cent_min_max[0]),
-                                          det.GetXaxis().FindBin(cent_min_max[1]))
+                                          det.GetXaxis().FindBin(cent_min_max[1])-1)
         histo_means_deltacent.append(ROOT.TH1F('', '', 1, cent_min_max[0], cent_min_max[1]))
         histo_means_deltacent[-1].SetDirectory(0)
+        histo_means_deltacent[-1].SetName(f'proj_{det_label}_mean_deltacent')
+
         # Set mean values for CentMin-CentMax
         histo_means_deltacent[-1].SetBinContent(1, hist_proj_dummy.GetMean())
         histo_means_deltacent[-1].SetBinError(1, hist_proj_dummy.GetMeanError())
-        histo_means_deltacent[-1].SetName(f'proj_{det_label}_mean_deltacent')
         del hist_proj_dummy
 
         # collect projections 1% centrality bins
         for cent in range(cent_min_max[0], cent_min_max[1]):
             bin_cent = det.GetXaxis().FindBin(cent) # common binning
-            histo_projs[-1].append(det.ProjectionY(f'proj_{det_label}_{cent}_{cent}',
-                                                          bin_cent, bin_cent+1))
+            histo_projs[-1].append(det.ProjectionY(f'proj_{det_label}_{cent}',
+                                                          bin_cent, bin_cent))
         # Set mean values for 1% centrality bins
         for ihist, _ in enumerate(histo_projs[-1]):
             histo_means[-1].SetBinContent(ihist+1, histo_projs[-1][ihist].GetMean())
@@ -189,6 +191,7 @@ def compute_resolution(subMean):
         - resolution:
             float, resolution value
     '''
+    print(subMean)
     if len(subMean) == 1:
         resolution =  subMean[0]
         if resolution <= 0:
@@ -196,10 +199,12 @@ def compute_resolution(subMean):
         else:
             return np.sqrt(resolution)
     elif len(subMean) == 3:
-        resolution = (subMean[2] * subMean[1]) / subMean[0] if subMean[0] != 0 else 0
+        print('3 subsystems')
+        resolution = (subMean[0] * subMean[1]) / subMean[2] if subMean[2] != 0 else 0
         if resolution <= 0:
             return 0
         else:
+            print(resolution, np.sqrt(resolution))
             return np.sqrt(resolution)
     else:
         print('ERROR: dets must be a list of 2 or 3 subsystems')
@@ -221,6 +226,8 @@ def get_centrality_bins(centrality):
     '''
     if centrality == 'k010':
         return '0_10', [0, 10]
+    if centrality == 'k020':
+        return '0_20', [0, 20]
     if centrality == 'k2030':
         return '20_30', [20, 30]
     elif centrality == 'k3040':
@@ -398,6 +405,7 @@ def get_vnfitter_results(vnFitter, secPeak):
     vn_results['fTotFuncVn'] = vnFitter.GetVnVsMassTotFitFunc()
     vn_results['fBkgFuncMass'] = vnFitter.GetMassBkgFitFunc()
     vn_results['fBkgFuncVn'] = vnFitter.GetVnVsMassBkgFitFunc()
+    vn_results['fSgnFuncMass'] = vnFitter.GetMassSignalFitFunc()
     bkg, bkgUnc = ctypes.c_double(), ctypes.c_double()
     vnFitter.Background(3, bkg, bkgUnc)
     vn_results['bkg'] = bkg.value

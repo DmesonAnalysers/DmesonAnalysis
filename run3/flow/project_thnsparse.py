@@ -39,9 +39,11 @@ def check_anres(config, an_res_file, centrality, resolution,
     # resolution (TODO: add the possibility to use a file with resolutions for deltacent bins)
     if '.root' in resolution:
         reso_file = ROOT.TFile(resolution, 'READ')
-        hist_reso = reso_file.Get(f'{det_A}_{det_B}_{det_C}/histo_reso')
+        hist_reso = reso_file.Get(f'{det_A}_{det_B}_{det_C}/histo_reso_delta_cent')
         if not hist_reso:
             sys.exit(f'\033[91m FATAL: Could not find hist_reso in {resolution}\033[0m')
+        if ((vn_method in ['sp', 'ep']) and (vn_method not in resolution)) or (vn_method == 'deltaphi' and 'ep' not in resolution):
+            sys.exit(f'\033[91m FATAL: mimsatch between vn_method and resolution file\033[0m')
         reso = 0.
         for ibin in range(1, hist_reso.GetNbinsX() + 1):
             reso += hist_reso.GetBinContent(ibin)
@@ -101,11 +103,11 @@ def check_anres(config, an_res_file, centrality, resolution,
                 del hmass_dummy
                 inv_mass_bins[ipt] = inv_mass_bins_ipt
             inv_mass_bin = inv_mass_bins[ipt]
-            # apply BDT cuts
+            # apply BDT cuts (TODO: save the bdt score distribution after the cuts in the output file)
             if apply_btd_cuts:
-                print('Applying BDT cuts')
-                thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(0, bkg_ml_cuts[0])
-                thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_ml_cuts[0], 1)
+                print('\033[93m WARNING: Applying BDT cuts\033[0m')
+                thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(0, bkg_ml_cuts[ipt])
+                thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_ml_cuts[ipt], 1)
 
             # create output histograms
             outfile.cd(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
