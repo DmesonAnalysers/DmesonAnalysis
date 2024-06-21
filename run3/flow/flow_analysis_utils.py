@@ -87,6 +87,7 @@ def get_resolution(dets, det_lables, cent_min_max):
         histo_means[-1].SetName(f'proj_{det_label}_mean')
         # th1 for mean CentMin-CentMax
         histo_projs.append([])
+        print(dets)
         hist_proj_dummy = det.ProjectionY(f'proj_{det.GetName()}_mean_deltacent',
                                           det.GetXaxis().FindBin(cent_min_max[0]),
                                           det.GetXaxis().FindBin(cent_min_max[1])-1)
@@ -146,8 +147,8 @@ def getListOfHisots(an_res_file, wagon_id, vn_method):
             list of strings, list of detector labels
     '''
     infile_path = f'hf-task-flow-charm-hadrons'
-    if wagon_id:
-        infile_path = f'{wagon_id}/{infile_path}'
+    if wagon_id != '':
+        infile_path = f'{infile_path}_id{wagon_id}'
     if vn_method != 'sp':
         infile_path = f'{infile_path}/{vn_method}Reso'
         prefix = f'hEpReso'
@@ -158,6 +159,8 @@ def getListOfHisots(an_res_file, wagon_id, vn_method):
     infile = ROOT.TFile(an_res_file, 'READ')
     directory = infile.GetDirectory(infile_path)
     histos = [key.ReadObj() for key in directory.GetListOfKeys()]
+    for histo in histos:
+        histo.SetDirectory(0)
     pairs = [key.GetName() for key in directory.GetListOfKeys()]
 
     # generate triplets of pairs (AB, AC, BC)
