@@ -147,7 +147,7 @@ def getListOfHisots(an_res_file, wagon_id, vn_method):
     '''
     infile_path = f'hf-task-flow-charm-hadrons'
     if wagon_id:
-        infile_path = f'{wagon_id}/{infile_path}'
+        infile_path = f'{infile_path}_id{wagon_id}'
     if vn_method != 'sp':
         infile_path = f'{infile_path}/{vn_method}Reso'
         prefix = f'hEpReso'
@@ -158,6 +158,8 @@ def getListOfHisots(an_res_file, wagon_id, vn_method):
     infile = ROOT.TFile(an_res_file, 'READ')
     directory = infile.GetDirectory(infile_path)
     histos = [key.ReadObj() for key in directory.GetListOfKeys()]
+    for histo in histos:
+        histo.SetDirectory(0)
     pairs = [key.GetName() for key in directory.GetListOfKeys()]
 
     # generate triplets of pairs (AB, AC, BC)
