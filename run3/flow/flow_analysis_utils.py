@@ -146,7 +146,7 @@ def getListOfHisots(an_res_file, wagon_id, vn_method):
             list of strings, list of detector labels
     '''
     infile_path = f'hf-task-flow-charm-hadrons'
-    if wagon_id != '':
+    if wagon_id:
         infile_path = f'{infile_path}_id{wagon_id}'
     if vn_method != 'sp':
         infile_path = f'{infile_path}/{vn_method}Reso'
