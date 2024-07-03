@@ -134,7 +134,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     elif particleName == 'LctopK0s':
         massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
         decay = '#Lambda_{c}^{+} #rightarrow pK^{0}_{s}'
-        massForFit = massLc
+        massForFit = 2.25
     elif particleName == 'Dstar':
         massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'
         decay = 'D^{*+} #rightarrow D^{0}#pi^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
@@ -219,6 +219,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         hProbSimFit = TH1D('hProbSimFit', f';{ptTit};prob', nPtBins, ptBinsArr)
         hRedChi2SBVnPrefit = TH1D('hRedChi2SBVnPrefit', f';{ptTit};#chi^{{2}}/#it{{ndf}}', nPtBins, ptBinsArr)
         hProbSBVnPrefit = TH1D('hProbSBVnPrefit', f';{ptTit};prob', nPtBins, ptBinsArr)
+        hvnSimFit = TH1D('hvnSimFit',f';{ptTit};V2 (SP)', nPtBins, ptBinsArr)
 
         SetObjectStyle(hSigmaSimFit, color=kBlack, markerstyle=kFullCircle)
         SetObjectStyle(hMeanSimFit, color=kBlack, markerstyle=kFullCircle)
@@ -234,6 +235,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         SetObjectStyle(hProbSimFit, color=kBlack, markerstyle=kFullCircle)
         SetObjectStyle(hRedChi2SBVnPrefit, color=kRed, markerstyle=kFullSquare)
         SetObjectStyle(hProbSBVnPrefit, color=kRed, markerstyle=kFullSquare)
+        SetObjectStyle(hvnSimFit, color=kBlack, markerstyle=kFullCircle)
 
     else:
         hRawYieldsIn = TH1D('hRawYieldsIn', f';{ptTit};raw yield in-plane', nPtBins, ptBinsArr)
@@ -255,6 +257,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         hSigmaSecPeakFitIn = TH1D('hSigmaSecPeakFitIn', f';{ptTit};width second peak in-plane', nPtBins, ptBinsArr)
         hSigmaSecPeakFitOut = TH1D('hSigmaSecPeakFitOut', f';{ptTit};width second peak out-of-plane',
                                    nPtBins, ptBinsArr)
+        hvnSimFit = TH1D('hvnSimFit',f';{ptTit};V2 (Delta Phi)', nPtBins, ptBinsArr)
 
         SetObjectStyle(hRawYieldsIn, color=kRed, markerstyle=kFullCircle)
         SetObjectStyle(hRawYieldsOut, color=kAzure, markerstyle=kOpenCircle)
@@ -272,6 +275,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         SetObjectStyle(hRawYieldsSoverBOut, color=kAzure, markerstyle=kOpenCircle)
         SetObjectStyle(hSigmaSecPeakFitIn, color=kRed, markerstyle=kFullCircle)
         SetObjectStyle(hSigmaSecPeakFitOut, color=kAzure, markerstyle=kOpenCircle)
+        SetObjectStyle(hvnSimFit, color=kBlack, markerstyle=kFullCircle)
 
     gvnSimFit = TGraphAsymmErrors(1)
     gvnSimFit.SetName('gvnSimFit')
@@ -340,8 +344,10 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
 
             print(f'Fitting {ptMin} - {ptMax} GeV/c')
             vnFitter.append(AliHFVnVsMassFitter(hMassForFit[iPt], hVnForFit[iPt],
-                                                massMin, massMax,bkgEnum, sgnEnum, bkgVnEnum))
+                                                massMin, massMax, bkgEnum, sgnEnum, bkgVnEnum))
             vnFitter[iPt].SetHarmonic(harmonic)
+            #hMassForFit[iPt].DrawCopy()
+            #input()
 
             #_____________________________________________________
             # set the parameters for the fit
@@ -353,6 +359,10 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             vnFitter[iPt].SetInitialGaussianSigma(fitConfig['Sigma'][iPt], 1)
             if fixSigma[iPt]:
                 vnFitter[iPt].FixSigmaFromMassFit()
+            # nSigma4SB
+            if 'NSigma4SB' in fitConfig:
+                vnFitter[iPt].SetNSigmaForVnSB(fitConfig['NSigma4SB'][iPt])
+                print(f'NSigma4SB = {fitConfig["NSigma4SB"][iPt]}')
             # Second peak (Ds specific)
             if secPeak and particleName == 'Ds':
                 vnFitter[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], False, 1)
@@ -381,6 +391,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             hRawYieldsSimFit.SetBinError(iPt+1, vnResults['ryUnc'])
             hRawYieldsSignificanceSimFit.SetBinContent(iPt+1, vnResults['sgn'])
             hRawYieldsSignificanceSimFit.SetBinError(iPt+1, vnResults['sgnUnc'])
+            hvnSimFit.SetBinContent(iPt+1, vnResults['vn'])
+            hvnSimFit.SetBinError(iPt+1, vnResults['vnUnc'])
             gvnSimFit.SetPoint(iPt, (ptMin+ptMax)/2, vnResults['vn'])
             gvnSimFit.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, vnResults['vnUnc'], vnResults['vnUnc'])
             gvnUnc.SetPoint(iPt, (ptMin+ptMax)/2, vnResults['vnUnc'])
@@ -421,7 +433,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 latex.DrawLatex(0.18, 0.65, f'S/B = {vnResults["ry"]/vnResults["ryUnc"]:.2f}')
                 latex.DrawLatex(0.18, 0.60, f'Signif. = {round(vnResults["sgn"], 2)}')
                 cSimFit[iPt].cd(2)
-                hVnForFit[iPt].GetYaxis().SetRangeUser(-2, 3)
+                hVnForFit[iPt].GetYaxis().SetRangeUser(-1, 1)
                 hVnForFit[iPt].GetYaxis().SetTitle(f'#it{{v}}_{{{harmonic}}} ({vn_method})')
                 hVnForFit[iPt].GetXaxis().SetRangeUser(massMin, massMax)
                 hVnForFit[iPt].Draw('E')
@@ -629,15 +641,18 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                                   rawyield_in, rawyielderr_in,
                                   rawyield_out, rawyielderr_out,
                                   reso)
+            hvnSimFit.SetBinContent(iPt+1, vn)
+            hvnSimFit.SetBinError(iPt+1, vnUnc)
             gvnSimFit.SetPoint(iPt, (ptMin+ptMax)/2, vn)
             gvnSimFit.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, vnUnc, vnUnc)
             gvnUnc.SetPoint(iPt, (ptMin+ptMax)/2, vnUnc)
             gvnUnc.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, 1.e-20, 1.e-20)
     canvVn.cd().SetLogx()
-    hframe = canvVn.DrawFrame(0.5, -0.2, gvnSimFit.GetXaxis().GetXmax()+0.5, 0.5,
+    hframe = canvVn.DrawFrame(0.5, -0.5, gvnSimFit.GetXaxis().GetXmax()+0.5, 0.5,
                               f';#it{{p}}_{{T}} (GeV/c); v_{{{harmonic}}} ({vn_method})')
     hframe.GetYaxis().SetDecimals()
     hframe.GetXaxis().SetNdivisions(504)
+    hframe.GetXaxis().SetMoreLogLabels()
     gPad.SetGridy()
     gvnSimFit.Draw('same pez')
     if secPeak:
@@ -696,6 +711,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         hProbSimFit.Write()
         hRedChi2SBVnPrefit.Write()
         hProbSBVnPrefit.Write()
+        hvnSimFit.Write()
     else:
         cMass.SaveAs(f'{outputdir}/MassFit{suffix}_{particleName}.pdf')
         cMass.Write()
@@ -723,6 +739,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         hRawYieldsSoverBOut.Write()
         hSigmaSecPeakFitIn.Write()
         hSigmaSecPeakFitOut.Write()
+        hvnSimFit.Write()
 
     gvnSimFit.Write()
     gvnUnc.Write()
