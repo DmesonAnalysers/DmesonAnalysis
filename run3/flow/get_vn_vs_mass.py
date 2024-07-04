@@ -159,7 +159,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     hMass, hMassForFit, hVn, hVnForFit = [], [], [], []
     hMassIns, hMassOuts, hMassInsForFit, hMassOutsForFit = [], [], [], []
     fTotFuncMass, fTotFuncVn, fSgnFuncMass, fBkgFuncMass, fBkgFuncVn = [], [], [], [], []
-    hMCSgn, hMCRefl, SoverR= [], [], []
+    hMCSgn, hMCRefl = [], []
     hist_reso = infile.Get('hist_reso')
     hist_reso.SetDirectory(0)
     reso = hist_reso.GetBinContent(1)
