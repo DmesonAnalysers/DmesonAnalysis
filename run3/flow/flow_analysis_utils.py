@@ -129,7 +129,6 @@ def get_resolution(dets, det_lables, cent_min_max):
     return histo_means, histo_means_deltacent, histo_reso, histo_reso_delta_cent
 
 def getListOfHisots(an_res_file, wagon_id, vn_method):
-    #task_id = 13649
     '''
     Get list of histograms for SP or EP resolution
 
@@ -148,8 +147,8 @@ def getListOfHisots(an_res_file, wagon_id, vn_method):
             list of strings, list of detector labels
     '''
     infile_path = f'hf-task-flow-charm-hadrons'
-    #if task_id != '':
-    #    infile_path = f'{infile_path}_id{task_id}'
+    if wagon_id:
+        infile_path = f'{infile_path}_id{wagon_id}'
     if vn_method != 'sp':
         infile_path = f'{infile_path}/{vn_method}Reso'
         prefix = f'hEpReso'
