@@ -87,6 +87,7 @@ def get_resolution(dets, det_lables, cent_min_max):
         histo_means[-1].SetName(f'proj_{det_label}_mean')
         # th1 for mean CentMin-CentMax
         histo_projs.append([])
+        print(dets)
         hist_proj_dummy = det.ProjectionY(f'proj_{det.GetName()}_mean_deltacent',
                                           det.GetXaxis().FindBin(cent_min_max[0]),
                                           det.GetXaxis().FindBin(cent_min_max[1])-1)
@@ -128,6 +129,7 @@ def get_resolution(dets, det_lables, cent_min_max):
     return histo_means, histo_means_deltacent, histo_reso, histo_reso_delta_cent
 
 def getListOfHisots(an_res_file, wagon_id, vn_method):
+    #task_id = 13649
     '''
     Get list of histograms for SP or EP resolution
 
@@ -146,8 +148,8 @@ def getListOfHisots(an_res_file, wagon_id, vn_method):
             list of strings, list of detector labels
     '''
     infile_path = f'hf-task-flow-charm-hadrons'
-    if wagon_id:
-        infile_path = f'{infile_path}_id{wagon_id}'
+    #if task_id != '':
+    #    infile_path = f'{infile_path}_id{task_id}'
     if vn_method != 'sp':
         infile_path = f'{infile_path}/{vn_method}Reso'
         prefix = f'hEpReso'
@@ -515,3 +517,52 @@ def check_histo_exists(file, histo_name):
     if file.Get(histo_name):
         histo_exists = True
     return histo_exists
+
+def getD0ReflHistos(reflFile, ptMins, ptMaxs):
+    '''
+    Method that loads MC histograms for the reflections of D0
+
+    Input:
+        - reflFile:
+           TFile, ROOT file, include reflections of D0 TODO: add which .py can produce reflection
+        - ptMins:
+            list, min pt bins
+        - ptMaxs:
+            list, max pt bins
+    
+    Output:
+        - useRefl:
+            bool, if True, MC histograms for the reflections of D0 exists
+        - hMCSgn:
+            lsit, signal histograms of D0
+        - hMCRefl:
+            list, reflection histograms of D0
+    '''
+    hMCSgn, hMCRefl = [], []
+    if not check_file_exists(reflFile):
+        print(f'Error: reflection file {reflFile} does not exist! Turning off reflections usage')
+        return False
+    
+    reflFile = ROOT.TFile(reflFile, 'READ')
+
+    for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
+
+        hMCSgn.append(reflFile.Get(f'hFDMass_{ptMin}0_{ptMax}0'))
+        print(f'hFDMass_{ptMin}_{ptMax}')
+        hMCSgn[iPt].Add(reflFile.Get(f'hPromptMass_{ptMin}0_{ptMax}0'))
+        if hMCSgn[iPt] == None:
+            print(f'hFDMass_{ptMin}0_{ptMax}0 or hPromptMass_{ptMin}0_{ptMax}0 not found! Turning off reflections usage')
+            return False
+        hMCSgn[iPt].SetName(f'histSgn_{iPt}')
+        hMCSgn[iPt].SetDirectory(0)
+
+        hMCRefl.append(reflFile.Get(f'hVarReflMass_{ptMin}0_{ptMax}0'))
+        if hMCRefl[iPt] == None:
+            print(f'hVarReflMass_{ptMin}0_{ptMax}0 not found! Turning off reflections usage')
+            return False
+        hMCRefl[iPt].SetName(f'histRfl_{iPt},iPt')
+        hMCRefl[iPt].SetDirectory(0)
+
+    reflFile.Close()
+
+    return True, hMCSgn, hMCRefl
