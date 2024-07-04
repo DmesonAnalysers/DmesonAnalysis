@@ -87,7 +87,6 @@ def get_resolution(dets, det_lables, cent_min_max):
         histo_means[-1].SetName(f'proj_{det_label}_mean')
         # th1 for mean CentMin-CentMax
         histo_projs.append([])
-        print(dets)
         hist_proj_dummy = det.ProjectionY(f'proj_{det.GetName()}_mean_deltacent',
                                           det.GetXaxis().FindBin(cent_min_max[0]),
                                           det.GetXaxis().FindBin(cent_min_max[1])-1)
