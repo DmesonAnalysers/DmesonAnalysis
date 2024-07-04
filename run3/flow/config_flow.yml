@@ -70,7 +70,7 @@ UseLikelihood: 1
 BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
 SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
 BkgFuncVn: ['kLin', 'kLin', 'kPol2', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin' ]
-InclRefl: true # 0->false, 1->true
+InclRefl: false # 0->false, 1->true
 ReflFile: ""
 ReflFunc: "2gaus"
 FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
