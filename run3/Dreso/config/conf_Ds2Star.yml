@@ -1,0 +1,48 @@
+pdgReso: 435 # options [10433 = Ds1, 435 = Ds2Star, 666=XcStar]
+deltaMass: false
+
+infile:
+    isMC: false
+    # filename: [/home/luca/alice/Ds_reso/ReducedTables_CandidateCreatorDs2Sidebands.root]
+    filename: [/home/luca/alice/Ds_reso/ReducedTables_CandidateCreatorProva2.root]
+    dirname:   # look for every DF
+    treename: CandReso
+
+outdir: plots/prova
+cutvarsDDaughter: 
+    pt:
+        min:  [ 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 12.] 
+        max:  [ 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 12., 24.]
+        namevar: fPtProng0
+    invMass:
+        min:  1.7
+        max:  2.05
+        namevar: fInvMassProng0
+        nsigma: 2
+        nbins : 175
+cutvarsV0Daughter:
+    invMass:
+        min:  0.470
+        max:  0.540
+        nbins : 200
+        applycut : false
+        namevar: fInvMassProng1
+
+resoHist:
+    pt: 
+        min:  [ 0, 0, 5] 
+        max:  [ 5, 50, 50 ]
+        namevar: fPt
+    invMass: 
+        min:  2.35
+        max:  3.00 
+        namevar: fInvMass
+        nbins : 260 #275
+resoFit:
+    min : 2.5
+    max : 2.75
+
+bkg:
+    sidebands : true
+    nsig_min : 4
+    nsig_max : 6
