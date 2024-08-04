@@ -17,8 +17,8 @@ export n_parallel=3 # number of parallel jobs
 
 #______________________________________________________________________________________________________________________
 # Make the list of configurations to be used with make_yaml_for_syst.py
-#echo "python3 make_yaml_for_syst.py $config_default -m $config_modifies -o $output_dir"
-# python3 make_yaml_for_syst.py $config_default -m $config_modifies -o $output_dir
+echo "python3 make_yaml_for_syst.py $config_default -m $config_modifies -o $output_dir"
+ python3 make_yaml_for_syst.py $config_default -m $config_modifies -o $output_dir
 
 #______________________________________________________________________________________________________________________
 # Parallel loop to run the analysis for each configuration
@@ -43,13 +43,13 @@ export -f parallel_func
 # Run the analysis for each configuration file in parallel (wait)
 # Get the list of configuration files
 
-#export outdir_config_files="$output_dir/config_syst"
-#config_files=$(ls $outdir_config_files/config_*.yml)
-#cd ../ # go to the parent directory
-#echo "config_files: $config_files"
-#echo "n_parallel: $n_parallel"
-#echo "parallel -j $n_parallel parallel_func ::: $config_files"
-#parallel -j $n_parallel parallel_func ::: $config_files
+export outdir_config_files="$output_dir/config_syst"
+config_files=$(ls $outdir_config_files/config_*.yml)
+cd ../ # go to the parent directory
+echo "config_files: $config_files"
+echo "n_parallel: $n_parallel"
+echo "parallel -j $n_parallel parallel_func ::: $config_files"
+parallel -j $n_parallel parallel_func ::: $config_files
 
 #______________________________________________________________________________________________________________________
 # Compute the systematic uncertainties
