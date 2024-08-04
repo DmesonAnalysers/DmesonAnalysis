@@ -1,14 +1,8 @@
-'''
-Script for computing multi-trial systematics for D mesons
-run: python compute_syst_multitrial.py itConfigFileName.yml centClass inputFileName.root outFileName.root
-            [--refFileName][--isMC][--batch]
-'''
-
 import sys
 import os
 import numpy as np
 import argparse
-from ROOT import TFile, TCanvas, TH1F, TGraphErrors, TLine, TGraphAsymmErrors, TLegend, TLine, TColor, kRed, kBlue, kGreen, kBlack, kOrange, kMagenta, kCyan, kYellow, kAzure, kViolet, kTeal, kPink, kSpring, kGray, kWhite, kMagenta, kCyan, kYellow, kAzure, kViolet, kTeal, kPink, kSpring, kGray, kWhite
+from ROOT import TFile, TCanvas, TH1F, TGraphAsymmErrors, TLegend, kOrange, kAzure, kGray,
 sys.path.append('../../../')
 from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle
 
@@ -114,8 +108,6 @@ def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
                        linewidth=2, fillcolor=kAzure+2, fillstyle=3135, fillalpha=0.5, linestyle=9)
         hvn[-1].Draw('same')
         gref[-1].Draw('c3 same')
-        #canvas[-1].cd(1).Update()
-        # Pad 2: trial vn / default vn
         canvas[-1].cd(2)
 
         # Legend

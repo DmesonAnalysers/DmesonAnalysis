@@ -46,9 +46,6 @@ export -f parallel_func
 export outdir_config_files="$output_dir/config_syst"
 config_files=$(ls $outdir_config_files/config_*.yml)
 cd ../ # go to the parent directory
-#for config_file in $config_files; do
-#    parallel_func $config_file
-#done
 echo "config_files: $config_files"
 echo "n_parallel: $n_parallel"
 echo "parallel -j $n_parallel parallel_func ::: $config_files"
