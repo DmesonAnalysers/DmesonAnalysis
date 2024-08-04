@@ -2,7 +2,7 @@ import sys
 import os
 import numpy as np
 import argparse
-from ROOT import TFile, TCanvas, TH1F, TGraphAsymmErrors, TLegend, kOrange, kAzure, kGray,
+from ROOT import TFile, TCanvas, TH1F, TGraphAsymmErrors, TLegend, kOrange, kAzure, kGray
 sys.path.append('../../../')
 from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle
 
@@ -177,8 +177,8 @@ def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
-    parser.add_argument('rypathsyst', metavar='text', default='config_Ds_Fit.yml')
-    parser.add_argument('ry_default', metavar='text', default='')
+    parser.add_argument('rypathsyst', metavar='text', default='path to the directory containing the .root files from multitrial')
+    parser.add_argument('ry_default', metavar='text', default='default .root file')
     parser.add_argument("--outputdir", "-o", metavar="text", default=".", help="output directory")
     args = parser.parse_args()
 
