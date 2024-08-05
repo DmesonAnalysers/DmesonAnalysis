@@ -114,7 +114,7 @@ def get_resolution(dets, det_lables, cent_min_max):
                            cent_min_max[0], cent_min_max[1])
     histo_reso.SetDirectory(0)
     for icent in range(cent_min_max[0], cent_min_max[1]):
-        reso = compute_resolution([histo_means[i].GetBinContent(icent-cent_min_max[0]) for i in range(len(dets))])
+        reso = compute_resolution([histo_means[i].GetBinContent(icent-cent_min_max[0]+1) for i in range(len(dets))])
         centbin = histo_reso.GetXaxis().FindBin(icent)
         histo_reso.SetBinContent(centbin, reso)
 
