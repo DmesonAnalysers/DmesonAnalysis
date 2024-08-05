@@ -15,7 +15,8 @@ def run_full_analysis(config,
                       wagon_id,
                       skip_resolution,
                       skip_projection,
-                      skip_vn
+                      skip_vn,
+                      skip_efficiency
                       ):
     """
     function for full analysis
@@ -34,6 +35,7 @@ def run_full_analysis(config,
     - skip_resolution (bool): skip resolution extraction
     - skip_projection (bool): skip projection extraction
     - skip_vn (bool): skip raw yield extraction
+    - skip_efficiency (bool): skip efficiency estimation
     """
 
     # get all parameters needed
@@ -118,6 +120,16 @@ def run_full_analysis(config,
         os.makedirs(f"{outputdir}/config")
     os.system(f"cp {config} {outputdir}/config/{config.split('/')[-1]}{suffix}.yml")
 
+    # efficiency
+    if not skip_efficiency:
+        if not os.path.exists(f"{outputdir}/eff"):
+            os.makedirs(f"{outputdir}/eff")
+        outputdir_eff = f"-o {outputdir}/eff"
+        command_eff = f"python3 compute_efficiency.py {config} {outputdir_eff} {suffix_withopt}"
+        print("\n\033[92m Starting efficiency estimation\033[0m")
+        print(f"\033[92m {command_eff}\033[0m")
+        os.system(command_eff)
+
     print("\n\033[92m Full analysis done\033[0m")
 
 if __name__ == "__main__":
@@ -144,6 +156,8 @@ if __name__ == "__main__":
                         help="skip projection extraction")
     parser.add_argument("--skip_vn", action="store_true", default=False,
                         help="skip vn estimation")
+    parser.add_argument("--skip_efficiency", action="store_true", default=False,
+                        help="skip efficiency estimation")
     args = parser.parse_args()
 
     run_full_analysis(
@@ -157,5 +171,6 @@ if __name__ == "__main__":
         args.wagon_id,
         args.skip_resolution,
         args.skip_projection,
-        args.skip_vn
+        args.skip_vn,
+        args.skip_efficiency
     )

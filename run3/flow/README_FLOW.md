@@ -7,6 +7,7 @@ The analysis is organized as follows:
 - `compute_reso.py`: compute SP/EP resolution term
 - `project_thnsparse.py`: project ThnSparse as a function of *p*<sub>T</sub>/centrality from AnalysisResults.root
 - `get_vn_vs_mass.py`: Compute the `vn` with different methods (simultaneous fit to the projected inv. mass and EP/SP, fit to invariant mass in-plane vs. out-of-plane)
+- `compute_efficiency.py`: Compute the `skip_efficiency` with from the AnalysisResults.root from the D meson task (NOT the flow task)
 
 The full analysis chain can be run with ``run_full_flow_analysis.py``.
 
@@ -26,3 +27,4 @@ where `[OPTIONS]` are:
 - `--skip_resolution`: avoid resolution estimation
 - `--skip_projection`: avoid ThnSparse projection
 - `--skip_vn`: avoid `vn` estimation
+- `--skip_efficiency`: avoid `skip_efficiency` estimation
