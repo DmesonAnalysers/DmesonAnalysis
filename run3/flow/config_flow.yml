@@ -70,6 +70,9 @@ UseLikelihood: 1
 BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
 SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
 BkgFuncVn: ['kLin', 'kLin', 'kPol2', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin' ]
+InclRefl: 0 # 0->false, 1->true
+ReflFile: "npv2_ana_5TeVPbPb/output/efficiencies/correlated/Distr_D0_MC_D0_PbPb5TeV_FD0.root"
+ReflFunc: "2gaus"
 FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
 SigmaRatioFile: ""
 BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
