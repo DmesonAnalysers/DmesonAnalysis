@@ -16,7 +16,8 @@ def run_full_analysis(config,
                       skip_resolution,
                       skip_projection,
                       skip_vn,
-                      skip_efficiency
+                      skip_efficiency,
+                      batch
                       ):
     """
     function for full analysis
@@ -36,6 +37,7 @@ def run_full_analysis(config,
     - skip_projection (bool): skip projection extraction
     - skip_vn (bool): skip raw yield extraction
     - skip_efficiency (bool): skip efficiency estimation
+    - batch (bool): suppress video output
     """
 
     # get all parameters needed
@@ -88,10 +90,6 @@ def run_full_analysis(config,
             reso_file += f"reso{vn_method}{suffix}.root"
         if resolution:
             reso_file = resolution
-            
-            #if resolution != 1.:
-            #elif resolution:
-            #    reso_file = resolution
         else:
             reso_file = 1.
         reso_file_withopt = f" -r {reso_file}"
@@ -110,7 +108,10 @@ def run_full_analysis(config,
         outputdir_rawyield = f"-o {outputdir}/ry"
         proj_file = f"{outputdir}/proj/"
         proj_file += f"proj{suffix}.root"
-        command_vn = f"python3 get_vn_vs_mass.py {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} {vn_method_withopt}"
+        if not batch:
+            command_vn = f"python3 get_vn_vs_mass.py {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} {vn_method_withopt}"
+        else:
+            command_vn = f"python3 get_vn_vs_mass.py {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} {vn_method_withopt} --batch"
         print("\n\033[92m Starting vn extraction\033[0m")
         print(f"\033[92m {command_vn}\033[0m")
         os.system(command_vn)
@@ -158,6 +159,8 @@ if __name__ == "__main__":
                         help="skip vn estimation")
     parser.add_argument("--skip_efficiency", action="store_true", default=False,
                         help="skip efficiency estimation")
+    parser.add_argument("--batch", action="store_true", default=False,
+                        help="suppress video output")
     args = parser.parse_args()
 
     run_full_analysis(
@@ -172,5 +175,6 @@ if __name__ == "__main__":
         args.skip_resolution,
         args.skip_projection,
         args.skip_vn,
-        args.skip_efficiency
+        args.skip_efficiency,
+        args.batch
     )
