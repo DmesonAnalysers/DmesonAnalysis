@@ -30,11 +30,11 @@ parallel_func() {
     if [ -n "$wagon_id" ]; then
         # echo in magenta 
         echo -e "\e[35m python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent $skip_resolution -v $vn_method -r $res_file $skip_efficiency -w $wagon_id \e[0m"
-        python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent $skip_resolution -v $vn_method -r $res_file $skip_efficiency -w $wagon_id -s $suffix 
+        python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent $skip_resolution -v $vn_method -r $res_file $skip_efficiency -w $wagon_id -s $suffix --batch
     else
         # echo in magenta
         echo -e "\e[35m python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent $skip_resolution -v $vn_method -r $res_file $skip_efficiency \e[0m"
-        python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent $skip_resolution -v $vn_method -r $res_file $skip_efficiency -s $suffix
+        python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent $skip_resolution -v $vn_method -r $res_file $skip_efficiency -s $suffix --batch
     fi
 }
 export -f parallel_func

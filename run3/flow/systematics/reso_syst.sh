@@ -40,10 +40,10 @@ parallel_func() {
     # enter if wagon_id is not empty
     if [ -n "$wagon_id" ]; then
         echo -e "\e[35m python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent -v $vn_method -r 1 $skip_resolution $skip_efficiency -w $wagon_id \e[0m"
-        python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent -v $vn_method -r 1  -w $wagon_id -s $suffix --skip_resolution --skip_efficiency
+        python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent -v $vn_method -r 1  -w $wagon_id -s $suffix --skip_resolution --skip_efficiency --batch
     else
         echo -e "\e[35m python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent $skip_resolution -v $vn_method -r $res_file $skip_efficiency \e[0m"
-        python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent -v $vn_method -r 1 -s $suffix --skip_resolution --skip_efficiency --skip_projection
+        python3 run_full_flow_analysis.py $config_file $anres_dir -o $output_dir -c $cent -v $vn_method -r 1 -s $suffix --skip_resolution --skip_efficiency --batch
     fi
 }
 export -f parallel_func

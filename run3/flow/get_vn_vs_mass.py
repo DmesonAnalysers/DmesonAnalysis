@@ -694,7 +694,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         gvnUncSecPeak.Draw('pez same')
     canvVnUnc.Modified()
     canvVnUnc.Update()
-    input('Press Enter to continue...')
+    if not batch:
+        input('Press Enter to continue...')
 
     #save output histos
     print(f'Saving output to {outputdir}')
