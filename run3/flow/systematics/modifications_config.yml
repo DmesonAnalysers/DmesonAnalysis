@@ -1,9 +1,10 @@
 BkgFuncVn: ["kPol2", "kLin", "kPol3"]
 BkgFunc: ["kPol2", "kExpo", "kPol3"]
-Rebin: [2, 4, 6]
+Rebin: [4, 6, 8]
 inv_mass_bins: 
-  min: 1.7
-  max: 2.05
+  min: 1.6
+  max: 2.2
   steps: [0.01, 0.02, 0.04]
-MassMin: [1.70, 1.72, 1.74] # same number of elements as MassMax
-MassMax: [1.98, 2.0, 2.02]
+MassMin: [1.70, 1.72, 1.74]
+MassMax: [2.2, 2.6, 2.1]
+use_inv_mass_bins: [true, false]
