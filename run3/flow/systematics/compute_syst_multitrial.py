@@ -117,7 +117,7 @@ def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
         leg[-1].SetTextSize(0.03)
         leg[-1].SetHeader(f'{gvn_vs_mass[0].GetX()[i] - gvn_vs_mass[0].GetEXlow()[i]} < #it{{p}}_{{T}} < {gvn_vs_mass[0].GetX()[i] + gvn_vs_mass[0].GetEXhigh()[i]} GeV/#it{{c}}')
         leg[-1].AddEntry(hvn[-1], 'vn vs trial', 'l')
-        leg[-1].AddEntry(gsyst[-1], '#sqrt{mean^{2} + rms^{2}}', 'f')
+        leg[-1].AddEntry(gsyst[-1], f'#sqrt{{shift^{{2}} + rms^{{2}}}}) = {syst:.2f}', 'f')
         leg[-1].AddEntry(gref[-1], 'vn stat. unc.', 'f')
 
         # Define reference vertical line at 1

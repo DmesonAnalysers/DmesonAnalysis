@@ -1,0 +1,13 @@
+ptmins: [1, 2, 4, 8]
+ptmaxs: [24, 4, 8, 16]
+use_inv_mass_bins: [true]
+
+BkgFuncVn: []
+BkgFunc: []
+Rebin: []
+inv_mass_bins: 
+  min: None
+  max: None
+  steps: []
+MassMin: []
+MassMax: []
