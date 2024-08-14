@@ -2,12 +2,12 @@ import sys
 import os
 import numpy as np
 import argparse
-from ROOT import TFile, TCanvas, TH1F, TGraphAsymmErrors, TLegend, kOrange, kAzure, kGray
+from ROOT import TFile, TCanvas, TH1F, TGraphAsymmErrors, TLegend, kOrange, kAzure, kBlack
 sys.path.append('../../../')
 from utils.StyleFormatter import SetObjectStyle, SetGlobalStyle
 
 SetGlobalStyle(titleoffsety=1.1, maxdigits=3, topmargin=0.1, bottommargin=0.4, leftmargin=0.3, rightmargin=0.15,
-               labelsizey=0.04, setoptstat=0, setopttitle=0, setdecimals=True,titleoffsetx=0.71)
+               labelsizey=0.04, setoptstat=0, setopttitle=0, setdecimals=True,titleoffsetx=0.74)
 
 def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
     #______________________________________________________________________________________
@@ -56,36 +56,37 @@ def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
         hvn.append(TH1F('hvn', 'hvn;trial;#it{v}_{n}', len(gvn_vs_mass), 0, len(gvn_vs_mass)+1))
         hsignificance_vs_trial.append(TH1F('hsignificance_vs_trial', 'hsignificance_vs_trial;trial;significance', len(gvn_vs_mass), 0, len(gvn_vs_mass)+1))
         hchi2_vs_trial.append(TH1F('hchi2_vs_trial', 'hchi2_vs_trial;trial;#chi^{2}', len(gvn_vs_mass), 0, len(gvn_vs_mass)+1))
-        hsyst.append(TH1F('hsyst', 'hsyst;#it{v}_{n};', 40, 0.8, 1.2))
+        hsyst.append(TH1F('hsyst', 'hsyst;#it{v}_{n}^{trial} - #it{v}_{n}^{default};"', 200, -0.2, 0.2))
         
-        SetObjectStyle(hvn[-1], markerstyle=20, markercolor=kGray+1, markersize=1., linecolor=kGray+1)
-        SetObjectStyle(hsignificance_vs_trial[-1], markerstyle=20, markercolor=kGray+1, markersize=1., linecolor=kGray+1)
-        SetObjectStyle(hchi2_vs_trial[-1], markerstyle=20, markercolor=kGray+1, markersize=1., linecolor=kGray+1)
-        SetObjectStyle(hsyst[-1], markerstyle=20, markercolor=kGray+1, markersize=1., linecolor=kGray+1)
+        SetObjectStyle(hvn[-1], markerstyle=20, markercolor=kBlack, markersize=1., linecolor=kBlack)
+        SetObjectStyle(hsignificance_vs_trial[-1], markerstyle=20, markercolor=kBlack, markersize=1., linecolor=kBlack)
+        SetObjectStyle(hchi2_vs_trial[-1], markerstyle=20, markercolor=kBlack, markersize=1., linecolor=kBlack)
+        SetObjectStyle(hsyst[-1], markerstyle=20, markercolor=kBlack, markersize=1., linecolor=kBlack)
         ipt = i+1
         for j, _ in enumerate(gvn_vs_mass):    # loop over trials
+            significance = hsignificance[j].GetBinContent(ipt)
             chi2 = hchi2[j].GetBinContent(ipt)
+
+            # Skip chi2 higher than 5 and significance lower than 3
+            if (chi2 > 10 and chi2 != 0) or (significance < 1 and significance != 0):
+                print(f'Skipping trial {j} for pt bin {ipt} with chi2 = {chi2} and significance = {significance}')
+                continue
             hchi2_vs_trial[-1].SetBinContent(j, chi2)
             hchi2_vs_trial[-1].SetBinError(j, hchi2[j].GetBinError(ipt))
-            significance = hsignificance[j].GetBinContent(ipt)
             hsignificance_vs_trial[-1].SetBinContent(j, significance)
             hsignificance_vs_trial[-1].SetBinError(j, hsignificance[j].GetBinError(ipt))
             hvn[-1].SetBinContent(j, gvn_vs_mass[j].GetY()[i])
             hvn[-1].SetBinError(j, gvn_vs_mass[j].GetEYlow()[i])
-
-            # Skip chi2 higher than 5 and significance lower than 3
-            if (chi2 > 3 and chi2 != 0) or (significance < 3 and significance != 0):
-                print(f'Skipping trial {j} for pt bin {ipt} with chi2 = {chi2} and significance = {significance}')
-                continue
-            hsyst[-1].Fill(gvn_vs_mass[j].GetY()[i] / gvn_vs_mass_default.GetY()[i])
+            hsyst[-1].Fill(gvn_vs_mass[j].GetY()[i] - gvn_vs_mass_default.GetY()[i])
+        #input(f'pt bin {ipt} done. Number of trials skipped = {counter}')
 
         # Compute systematic uncertainty
         rms = hsyst[-1].GetRMS()
-        mean = hsyst[-1].GetMean() - 1
+        mean = hsyst[-1].GetMean()
         syst = np.sqrt(rms**2 + mean**2)
         print(f'pt bin {ipt}, mean = {mean}, rms = {rms}, syst = {syst}')
         gsyst.append(TGraphAsymmErrors())
-        gsyst[-1].SetPoint(0, 1, hsyst[-1].GetMaximum()*0.5)
+        gsyst[-1].SetPoint(0, 0, hsyst[-1].GetMaximum()*0.5)
         gsyst[-1].SetPointError(0, syst, syst,
                                 hsyst[-1].GetMaximum()*0.5, hsyst[-1].GetMaximum()*0.5)
         SetObjectStyle(gsyst[-1], markerstyle=20, markercolor=kOrange+2,
@@ -116,13 +117,13 @@ def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
         leg[-1].SetFillStyle(0)
         leg[-1].SetTextSize(0.03)
         leg[-1].SetHeader(f'{gvn_vs_mass[0].GetX()[i] - gvn_vs_mass[0].GetEXlow()[i]} < #it{{p}}_{{T}} < {gvn_vs_mass[0].GetX()[i] + gvn_vs_mass[0].GetEXhigh()[i]} GeV/#it{{c}}')
-        leg[-1].AddEntry(hvn[-1], 'vn vs trial', 'l')
-        leg[-1].AddEntry(gsyst[-1], f'#sqrt{{shift^{{2}} + rms^{{2}}}}) = {syst:.2f}', 'f')
+        leg[-1].AddEntry(hvn[-1], f'vn vs trial ({hvn[-1].GetEntries()} trials)', 'p')
+        leg[-1].AddEntry(gsyst[-1], f'#sqrt{{shift^{{2}} + rms^{{2}}}} = {syst:.3f}', 'f')
         leg[-1].AddEntry(gref[-1], 'vn stat. unc.', 'f')
 
         # Define reference vertical line at 1
         gref_two.append(gref[-1].Clone())
-        gref_two[-1].SetPoint(0, 1, hsyst[-1].GetMaximum()*0.5)
+        gref_two[-1].SetPoint(0, 0, hsyst[-1].GetMaximum()*0.5)
         gref_two[-1].SetPointError(0, gvn_vs_mass_default.GetEYlow()[i],
                                    gvn_vs_mass_default.GetEYhigh()[i],
                                    hsyst[-1].GetMaximum()*0.5, hsyst[-1].GetMaximum()*0.5)
@@ -130,9 +131,11 @@ def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
                        markersize=1, linecolor=kAzure+2,
                        linewidth=2, fillcolor=kAzure+2, fillstyle=3135, fillalpha=0.5, linestyle=9)
         hsyst[-1].GetYaxis().SetRangeUser(0, hsyst[-1].GetMaximum()*1.8)
+        hsyst[-1].GetXaxis().SetRangeUser(hsyst[-1].GetXaxis().GetXmin(), hsyst[-1].GetXaxis().GetXmax())
         hsyst[-1].Draw('same')
         gsyst[-1].Draw('2')
         gref_two[-1].Draw('2')
+        gsyst[-1].Draw('2')
         leg[-1].Draw()
         # Pad 3: chi2 vs trial
         canvas[-1].cd(3)
