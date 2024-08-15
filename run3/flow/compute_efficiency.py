@@ -2,6 +2,7 @@ import ROOT
 import yaml
 import argparse
 import sys
+import ctypes
 from flow_analysis_utils import get_centrality_bins
 sys.path.append('../../')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
@@ -37,7 +38,7 @@ def compute_eff(config_file, centclass, outputdir, suffix):
 
     #_____________________________________________________________________________________
     # Load input files
-    eff_filename = config['eff_filename']
+    eff_filename = config['task_filename']
     charm_hadron = config['Dmeson']
     infile = ROOT.TFile.Open(eff_filename)
 
@@ -46,7 +47,7 @@ def compute_eff(config_file, centclass, outputdir, suffix):
     if charm_hadron in ['Dplus', 'Ds']:
         cent_hist = infile.Get('hf-candidate-creator-3prong/hSelCollisionsCent')
         _, centMinMax = get_centrality_bins(centclass)
-        for i in range(cent_hist.GetNbinsX()):
+        for ipt in range(cent_hist.GetNbinsX()):
             if not (cent_hist.GetBinContent(centMinMax[0] + 1) > 0 \
                 and cent_hist.GetBinContent(centMinMax[0]) == 0 \
                 and cent_hist.GetBinContent(centMinMax[1]) > 0 \
@@ -56,7 +57,7 @@ def compute_eff(config_file, centclass, outputdir, suffix):
     elif charm_hadron == 'Dzero':
         cent_hist = infile.Get('hf-candidate-creator-2prong/hSelCollisionsCent')
         _, centMinMax = get_centrality_bins(centclass)
-        for i in range(cent_hist.GetNbinsX()):
+        for ipt in range(cent_hist.GetNbinsX()):
             if not (cent_hist.GetBinContent(centMinMax[0] + 1) > 0 \
                     and cent_hist.GetBinContent(centMinMax[0]) == 0 \
                     and cent_hist.GetBinContent(centMinMax[1]) > 0 \
@@ -67,15 +68,15 @@ def compute_eff(config_file, centclass, outputdir, suffix):
         print('\033[93mWARNING: Invalid charm hadron for centrality check.\033[0m')
 
     if charm_hadron == 'Dplus':
-        gen_prompt_hist = infile.Get('hf-task-dplus/hPtGenPrompt')
-        gen_fd_hist = infile.Get('hf-task-dplus/hPtGenNonPrompt')
-        rec_prompt_hist = infile.Get('hf-task-dplus/hPtRecSigPrompt')
-        rec_fd_hist = infile.Get('hf-task-dplus/hPtRecSigNonPrompt')
+        hgen_prompt = infile.Get('hf-task-dplus/hPtGenPrompt')
+        hgen_fd = infile.Get('hf-task-dplus/hPtGenNonPrompt')
+        hrec_prompt = infile.Get('hf-task-dplus/hPtRecSigPrompt')
+        hrec_fd = infile.Get('hf-task-dplus/hPtRecSigNonPrompt')
     elif charm_hadron == 'Ds':
-        gen_prompt_hist = infile.Get('hf-task-ds/hPtGenPrompt')
-        gen_fd_hist = infile.Get('hf-task-ds/hPtGenNonPrompt')
-        rec_prompt_hist = infile.Get('hf-task-ds/hPtRecSigPrompt')
-        rec_fd_hist = infile.Get('hf-task-ds/hPtRecSigNonPrompt')
+        hgen_prompt = infile.Get('hf-task-ds/MC/Ds/Prompt/hPtGen')
+        hgen_fd = infile.Get('hf-task-ds/MC/Ds/NonPrompt/hPtGen')
+        hrec_prompt = infile.Get('hf-task-ds/MC/Ds/Prompt/hPtRecSig')
+        hrec_fd = infile.Get('hf-task-ds/MC/Ds/NonPrompt/hPtRecSig')
     #TODO: Add Dzero and Lc
     else:
         sys.exit(f'\033[91mFATAL: Invalid charm_hadron: {charm_hadron}. Exit!\033[0m')
@@ -83,71 +84,60 @@ def compute_eff(config_file, centclass, outputdir, suffix):
 
     #_____________________________________________________________________________________
     # Compute efficiency
-    eff_prompt = gen_prompt_hist.Clone('effPrompt')
-    eff_prompt.GetXaxis().SetTitle('#it{p}_{T} (GeV/#it{c})')
-    eff_prompt.GetYaxis().SetTitle('Acc.#times#varepsilon') # unlike run 2, in run 3 we directly have the Eff.#times Acc. from the HF task
-    eff_prompt.Reset()
-    eff_prompt.SetDirectory(0)
-    eff_fd = gen_fd_hist.Clone('effFD')
-    eff_fd.Reset()
-    eff_fd.SetDirectory(0)
-    for i in range(gen_prompt_hist.GetNbinsX()):
-        if gen_prompt_hist.GetBinContent(i+1) > 0:
-            eff, eff_unc = ComputeEfficiency(rec_prompt_hist.GetBinContent(i+1),
-                                             gen_prompt_hist.GetBinContent(i+1),
-                                             rec_prompt_hist.GetBinError(i+1),
-                                             gen_prompt_hist.GetBinError(i+1))
-            eff_prompt.SetBinContent(i+1, eff)
-            eff_prompt.SetBinError(i+1, eff_unc)
-        else:
-            eff_prompt.SetBinContent(i+1, 0)
-            eff_prompt.SetBinError(i+1, 0)
-    for i in range(gen_fd_hist.GetNbinsX()):
-        if gen_fd_hist.GetBinContent(i+1) > 0:
-            eff, eff_unc = ComputeEfficiency(rec_fd_hist.GetBinContent(i+1),
-                                             gen_fd_hist.GetBinContent(i+1),
-                                             rec_fd_hist.GetBinError(i+1),
-                                             gen_fd_hist.GetBinError(i+1))
-            eff_fd.SetBinContent(i+1, eff)
-            eff_fd.SetBinError(i+1, eff_unc)
-        else:
-            eff_fd.SetBinContent(i+1, 0)
-            eff_fd.SetBinError(i+1, 0)
+    heff_prompt = hgen_prompt.Clone('effPrompt')
+    heff_prompt.GetXaxis().SetTitle('#it{p}_{T} (GeV/#it{c})')
+    heff_prompt.GetYaxis().SetTitle('Acc.#times#varepsilon') # unlike run 2, in run 3 we directly have the Eff.#times Acc. from the HF task
+    heff_prompt.Reset()
+    heff_prompt.SetDirectory(0)
+    heff_fd = hgen_fd.Clone('effFD')
+    heff_fd.Reset()
+    heff_fd.SetDirectory(0)
+    for ipt in range(hgen_prompt.GetNbinsX()):
+        # get unweighted yields (for uncertainty)
+        nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (ctypes.c_double() for _ in range(4))
+        nRecoPrompt = hrec_prompt.IntegralAndError(ipt, ipt+1, nRecoPromptUnc)
+        nGenPrompt = hgen_prompt.IntegralAndError(ipt, ipt+1, nGenPromptUnc)
+        nRecoFD = hrec_fd.IntegralAndError(ipt, ipt+1, nRecoFDUnc)
+        nGenFD = hgen_fd.IntegralAndError(ipt, ipt+1, nGenFDUnc)
+
+        effPrompt, effPromptUnc = ComputeEfficiency(nRecoPrompt, nGenPrompt,
+                                                    nRecoPromptUnc.value, nGenPromptUnc.value)
+        effFD, effFDUnc = ComputeEfficiency(nRecoFD, nGenFD, nRecoFDUnc.value, nGenFDUnc.value)
+        heff_prompt.SetBinContent(ipt+1, effPrompt)
+        heff_prompt.SetBinError(ipt+1, effPromptUnc)
+        heff_fd.SetBinContent(ipt+1, effFD)
+        heff_fd.SetBinError(ipt+1, effFDUnc)
 
     #_____________________________________________________________________________________
     # Draw histograms
     c = ROOT.TCanvas('c', 'c', 600, 600)
     c.cd().SetLogy()
-    SetObjectStyle(eff_prompt, markerstyle=20,
-                   markercolor=ROOT.kOrange+1,
-                   markersize=1., linecolor=ROOT.kOrange+1)
-    SetObjectStyle(eff_fd, markerstyle=21,
-                   linestyle=2,
-                   markercolor=ROOT.kAzure+2, markersize=1.,
-                   linecolor=ROOT.kAzure+2)
-    eff_prompt.GetYaxis().SetRangeUser(1.e-4, 1.1)
-    eff_prompt.Draw('same')
-    eff_fd.Draw('same')
+    SetObjectStyle(heff_prompt, color=ROOT.kOrange+1, markerstyle=20, fillalpha=0.)
+    SetObjectStyle(heff_fd, color=ROOT.kAzure+4, markerstyle=22, markersize=1.5,
+                   linewidh=2, linestyle=7, fillalpha=0.)
+    heff_prompt.GetYaxis().SetRangeUser(1.e-4, 1.1)
+    heff_prompt.Draw('same')
+    heff_fd.Draw('same')
     leg = ROOT.TLegend(0.15, 0.7, 0.4, 0.85)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     leg.SetTextSize(0.03)
-    leg.AddEntry(eff_prompt, 'Prompt', 'lep')
-    leg.AddEntry(eff_fd, 'Feed-down', 'lep')
+    leg.AddEntry(heff_prompt, 'Prompt', 'lp')
+    leg.AddEntry(heff_fd, 'Feed-down', 'lp')
     leg.Draw()
 
     #_____________________________________________________________________________________
     # Save output
-    outfile_name = f'{outputdir}/eff_{charm_hadron}{suffix}.root'
+    outfile_name = f'{outputdir}/eff{suffix}.root'
     outfile = ROOT.TFile(outfile_name, 'RECREATE')
     outfile.cd()
     c.Write()
-    eff_prompt.Write()
-    eff_fd.Write()
-    gen_prompt_hist.Write()
-    gen_fd_hist.Write()
-    rec_prompt_hist.Write()
-    rec_fd_hist.Write()
+    heff_prompt.Write()
+    heff_fd.Write()
+    hgen_prompt.Write()
+    hgen_fd.Write()
+    hrec_prompt.Write()
+    hrec_fd.Write()
     outfile.Close()
     input(f'Saving efficiency histograms to {outfile_name}. Press any key to exit.')
 

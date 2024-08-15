@@ -17,6 +17,8 @@ def run_full_analysis(config,
                       skip_projection,
                       skip_vn,
                       skip_efficiency,
+                      skip_fraction,
+                      skip_vnsyst,
                       batch
                       ):
     """
@@ -37,6 +39,8 @@ def run_full_analysis(config,
     - skip_projection (bool): skip projection extraction
     - skip_vn (bool): skip raw yield extraction
     - skip_efficiency (bool): skip efficiency estimation
+    - skip_fraction (bool): skip fraction estimation
+    - skip_vnsyst (bool): skip vn systematic estimation
     - batch (bool): suppress video output
     """
 
@@ -56,7 +60,7 @@ def run_full_analysis(config,
     cent_withopt = f" -c {centrality}"
     wagon_id_withopt = f" -w {wagon_id}"
 
-    if skip_resolution and skip_projection and skip_vn:
+    if skip_resolution and skip_projection and skip_vn and skip_efficiency and skip_fraction and skip_vnsyst:
         print("\033[91m Nothing to do, all steps are skipped\033[0m")
         return
 
@@ -126,10 +130,34 @@ def run_full_analysis(config,
         if not os.path.exists(f"{outputdir}/eff"):
             os.makedirs(f"{outputdir}/eff")
         outputdir_eff = f"-o {outputdir}/eff"
-        command_eff = f"python3 compute_efficiency.py {config} {outputdir_eff} {suffix_withopt}"
+        command_eff = f"python3 compute_efficiency.py {config} {cent_withopt} {outputdir_eff} {suffix_withopt}"
         print("\n\033[92m Starting efficiency estimation\033[0m")
         print(f"\033[92m {command_eff}\033[0m")
         os.system(command_eff)
+
+    # fraction
+    if not skip_fraction:
+        if not os.path.exists(f"{outputdir}/frac"):
+            os.makedirs(f"{outputdir}/frac")
+        if skip_vn:
+            outputdir_rawyield = f"{outputdir}/ry"
+        outputdir_fraction = f"-o {outputdir}/frac"
+        command_fraction = f"python3 compute_theory_promptfrac.py {config} {outputdir}/eff/eff{suffix}.root {outputdir_fraction} {suffix_withopt}"
+        print("\n\033[92m Starting fraction estimation\033[0m")
+        print(f"\033[92m {command_fraction}\033[0m")
+        os.system(command_fraction)
+
+    # vn systematic
+    if not skip_vnsyst:
+        if not os.path.exists(f"{outputdir}/vnsyst"):
+            os.makedirs(f"{outputdir}/vnsyst")
+        outputdir_vnsyst = f"-o {outputdir}/vnsyst/"
+        command_vnsyst = f"python3 compute_promptvn_withsyst.py {outputdir}/ry/raw_yields{suffix}.root {outputdir}/frac/promptfrac{suffix}.root {outputdir_vnsyst} {suffix_withopt}"
+        print("\n\033[92m Starting vn systematic estimation\033[0m")
+        print(f"\033[92m {command_vnsyst}\033[0m")
+        os.system(command_vnsyst)
+    
+        
 
     print("\n\033[92m Full analysis done\033[0m")
 
@@ -159,6 +187,10 @@ if __name__ == "__main__":
                         help="skip vn estimation")
     parser.add_argument("--skip_efficiency", action="store_true", default=False,
                         help="skip efficiency estimation")
+    parser.add_argument("--skip_fraction", action="store_true", default=False,
+                        help="skip fraction estimation")
+    parser.add_argument("--skip_vnsyst", action="store_true", default=False,
+                        help="skip vn systematic estimation")
     parser.add_argument("--batch", action="store_true", default=False,
                         help="suppress video output")
     args = parser.parse_args()
@@ -176,5 +208,7 @@ if __name__ == "__main__":
         args.skip_projection,
         args.skip_vn,
         args.skip_efficiency,
+        args.skip_fraction,
+        args.skip_vnsyst,
         args.batch
     )
