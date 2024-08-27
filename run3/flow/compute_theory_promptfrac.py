@@ -9,7 +9,7 @@ from ROOT import TFile, TGraphAsymmErrors, TH1, TH1F, kOrange, kAzure, TCanvas, 
 sys.path.append('../../')
 from utils.StyleFormatter import SetObjectStyle
 from utils.ReadModel import ReadFONLL, ReadTAMU
-from utils.AnalysisUtils import GetFractionNb
+from utils.AnalysisUtils import GetFractionNb, GetPromptFDFractionFc
 
 def get_nbfraction(ry, eff_fd, xsc_pp, delta_pt, br, nev, raa, taa):
     '''
@@ -37,20 +37,17 @@ def get_nbfraction(ry, eff_fd, xsc_pp, delta_pt, br, nev, raa, taa):
     # Compute prompt fraction
     #_____________________________________________________________________________________
     # prompt fraction
+    fd_frac_central = taa * xsc_pp['Central'] * raa['Central'] * \
+                      2 * delta_pt * eff_fd * br * nev / ry['Central']
     fd_frac = []
-    fd_frac.append(taa * xsc_pp['Central'] * raa['Central'] * \
-                   2 * delta_pt * eff_fd * br * nev / ry)
-    if raa['Min'] == 0. and raa['Max'] == 0.:
-        fd_frac.append(taa * xsc_pp['Min'] * raa['Central'] * \
-                       2 * delta_pt * eff_fd * br * nev / ry)
-        fd_frac.append(taa * xsc_pp['Max'] * raa['Central'] * \
-                       2 * delta_pt * eff_fd * br * nev / ry)
-    else:
-        fd_frac.append(taa * xsc_pp['Min'] * raa['Min'] * 2 * delta_pt * eff_fd * br * nev / ry)
-        fd_frac.append(taa * xsc_pp['Max'] * raa['Max'] * 2 * delta_pt * eff_fd * br * nev / ry)
-
+    for Xsec  in [xsc_pp['Min'], xsc_pp['Max']]:
+        for Raa  in [raa['Min'], raa['Max']]:
+            fd_frac.append(taa * Xsec * Raa * \
+                           2 * delta_pt * eff_fd * \
+                           br * nev / ry['Central'])
     fd_frac.sort()
-    return fd_frac
+
+    return [fd_frac[0], fd_frac_central, fd_frac[-1]]
 
 def compute_nbfraction(configfile_name, efffile, outputdir, suffix):
 
@@ -65,14 +62,20 @@ def compute_nbfraction(configfile_name, efffile, outputdir, suffix):
     ptLims = list(ptMins)
     nPtBins = len(ptMins)
     ptLims.append(ptMaxs[-1])
+    ptLims = np.asarray(ptLims, 'f')
     # fonll
     Dmeson = config['Dmeson']
+    if Dmeson == 'D0': Dmeson = 'Dzero'
     fonllpred = {}
+    fonllpred_prompt = {}
     fonllfile = TFile.Open(config['fonllfile'])
     for key in ['Central', 'Min', 'Max']:
         fonllpred[key] = fonllfile.Get(f'NonPrompt/{Dmeson}/hFonllNonPrompt{Dmeson}{key}')
+        fonllpred_prompt[key] = fonllfile.Get(f'Prompt/Dplus/hFonllPromptDplus{key}')
         fonllpred[key].SetName(f"fonll_{key}")
         fonllpred[key].SetDirectory(0)
+        fonllpred_prompt[key].SetName(f"fonll_prompt_{key}")
+        fonllpred_prompt[key].SetDirectory(0)
     fonllfile.Close()
     # raa
     raa = {}
@@ -107,6 +110,14 @@ def compute_nbfraction(configfile_name, efffile, outputdir, suffix):
     ry_file.Close()
 
     gfd_frac, gprompt_frac = TGraphAsymmErrors(nPtBins), TGraphAsymmErrors(nPtBins)
+    gprompt_frac_min = TGraphAsymmErrors(nPtBins)
+    gprompt_frac_max = TGraphAsymmErrors(nPtBins)
+    hprompt_frac = TH1F("hprompt_frac", "hprompt_frac", nPtBins, np.array(ptLims))
+    hprompt_frac_min = TH1F("hprompt_frac_min", "hprompt_frac_min", nPtBins, np.array(ptLims))
+    hprompt_frac_max = TH1F("hprompt_frac_max", "hprompt_frac_max", nPtBins, np.asarray(ptLims))
+    hprompt_frac.SetDirectory(0)
+    hprompt_frac_min.SetDirectory(0)
+    hprompt_frac_max.SetDirectory(0)
     for ipt, (ptmin, ptmax) in enumerate(zip(ptMins, ptMaxs)):
         deltaPt = ptmax - ptmin
         ptcent = (ptmin + ptmax) / 2.
@@ -129,16 +140,14 @@ def compute_nbfraction(configfile_name, efffile, outputdir, suffix):
         eff_fd = {'Central': eff_fd_hist.GetBinContent(eff_fd_hist.FindBin(ptcent + 1.e-9)),
                     'Min': eff_fd_hist.GetBinError(eff_fd_hist.FindBin(ptcent + 1.e-9)),
                     'Max': eff_fd_hist.GetBinError(eff_fd_hist.FindBin(ptcent + 1.e-9))}
-        print("____________________________________")
         print("Efficiency")
         print(f"Prompt: {eff_prompt['Central']} - {eff_prompt['Min']} + {eff_prompt['Max']}")
         print(f"FD: {eff_fd['Central']} - {eff_fd['Min']} + {eff_fd['Max']}")
 
         # raw yield
         ryield = {'Central': abs(ry.GetBinContent(ry.FindBin(ptcent + 1.e-9))),
-                  'Min': abs(ry.GetBinError(ry.FindBin(ptcent + 1.e-9))),
-                  'Max': abs(ry.GetBinError(ry.FindBin(ptcent + 1.e-9)))}
-        print("____________________________________")
+                  'Min': abs(ry.GetBinContent(ry.FindBin(ptcent + 1.e-9)) - ry.GetBinError(ry.FindBin(ptcent + 1.e-9))),
+                  'Max': abs(ry.GetBinContent(ry.FindBin(ptcent + 1.e-9)) + ry.GetBinError(ry.FindBin(ptcent + 1.e-9)))}
         print(f"Raw yield: {ryield['Central']} - {ryield['Min']} + {ryield['Max']}")
 
         # raa
@@ -147,6 +156,9 @@ def compute_nbfraction(configfile_name, efffile, outputdir, suffix):
             raa['Min'] = spline_raa['yMin'](ptcent)
             raa['Max'] = spline_raa['yMax'](ptcent)
         else:
+            # raa +-50%
+            raa['Min'] = raa['Central'] - 0.5*raa['Central']
+            raa['Max'] = raa['Central'] + 0.5*raa['Central']
             raa['Min'] = raa['Central']
             raa['Max'] = raa['Central']
         print("____________________________________")
@@ -154,19 +166,19 @@ def compute_nbfraction(configfile_name, efffile, outputdir, suffix):
 
         #_____________________________________________________________________________________
         # normalization
-        print("____________________________________")
         print(f"Normalization: taa = {taa}, br = {br}, nevents = {nevents}")
 
         # Compute prompt fraction
         #_____________________________________________________________________________________
         # prompt fraction (0: Min, 1: Central, 2: Max)
-        fd_frac = get_nbfraction(ryield['Central'],
+        fd_frac = get_nbfraction(ryield,
                                  eff_fd['Central'],
                                  xsec,
                                  deltaPt, br,
                                  nevents, raa, taa)
-        print("____________________________________")
-        print(f"FD fraction: {fd_frac[1]} - {fd_frac[0]} + {fd_frac[2]}")
+        prompt_frac = [1 - fd_frac[2], 1 - fd_frac[1], 1 - fd_frac[0]]
+        print(f"FD fraction: {fd_frac[1]:.3f} - {fd_frac[0]:.3f} + {fd_frac[2]:.3f}")
+        print(f"Prompt fraction: {prompt_frac[1]:.3f} - {prompt_frac[0]:.3f} + {prompt_frac[2]:.3f}")
 
         # Fill TGraph
         gfd_frac.SetPoint(ipt, ptcent, fd_frac[1])
@@ -184,10 +196,19 @@ def compute_nbfraction(configfile_name, efffile, outputdir, suffix):
         SetObjectStyle(gfd_frac, markerstyle=21, markercolor=kAzure+4,
                        markersize=1.5, linecolor=kAzure+4)
 
+        hprompt_frac.SetBinContent(ipt + 1, prompt_frac[1])
+        hprompt_frac.SetBinError(ipt + 1, max(prompt_frac[1] - prompt_frac[0], prompt_frac[2] - prompt_frac[1]))
+        hprompt_frac_min.SetBinContent(ipt + 1, prompt_frac[0])
+        hprompt_frac_min.SetBinError(ipt + 1, 0)
+        hprompt_frac_max.SetBinContent(ipt + 1, prompt_frac[2])
+        hprompt_frac_max.SetBinError(ipt + 1, 0)
+
     # Plot
     #_____________________________________________________________________________________
     gfd_frac.SetName("gfd_frac")
     gprompt_frac.SetName("gprompt_frac")
+    gprompt_frac_min.SetName("gprompt_frac_min")
+    gprompt_frac_max.SetName("gprompt_frac_max")
     canv = TCanvas("canv", "canv", 500, 500)
     hframe = canv.DrawFrame(0, 0, 50, 1.1, ";#it{p}_{T} (GeV/#it{c}); Fraction")
     leg = TLegend(0.15, 0.3, 0.5, 0.5)
@@ -212,6 +233,11 @@ def compute_nbfraction(configfile_name, efffile, outputdir, suffix):
     hist_norm.Write()
     gfd_frac.Write()
     gprompt_frac.Write()
+    gprompt_frac_min.Write()
+    gprompt_frac_max.Write()
+    hprompt_frac.Write()
+    hprompt_frac_min.Write()
+    hprompt_frac_max.Write()
     canv.Write()
     outfile.Close()
 

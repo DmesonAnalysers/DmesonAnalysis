@@ -1,16 +1,75 @@
 import ROOT
-import numpy as np
+import ctypes
 import argparse
 import yaml
-import ctypes
-from ROOT import TFile, TGraphAsymmErrors, TH1F, TCanvas, TLegend, TLine, gStyle, TMath
+from ROOT import TFile, TGraphAsymmErrors, TH1F, TCanvas, TLine, TLegend, gStyle, TMath
 
 # Systematic uncertainties
-absSystUncFit = [0.017, 0.004, 0.008, 0.004, 0.006, 0.007, 0.004, 0.010, 0.009, 0.018, 0.017, 0.036, 0.034]
-relResolUnc = 0.01
+#absSystUncFit = [0.017, 0.006, 0.006, 0.006, 0.006, 0.006, 0.006, 0.01, 0.01, 0.01, 0.015, 0.03, 0.03]  # v3 010
+absSystUncFit = [0.007, 0.01, 0.004, 0.01, 0.006, 0.015, 0.093, 0.14]  # v3 010
+relResolUnc = 0.015  # v2 0-10
 
-def ComputePromptVnWithSyst(inFileNameVn, inFileNamefPrompt, outDir, suffix):
+# Method to set graph style
+def SetGraphStyle(graph, color, markerstyle, dofill=False, fillstyle=1000, markersize=1.5, linewidth=2):
+    graph.SetLineColor(color)
+    graph.SetMarkerColor(color)
+    if dofill:
+        graph.SetFillColor(color)
+        graph.SetFillStyle(fillstyle)
+    else:
+        graph.SetFillStyle(0)
+    graph.SetMarkerStyle(markerstyle)
+    graph.SetMarkerSize(markersize)
+    graph.SetLineWidth(linewidth)
+
+# Method to set plots style
+def SetStyle():
+    gStyle.SetPadRightMargin(0.035)
+    gStyle.SetPadLeftMargin(0.15)
+    gStyle.SetPadBottomMargin(0.1)
+    gStyle.SetPadTopMargin(0.07)
+    gStyle.SetTitleSize(0.045, "xy")
+    gStyle.SetLabelSize(0.04, "xy")
+    gStyle.SetPadTickX(1)
+    gStyle.SetPadTickY(1)
+    gStyle.SetLegendBorderSize(0)
+    gStyle.SetHistLineWidth(2)
+    gStyle.SetOptStat(0)
+
+# Method to compute prompt vn and associated systematic uncertainties
+def CorrectVnForFeedDown(gVnPromptSyst, gVnObsStat, hfPromptCent, hfPromptMin, hfPromptMax):
+    gVnPromptStat = TGraphAsymmErrors(1)
+
+    for iPt in range(gVnObsStat.GetN()):
+        pt, vnobs = ctypes.c_double(), ctypes.c_double()
+        gVnObsStat.GetPoint(iPt, pt, vnobs)
+        vnobs = float(vnobs.value)
+        pt = float(pt.value)
+        vnobsstatunc = gVnObsStat.GetErrorYlow(iPt)
+        ptunclow = gVnObsStat.GetErrorXlow(iPt)
+        ptunchigh = gVnObsStat.GetErrorXhigh(iPt)
+
+        fpromptcent = hfPromptCent.GetBinContent(iPt + 1)
+        fpromptmin = hfPromptMin.GetBinContent(iPt + 1)
+        fpromptmax = hfPromptMax.GetBinContent(iPt + 1)
+
+        vnprompt = 2 * vnobs / (1 + fpromptcent)
+        vnpromptstatunc = 2 * vnobsstatunc / (1 + fpromptcent)
+        vnpromptmin = 2 * TMath.Sqrt(3) * vnobs / ((TMath.Sqrt(3) + 1) + fpromptmax * (TMath.Sqrt(3) - 1))
+        vnpromptmax = 2 * TMath.Sqrt(3) * vnobs / ((TMath.Sqrt(3) - 1) + fpromptmin * (TMath.Sqrt(3) + 1))
+
+        gVnPromptStat.SetPoint(iPt, pt, vnprompt)
+        gVnPromptStat.SetPointError(iPt, ptunclow, ptunchigh, vnpromptstatunc, vnpromptstatunc)
+        gVnPromptSyst.SetPoint(iPt, pt, vnprompt)
+        gVnPromptSyst.SetPointError(iPt, 0.3, 0.3, vnprompt - vnpromptmin, vnpromptmax - vnprompt)
+
+    return gVnPromptStat
+
+# Main function to get prompt vn with all systematic uncertainties
+def ComputePromptVnWithSyst(outDir, inFileNameVn, inFileNamefPrompt, suffix):
     SetStyle()
+
+    nPtBins = len(absSystUncFit)
 
     inFileVn = TFile.Open(inFileNameVn)
     if not inFileVn or not inFileVn.IsOpen():
@@ -20,42 +79,28 @@ def ComputePromptVnWithSyst(inFileNameVn, inFileNamefPrompt, outDir, suffix):
         print(f"ERROR: graph gvnSimFit does not exist! Exit")
         return
     gVnObsStat.SetName("gVnObsStat")
-    nPtBins = gVnObsStat.GetN()
     SetGraphStyle(gVnObsStat, ROOT.kRed, ROOT.kOpenCircle)
+    if nPtBins != gVnObsStat.GetN():
+        print(f"ERROR: different number of pT bins in systematic-uncertainty array and input vn graph {nPtBins, gVnObsStat.GetN()}! Exit")
+        return
 
-    hfPromptCent = None
-    hfPromptMin = None
-    hfPromptMax = None
-    gVnPromptStat = gVnObsStat.Clone("gVnPromptStat")
-    gVnPromptSystFeedDown = gVnObsStat.Clone("gVnPromptSystFeedDown")
-    gfPrompt = gVnObsStat.Clone("gfPrompt")
-    inFilefPrompt = None
+    hfPromptCent, hfPromptMin, hfPromptMax = TGraphAsymmErrors(1), TGraphAsymmErrors(1), TGraphAsymmErrors(1)
+    gVnPromptStat, gVnPromptSystFeedDown, gfPrompt = TGraphAsymmErrors(1), TGraphAsymmErrors(1), TGraphAsymmErrors(1)
+    inFilefPrompt = TGraphAsymmErrors(1)
     if inFileNamefPrompt:
         inFilefPrompt = TFile.Open(inFileNamefPrompt)
         if not inFilefPrompt or not inFilefPrompt.IsOpen():
             return
-        gfPromptCent = inFilefPrompt.Get("gprompt_frac")
-        hfPromptCent = inFilefPrompt.Get("hRawYieldsSimFit")
-        hfPromptMin = inFilefPrompt.Get("hRawYieldsSimFit")
-        hfPromptMax = inFilefPrompt.Get("hRawYieldsSimFit")
-        hfPromptCent.Reset()
-        hfPromptMin.Reset()
-        hfPromptMax.Reset()
-
-        # convert TGRaphAsymmErrors to TH1F
-        for iPt in range(gfPromptCent.GetN()):
-            pt, promptfrac = ctypes.c_double(), ctypes.c_double()
-            gfPromptCent.GetPoint(iPt, pt, promptfrac)
-            hfPromptCent.SetBinContent(iPt+1, promptfrac.value)
-            hfPromptMin.SetBinContent(iPt+1, hfPromptCent.GetBinContent(iPt+1) - gfPromptCent.GetErrorYlow(iPt))
-            hfPromptMax.SetBinContent(iPt+1, hfPromptCent.GetBinContent(iPt+1) + gfPromptCent.GetErrorYhigh(iPt))
-
-
-        #if gVnObsStat.GetN() != hfPromptCent.GetNbinsX():
-        #    print("ERROR: different number of pT bins in input vn graph and fprompt histo! Exit")
-        #    return
-        gVnPromptStat = CorrectVnForFeedDown(gVnPromptSystFeedDown, gVnObsStat,
-                                             hfPromptCent, hfPromptMin, hfPromptMax)
+        hfPromptCent = inFilefPrompt.Get("hprompt_frac")
+        hfPromptMin = inFilefPrompt.Get("hprompt_frac_min")
+        hfPromptMax = inFilefPrompt.Get("hprompt_frac_max")
+        hfPromptCent.SetDirectory(0)
+        hfPromptMin.SetDirectory(0)
+        hfPromptMax.SetDirectory(0)
+        if gVnObsStat.GetN() != hfPromptCent.GetNbinsX():
+            print("ERROR: different number of pT bins in input vn graph and fprompt histo! Exit")
+            return
+        gVnPromptStat = CorrectVnForFeedDown(gVnPromptSystFeedDown, gVnObsStat, hfPromptCent, hfPromptMin, hfPromptMax)
         gVnPromptStat.SetName("gVnPromptStat")
         gVnPromptSystFeedDown.SetName("gVnPromptSystFeedDown")
 
@@ -63,152 +108,101 @@ def ComputePromptVnWithSyst(inFileNameVn, inFileNamefPrompt, outDir, suffix):
         gfPrompt.SetName("gfPrompt")
         SetGraphStyle(gfPrompt, ROOT.kBlack, ROOT.kFullCircle)
         for iPt in range(nPtBins):
-            gfPrompt.SetPoint(iPt, hfPromptCent.GetBinCenter(iPt+1), hfPromptCent.GetBinContent(iPt+1))
-            gfPrompt.SetPointError(iPt, hfPromptCent.GetBinWidth(iPt+1)/2, hfPromptCent.GetBinWidth(iPt+1)/2, hfPromptCent.GetBinContent(iPt+1)-hfPromptMin.GetBinContent(iPt+1), hfPromptMax.GetBinContent(iPt+1)-hfPromptCent.GetBinContent(iPt+1))
+            gfPrompt.SetPoint(iPt, hfPromptCent.GetBinCenter(iPt + 1), hfPromptCent.GetBinContent(iPt + 1))
+            gfPrompt.SetPointError(iPt, hfPromptCent.GetBinWidth(iPt + 1) / 2, hfPromptCent.GetBinWidth(iPt + 1) / 2,
+                                   hfPromptCent.GetBinContent(iPt + 1) - hfPromptMin.GetBinContent(iPt + 1),
+                                   hfPromptMax.GetBinContent(iPt + 1) - hfPromptCent.GetBinContent(iPt + 1))
     else:
         gVnPromptStat = gVnObsStat.Clone("gVnPromptStat")
         gVnPromptSystFeedDown = gVnObsStat.Clone("gVnPromptSystFeedDown")
         for iPt in range(nPtBins):
             gVnPromptSystFeedDown.SetPointError(iPt, 0.3, 0.3, 0., 0.)
 
-    #SetGraphStyle(gVnPromptStat, ROOT.kBlack, ROOT.kFullCircle)
-    #SetGraphStyle(gVnPromptSystFeedDown, ROOT.kGray+2, ROOT.kFullCircle, True)
+    SetGraphStyle(gVnPromptStat, ROOT.kBlack, ROOT.kFullCircle)
+    SetGraphStyle(gVnPromptSystFeedDown, ROOT.kGray + 2, ROOT.kFullCircle, True, 3154)
+    
 
     gVnPromptSystFit = gVnPromptStat.Clone("gVnPromptSystFit")
     gVnPromptSystResol = gVnPromptStat.Clone("gVnPromptSystResol")
     gVnPromptSystData = gVnPromptStat.Clone("gVnPromptSystData")
+    SetGraphStyle(gVnPromptSystData, ROOT.kAzure+4, ROOT.kFullCircle, True, 3145)
     gVnPromptSystTot = gVnPromptStat.Clone("gVnPromptSystTot")
 
-    ptmin = -1
-    ptmax = -1
+    ptmin, ptmax = -1., -1.
     for iPt in range(nPtBins):
-        pt, vnprompt = ctypes.c_double(), ctypes.c_double()
+        pt, vnobs, vnprompt = ctypes.c_double(), ctypes.c_double(), ctypes.c_double()
         gVnPromptStat.GetPoint(iPt, pt, vnprompt)
-        vnobs = gVnObsStat.GetY()[iPt]
-        vnprompt = float(vnprompt.value)
+        gVnObsStat.GetPoint(iPt, pt, vnobs)
         pt = float(pt.value)
-        scalefactor = vnprompt/vnobs
+        vnprompt = float(vnprompt.value)
+        vnobs = float(vnobs.value)
+        scalefactor = vnprompt / vnobs
         fitsyst = absSystUncFit[iPt] * scalefactor
-        resolsyst = relResolUnc #* vnprompt
+        resolsyst = relResolUnc * vnprompt
         feeddownsystlow = gVnPromptSystFeedDown.GetErrorYlow(iPt)
         feeddownsysthigh = gVnPromptSystFeedDown.GetErrorYhigh(iPt)
-        datasyst = TMath.Sqrt(fitsyst**2 + resolsyst**2)
-        totsystlow = TMath.Sqrt(datasyst**2 + feeddownsystlow**2)
-        totsysthigh = TMath.Sqrt(datasyst**2 + feeddownsysthigh**2)
-        gVnPromptSystFit.SetPointError(iPt, 0., 0., fitsyst, fitsyst)
-        gVnPromptSystResol.SetPointError(iPt, 0., 0., resolsyst, resolsyst)
-        gVnPromptSystData.SetPointError(iPt, 0., 0., datasyst, datasyst)
-        gVnPromptSystTot.SetPointError(iPt, 0., 0., totsystlow, totsysthigh)
+        datasyst = TMath.Sqrt(fitsyst * fitsyst + resolsyst * resolsyst)
+        totsystlow = TMath.Sqrt(datasyst * datasyst + feeddownsystlow * feeddownsystlow)
+        totsysthigh = TMath.Sqrt(datasyst * datasyst + feeddownsysthigh * feeddownsysthigh)
+        gVnPromptSystFit.SetPointError(iPt, 0.5, 0.5, fitsyst, fitsyst)
+        gVnPromptSystResol.SetPointError(iPt, 0.5, 0.5, resolsyst, resolsyst)
+        gVnPromptSystData.SetPointError(iPt, 0.5, 0.5, datasyst, datasyst)
+        gVnPromptSystTot.SetPointError(iPt, 0.5, 0.5, totsystlow, totsysthigh)
         if iPt == 0:
             ptmin = pt - gVnObsStat.GetErrorXlow(iPt)
-        elif iPt == nPtBins - 1:
+        if iPt == nPtBins - 1:
             ptmax = pt + gVnObsStat.GetErrorXhigh(iPt)
-
-    lineatzero = TLine(ptmin, 0., ptmax, 0.)
-    lineatzero.SetLineWidth(2)
-    lineatzero.SetLineColor(ROOT.kBlack)
-    lineatzero.SetLineStyle(9)
-
-    legPrompt = TLegend(0.5, 0.75, 0.85, 0.85)
-    legPrompt.SetFillStyle(0)
-    legPrompt.SetTextSize(0.04)
-    legPrompt.SetBorderSize(0)
-    legPrompt.AddEntry(gVnObsStat, "Observed #it{v}_{2}", "p")
-    legPrompt.AddEntry(gVnPromptStat, "Prompt #it{v}_{2}", "p")
-
-    leg = TLegend(0.5, 0.7, 0.85, 0.85)
-    leg.SetFillStyle(0)
-    leg.SetTextSize(0.04)
-    leg.SetBorderSize(0)
-    leg.AddEntry(gVnPromptStat, "Prompt #it{v}_{2}", "p")
-    leg.AddEntry(gVnPromptSystData, "Data syst. unc.", "f")
-    leg.AddEntry(gVnPromptSystFeedDown, "B feed-down syst. unc.", "f")
-
-    cVnPrompt = TCanvas("cVnPrompt", "", 800, 800)
-    cVnPrompt.DrawFrame(ptmin, -0.2, ptmax, 0.4, ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}")
-    lineatzero.Draw("same")
-    gVnObsStat.Draw("P")
-    gVnPromptStat.Draw("P")
-    legPrompt.Draw()
-
-    cVn = TCanvas("cVn", "", 800, 800)
-    cVn.DrawFrame(ptmin, -0.2, ptmax, 0.4, ";#it{p}_{T} (GeV/#it{c});#it{v}_{2}")
-    lineatzero.Draw("same")
-    gVnPromptSystFeedDown.Draw("2")
-    gVnPromptSystData.Draw("2")
-    gVnPromptStat.Draw("P")
-    leg.Draw()
 
     outFileName = f"{outDir}/promptvn_withsyst{suffix}.root"
     outFile = TFile(outFileName, "recreate")
-    gVnObsStat.Write()
-    gVnPromptStat.Write()
+    outFile.cd()
+
+    if inFileNamefPrompt:
+        gVnObsStat.Write()
+        gVnPromptStat.Write()
+        gVnPromptSystFeedDown.Write()
+        gfPrompt.Write()
+
     gVnPromptSystFit.Write()
     gVnPromptSystResol.Write()
     gVnPromptSystData.Write()
-    gVnPromptSystFeedDown.Write()
     gVnPromptSystTot.Write()
-    if gfPrompt:
-        gfPrompt.Write()
+
+    if inFileNamefPrompt:
+        c = TCanvas("c", "c", 800, 600)
+        c.cd()
+        haxis = TH1F("haxis", "; #it{p}_{T} (GeV/#it{c});", 100, ptmin, ptmax)
+        haxis.GetYaxis().SetRangeUser(-0.002, 0.3)
+        haxis.Draw("axis")
+        gVnPromptSystFeedDown.Draw("e2 same")
+        gVnPromptSystData.Draw("e2 same")
+        gVnPromptSystTot.Draw("e2 same")
+        gVnPromptStat.Draw("ep same")
+        gVnObsStat.Draw("ep same")
+        line = TLine(ptmin, 0, ptmax, 0)
+        line.SetLineStyle(2)
+        line.SetLineWidth(2)
+        line.Draw("same")
+        legend = TLegend(0.53, 0.63, 0.83, 0.83)
+        legend.SetTextSize(0.04)
+        legend.SetTextFont(42)
+        legend.AddEntry(gVnObsStat, "observed", "ep")
+        legend.AddEntry(gVnPromptStat, "prompt", "ep")
+        legend.AddEntry(gVnPromptSystFeedDown, "syst. unc. (FD corr.)", "f")
+        legend.AddEntry(gVnPromptSystData, "syst. unc. (fit and reso. corr.)", "f")
+        legend.AddEntry(gVnPromptSystTot, "syst. unc. (total)", "f")
+        legend.Draw("same")
+        c.Update()
+        input()
+        c.Write()
+
     outFile.Close()
+    inFileVn.Close()
+    if inFilefPrompt:
+        inFilefPrompt.Close()
 
-def CorrectVnForFeedDown(gVnPromptSyst, gVnObsStat, hfPromptCent, hfPromptMin, hfPromptMax):
-    gVnPromptSyst = gVnObsStat.Clone("gVnPromptSyst")
-    for iPt in range(gVnObsStat.GetN()):
-        vnobs = gVnObsStat.GetY()[iPt]
-        vnobserr = max(gVnObsStat.GetErrorYlow(iPt), gVnObsStat.GetErrorYhigh(iPt))
-        pt = gVnObsStat.GetX()[iPt]
-        ptbin = hfPromptCent.GetXaxis().FindBin(pt)
-        bwidth = hfPromptCent.GetXaxis().GetBinWidth(iPt+1)
-        fPrompt = hfPromptCent.GetBinContent(iPt+1)
-        fPromptMin = hfPromptMin.GetBinContent(ptbin)
-        fPromptMax = hfPromptMax.GetBinContent(ptbin)
-        fPromptErrLow = fPrompt - fPromptMin
-        fPromptErrHigh = fPromptMax - fPrompt
-        fPromptErrLow = max(fPromptErrLow, 0.01)
-        fPromptErrHigh = max(fPromptErrHigh, 0.01)
-        vnPrompt = vnobs / fPrompt
-        vnPromptErr = TMath.Sqrt((vnobserr/fPrompt)**2 + (vnPrompt*fPromptErrLow/fPrompt)**2)
-        gVnPromptSyst.SetPoint(iPt, pt, vnPrompt)
-        gVnPromptSyst.SetPointError(iPt, bwidth/2., bwidth/2., vnPromptErr, vnPromptErr)
-    gVnPromptSyst.Draw()
-    input("Press Enter to continue...")
-    return gVnPromptSyst
-
-def SetStyle():
-    gStyle.SetOptStat(0)
-    gStyle.SetOptTitle(0)
-    gStyle.SetTitleSize(0.045, "xy")
-    gStyle.SetLabelSize(0.045, "xy")
-    gStyle.SetTitleOffset(1.2, "x")
-    gStyle.SetTitleOffset(1.4, "y")
-    gStyle.SetPadTickX(1)
-    gStyle.SetPadTickY(1)
-    gStyle.SetPadTopMargin(0.03)
-    gStyle.SetPadBottomMargin(0.12)
-    gStyle.SetPadLeftMargin(0.12)
-    gStyle.SetPadRightMargin(0.04)
-    gStyle.SetPadGridX(0)
-    gStyle.SetPadGridY(0)
-    gStyle.SetFrameFillStyle(0)
-    gStyle.SetCanvasColor(10)
-    gStyle.SetPadColor(10)
-    gStyle.SetTitleColor(1, "XYZ")
-    gStyle.SetLabelColor(1, "XYZ")
-    gStyle.SetAxisColor(1, "XYZ")
-    gStyle.SetLegendBorderSize(0)
-
-def SetGraphStyle(g, col, msty, isBand=False):
-    g.SetLineColor(col)
-    g.SetMarkerColor(col)
-    g.SetMarkerStyle(msty)
-    g.SetMarkerSize(1.3)
-    if isBand:
-        g.SetLineWidth(0)
-        g.SetFillColor(col)
-        g.SetFillStyle(3001)
-    else:
-        g.SetLineWidth(2)
+    print(f"Output written to: {outFileName}")
+    input("Press Enter to exit.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
@@ -222,7 +216,7 @@ if __name__ == "__main__":
                         default="", help="suffix for output files")
     args = parser.parse_args()
 
-    ComputePromptVnWithSyst(args.vn_file,
+    ComputePromptVnWithSyst(args.outputdir,
+                            args.vn_file,
                             args.frac_file,
-                            args.outputdir,
                             args.suffix)
