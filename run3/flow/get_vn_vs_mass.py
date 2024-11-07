@@ -9,12 +9,15 @@ import argparse
 import ctypes
 import numpy as np
 import yaml
-from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, AliHFInvMassFitter, AliVertexingHFUtils, AliHFVnVsMassFitter, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, gPad, kBlack, kRed, kAzure, kGray, kOrange, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
+from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../')
+gInterpreter.ProcessLine(f'#include "invmassfitter/InvMassFitter.cxx"')
+gInterpreter.ProcessLine(f'#include "invmassfitter/VnVsMassFitter.cxx"')
+from ROOT import InvMassFitter, VnVsMassFitter
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
-from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus
+from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus, RebinHisto
 
 def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                    outputdir, suffix, vn_method, batch):
@@ -73,11 +76,11 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     for iPt, (bkgStr, sgnStr, bkgVnStr) in enumerate(zip(BkgFuncStr, SgnFuncStr, BkgFuncVnStr)):
         degPol.append(-1)
         if bkgStr == 'kExpo':
-            BkgFunc.append(AliHFInvMassFitter.kExpo)
+            BkgFunc.append(InvMassFitter.kExpo)
         elif bkgStr == 'kLin':
-            BkgFunc.append(AliHFInvMassFitter.kLin)
+            BkgFunc.append(InvMassFitter.kLin)
         elif bkgStr == 'kPol2':
-            BkgFunc.append(AliHFInvMassFitter.kPol2)
+            BkgFunc.append(InvMassFitter.kPol2)
         elif bkgStr == 'kPol3':
             BkgFunc.append(6)
             degPol[-1] = 3
@@ -91,27 +94,27 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 print('ERROR: Pol3 and Pol4 fits work only with one bin if you have the secondary peak! Exit!')
                 sys.exit()
         elif bkgStr == 'kPow':
-            BkgFunc.append(AliHFInvMassFitter.kPow)
+            BkgFunc.append(InvMassFitter.kPow)
         elif bkgStr == 'kPowEx':
-            BkgFunc.append(AliHFInvMassFitter.kPowEx)
+            BkgFunc.append(InvMassFitter.kPowEx)
         else:
             print('ERROR: only kExpo, kLin, kPol2, kPol3, kPol4, kPow, and kPowEx background functions supported! Exit')
             sys.exit()
         if bkgVnStr == 'kExpo':
-            BkgFuncVn.append(AliHFInvMassFitter.kExpo)
+            BkgFuncVn.append(InvMassFitter.kExpo)
         elif bkgVnStr == 'kLin':
-            BkgFuncVn.append(AliHFInvMassFitter.kLin)
+            BkgFuncVn.append(InvMassFitter.kLin)
         elif bkgVnStr == 'kPol2':
-            BkgFuncVn.append(AliHFInvMassFitter.kPol2)
+            BkgFuncVn.append(InvMassFitter.kPol2)
         else:
             print('ERROR: only kExpo, kLin, and kPol2 background functions supported for vn! Exit')
             sys.exit()
         if sgnStr == 'kGaus':
-            SgnFunc.append(AliHFInvMassFitter.kGaus)
+            SgnFunc.append(InvMassFitter.kGaus)
         elif sgnStr == 'k2Gaus':
-            SgnFunc.append(AliHFInvMassFitter.k2Gaus)
+            SgnFunc.append(InvMassFitter.k2Gaus)
         elif sgnStr == 'k2GausSigmaRatioPar':
-            SgnFunc.append(AliHFInvMassFitter.k2GausSigmaRatioPar)
+            SgnFunc.append(InvMassFitter.k2GausSigmaRatioPar)
         else:
             print('ERROR: only kGaus, k2Gaus and k2GausSigmaRatioPar signal functions supported! Exit!')
             sys.exit()
@@ -334,7 +337,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             iCanv = iPt
             hMassForFit.append(TH1F())
             hVnForFit.append(TH1F())
-            AliVertexingHFUtils.RebinHisto(hM, reb).Copy(hMassForFit[iPt]) #to cast TH1D to TH1F
+            RebinHisto(hM, reb).Copy(hMassForFit[iPt]) #to cast TH1D to TH1F
             hMassForFit[iPt].SetDirectory(0)
             xbins = np.asarray(hV.GetXaxis().GetXbins())
             hDummy = TH1F('hDummy', '', len(xbins)-1, xbins)
@@ -353,7 +356,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             SetObjectStyle(hVnForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=0.8)
 
             print(f'Fitting {ptMin} - {ptMax} GeV/c')
-            vnFitter.append(AliHFVnVsMassFitter(hMassForFit[iPt], hVnForFit[iPt],
+            vnFitter.append(VnVsMassFitter(hMassForFit[iPt], hVnForFit[iPt],
                                                 massMin, massMax, bkgEnum, sgnEnum, bkgVnEnum))
             vnFitter[iPt].SetHarmonic(harmonic)
             #hMassForFit[iPt].DrawCopy()
@@ -388,7 +391,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 vnFitter[iPt].SetFixReflOverS(SoverR)
                 vnFitter[iPt].SetReflVnOption(0) # kSameVnSignal
             # collect fit results
-            vnFitter[iPt].SimultaneusFit(False)
+            vnFitter[iPt].SimultaneousFit(False)
             vnResults = get_vnfitter_results(vnFitter[iPt], secPeak)
             fTotFuncMass.append(vnResults['fTotFuncMass'])
             fTotFuncVn.append(vnResults['fTotFuncVn'])
@@ -483,8 +486,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             iCanv = iPt
             hMassInsForFit.append(TH1F())
             hMassOutsForFit.append(TH1F())
-            AliVertexingHFUtils.RebinHisto(hMassIn, reb).Copy(hMassInsForFit[iPt])
-            AliVertexingHFUtils.RebinHisto(hMassOut, reb).Copy(hMassOutsForFit[iPt])
+            RebinHisto(hMassIn, reb).Copy(hMassInsForFit[iPt])
+            RebinHisto(hMassOut, reb).Copy(hMassOutsForFit[iPt])
             hMassInsForFit[iPt].SetDirectory(0)
             hMassOutsForFit[iPt].SetDirectory(0)
             binWidth = hMassInsForFit[iPt].GetBinWidth(1)
@@ -498,8 +501,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             SetObjectStyle(hMassOutsForFit[iPt], color=kAzure-3, markerstyle=kOpenCircle, markersize=0.8)
 
             print(f'Fitting {ptMin} - {ptMax} GeV/c')
-            massFitterIns.append(AliHFInvMassFitter(hMassInsForFit[iPt],  massMin, massMax, bkgEnum, sgnEnum))
-            massFitterOuts.append(AliHFInvMassFitter(hMassOutsForFit[iPt],  massMin, massMax, bkgEnum, sgnEnum))
+            massFitterIns.append(InvMassFitter(hMassInsForFit[iPt],  massMin, massMax, bkgEnum, sgnEnum))
+            massFitterOuts.append(InvMassFitter(hMassOutsForFit[iPt],  massMin, massMax, bkgEnum, sgnEnum))
             if degPol[iPt] > 0:
                 massFitterIns[iPt].SetPolDegreeForBackgroundFit(degPol[iPt])
                 massFitterOuts[iPt].SetPolDegreeForBackgroundFit(degPol[iPt])
@@ -672,6 +675,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             gvnSimFit.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, vnUnc, vnUnc)
             gvnUnc.SetPoint(iPt, (ptMin+ptMax)/2, vnUnc)
             gvnUnc.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, 1.e-20, 1.e-20)
+    
     canvVn.cd().SetLogx()
     hframe = canvVn.DrawFrame(0.5, -0.5, gvnSimFit.GetXaxis().GetXmax()+0.5, 0.5,
                               f';#it{{p}}_{{T}} (GeV/c); v_{{{harmonic}}} ({vn_method})')

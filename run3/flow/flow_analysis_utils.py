@@ -362,7 +362,7 @@ def get_vnfitter_results(vnFitter, secPeak):
 
     Input:
         - vnfitter:
-            AliHFVnVsMassFitter, vn fitter object
+            VnVsMassFitter, vn fitter object
         - secPeak:
             bool, if True, save secondary peak results
 
