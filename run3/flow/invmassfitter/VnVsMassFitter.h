@@ -72,6 +72,11 @@ public:
     fVnRflMin=min;
     fVnRflMax=max;
   }
+  // void SetRflFunc(const TF1 *h1,const TF1 *h2)
+  // {
+  //   (TH1F*)fMassRflFuncR->Clone(h1);
+  //   (TH1F*)fMassBkgRflFuncR->Clone(h2);
+  // }
   void IncludeSecondGausPeak(Double_t mass, Bool_t fixm, Double_t width, Bool_t fixw, Bool_t doVn){
     fSecondPeak=kTRUE; fSecMass=mass; fSecWidth=width;
     fFixSecMass=fixm;  fFixSecWidth=fixw;
@@ -130,6 +135,14 @@ public:
   }
   TF1* GetVnVsMassBkgFitFunc() const {
     if(fVnBkgFunc) return fVnBkgFunc;
+    else return nullptr;
+  }
+  TF1* GetMassRflFunc() const {
+    if(fReflections) return fMassRflFunc;
+    else return nullptr;
+  }
+  TF1* GetMassBkgRflFunc() const {
+    if(fReflections) return fMassBkgRflFunc;
     else return nullptr;
   }
 

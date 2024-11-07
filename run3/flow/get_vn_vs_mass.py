@@ -10,7 +10,7 @@ import ctypes
 import numpy as np
 import yaml
 from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kGreen, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../')
 gInterpreter.ProcessLine(f'#include "invmassfitter/InvMassFitter.cxx"')
@@ -161,7 +161,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     hRel, hSig, hMassForRel, hMassForSig  = [], [], [], []
     hMass, hMassForFit, hVn, hVnForFit = [], [], [], []
     hMassIns, hMassOuts, hMassInsForFit, hMassOutsForFit = [], [], [], []
-    fTotFuncMass, fTotFuncVn, fSgnFuncMass, fBkgFuncMass, fBkgFuncVn = [], [], [], [], []
+    fTotFuncMass, fTotFuncVn, fSgnFuncMass, fBkgFuncMass, fMassBkgRflFunc,fBkgFuncVn = [], [], [], [], [], []
     hMCSgn, hMCRefl = [], []
     hist_reso = infile.Get('hist_reso')
     hist_reso.SetDirectory(0)
@@ -392,12 +392,16 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 vnFitter[iPt].SetReflVnOption(0) # kSameVnSignal
             # collect fit results
             vnFitter[iPt].SimultaneousFit(False)
-            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak)
+            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl)
             fTotFuncMass.append(vnResults['fTotFuncMass'])
             fTotFuncVn.append(vnResults['fTotFuncVn'])
             fSgnFuncMass.append(vnResults['fSgnFuncMass'])
             fBkgFuncMass.append(vnResults['fBkgFuncMass'])
             fBkgFuncVn.append(vnResults['fBkgFuncVn'])
+
+            if useRefl:
+                fMassBkgRflFunc.append(vnResults['fMassBkgRflFunc'])
+                hRel.append(vnResults['fMassRflFunc'])
 
             hSigmaSimFit.SetBinContent(iPt+1, vnResults['sigma'])
             hSigmaSimFit.SetBinError(iPt+1, vnResults['sigmaUnc'])
@@ -444,14 +448,22 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 SetObjectStyle(fBkgFuncMass[iPt], color=kOrange+1, linestyle=9, linewidth=2)
                 SetObjectStyle(fTotFuncMass[iPt], color=kAzure+4, linewidth=3)
                 SetObjectStyle(fSgnFuncMass[iPt], fillcolor=kAzure+4, fillstyle=3245, linewidth=0)
+                if useRefl:
+                    SetObjectStyle(hRel[iPt], fillcolor=kGreen+1, fillstyle=3254, linewidth=0)
+                    SetObjectStyle(fMassBkgRflFunc[iPt], color=kRed+1, linestyle=7, linewidth=2)
                 fSgnFuncMass[iPt].Draw('fc same')
                 fBkgFuncMass[iPt].Draw('same')
                 fTotFuncMass[iPt].Draw('same')
+                if useRefl:
+                    fMassBkgRflFunc[iPt].Draw('same')
+                    hRel[iPt].Draw('same')
                 latex.DrawLatex(0.18, 0.80, f'#mu = {vnResults["mean"]:.3f} #pm {vnResults["meanUnc"]:.3f} GeV/c^{2}')
                 latex.DrawLatex(0.18, 0.75, f'#sigma = {vnResults["sigma"]:.3f} #pm {vnResults["sigmaUnc"]:.3f} GeV/c^{2}')
                 latex.DrawLatex(0.18, 0.70, f'S = {vnResults["ry"]:.0f} #pm {vnResults["ryUnc"]:.0f}')
                 latex.DrawLatex(0.18, 0.65, f'S/B (3#sigma) = {vnResults["ry"]/vnResults["bkg"]:.2f}')
                 latex.DrawLatex(0.18, 0.60, f'Signif. (3#sigma) = {round(vnResults["sgn"], 2)}')
+                if useRefl:
+                    latex.DrawLatex(0.18, 0.20, f'RoverS = {SoverR:.2f}')
                 cSimFit[iPt].cd(2)
                 hVnForFit[iPt].GetYaxis().SetRangeUser(-1, 1)
                 hVnForFit[iPt].GetYaxis().SetTitle(f'#it{{v}}_{{{harmonic}}} ({vn_method})')
