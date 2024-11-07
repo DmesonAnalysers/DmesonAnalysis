@@ -367,10 +367,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   fNDF = result.Ndf();
   fProb = result.Prob();
 
-  // if(fReflections) {
-  //   SetRflFunc(fMassRflFunc,fMassBkgRflFunc);
-  // }
-
   return kTRUE;
 }
 
