@@ -204,7 +204,6 @@ VnVsMassFitter::~VnVsMassFitter() {
   //destructor
   if(fMassHisto)          delete fMassHisto;
   if(fVnVsMassHisto)      delete fVnVsMassHisto;
-  if(fMassFuncFromPrefit) delete fMassFuncFromPrefit;
   if(fMassBkgFunc)        delete fMassBkgFunc;
   if(fMassBkgRflFunc)     delete fMassBkgRflFunc;
   if(fMassSgnFunc)        delete fMassSgnFunc;
