@@ -344,7 +344,7 @@ def get_invmass_vs_deltaphi(thnSparse, deltaphiaxis, invmassaxis):
     
     return hist_invMass_in, hist_invMass_out
 
-def get_vnfitter_results(vnFitter, secPeak):
+def get_vnfitter_results(vnFitter, secPeak, useRefl):
     '''
     Get vn fitter results:
     0: BkgInt
@@ -359,12 +359,15 @@ def get_vnfitter_results(vnFitter, secPeak):
     9: SlopeVnBkg
     10: v2Sgn
     11: v2SecPeak
+    12: reflection
 
     Input:
         - vnfitter:
             VnVsMassFitter, vn fitter object
         - secPeak:
             bool, if True, save secondary peak results
+        - useRefl:
+            bool, if True, save the results with reflection
 
     Output:
         - vn_results:
@@ -391,6 +394,8 @@ def get_vnfitter_results(vnFitter, secPeak):
             secPeakSigmaVnUnc: uncertainty of secondary peak sigma vn
             vnSecPeak: vn secondary peak
             vnSecPeakUnc: uncertainty of vn secondary peak
+            fMassRflFunc: mass reflection function
+            fMassBkgRflFunc: mass background reflection function
     '''
     vn_results = {}
     vn_results['vn'] = vnFitter.GetVn()
@@ -428,6 +433,10 @@ def get_vnfitter_results(vnFitter, secPeak):
         vn_results['secPeakSigmaVnUnc'] = vn_results['fTotFuncVn'].GetParError(7)
         vn_results['vnSecPeak'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(11))
         vn_results['vnSecPeakUnc'] = vn_results['fTotFuncVn'].GetParError(11)
+
+    if useRefl:
+        vn_results['fMassRflFunc'] = vnFitter.GetMassRflFunc()
+        vn_results['fMassBkgRflFunc'] = vnFitter.GetMassBkgRflFunc()
 
     return vn_results
 
@@ -544,21 +553,23 @@ def getD0ReflHistos(reflFile, ptMins, ptMaxs):
     reflFile = ROOT.TFile(reflFile, 'READ')
 
     for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
+        ptLowLabel = ptMin * 10
+        ptHighLabel = ptMax * 10
 
-        hMCSgn.append(reflFile.Get(f'hFDMass_{ptMin}0_{ptMax}0'))
-        print(f'hFDMass_{ptMin}_{ptMax}')
-        hMCSgn[iPt].Add(reflFile.Get(f'hPromptMass_{ptMin}0_{ptMax}0'))
+        hMCSgn.append(reflFile.Get(f'hFDMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}'))
+        print(f'hFDMass_{ptLowLabel}_{ptHighLabel}')
+        hMCSgn[iPt].Add(reflFile.Get(f'hPromptMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}'))
         if hMCSgn[iPt] == None:
-            print(f'hFDMass_{ptMin}0_{ptMax}0 or hPromptMass_{ptMin}0_{ptMax}0 not found! Turning off reflections usage')
+            print(f'hFDMass_{ptLowLabel:.0f}_{ptHighLabel:.0f} or hPromptMass_{ptLowLabel:.0f}_{ptHighLabel:.0f} not found! Turning off reflections usage')
             return False
         hMCSgn[iPt].SetName(f'histSgn_{iPt}')
         hMCSgn[iPt].SetDirectory(0)
 
-        hMCRefl.append(reflFile.Get(f'hVarReflMass_{ptMin}0_{ptMax}0'))
+        hMCRefl.append(reflFile.Get(f'hVarReflMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}'))
         if hMCRefl[iPt] == None:
-            print(f'hVarReflMass_{ptMin}0_{ptMax}0 not found! Turning off reflections usage')
+            print(f'hVarReflMass_{ptLowLabel:.0f}0_{ptHighLabel:.0f}0 not found! Turning off reflections usage')
             return False
-        hMCRefl[iPt].SetName(f'histRfl_{iPt},iPt')
+        hMCRefl[iPt].SetName(f'histRfl_{iPt}')
         hMCRefl[iPt].SetDirectory(0)
 
     reflFile.Close()

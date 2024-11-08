@@ -132,6 +132,14 @@ public:
     if(fVnBkgFunc) return fVnBkgFunc;
     else return nullptr;
   }
+  TF1* GetMassRflFunc() const {
+    if(fReflections) return fMassRflFunc;
+    else return nullptr;
+  }
+  TF1* GetMassBkgRflFunc() const {
+    if(fReflections) return fMassBkgRflFunc;
+    else return nullptr;
+  }
 
   //struct for global chi2 (for simultaneus fit)
   struct GlobalChi2 {
