@@ -7,6 +7,7 @@
 #include <Riostream.h>
 #include <TVirtualPad.h>
 #include <TH1F.h>
+#include <TKDE.h>
 #include "Fit/Fitter.h"
 #include "Fit/Chi2FCN.h"
 #include "Math/WrappedMultiTF1.h"
@@ -60,6 +61,21 @@ public:
     fMinRefl=minRange;
     fMaxRefl=maxRange;
     fReflections=kTRUE;
+  }
+  void SetKDETemplates(std::vector<TF1> templs, std::vector<std::string> templsnames,
+                       std::vector<Double_t> initweights, std::vector<Double_t> minweights, 
+                       std::vector<Double_t> maxweights) {
+    fKDETemplates=templs;
+    fInitWeights=initweights;
+    fWeightsLowerLims=minweights;
+    fWeightsUpperLims=maxweights;
+    for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
+      fKDETemplates[iFunc].SetName(templsnames[iFunc].data());
+      fKDETemplates[iFunc].SetTitle(templsnames[iFunc].data());
+      cout << "Function name" << endl;
+      cout << fKDETemplates[iFunc].GetName() << endl;
+    }
+    fTemplates=kTRUE;
   }
   void SetInitialReflOverS(Double_t rovers){fRflOverSig=rovers;}
   void SetFixReflOverS(Double_t rovers){
@@ -139,6 +155,13 @@ public:
   TF1* GetMassBkgRflFunc() const {
     if(fReflections) return fMassBkgRflFunc;
     else return nullptr;
+  std::vector<TF1*> GetMassTemplFuncts() const {
+    if(fTemplates) return fKDEMassTemplatesDraw;
+    else return {};
+  }
+  std::vector<TF1*> GetVnTemplFuncts() const {
+    if(fTemplates) return fKDEVnTemplatesDraw;
+    else return {};
   }
 
   //struct for global chi2 (for simultaneus fit)
@@ -164,6 +187,7 @@ private:
   Double_t MassSignal(Double_t *m, Double_t *pars);
   Double_t MassBkg(Double_t *m, Double_t *pars);
   Double_t MassRfl(Double_t *m,Double_t *par);
+  Double_t MassTemplates(Double_t *m,Double_t *pars);
   Double_t MassBkgRfl(Double_t *m,Double_t *par);
   Double_t MassSecondPeak(Double_t *m,Double_t *par);
   Double_t vnBkgFunc(Double_t *m, Double_t *pars);
@@ -260,6 +284,14 @@ private:
   Bool_t                fDoSecondPeakVn;              /// flag to introduce second peak vn in the vn vs. mass fit
   Double_t              fVnSecPeakUncertainty;        /// vn uncertainty of second peak from fit
   Int_t                 fHarmonic;                    /// harmonic number for drawing
+  Bool_t                fTemplates;                   /// flag use/not use templates
+  Int_t                 fNParsTempls;                 /// fit parameters to include templates
+  std::vector<TF1>      fKDETemplates;                /// vector to store TKDE to be added as templates to the fit function 
+  std::vector<TF1 *>    fKDEVnTemplatesDraw;          /// vector to store TKDE to be added as templates to the fit function 
+  std::vector<TF1 *>    fKDEMassTemplatesDraw;        /// vector to store TKDE to be added as templates to the fit function 
+  std::vector<Double_t> fWeightsUpperLims;            /// upper limit of the templates' weights
+  std::vector<Double_t> fWeightsLowerLims;            /// lower limit of the templates' weights
+  std::vector<Double_t> fInitWeights;                 /// init values of the templates' weights
 
     /// \cond CLASSDEF
   ClassDef(VnVsMassFitter,5);

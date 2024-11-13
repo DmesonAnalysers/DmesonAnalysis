@@ -417,6 +417,8 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl):
     vn_results['fBkgFuncMass'] = vnFitter.GetMassBkgFitFunc()
     vn_results['fBkgFuncVn'] = vnFitter.GetVnVsMassBkgFitFunc()
     vn_results['fSgnFuncMass'] = vnFitter.GetMassSignalFitFunc()
+    vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
+    vn_results['fVnTemplFuncts'] = vnFitter.GetVnTemplFuncts()
     bkg, bkgUnc = ctypes.c_double(), ctypes.c_double()
     vnFitter.Background(3, bkg, bkgUnc)
     vn_results['bkg'] = bkg.value

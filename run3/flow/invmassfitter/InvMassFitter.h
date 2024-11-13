@@ -99,6 +99,14 @@ class InvMassFitter : public TNamed {
     fFixRflOverSig=kTRUE;
   }
   void SetSmoothReflectionTemplate(Bool_t opt){fSmoothRfl=opt;}
+  void SetTemplates(std::vector<TF1> templates, std::vector<Double_t> initweights,
+                    std::vector<Double_t> minweights, std::vector<Double_t> maxweights) {
+    fTemplatesFuncts=templates;
+    fInitWeights=initweights;
+    fWeightsLowerLims=minweights;
+    fWeightsUpperLims=maxweights;
+    fTemplates=kTRUE;
+  }
 
   void IncludeSecondGausPeak(Double_t mass, Bool_t fixm, Double_t width, Bool_t fixw){
     fSecondPeak=kTRUE; fSecMass=mass; fSecWidth=width;
@@ -151,6 +159,7 @@ class InvMassFitter : public TNamed {
   Double_t FitFunction4Sgn (Double_t* x, Double_t* par);
   Double_t FitFunction4Bkg (Double_t* x, Double_t* par);
   Double_t FitFunction4Refl(Double_t *x,Double_t *par);
+  Double_t FitFunction4Templ(Double_t *x,Double_t *par);
   Double_t FitFunction4BkgAndRefl(Double_t *x,Double_t *par);
   Double_t FitFunction4SecPeak (Double_t* x, Double_t* par);
   Double_t FitFunction4Mass (Double_t* x, Double_t* par);
@@ -182,6 +191,7 @@ class InvMassFitter : public TNamed {
   TF1*	   CreateSignalFitFunction(TString fname, Double_t integral);
   TF1*	   CreateSecondPeakFunction(TString fname, Double_t integral);
   TF1*	   CreateReflectionFunction(TString fname);
+  TF1*	   CreateTemplatesFunction(TString fname);
   TF1*	   CreateBackgroundPlusReflectionFunction(TString fname);
   TF1*	   CreateTotalFitFunction(TString fname);
   Bool_t   PrepareHighPolFit(TF1 *fback);
@@ -244,7 +254,14 @@ class InvMassFitter : public TNamed {
   TF1*                  fSecFunc;              /// fit function for second peak
   TF1*                  fTotFunc;              /// total fit function
   Bool_t                fAcceptValidFit;       /// accept a fit when IsValid() gives true, nevertheless the status code
-
+  std::vector<TF1>      fTemplatesFuncts;      /// vector storing TF1 to be added as templates
+  TF1*                  fTemplFunc;            /// fit function for templates
+  Bool_t                fTemplates;            /// flag use/not use templates fit functions
+  Int_t                 fNParsTempls;          /// fit parameters in templates fit function
+  std::vector<Double_t> fWeightsUpperLims;     /// upper limit of the templates' weights
+  std::vector<Double_t> fWeightsLowerLims;     /// lower limit of the templates' weights
+  std::vector<Double_t> fInitWeights;          /// init value of the templates' weights
+  
   /// \cond CLASSIMP     
   ClassDef(InvMassFitter,9); /// class for invariant mass fit
   /// \endcond

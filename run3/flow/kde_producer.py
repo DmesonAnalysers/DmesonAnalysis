@@ -7,49 +7,69 @@ import ROOT
 import ctypes
 from ROOT import TFile, TKDE, TCanvas, TH1D
 
-def kde_producer(tree, var, cent, pt_min, pt_max, inv_mass_bins, flag, outfile):
+def kde_producer(tree_file, var, pt_min, pt_max, inv_mass_bins, flag, outfile=''):
     
-    # convert the tree to a pandas dataframe
+    print(f"Producing KDE from {tree_file} for var {var}, {pt_min} <= pt < {pt_max}, flag {flag}")
+    # convert the tree_file to a pandas dataframe
     dfsData = []
-    # print(tree)
-    with uproot.open(f'{tree}') as f:
+    with uproot.open(f'{tree_file}') as f:
         # print(f.keys())
         for iKey, key in enumerate(f.keys()):
             if 'O2hfcanddplite' in key:
                 # print(key)
                 dfData = f[key].arrays(library='pd')
                 dfsData.append(dfData)        
-
+                
     full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
-    print(full_dataset['fFlagMcMatchRec'].tolist())
-    print(full_dataset['fOriginMcRec'].tolist())
-    print(full_dataset['fFlagMcDecayChanRec'].tolist())
     pt_filtered_df = full_dataset.query(f"{pt_min} <= fPt < {pt_max}")
     filtered_df = pt_filtered_df.query(f"fFlagMcMatchRec == {flag} or fFlagMcMatchRec == {-flag}")
-    # filtered_df = pt_filtered_df.query(f"fFlagMcMatchRec == 1")
     var_values = filtered_df[f'{var}'].tolist()  # Or use `.tolist()` to get a list
-    # print(var_values)
+    print(var_values)
     
     kde = TKDE(len(var_values), np.asarray(var_values, 'd'), 1.7, 2.0)
     kde_func = kde.GetFunction(1000)
     
-    binned_var_values = TH1D(f'hBinned_{var}_{flag}', f'hBinned_{var}_{flag}', 5000, 1, 3)
+    binned_var_values = TH1D(f'hBinned', f'hBinned', 5000, 1, 3)
     for var_value in var_values:
         binned_var_values.Fill(var_value)
     
-    cOverlap = TCanvas('cOverlap', 'cOverlap', 600, 600)
-    cOverlap.cd()
-    binned_var_values.Draw()
-    kde_func.Draw('SAME')
+    if outfile != '':
+        cOverlap = TCanvas('cOverlap', 'cOverlap', 600, 600)
+        cOverlap.cd()
+        binned_var_values.Draw()
+        kde_func.Draw('SAME')
+        outfile.mkdir(f'KDE_pT_{pt_low}_{pt_max}_flag{flag}')
+        outfile.cd(f'KDE_pT_{pt_low}_{pt_max}_flag{flag}')
+        binned_var_values.Write()
+        kde_func.Write()
+        cOverlap.Write()
     
-    outfile.mkdir(f'pT_{pt_low}_{pt_max}')
-    outfile.cd(f'pT_{pt_low}_{pt_max}')
-    kde_func.Write()
-    binned_var_values.Write()
-    cOverlap.Write()
-    
-    return kde_func, binned_var_values 
+    return kde, binned_var_values 
 
+def kde_producer_sim(tree_file, tree_name, pt_min, pt_max, outfile=''):
+    
+    print(f"Producing KDE from sim {tree_file} for process {tree_name}, {pt_min} <= pt < {pt_max}")
+    # convert the tree_file to a pandas dataframe
+    dfsData = []
+    with uproot.open(f'{tree_file}') as f:
+        # print(f.keys())
+        for iKey, key in enumerate(f.keys()):
+            if f'{tree_name}' in key:
+                # print(key)
+                dfData = f[key].arrays(library='pd')
+                dfsData.append(dfData)        
+
+    full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
+    pt_filtered_df = full_dataset.query(f"{pt_min} <= pt < {pt_max}")
+    var_values = pt_filtered_df["mass"].tolist()  # Or use `.tolist()` to get a list
+    
+    kde = TKDE(len(var_values), np.asarray(var_values, 'd'), 1.7, 2.0)
+    
+    binned_var_values = TH1D(f'hBinned', f'hBinned', 5000, 1, 3)
+    for var_value in var_values:
+        binned_var_values.Fill(var_value)
+    
+    return kde 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
@@ -57,8 +77,6 @@ if __name__ == "__main__":
                         default="fM", help="variable of interest")
     parser.add_argument("--config", "-cfg", metavar="text",
                         default="config.yaml", help="configuration file")
-    parser.add_argument("--centrality", "-c", metavar="text",
-                        default="k2050", help="centrality class")
     parser.add_argument("--ptmin", "-pmin", metavar="text",
                         default="2.", help="min pt")
     parser.add_argument("--ptmax", "-pmax", metavar="text",
@@ -68,7 +86,7 @@ if __name__ == "__main__":
     parser.add_argument("--flag", "-f", metavar="chn flag",
                         default="2", help="channel flag")
     parser.add_argument("--input", "-in", metavar="path/input.root",
-                        default="AnalysisResults.root", help="path to tree")
+                        default="AnalysisResults.root", help="path to file containing tree")
     parser.add_argument("--wagon_id", "-w", metavar="text",
                         default="", help="wagon ID", required=False)
     parser.add_argument("--outputdir", "-o", metavar="text",
@@ -91,11 +109,11 @@ if __name__ == "__main__":
         
     if args.config != parser.get_default("config"):
         for pt_low, pt_max, inv_mass_bins in zip(config['pt_mins'], config['pt_maxs'], config['inv_mass_bins']):
-            KDE, histo = kde_producer(config['input'], config['variable'], config['centrality'], \
+            KDE, histo = kde_producer(config['input'], config['variable'], \
                                       pt_low, pt_max, inv_mass_bins, config['chn_flag'],
                                       outfile)
     else:
-        KDE, histo = kde_producer(args.input, args.var, args.centrality, \
+        KDE, histo = kde_producer(args.input, args.var, \
                                   args.ptmin, args.ptmax, args.invmassbins, args.flag,
                                   outfile)
     outfile.Close()    
