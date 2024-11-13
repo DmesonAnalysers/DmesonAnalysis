@@ -187,63 +187,63 @@ class InvMassFitter : public TNamed {
   Bool_t   PrepareHighPolFit(TF1 *fback);
   Double_t BackFitFuncPolHelper(Double_t *x,Double_t *par);
 
-  TH1F*     fHistoInvMass;         /// histogram to fit
-  Double_t  fMinMass;              /// lower mass limit
-  Double_t  fMaxMass;              /// upper mass limit
-  Int_t     fTypeOfFit4Bkg;        /// background fit func
-  Int_t     fPolDegreeBkg;         /// degree of polynomial expansion for back fit (option 6 for back)
-  Int_t     fCurPolDegreeBkg;      /// help variable
-  Double_t  fMassParticle;         /// pdg value of particle mass
-  Int_t     fTypeOfFit4Sgn;        /// signal fit func
-  Double_t  fMass;                 /// signal gaussian mean value
-  Double_t  fMassErr;              /// unc on signal gaussian mean value
-  Double_t  fMassLowerLim;         /// lower limit of the allowed mass range
-  Double_t  fMassUpperLim;         /// upper limit of the allowed mass range
-  Bool_t    fBoundMean;            /// switch for bound mean of gaussian
-  Double_t  fSigmaSgn;             /// signal gaussian sigma
-  Double_t  fSigmaSgnErr;          /// unc on signal gaussian sigma
-  Double_t  fSigmaSgn2Gaus;        /// signal second gaussian sigma in case of k2Gaus
-  Bool_t    fFixedMean;            /// switch for fix mean of gaussian
-  Bool_t    fFixedSigma;           /// switch for fix Sigma of gaussian
-  Bool_t    fBoundSigma;           /// switch for bound Sigma of gaussian
-  Double_t  fSigmaVar;             /// value of bound Sigma of gaussian
-  Double_t  fParSig;               /// +/- range variation of bound Sigma of gaussian in %
-  Bool_t    fFixedSigma2Gaus;      /// switch for fix Sigma of second gaussian in case of k2Gaus
-  Double_t  fFixedRawYield;        /// initialization for wa yield
-  Double_t  fFrac2Gaus;            /// initialization for fraction of 2nd gaussian in case of k2Gaus or k2GausSigmaRatioPar
-  Bool_t    fFixedFrac2Gaus;       /// switch for fixed fraction of 2nd gaussian in case of k2Gaus or k2GausSigmaRatioPar
-  Double_t  fRatio2GausSigma;      /// initialization for ratio between two gaussian sigmas in case of k2GausSigmaRatioPar
-  Bool_t    fFixedRatio2GausSigma; /// switch for fixed ratio between two gaussian sigmas in case of k2GausSigmaRatioPar
-  Int_t     fNParsSig;             /// fit parameters in signal fit function
-  Int_t     fNParsBkg;             /// fit parameters in background fit function
-  Bool_t    fOnlySideBands;        /// kTRUE = only side bands considered
-  Double_t  fNSigma4SideBands;     /// number of sigmas to veto the signal peak
-  Bool_t    fCheckSignalCountsAfterFirstFit; /// switch for check after first fit 
-  TString   fFitOption;            /// L, LW or Chi2
-  Double_t  fRawYield;             /// signal gaussian integral
-  Double_t  fRawYieldErr;          /// err on signal gaussian integral
-  TF1*      fSigFunc;              /// Signal fit function
-  TF1*      fBkgFuncSb;            /// background fit function (1st step, side bands only)
-  TF1*      fBkgFunc;              /// background fit function (1st step, extended in peak region)
-  TF1*      fBkgFuncRefit;         /// background fit function (2nd step)
-  Bool_t    fReflections;          /// flag use/not use reflections
-  Int_t     fNParsRfl;             /// fit parameters in reflection fit function
-  Double_t  fRflOverSig;           /// reflection/signal
-  Bool_t    fFixRflOverSig;        /// switch for fix refl/signal
-  TH1F*     fHistoTemplRfl;        /// histogram with reflection template
-  Bool_t    fSmoothRfl;            /// switch for smoothing of reflection template
-  Double_t  fRawYieldHelp;         /// internal variable for fit with reflections
-  TF1*      fRflFunc;              /// fit function for reflections
-  TF1*      fBkRFunc;              /// fit function for reflections
-  Bool_t    fSecondPeak;           /// switch off/on second peak (for D+->KKpi in Ds)
-  Int_t     fNParsSec;             /// fit parameters in 2nd peak fit function
-  Double_t  fSecMass;              /// position of the 2nd peak
-  Double_t  fSecWidth;             /// width of the 2nd peak
-  Bool_t    fFixSecMass;           /// flag to fix the position of the 2nd peak
-  Bool_t    fFixSecWidth;          /// flag to fix the width of the 2nd peak
-  TF1*      fSecFunc;              /// fit function for second peak
-  TF1*      fTotFunc;              /// total fit function
-  Bool_t    fAcceptValidFit;       /// accept a fit when IsValid() gives true, nevertheless the status code
+  TH1F*                 fHistoInvMass;         /// histogram to fit
+  Double_t              fMinMass;              /// lower mass limit
+  Double_t              fMaxMass;              /// upper mass limit
+  Int_t                 fTypeOfFit4Bkg;        /// background fit func
+  Int_t                 fPolDegreeBkg;         /// degree of polynomial expansion for back fit (option 6 for back)
+  Int_t                 fCurPolDegreeBkg;      /// help variable
+  Double_t              fMassParticle;         /// pdg value of particle mass
+  Int_t                 fTypeOfFit4Sgn;        /// signal fit func
+  Double_t              fMass;                 /// signal gaussian mean value
+  Double_t              fMassErr;              /// unc on signal gaussian mean value
+  Double_t              fMassLowerLim;         /// lower limit of the allowed mass range
+  Double_t              fMassUpperLim;         /// upper limit of the allowed mass range
+  Bool_t                fBoundMean;            /// switch for bound mean of gaussian
+  Double_t              fSigmaSgn;             /// signal gaussian sigma
+  Double_t              fSigmaSgnErr;          /// unc on signal gaussian sigma
+  Double_t              fSigmaSgn2Gaus;        /// signal second gaussian sigma in case of k2Gaus
+  Bool_t                fFixedMean;            /// switch for fix mean of gaussian
+  Bool_t                fFixedSigma;           /// switch for fix Sigma of gaussian
+  Bool_t                fBoundSigma;           /// switch for bound Sigma of gaussian
+  Double_t              fSigmaVar;             /// value of bound Sigma of gaussian
+  Double_t              fParSig;               /// +/- range variation of bound Sigma of gaussian in %
+  Bool_t                fFixedSigma2Gaus;      /// switch for fix Sigma of second gaussian in case of k2Gaus
+  Double_t              fFixedRawYield;        /// initialization for wa yield
+  Double_t              fFrac2Gaus;            /// initialization for fraction of 2nd gaussian in case of k2Gaus or k2GausSigmaRatioPar
+  Bool_t                fFixedFrac2Gaus;       /// switch for fixed fraction of 2nd gaussian in case of k2Gaus or k2GausSigmaRatioPar
+  Double_t              fRatio2GausSigma;      /// initialization for ratio between two gaussian sigmas in case of k2GausSigmaRatioPar
+  Bool_t                fFixedRatio2GausSigma; /// switch for fixed ratio between two gaussian sigmas in case of k2GausSigmaRatioPar
+  Int_t                 fNParsSig;             /// fit parameters in signal fit function
+  Int_t                 fNParsBkg;             /// fit parameters in background fit function
+  Bool_t                fOnlySideBands;        /// kTRUE = only side bands considered
+  Double_t              fNSigma4SideBands;     /// number of sigmas to veto the signal peak
+  Bool_t                fCheckSignalCountsAfterFirstFit; /// switch for check after first fit 
+  TString               fFitOption;            /// L, LW or Chi2
+  Double_t              fRawYield;             /// signal gaussian integral
+  Double_t              fRawYieldErr;          /// err on signal gaussian integral
+  TF1*                  fSigFunc;              /// Signal fit function
+  TF1*                  fBkgFuncSb;            /// background fit function (1st step, side bands only)
+  TF1*                  fBkgFunc;              /// background fit function (1st step, extended in peak region)
+  TF1*                  fBkgFuncRefit;         /// background fit function (2nd step)
+  Bool_t                fReflections;          /// flag use/not use reflections
+  Int_t                 fNParsRfl;             /// fit parameters in reflection fit function
+  Double_t              fRflOverSig;           /// reflection/signal
+  Bool_t                fFixRflOverSig;        /// switch for fix refl/signal
+  TH1F*                 fHistoTemplRfl;        /// histogram with reflection template
+  Bool_t                fSmoothRfl;            /// switch for smoothing of reflection template
+  Double_t              fRawYieldHelp;         /// internal variable for fit with reflections
+  TF1*                  fRflFunc;              /// fit function for reflections
+  TF1*                  fBkRFunc;              /// fit function for background and reflections
+  Bool_t                fSecondPeak;           /// switch off/on second peak (for D+->KKpi in Ds)
+  Int_t                 fNParsSec;             /// fit parameters in 2nd peak fit function
+  Double_t              fSecMass;              /// position of the 2nd peak
+  Double_t              fSecWidth;             /// width of the 2nd peak
+  Bool_t                fFixSecMass;           /// flag to fix the position of the 2nd peak
+  Bool_t                fFixSecWidth;          /// flag to fix the width of the 2nd peak
+  TF1*                  fSecFunc;              /// fit function for second peak
+  TF1*                  fTotFunc;              /// total fit function
+  Bool_t                fAcceptValidFit;       /// accept a fit when IsValid() gives true, nevertheless the status code
 
   /// \cond CLASSIMP     
   ClassDef(InvMassFitter,9); /// class for invariant mass fit
