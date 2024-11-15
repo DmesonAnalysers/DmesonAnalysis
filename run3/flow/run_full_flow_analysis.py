@@ -119,7 +119,7 @@ def run_full_analysis(config,
     # copy config file
     if not os.path.exists(f"{outputdir}/config"):
         os.makedirs(f"{outputdir}/config")
-    os.system(f"cp {config} {outputdir}/config/{config.split('/')[-1]}{suffix}.yml")
+    os.system(f"cp {config} {outputdir}/config/config_flow_{suffix}.yml")
 
     # efficiency
     if not skip_efficiency:
