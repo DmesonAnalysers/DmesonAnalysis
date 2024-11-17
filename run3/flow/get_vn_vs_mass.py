@@ -748,7 +748,6 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 suffix_pdf = ')'
             else:
                 suffix_pdf = ''
-
             if len(ptMins)==1:
                 cSimFit[iPt].SaveAs(f'{outputdir}/SimFit{suffix}_{particleName}.pdf')
             else:

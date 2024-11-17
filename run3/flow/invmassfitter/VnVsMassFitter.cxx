@@ -568,7 +568,9 @@ Bool_t VnVsMassFitter::MassPrefit() {
     if(fFixRflOverSig) {fMassFitter->SetFixReflOverS(fRflOverSig);}
   }
   if(fTemplates) {fMassFitter->SetTemplates(fKDETemplates, fInitWeights, fWeightsLowerLims, fWeightsUpperLims);}
+  cout << "Fitting" << endl;
   Bool_t status = fMassFitter->MassFitter(kFALSE);
+  cout << "Status " << status << endl;
 
   if(status) {
     fMassFuncFromPrefit = (TF1*)fMassFitter->GetMassFunc();
@@ -1020,6 +1022,17 @@ Double_t VnVsMassFitter::MassRfl(Double_t *m,Double_t *pars){
 
 //_________________________________________________________________________
 Double_t VnVsMassFitter::MassTemplates(Double_t *m,Double_t *pars){
+  // Add the contributions of the templates loaded in fKDETemplates, each
+  // scaled by a multiplicative constant, left as free fit parameter
+  Double_t totalTemplates = 0.;
+  for(int iTempl=0; iTempl<fNParsTempls; iTempl++) {
+    totalTemplates += pars[iTempl]*fKDETemplates[iTempl].Eval(m[0]);
+  }
+  return totalTemplates;
+}
+
+//_________________________________________________________________________
+Double_t VnVsMassFitter::VnTemplates(Double_t *m,Double_t *pars){
   // Add the contributions of the templates loaded in fKDETemplates, each
   // scaled by a multiplicative constant, left as free fit parameter
   Double_t totalTemplates = 0.;
