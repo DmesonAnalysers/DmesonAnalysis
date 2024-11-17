@@ -72,8 +72,6 @@ public:
     for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
       fKDETemplates[iFunc].SetName(templsnames[iFunc].data());
       fKDETemplates[iFunc].SetTitle(templsnames[iFunc].data());
-      cout << "Function name" << endl;
-      cout << fKDETemplates[iFunc].GetName() << endl;
     }
     fTemplates=kTRUE;
   }
@@ -188,6 +186,7 @@ private:
   Double_t MassBkg(Double_t *m, Double_t *pars);
   Double_t MassRfl(Double_t *m,Double_t *par);
   Double_t MassTemplates(Double_t *m,Double_t *pars);
+  Double_t VnTemplates(Double_t *m,Double_t *pars);
   Double_t MassBkgRfl(Double_t *m,Double_t *par);
   Double_t MassSecondPeak(Double_t *m,Double_t *par);
   Double_t vnBkgFunc(Double_t *m, Double_t *pars);

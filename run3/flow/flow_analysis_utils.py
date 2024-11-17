@@ -1,11 +1,12 @@
 '''
 Analysis utilities for flow analysis
 '''
-import ROOT
+
 import os
 import sys
 import ctypes
 from itertools import combinations
+import ROOT
 import numpy as np
 
 def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False):
@@ -28,6 +29,9 @@ def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False
         - hist_mass_proj:
             TH1D, histogram with vn as a function of mass
     '''
+    print('GETTING VNVSMASS')
+    print(f'AXIS MASS: {mass_axis}')   
+    print(f'AXIS VN: {vn_axis}')   
     hist_vn_proj = thnSparse.Projection(vn_axis, mass_axis)
     hist_mass_proj = thnSparse.Projection(mass_axis)
     hist_mass_proj.Reset()
@@ -53,6 +57,59 @@ def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False
 
     return hist_mass_proj
 
+def get_occupancy(thnSparse, occupancy_axis, debug=False):
+    '''
+    Project occupancy versus mass
+
+    Input:
+        - thnSparse:
+            THnSparse, input THnSparse obeject (already projected in centrality and pt)
+        - occupancy_axis:
+            int, axis number for occupancy
+        - debug:
+            bool, if True, create a debug file with the projections (default: False)
+
+    Output:
+        - hist_occupancy:
+            TH1D, histogram with vn as a function of mass
+    '''
+    print('GETTING OCCUPANCY')
+    print(f'AXIS: {occupancy_axis}')
+    hist_occupancy = thnSparse.Projection(occupancy_axis)
+    
+    if debug:
+        outfile = ROOT.TFile('debug.root', 'RECREATE')
+        hist_occupancy.Write()
+        outfile.Close()
+
+    return hist_occupancy
+
+def get_evselbits(thnSparse, evselbits_axis, debug=False):
+    '''
+    Project evselbits versus mass
+
+    Input:
+        - thnSparse:
+            THnSparse, input THnSparse obeject (already projected in centrality and pt)
+        - evselbits_axis:
+            int, axis number for evselbits
+        - debug:
+            bool, if True, create a debug file with the projections (default: False)
+
+    Output:
+        - hist_evselbits:
+            TH1D, histogram with vn as a function of mass
+    '''
+    print('GETTING EVSELBITS')
+    print(f'AXIS: {evselbits_axis}')
+    hist_evselbits = thnSparse.Projection(evselbits_axis)
+    
+    if debug:
+        outfile = ROOT.TFile('debug.root', 'RECREATE')
+        hist_evselbits.Write()
+        outfile.Close()
+
+    return hist_evselbits
 
 def get_resolution(dets, det_lables, cent_min_max):
     '''

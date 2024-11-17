@@ -4,7 +4,7 @@ import argparse
 import sys
 import numpy as np
 from alive_progress import alive_bar
-from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, compute_r2, get_invmass_vs_deltaphi
+from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, compute_r2, get_invmass_vs_deltaphi, get_occupancy, get_evselbits
 
 def check_anres(config, an_res_file, centrality, resolution,
                 wagon_id, outputdir, suffix, vn_method):
@@ -22,6 +22,8 @@ def check_anres(config, an_res_file, centrality, resolution,
     axis_mass = config['axes']['mass']
     axis_sp = config['axes']['sp']
     axis_deltaphi = config['axes']['deltaphi']
+    # axis_occupancy = config['axes']['occupancy']
+    # axis_evselbits = config['axes']['evselbits']
     inv_mass_bins = config['inv_mass_bins']
     use_inv_mass_bins = config['use_inv_mass_bins']
     if use_inv_mass_bins:
@@ -134,6 +136,17 @@ def check_anres(config, an_res_file, centrality, resolution,
                 hist_mass = thnsparse_selcent.Projection(axis_mass)
                 hist_mass.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
                 hist_mass.Write()
+            
+            # hist_occ = get_occupancy(thnsparse_selcent, axis_occupancy, False)
+            # hist_occ.SetName(f'hist_occ_pt{pt_min}_{pt_max}')
+            # hist_occ.SetDirectory(0)
+            # hist_occ.Write()
+
+            # hist_evselbits = get_evselbits(thnsparse_selcent, axis_evselbits, False)
+            # hist_evselbits.SetName(f'hist_evselbits_pt{pt_min}_{pt_max}')
+            # hist_evselbits.SetDirectory(0)
+            # hist_evselbits.Write()
+            
             bar()
             outfile.cd('..')
 

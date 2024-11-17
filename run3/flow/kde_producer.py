@@ -18,8 +18,7 @@ def kde_producer(tree_file, var, pt_min, pt_max, inv_mass_bins, flag, outfile=''
             if 'O2hfcanddplite' in key:
                 # print(key)
                 dfData = f[key].arrays(library='pd')
-                dfsData.append(dfData)        
-                
+                dfsData.append(dfData)      
     full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
     pt_filtered_df = full_dataset.query(f"{pt_min} <= fPt < {pt_max}")
     filtered_df = pt_filtered_df.query(f"fFlagMcMatchRec == {flag} or fFlagMcMatchRec == {-flag}")
@@ -46,9 +45,9 @@ def kde_producer(tree_file, var, pt_min, pt_max, inv_mass_bins, flag, outfile=''
     
     return kde, binned_var_values 
 
-def kde_producer_sim(tree_file, tree_name, pt_min, pt_max, outfile=''):
+def kde_producer_sim(tree_file, tree_name, pt_min, pt_max, flag=0, outfile=''):
     
-    print(f"Producing KDE from sim {tree_file} for process {tree_name}, {pt_min} <= pt < {pt_max}")
+    print(f"Producing KDE from sim {tree_file} for process {tree_name}, {pt_min} <= pt < {pt_max}, flag {flag}")
     # convert the tree_file to a pandas dataframe
     dfsData = []
     with uproot.open(f'{tree_file}') as f:
@@ -60,8 +59,17 @@ def kde_producer_sim(tree_file, tree_name, pt_min, pt_max, outfile=''):
                 dfsData.append(dfData)        
 
     full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
-    pt_filtered_df = full_dataset.query(f"{pt_min} <= pt < {pt_max}")
+    if flag!=0:
+        # print('Non trivial flag')
+        # print(flag)
+        flagged_dataset = full_dataset.query(f"decayflag == {flag}")
+    else:
+        flagged_dataset = full_dataset
+    # print(flagged_dataset)
+    pt_filtered_df = flagged_dataset.query(f"{pt_min} <= pt < {pt_max}")
     var_values = pt_filtered_df["mass"].tolist()  # Or use `.tolist()` to get a list
+    # print(full_dataset)
+    # print(var_values)
     
     kde = TKDE(len(var_values), np.asarray(var_values, 'd'), 1.7, 2.0)
     

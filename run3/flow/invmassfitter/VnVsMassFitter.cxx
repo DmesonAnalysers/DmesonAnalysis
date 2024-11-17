@@ -234,7 +234,7 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   Int_t NvnParsSgn = 1;
   if(fSecondPeak && fDoSecondPeakVn) {NvnParsSgn+=1;}
   if(fReflections && fVnRflOpt==kFreePar) {NvnParsSgn+=1;}
-  if(fTemplates) {NvnParsSgn+=fNParsTempls;}
+  // if(fTemplates) {NvnParsSgn+=fNParsTempls;}
   cout << "Added " << fNParsTempls << " to vn sgn pars" << endl;
   const Int_t nparsvn = nparsmass+fNParsVnBkg+NvnParsSgn;
   cout << "nparsvn " << nparsvn << endl;
@@ -332,17 +332,17 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   }
   if(fTemplates) {
     for(int iTemplPar=0; iTemplPar<this->fInitWeights.size()/2; iTemplPar++) {
-      cout << "Setting template parameter " << iTemplPar << endl;
-      cout << "Mass func parameter " << iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl << endl;
-      cout << fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).Name() << endl;
-      cout << "[" << fInitWeights[iTemplPar] << ", " << fWeightsLowerLims[iTemplPar]
-           << ", " << fWeightsUpperLims[iTemplPar] << "]" << endl;
-      cout << "Vn func parameter " << iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn << endl;
-      cout << "[" << fInitWeights[iTemplPar+this->fInitWeights.size()/2] << ", " << fWeightsLowerLims[iTemplPar+this->fInitWeights.size()/2]
-           << ", " << fWeightsUpperLims[iTemplPar+this->fInitWeights.size()/2] << "]" << endl;
-      cout << fitter.Config().ParSettings(iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn).Name() << endl;
+      // cout << "Setting template parameter " << iTemplPar << endl;
+      // cout << "Mass func parameter " << iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl << endl;
+      // cout << fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).Name() << endl;
+      // cout << "[" << fInitWeights[iTemplPar] << ", " << fWeightsLowerLims[iTemplPar]
+      //      << ", " << fWeightsUpperLims[iTemplPar] << "]" << endl;
+      // cout << "Vn func parameter " << iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn << endl;
+      // cout << "[" << fInitWeights[iTemplPar+this->fInitWeights.size()/2] << ", " << fWeightsLowerLims[iTemplPar+this->fInitWeights.size()/2]
+      //      << ", " << fWeightsUpperLims[iTemplPar+this->fInitWeights.size()/2] << "]" << endl;
+      // cout << fitter.Config().ParSettings(iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn).Name() << endl;
 
-      cout << "---" << endl;
+      // cout << "---" << endl;
       if(this->fWeightsLowerLims[iTemplPar] > this->fWeightsUpperLims[iTemplPar]) {
         cout << "Fix mass" << endl;
         fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).SetValue(fInitWeights[iTemplPar]);
@@ -420,9 +420,12 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   }
   if(fTemplates) {
     int nParBeforeTemplsMass = fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl;
+    cout << "Size of fKDETemplates: " << this->fKDETemplates.size() << endl;
+    cout << "Eval func 1: " << this->fKDETemplates[0].Eval(1.8) << endl;
+    // cout << "Eval func 2: " << this->fKDETemplates[1].Eval(1.8) << endl;
     cout << "Coeff first func mass: " << result.Parameter(nParBeforeTemplsMass) << endl;
-    cout << "Eval func: " << this->fKDETemplates[0].Eval(1.8) << endl;
-    for(int iTempl=0; iTempl<fKDETemplates.size()/2; iTempl++) {
+    cout << "Coeff second func mass: " << result.Parameter(nParBeforeTemplsMass+1) << endl;
+    for(int iTempl=0; iTempl<fKDETemplates.size(); iTempl++) {
       fKDEMassTemplatesDraw.push_back(new TF1(fKDETemplates[iTempl].GetName(),
                       [&, this, iTempl, nParBeforeTemplsMass, result] (double *x, double *par) {
                          double paramValue = result.Parameter(iTempl + nParBeforeTemplsMass);
@@ -432,12 +435,12 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
     }
     int nParBeforeTemplsVn = nParBeforeTemplsMass+fNParsTempls+fNParsVnBkg+fNParsVnSgn;
     cout << "Coeff first func vn: " << result.Parameter(nParBeforeTemplsVn) << endl;
-    cout << "Eval func: " << this->fKDETemplates[fKDETemplates.size() / 2].Eval(1.8) << endl;
-    for(int iTempl=0; iTempl<fKDETemplates.size()/2; iTempl++) {
+    cout << "Coeff second func vn: " << result.Parameter(nParBeforeTemplsMass+1) << endl;
+    for(int iTempl=0; iTempl<fKDETemplates.size(); iTempl++) {
       fKDEVnTemplatesDraw.push_back(new TF1(fKDETemplates[iTempl].GetName(),
                       [&, this, iTempl, nParBeforeTemplsVn, result] (double *x, double *par) {
-                       double paramValue = result.Parameter(iTempl + nParBeforeTemplsVn);
-                       double kdeEval = this->fKDETemplates[iTempl + fKDETemplates.size() / 2].Eval(x[0]);
+                       double paramValue = result.Parameter(iTempl + fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg);
+                       double kdeEval = this->fKDETemplates[iTempl].Eval(x[0]);
                        return paramValue * kdeEval;
                       }, fMassMin, fMassMax, 0));
     }
@@ -618,7 +621,9 @@ Bool_t VnVsMassFitter::MassPrefit() {
     if(fFixRflOverSig) {fMassFitter->SetFixReflOverS(fRflOverSig);}
   }
   if(fTemplates) {fMassFitter->SetTemplates(fKDETemplates, fInitWeights, fWeightsLowerLims, fWeightsUpperLims);}
+  cout << "Fitting" << endl;
   Bool_t status = fMassFitter->MassFitter(kFALSE);
+  cout << "Status " << status << endl;
 
   if(status) {
     fMassFuncFromPrefit = (TF1*)fMassFitter->GetMassFunc();
@@ -629,7 +634,6 @@ Bool_t VnVsMassFitter::MassPrefit() {
   }
   if(fReflections) fRawYieldHelp=fMassFitter->GetRawYield();
 
-  cout << "Status " << status << endl;
   return status;
 }
 
@@ -1073,7 +1077,19 @@ Double_t VnVsMassFitter::MassRfl(Double_t *m,Double_t *pars){
   return pars[0]*value/norm*fRawYieldHelp*fMassHisto->GetBinWidth(1);
 }
 
+//_________________________________________________________________________
 Double_t VnVsMassFitter::MassTemplates(Double_t *m,Double_t *pars){
+  // Add the contributions of the templates loaded in fKDETemplates, each
+  // scaled by a multiplicative constant, left as free fit parameter
+  Double_t totalTemplates = 0.;
+  for(int iTempl=0; iTempl<fNParsTempls; iTempl++) {
+    totalTemplates += pars[iTempl]*fKDETemplates[iTempl].Eval(m[0]);
+  }
+  return totalTemplates;
+}
+
+//_________________________________________________________________________
+Double_t VnVsMassFitter::VnTemplates(Double_t *m,Double_t *pars){
   // Add the contributions of the templates loaded in fKDETemplates, each
   // scaled by a multiplicative constant, left as free fit parameter
   Double_t totalTemplates = 0.;
@@ -1210,8 +1226,8 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
         break;
     }
   }
-  Double_t vntemplpars[fNParsTempls];
-  for(Int_t iPar=0; iPar<fNParsTempls; iPar++) {vntemplpars[iPar] = pars[iPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn];}
+  // Double_t vntemplpars[fNParsTempls];
+  // for(Int_t iPar=0; iPar<fNParsTempls; iPar++) {vntemplpars[iPar] = pars[iPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn];}
   
   Double_t vnBkg = vnBkgFunc(m,vnbkgpars);
   Double_t Sgn = MassSignal(m,masssgnpars);
@@ -1227,9 +1243,10 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
     else Refl += MassRfl(m,rflpars);
   }
   Double_t Templates = 0;
-  if(fTemplates) {Templates += MassTemplates(m,vntemplpars);}
+  // if(fTemplates) {Templates += VnTemplates(m,vntemplpars);}
+  if(fTemplates) {Templates += VnTemplates(m,templpars);}
   
-  return (vnSgn*Sgn+vnBkg*Bkg+vnSecPeak*SecPeak+vnRefl*Refl+Templates)/(Sgn+Bkg+SecPeak+Refl);
+  return (vnSgn*Sgn+vnBkg*Bkg+vnSecPeak*SecPeak+vnRefl*Refl+vnSgn*Templates)/(Sgn+Bkg+SecPeak+Refl+Templates);
 }
 
 //______________________________________________________________________________

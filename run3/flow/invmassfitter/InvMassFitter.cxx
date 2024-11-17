@@ -259,16 +259,15 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
   /// returns 0 if the fit fails
   /// returns 1 if the fit succeeds
   /// returns 2 if there is no signal and the fit is performed with only background
-  cout << "Entering InvMassFitter::MassFitter" << endl;
   TVirtualFitter::SetDefaultFitter("Minuit");
 
-  // for(int iFunc=0; iFunc<fTemplatesFuncts.size(); iFunc++) {
-  //   cout << "[InvMassFitter] Evaluating template " << iFunc << ": " << fTemplatesFuncts[iFunc].Eval(2) << endl;
-  //   cout << "[InvMassFitter] InitWeight " << fInitWeights[iFunc] << endl;
-  //   cout << "[InvMassFitter] MinWeight " << fWeightsLowerLims[iFunc] << endl;
-  //   cout << "[InvMassFitter] MaxWeight " << fWeightsUpperLims[iFunc] << endl;
-  // }
-
+  for(int iFunc=0; iFunc<fTemplatesFuncts.size(); iFunc++) {
+    cout << "[InvMassFitter] Evaluating template " << iFunc << ": " << fTemplatesFuncts[iFunc].Eval(2) << endl;
+    cout << "[InvMassFitter] InitWeight " << fInitWeights[iFunc] << endl;
+    cout << "[InvMassFitter] MinWeight " << fWeightsLowerLims[iFunc] << endl;
+    cout << "[InvMassFitter] MaxWeight " << fWeightsUpperLims[iFunc] << endl;
+  }
+  
   Double_t integralHisto=fHistoInvMass->Integral(fHistoInvMass->FindBin(fMinMass),fHistoInvMass->FindBin(fMaxMass),"width");
 
   fOnlySideBands = kTRUE;
@@ -337,11 +336,6 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
   //   cout << "[InvMassFitter] Inserting template " << fTemplatesFuncts[iFunc].Eval(2.0) << endl;
   // }
   fTotFunc = CreateTotalFitFunction("funcmass");
-
-  TFile *funcFile = new TFile("~/flowDplus/FitFuncInvMassFitter.root", "recreate");
-  funcFile->cd();
-  fTotFunc->Write();
-  funcFile->Close();
 
   if(doFinalFit){
     printf("\n--- Final fit with signal+background on the full range ---\n");
