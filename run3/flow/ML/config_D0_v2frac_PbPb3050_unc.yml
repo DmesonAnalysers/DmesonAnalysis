@@ -1,0 +1,64 @@
+#the input v2 from the CharmHadronVnAnalysis.C
+#the input fraction from the ComputeDataDrivenFraction.py
+
+v2:
+    inputdir: /home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/test/cutvar_test/ry
+    inputfiles: [
+                  raw_yields_test_00.root,
+                  raw_yields_test_01.root,
+                  raw_yields_test_02.root,
+                  raw_yields_test_03.root,
+                  raw_yields_test_04.root,
+                  #raw_yields05.root,
+                  #raw_yields06.root,
+                  #raw_yields07.root,
+                  #raw_yields08.root,
+                  #raw_yields09.root,
+                  #raw_yields10.root,
+                  #raw_yields11.root,
+                  #raw_yields12.root,
+                  #raw_yields13.root,
+                  #raw_yields14.root,
+                  #raw_yields15.root,
+                  #raw_yields16.root,
+                  #raw_yields17.root,
+                  #raw_yields18.root,
+                  #raw_yields19.root,
+                  #raw_yields20.root,
+                  #raw_yields21.root
+     ]
+    histoname: hvnSimFit
+    graphname: gvnSimFit
+
+
+npfraction:
+    inputdir: /home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/test/cutvar_test/DataDrivenFrac
+    inputfiles: [
+                  DataDrivenFrac_test_00.root,
+                  DataDrivenFrac_test_01.root,
+                  DataDrivenFrac_test_02.root,
+                  DataDrivenFrac_test_03.root,
+                  DataDrivenFrac_test_04.root,
+                  #DataDrivenFrac_D0_PbPb_FD_05.root,
+                  #DataDrivenFrac_D0_PbPb_FD_06.root,
+                  #DataDrivenFrac_D0_PbPb_FD_07.root,
+                  #DataDrivenFrac_D0_PbPb_FD_08.root,
+                  #DataDrivenFrac_D0_PbPb_FD_09.root,
+                  #DataDrivenFrac_D0_PbPb_FD_10.root,
+                  #DataDrivenFrac_D0_PbPb_FD_11.root,
+                  #DataDrivenFrac_D0_PbPb_FD_12.root,
+                  #DataDrivenFrac_D0_PbPb_FD_13.root,
+                  #DataDrivenFrac_D0_PbPb_FD_14.root,
+                  #DataDrivenFrac_D0_PbPb_FD_15.root,
+                  #DataDrivenFrac_D0_PbPb_FD_16.root,
+                  #DataDrivenFrac_D0_PbPb_FD_17.root,
+                  #DataDrivenFrac_D0_PbPb_FD_18.root,
+                  #DataDrivenFrac_D0_PbPb_FD_19.root,
+                  #DataDrivenFrac_D0_PbPb_FD_20.root,
+                  #DataDrivenFrac_D0_PbPb_FD_21.root
+                  ]
+    histonamesFD: hFDFrac
+    histonamesPrompt: hPromptFrac
+
+
+

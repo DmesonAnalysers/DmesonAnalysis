@@ -104,6 +104,7 @@ def check_anres(config, an_res_file, centrality, resolution,
                 inv_mass_bins[ipt] = inv_mass_bins_ipt
             inv_mass_bin = inv_mass_bins[ipt]
             # apply BDT cuts (TODO: save the bdt score distribution after the cuts in the output file)
+            #TODO: uncrealted BDT cut
             if apply_btd_cuts:
                 print('\033[93m WARNING: Applying BDT cuts\033[0m')
                 thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(0, bkg_ml_cuts[ipt])
@@ -158,18 +159,49 @@ if __name__ == "__main__":
     parser.add_argument("--outputdir", "-o", metavar="text",
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
-                        default="", help="suffix for output files")
-    parser.add_argument("--vn_method", "-vn", metavar="text",
-                        default="sp", help="vn technique (sp, ep, deltaphi)")
+                        default="", help="suffix for output files (Used for MC)") ###
+    parser.add_argument("--vn_method", "-vn", metavar="text", required=False,
+                        default="sp", help="vn technique (sp, ep, deltaphi)" ),
+
+    parser.add_argument('--isMC', "-mc", default=False, required=False,
+                         action='store_true', help='flag to run on MC')
+    parser.add_argument('cutsetConfig', metavar='text', required=False,
+                        default='cutsetConfig.yaml', help='cutset configuration file')
+    parser.add_argument('--ptweights', metavar=('text', 'text'), nargs=2, required=False,
+                        help='First path of the pT weights file, second name of the pT weights histogram')
+    parser.add_argument('--ptweightsB', metavar=('text', 'text'), nargs=2, required=False,
+                        help='First path of the pT weights file, second name of the pT weights histogram')
+    #TODO: add mutiplicity weights
+    parser.add_argument('--Bspeciesweights', type=float, nargs=5, required=False,
+                        help='values of weights for the different hadron species '
+                            '(B0weight, Bplusweight, Bsweight, Lbweight, Otherweight)')
     args = parser.parse_args()
 
-    check_anres(
-        config=args.config,
-        an_res_file=args.an_res_file,
-        centrality=args.centrality,
-        resolution=args.resolution,
-        wagon_id=args.wagon_id,
-        outputdir=args.outputdir,
-        suffix=args.suffix,
-        vn_method=args.vn_method
-    )
+    if args.isMC:
+        if not args.cutsetConfig:
+            sys.exit('\033[91m FATAL: cutset configuration is required for MC\033[0m')
+        proj_anres(isMC=args.isMC,
+                   config=args.config,
+                   outputdir=args.outputdir,
+                   suffix=args.suffix,
+                   cutsetConfig=args.cutsetConfig,
+                   ptweights=args.ptweights,
+                   ptweightsB=args.ptweightsB,
+                   Bspeciesweights=args.Bspeciesweights)
+    else:
+        if not args.an_res_file:
+            sys.exit('\033[91m FATAL: an_res_file is required for flow\033[0m')
+        if not args.centrality:
+            sys.exit('\033[91m FATAL: centrality is required for flow\033[0m')
+        if not args.vn_method:
+            sys.exit('\033[91m FATAL: vn_method is required for flow\033[0m')
+        check_anres(
+            config=args.config,
+            an_res_file=args.an_res_file,
+            centrality=args.centrality,
+            resolution=args.resolution,
+            wagon_id=args.wagon_id,
+            outputdir=args.outputdir,
+            suffix=args.suffix,
+            vn_method=args.vn_method
+        )

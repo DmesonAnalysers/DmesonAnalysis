@@ -1,9 +1,14 @@
+import ctypes
 import ROOT
 import yaml
 import argparse
 import sys
+import os
+import numpy as np
+from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins
-sys.path.append('../../')
+### please fill your path of DmeasonAnalysis
+sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import ComputeEfficiency
 
@@ -12,7 +17,31 @@ SetGlobalStyle(titleoffsety=1.1, maxdigits=3, topmargin=0.1,
                labelsizey=0.04, setoptstat=0, setopttitle=0,
                setdecimals=True, titleoffsetx=0.91, titlesizex=0.05)
 
-def compute_eff(config_file, centclass, outputdir, suffix):
+def check_cent_sel(charm_hadron, centclass, infile):
+    if charm_hadron in ['Dplus', 'Ds']:
+        cent_hist = infile.Get('hf-candidate-creator-3prong/hSelCollisionsCent')
+        _, centMinMax = get_centrality_bins(centclass)
+        for i in range(cent_hist.GetNbinsX()):
+            if not (cent_hist.GetBinContent(centMinMax[0] + 1) > 0 \
+                and cent_hist.GetBinContent(centMinMax[0]) == 0 \
+                and cent_hist.GetBinContent(centMinMax[1]) > 0 \
+                and cent_hist.GetBinContent(centMinMax[1] + 1) == 0):
+                print(f'\033[91mFATAL: Invalid centrality class: {centclass}. Exit!\033[0m')
+                sys.exit(1)
+    elif charm_hadron == 'Dzero':
+        cent_hist = infile.Get('hf-candidate-creator-2prong/hSelCollisionsCent')
+        _, centMinMax = get_centrality_bins(centclass)
+        for i in range(cent_hist.GetNbinsX()):
+            if not (cent_hist.GetBinContent(centMinMax[0] + 1) > 0 \
+                    and cent_hist.GetBinContent(centMinMax[0]) == 0 \
+                    and cent_hist.GetBinContent(centMinMax[1]) > 0 \
+                    and cent_hist.GetBinContent(centMinMax[1] + 1) == 0):
+                print(f'\033[91mFATAL: Invalid centrality class: {centclass}. Exit!\033[0m')
+                sys.exit(1)
+    else:
+        print('\033[93mWARNING: Invalid charm hadron for centrality check.\033[0m')
+
+def compute_eff(config_file, centclass, inputFile, outputdir, suffix):
     '''
     Compute efficiency for prompt and feed-down D mesons
 
@@ -43,28 +72,7 @@ def compute_eff(config_file, centclass, outputdir, suffix):
 
     #_____________________________________________________________________________________
     # Check centrality selection
-    if charm_hadron in ['Dplus', 'Ds']:
-        cent_hist = infile.Get('hf-candidate-creator-3prong/hSelCollisionsCent')
-        _, centMinMax = get_centrality_bins(centclass)
-        for i in range(cent_hist.GetNbinsX()):
-            if not (cent_hist.GetBinContent(centMinMax[0] + 1) > 0 \
-                and cent_hist.GetBinContent(centMinMax[0]) == 0 \
-                and cent_hist.GetBinContent(centMinMax[1]) > 0 \
-                and cent_hist.GetBinContent(centMinMax[1] + 1) == 0):
-                print(f'\033[91mFATAL: Invalid centrality class: {centclass}. Exit!\033[0m')
-                sys.exit(1)
-    elif charm_hadron == 'Dzero':
-        cent_hist = infile.Get('hf-candidate-creator-2prong/hSelCollisionsCent')
-        _, centMinMax = get_centrality_bins(centclass)
-        for i in range(cent_hist.GetNbinsX()):
-            if not (cent_hist.GetBinContent(centMinMax[0] + 1) > 0 \
-                    and cent_hist.GetBinContent(centMinMax[0]) == 0 \
-                    and cent_hist.GetBinContent(centMinMax[1]) > 0 \
-                    and cent_hist.GetBinContent(centMinMax[1] + 1) == 0):
-                print(f'\033[91mFATAL: Invalid centrality class: {centclass}. Exit!\033[0m')
-                sys.exit(1)
-    else:
-        print('\033[93mWARNING: Invalid charm hadron for centrality check.\033[0m')
+    check_cent_sel(charm_hadron, centclass, infile)
 
     if charm_hadron == 'Dplus':
         gen_prompt_hist = infile.Get('hf-task-dplus/hPtGenPrompt')
@@ -151,10 +159,121 @@ def compute_eff(config_file, centclass, outputdir, suffix):
     outfile.Close()
     input(f'Saving efficiency histograms to {outfile_name}. Press any key to exit.')
 
+def compute_eff_thns(config_file, centclass, inputFile, outputdir, suffix):
+
+    #_____________________________________________________________________________________
+    # Read configuration file
+    with open(config_file, 'r', encoding='utf8') as ymlconfig:
+        config = yaml.load(ymlconfig, yaml.FullLoader)
+
+    #_____________________________________________________________________________________
+    # Load input files
+    charm_hadron = config['Dmeson']
+    infile = ROOT.TFile.Open(inputFile)
+    ptMins = config['ptmins']
+    ptMaxs = config['ptmaxs']
+    ptLims = list(ptMins)
+    nPtBins = len(ptMins)
+    ptLims.append(ptMaxs[-1])
+
+    #_____________________________________________________________________________________
+    # Check centrality selection
+    check_cent_sel(charm_hadron, centclass, infile)
+
+    #_____________________________________________________________________________________
+    # difne histograms
+    hEffPrompt = TH1F('hEffPrompt', ';#it{p}_{T} (GeV/#it{c});Efficiency', nPtBins, np.asarray(ptLims, 'd'))
+    hEffFD = TH1F('hEffFD', ';#it{p}_{T} (GeV/#it{c});Efficiency', nPtBins, np.asarray(ptLims, 'd'))
+    hYieldPromptGen = TH1F('hYieldPromptGen', ';#it{p}_{T} (GeV/#it{c}); # Generated MC', nPtBins, np.asarray(ptLims, 'd'))
+    hYieldFDGen = TH1F('hYieldFDGen', ';#it{p}_{T} (GeV/#it{c}); # Generated MC', nPtBins, np.asarray(ptLims, 'd'))
+    hYieldPromptReco = TH1F('hYieldPromptReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, np.asarray(ptLims, 'd'))
+    hYieldFDReco = TH1F('hYieldFDReco', ';#it{p}_{T} (GeV/#it{c}); # Reco MC', nPtBins, np.asarray(ptLims, 'd'))
+    SetObjectStyle(hEffPrompt, markerstyle=20,
+                   markercolor=ROOT.kOrange+1,
+                   markersize=1., linecolor=ROOT.kOrange+1)
+    SetObjectStyle(hEffFD, markerstyle=21,
+                   linestyle=2,
+                   markercolor=ROOT.kAzure+2, markersize=1.,
+                   linecolor=ROOT.kAzure+2)
+    SetObjectStyle(hYieldPromptGen, color=ROOT.kRed+1, markerstyle=20)
+    SetObjectStyle(hYieldFDGen, color=ROOT.kAzure+4, markerstyle=21, markersize=1.5, linewidh=2, linestyle=7)
+    SetObjectStyle(hYieldPromptReco, color=ROOT.kRed+1, markerstyle=20)
+    SetObjectStyle(hYieldFDReco, color=ROOT.kAzure+4, markerstyle=21, markersize=1.5, linewidh=2, linestyle=7)
+
+    hRecoPrompt, hRecoFD, hGenPrompt, hGenFD = ([] for _ in range(4))
+
+    #_____________________________________________________________________________________
+    # Compute efficiency
+    for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
+        ## get inpput histograms
+        ## whether need to minus reflection from prompt or FD?
+        hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+        hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+        hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+        hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+
+        ## load the values
+        nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (ctypes.c_double() for _ in range(4))
+        nRecoPrompt = hRecoPrompt[iPt].IntegralAndError(0, hRecoPrompt[iPt].GetNbinsX()+1, nRecoPromptUnc)
+        nGenPrompt = hGenPrompt[iPt].IntegralAndError(0, hGenPrompt[iPt].GetNbinsX()+1, nGenPromptUnc)
+        nRecoFD = hRecoFD[iPt].IntegralAndError(0, hRecoFD[iPt].GetNbinsX()+1, nRecoFDUnc)
+        nGenFD = hGenFD[iPt].IntegralAndError(0, hGenFD[iPt].GetNbinsX()+1, nGenFDUnc)
+
+        ## calculate efficiency
+        effPrompt, effPromptUnc = ComputeEfficiency(nRecoPrompt, nGenPrompt, nRecoPromptUnc.value, nGenPromptUnc.value)
+        effFD, effFDUnc = ComputeEfficiency(nRecoFD, nGenFD, nRecoFDUnc.value, nGenFDUnc.value)
+        hEffPrompt.SetBinContent(iPt+1, effPrompt)
+        hEffPrompt.SetBinError(iPt+1, effPromptUnc)
+        hEffFD.SetBinContent(iPt+1, effFD)
+        hEffFD.SetBinError(iPt+1, effFDUnc)
+
+        hYieldPromptGen.SetBinContent(iPt+1, nGenPrompt)
+        hYieldPromptGen.SetBinError(iPt+1, nGenPromptUnc.value)
+        hYieldFDGen.SetBinContent(iPt+1, nGenFD)
+        hYieldFDGen.SetBinError(iPt+1, nGenFDUnc.value)
+        hYieldPromptReco.SetBinContent(iPt+1, nRecoPrompt)
+        hYieldPromptReco.SetBinError(iPt+1, nRecoPromptUnc.value)
+        hYieldFDReco.SetBinContent(iPt+1, nRecoFD)
+        hYieldFDReco.SetBinError(iPt+1, nRecoFDUnc.value)
+
+    #_____________________________________________________________________________________
+    # Draw histograms
+    leg = TLegend(0.6, 0.2, 0.8, 0.4)
+    leg.SetTextSize(0.045)
+    leg.SetFillStyle(0)
+    leg.AddEntry(hEffPrompt, "Prompt", "p")
+    leg.AddEntry(hEffFD, "Feed-down", "p")
+
+    cEff = TCanvas('cEff', '', 800, 800)
+    cEff.DrawFrame(ptMins[0], 1.e-5, ptMaxs[nPtBins-1], 1.,
+                ';#it{p}_{T} (GeV/#it{c});Efficiency;')
+    cEff.SetLogy()
+    hEffPrompt.Draw('same')
+    hEffFD.Draw('same')
+    leg.Draw()
+
+    #_____________________________________________________________________________________
+    # Save output
+    os.makedirs(f'{outputdir}/eff', exist_ok=True)
+    outFileName = f'{outputdir}/eff/eff_{suffix}.root'
+    outFile = TFile(outFileName, 'recreate')
+    hEffPrompt.Write()
+    hEffFD.Write()
+    hYieldPromptGen.Write()
+    hYieldFDGen.Write()
+    hYieldPromptReco.Write()
+    hYieldFDReco.Write()
+    outFile.Close()
+
+    outFileNamePDF = outFileName.replace('.root', '.pdf')
+    cEff.SaveAs(outFileNamePDF)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("config", metavar="text",
                         default="config.yaml", help="configuration file")
+    parser.add_argument('infileName', metavar='text', help='projection file')
     parser.add_argument('--centclass', '-c', metavar='text', default='')
     parser.add_argument("--outputdir", "-o", metavar="text",
                         default=".", help="output directory")
@@ -162,8 +281,16 @@ if __name__ == "__main__":
                         default="", help="suffix for output files")
     args = parser.parse_args()
 
-    compute_eff(
-        config_file=args.config,
-        centclass=args.centclass,
-        outputdir=args.outputdir,
-        suffix=args.suffix)
+    if not args.infileName:
+        compute_eff(
+            config_file=args.config,
+            centclass=args.centclass,
+            outputdir=args.outputdir,
+            suffix=args.suffix)
+    else:
+        compute_eff_thns(
+            config_file=args.config,
+            centclass=args.centclass,
+            inputFile=args.infileName,
+            outputdir=args.outputdir,
+            suffix=args.suffix)

@@ -18,8 +18,8 @@ args = parser.parse_args()
 
 # load input file
 effAccFile = TFile.Open(args.effAccFileName)
-hEffAccPrompt = effAccFile.Get('hAccEffPrompt')
-hEffAccFD = effAccFile.Get('hAccEffFD')
+hEffAccPrompt = effAccFile.Get('hEffPrompt')
+hEffAccFD = effAccFile.Get('hEffFD')
 
 fracFile = TFile.Open(args.fracFileName)
 hCorrYieldPrompt = fracFile.Get('hCorrYieldPrompt')

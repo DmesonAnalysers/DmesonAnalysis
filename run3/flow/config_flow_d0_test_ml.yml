@@ -1,0 +1,164 @@
+# global info (do not change)
+axes: {mass: 0,
+       pt: 1,
+       cent: 2,
+       sp: 3,
+       bdt_bkg: 4,
+       bdt_sig: 5}
+harmonic: 2 # 2: v2, 3: v3, etc.
+# ep/sp subevents
+detA: 'FT0c'
+detB: 'FV0a'
+detC: 'TPCtot'
+
+# binning
+# pt bins
+ptmins: [2, 3, 4]
+ptmaxs: [3, 4, 5]
+# invariant mass bin
+inv_mass_bins: [     
+                [1.72,1.74,1.76,1.78,1.80,1.82,1.83,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.91,1.92,1.94,1.96,1.98,2.00,2.02,2.04,2.06],
+                [1.72,1.74,1.76,1.78,1.80,1.82,1.83,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.91,1.92,1.94,1.96,1.98,2.00,2.02,2.04,2.06],
+                [1.72,1.74,1.76,1.78,1.80,1.82,1.83,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.91,1.92,1.94,1.96,1.98,2.00,2.02,2.04,2.06]
+              #   [1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+              #   [1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+              #   [1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+              #   [1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+              #   [1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+              #   [1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+              #   [1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],              
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.91,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1,2.2],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1,2.2],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.91,1.92,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1,2.2],
+                #[1.6,1.65,1.70,1.75,1.82,1.84,1.85,1.86,1.87,1.88,1.89,1.90,1.92,1.93,1.94,1.95,1.96,1.97,1.98,1.99,2.0,2.1,2.2],
+                ]
+use_inv_mass_bins: false # use binning in invariant mass distribution, neglects inv_mass_bins (default: false)
+
+# analyses selections
+# bdt cut
+apply_btd_cuts: true # apply bdt cuts
+bkg_ml_cuts: [0.002, 0.010, 0.010, 0.008, 0.020, 0.040, 0.300, 0.300, 0.300, 0.30, 0.30, 0.30] # max probability for bkg, one for each pt bin
+sig_ml_cuts: [0.700, 0.300, 0.300, 0.200, 0.300, 0.300, 0.300, 0.300, 0.300, 0.300, 0.300, 0.300]       # min probability for sig, one for each pt bin
+cut_variation:
+       bdt_cut: {
+              bkg: { 
+                     min: [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+                     max: [0.01, 0.02, 0.03, 0.3, 0.1, 0.2, 0.3, 0.3, 0.3, 0.3],
+                     step: [0,0,0,0,0,0,0,0,0,0,0,0]
+                       },
+              sig: { 
+                     min: [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
+                     max: [0.8, 0.8, 0.8, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                     step: [0.1, 0.1, 0.1, 0.1, 0.15, 0.15, 0.15, 0.15, 0.15, 0.15]
+                       }     
+       }
+
+# fit options
+Dmeson: 'Dzero'
+FixSigma: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+NSigma4SB: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+SigmaFile: ''
+SigmaMultFactor: 1.
+FixMean: 0
+MeanFile: ''
+       #    1-2  2-2.5  2.5-3  3-3.5  3.5-4  4-5   5-6   6-7   7-8   8-10  10-12  12-16  16-24  24-36
+NSigma4SB: [4,   4,     4,     4,     4,     4,    4,    4,    4,    4,    3,     3,     2,     3,     3,    3, 3, 3, 3, 3]
+MassMin: [ 1.72, 1.72,  1.72,  1.72,  1.72,  1.72, 1.72, 1.72, 1.72, 1.72, 1.68,  1.68,  1.66,  1.72,  1.68, 1.72, 1.70 ] 
+MassMax: [ 1.02, 2.02,  2.02,  2.02,  2.02,  2.02, 2.04, 2.04, 2.06, 2.06, 2.06,  2.06,  2.08,  2.06,  2.06, 2.00, 2.00, 2.00, 2.05, 2.00, 2.00, 2.00, 2.00 ]
+Rebin: [   4,    4,     4,     4,     4,     4,    4,    4,    4,    4,    8,     8,     8,     4,     6, 6, 6, 10, 10, 5, 5, 10, 5, 5]
+InclSecPeak: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+Sigma: [0.012, 0.012, 0.012, 0.012, 0.012, 0.012, 0.012, 0.012, 0.012, 0.012, 0.012, 0.012, 0.012, 0.012]
+SigmaSecPeak: [0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.008, 0.012, 0.012, 0.012, 0.012]
+SigmaFileSecPeak: ''
+SigmaMultFactorSecPeak: 1.
+FixSigmaToFirstPeak: 0
+UseLikelihood: 1
+BkgFunc: [ 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo', 'kExpo' ]
+SgnFunc: [ 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus', 'kGaus' ]
+BkgFuncVn: ['kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin', 'kLin' ]
+FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
+SigmaRatioFile: ""
+BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
+InclRefl: false
+ReflFunc: ''
+ReflFile: ''
+
+# these configurations are available only for the MC
+#_______________________________________________________________________________________________________________________
+## axes for the MC from Dtask
+### for D0: mass-2 pt-3 bdt_bkg-0 bdt_prompt-6 bdt_nonprompt-1
+axes_mc: {mass: 3,
+              pt: 4,
+              bdt_bkg: 0,
+              bdt_sig: 1}
+
+#_______________________________________________________________________________________________________________________
+## used for the MC in projection_thnsparse.py
+### for D0, D+, Ds
+MC_filename: [/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/AnalysisResults_BDT_MC_test.root]
+dirname: hf-task-d0
+sparsenameAll: null
+sparsenamePrompt: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
+sparsenameFD: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
+### only for D0
+enableRef: yes #reflection for D0
+sparsenameRefl: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
+sparsenameGenPrompt: hSparseAcc
+sparsenameGenFD: hSparseAcc
+### only for Ds
+enableSecPeak: no #no second peak for D+
+sparsenamePromptSecPeak: null
+sparsenameFDSecPeak: null
+sparsenameGenPromptSecPeak: null
+sparsenameGenFDSecPeak: null
+
+### ptweight
+ptweightPath: ''
+ptweightName: ''
+ptweightBPath: ''
+ptweightBName: ''
+
+#_______________________________________________________________________________________________________________________
+## used for compute_frac_cut_var.py
+histoNameRaw: hRawYieldsSimFit
+histoNameEffPrompt: hEffPrompt
+histoNameEffFD: hEffFD
+
+minimisation:
+    correlated: true # true --> fully correlated, false --> fully uncorrelated
+    doRawYieldSmearing: false # whether to smear the yields with a poissonian error
+    setseed: false # set the seed for Poissonian smearing
+    applyEffVariation:
+        enable: false
+        relvariation: 0.05
+        option: decreasing # available options: [upshift, downshift, decreasing, increasing]
+        prompt: true
+        feeddown: true
+
+linearplot: 
+    enable: false #enable linear plots NpromptVsNFD
+    uncbands: false #enable upper/lower linear plots limits
+    outfileformat: ['png', 'pdf', 'jpg'] # linear plot saved in different output formats (e.g. png, pdf, etc.). Plots are already saved in the ouput TFile
+
+
+
+# efficiency
+task_filename: ~/cernbox/flowRun3/input/pass4/Ds/AnalysisResults_eff_small.root  
+
+# fraction
+ryield_filename: /home/stefano/flowD/output/pass3/Ds/sp/ry/raw_yields_LHC23zzh_pass3_Ds_skimmed_FULL_2060_train33944.root
+eff_filename: /home/stefano/flowD/output/pass3/Ds/sp/eff/eff_LHC23zzh_pass3_Ds_skimmed_Ds_skimmed_FULL_2060_train33944.root
+br: 0.0224
+# model predictions (fixed)
+fonllfile: /home/stefano/flowD/input/fonll/fonll_pythia_beautyFFee_charmhadrons_5dot5tev_y0dot5.root
+raa_tamu: /home/stefano/alice/DmesonAnalysis/models/tamu/NonPromptDs_TAMU_RAA_5TeV_3050.txt 
+nevents: 3.1e+08 # number of events in the sample
