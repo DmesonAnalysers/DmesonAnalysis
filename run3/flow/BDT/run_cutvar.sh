@@ -15,7 +15,7 @@ export SimFitPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/get_vn_vs_mas
 export ProjPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/proj_thn_mc.py"
 export EffPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/compute_efficiency.py"
 export CurVarFracPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/compute_frac_cut_var.py"
-export DataDrivenFracPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ComputeDataDrivenFraction.py"
+export DataDrivenFracPath="/home/wuct/ALICE/local/dev/BDT/run3/flow/BDT/ComputeDataDriFrac_flow.py"
 export v2vsFDFracPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/ComputeV2vsFDFrac.py"
 
 export output_dir="${output_dir}/cutvar_${suffix}"
