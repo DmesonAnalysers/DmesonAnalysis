@@ -11,10 +11,10 @@ import numpy as np
 import yaml
 from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kGreen, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
-from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos # pylint: disable=import-error,no-name-in-module
-sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
-gInterpreter.ProcessLine(f'#include "/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/invmassfitter/InvMassFitter.cxx"')
-gInterpreter.ProcessLine(f'#include "/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/invmassfitter/VnVsMassFitter.cxx"')
+from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos, get_particle_info # pylint: disable=import-error,no-name-in-module
+sys.path.append('../..')
+gInterpreter.ProcessLine(f'#include "./invmassfitter/InvMassFitter.cxx"')
+gInterpreter.ProcessLine(f'#include "./invmassfitter/VnVsMassFitter.cxx"')
 from ROOT import InvMassFitter, VnVsMassFitter
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus, RebinHisto
@@ -120,38 +120,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             sys.exit()
 
     # set particle configuration
-    massDplus = TDatabasePDG.Instance().GetParticle(411).Mass()
-    massDs = TDatabasePDG.Instance().GetParticle(431).Mass()
-    massLc = TDatabasePDG.Instance().GetParticle(4122).Mass()
-    massDstar = TDatabasePDG.Instance().GetParticle(413).Mass() - TDatabasePDG.Instance().GetParticle(421).Mass()
-    massD0 = TDatabasePDG.Instance().GetParticle(421).Mass()
-    if particleName == 'Dplus':
-        massAxisTit = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
-        massForFit=massDplus
-        decay = 'D^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
-    elif particleName == 'Ds':
-        massAxisTit = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
-        decay = 'D_{s}^{+} #rightarrow #phi#pi^{+} #rightarrow K^{+}K^{#minus}#pi^{+}'
-        massForFit = massDs
-    elif particleName == 'LctopKpi':
-        massAxisTit = '#it{M}(pK#pi) (GeV/#it{c}^{2})'
-        decay = '#Lambda_{c}^{+} #rightarrow pK^{#minus}#pi^{+}'
-        massForFit = massLc
-    elif particleName == 'LctopK0s':
-        massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
-        decay = '#Lambda_{c}^{+} #rightarrow pK^{0}_{s}'
-        massForFit = 2.25
-    elif particleName == 'Dstar':
-        massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'
-        decay = 'D^{*+} #rightarrow D^{0}#pi^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
-        massForFit = massDstar
-    elif particleName == 'Dzero':
-        massAxisTit = '#it{M}(K#pi) (GeV/#it{c}^{2})'
-        decay = 'D^{0} #rightarrow K^{#minus}#pi^{+}'
-        massForFit = massD0
-    else:
-        print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dzero, Dplus, Ds, Dstar, and Lc. Exit!')
-        sys.exit()
+    _, massAxisTit, decay, massForFit = get_particle_info(particleName)
 
     # load histos
     infile = TFile.Open(inFileName)
