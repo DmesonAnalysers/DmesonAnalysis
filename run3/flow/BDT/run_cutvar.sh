@@ -10,13 +10,13 @@ export suffix="suffix"
 
 #___________________________________________________________________________________________________________________________
 # Paths for the scripts
-export MakeyamlPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/make_yaml_for_ml.py"
-export SimFitPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/get_vn_vs_mass.py"
-export ProjPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/proj_thn_mc.py"
-export EffPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/compute_efficiency.py"
-export CurVarFracPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/compute_frac_cut_var.py"
-export DataDrivenFracPath="/home/wuct/ALICE/local/dev/BDT/run3/flow/BDT/ComputeDataDriFrac_flow.py"
-export v2vsFDFracPath="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/ML/ComputeV2vsFDFrac.py"
+export MakeyamlPath="./make_yaml_for_ml.py"
+export SimFitPath="./../get_vn_vs_mass.py"
+export ProjPath="./proj_thn_mc.py"
+export EffPath="./../compute_efficiency.py"
+export CurVarFracPath="./compute_frac_cut_var.py"
+export DataDrivenFracPath="./ComputeDataDriFrac_flow.py"
+export v2vsFDFracPath="./ComputeV2vsFDFrac.py"
 
 export output_dir="${output_dir}/cutvar_${suffix}"
 
