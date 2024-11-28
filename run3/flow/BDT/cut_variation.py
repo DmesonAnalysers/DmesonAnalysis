@@ -10,7 +10,7 @@ import os
 import sys
 from alive_progress import alive_bar
 sys.path.append('..')
-from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, compute_r2
+from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins
 
 def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     with open(config, 'r') as ymlCfgFile:

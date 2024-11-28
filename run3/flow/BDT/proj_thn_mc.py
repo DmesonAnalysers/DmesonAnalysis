@@ -12,8 +12,7 @@ import os
 from ROOT import gROOT
 from alive_progress import alive_bar
 from scipy.interpolate import InterpolatedUnivariateSpline
-### please fill your path of DmeasonAnalysis
-sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
+sys.path.append('../../../..')
 from utils.TaskFileLoader import LoadSparseFromTask
 
 
@@ -99,6 +98,7 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
             ptHighLabel = ptMax * 10
 
             # apply pt weights for reconstruction level
+            #TODO: delete the Bspeciesweights part
             ## apply cuts
             for iVar in cutVars:
                 if iVar == 'InvMass':
@@ -109,15 +109,6 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
 
                 if 'RecoAll' in sparseReco:
                     sparseReco['RecoAll'].GetAxis(axisNum).SetRange(binMin, binMax)
-
-                # # debug test
-                # ts = sparseReco['RecoPrompt']
-                # ts.GetAxis(7).SetRange(2, 2) # make sure it is prompt
-                # ts.Projection(7).Draw()
-                # input('Press Enter to continue...')
-                # test = ts.Projection(7).Integral()
-                # print(f'test: {test}')
-                # exit()
 
                 if particleName == 'Dzero':
                     sparseReco['RecoPrompt'].GetAxis(7).SetRange(2, 2) # make sure it is prompt
