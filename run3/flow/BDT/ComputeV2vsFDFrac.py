@@ -10,8 +10,8 @@ import sys
 from ROOT import TFile, TCanvas, TLegend, TLatex, TGraphErrors, TF1, TH1D, TVirtualFitter, Double_t
 from ROOT import kBlack, kAzure, kRed
 from ROOT import kFullCircle, kOpenCircle
-sys.path.append('../../../../')
-sys.path.append('../../')
+sys.path.append('../../../')
+sys.path.append('../')
 from flow_analysis_utils import get_particle_info
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor
 
@@ -52,6 +52,9 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
                     for file in os.listdir(f'{inputdir}/ry') if file.endswith('.root') and suffix in file]
     else:
         raise ValueError(f'No ry folder found in {inputdir}')
+
+    fracFiles.sort()
+    v2Files.sort()
 
     nSets = len(v2Files)
     print(f"Number of sets: {nSets}")
@@ -173,8 +176,10 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     leg.SetTextSize(0.045)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
-    SetGlobalStyle(hV2VsPtFD, color=GetROOTColor("kAzure+4"), fillstyle=1)
-    SetGlobalStyle(hV2VsPtPrompt, color=GetROOTColor("kRed+1"), fillstyle=1)
+    SetObjectStyle(hV2VsPtFD, color=GetROOTColor("kAzure+4 "), fillstyle=1)
+    SetObjectStyle(hV2VsPtPrompt, color=GetROOTColor("kRed+1"), fillstyle=1)
+    # SetObjectStyle(hV2VsPtFD, GetROOTColor("kAzure+4"), 1)
+    # SetObjectStyle(hV2VsPtPrompt, GetROOTColor("kRed+1"), 1)
 
     cV2VsPtFD = TCanvas("cV2VsPtFD", "non-prompt v2 versus pt")
     cV2VsPtFD.SetCanvasSize(800, 800)

@@ -25,6 +25,9 @@ def data_driven_frac(inputdir, outputdir, suffix):
                      for file in os.listdir(f'{inputdir}/CutVarFrac') if file.endswith('.root') and suffix in file]
     else:
         raise ValueError(f'No CutVarFrac folder found in {inputdir}')
+    
+    effFiles.sort()
+    fracFiles.sort()
 
     # if len(effFiles) != len(fracFiles):
     #     raise ValueError('Number of eff and frac files do not match')

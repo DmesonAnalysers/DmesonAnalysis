@@ -35,6 +35,8 @@ def make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, sig
                     'axisnum': sig_axis,
                     'min': [float(i) for i in sig_cut_file[iFile]],
                     'max': [1.1 for _ in range(len(sig_cut_file[iFile]))],
+                    # 'min': [0 for _ in range(len(sig_cut_file[iFile]))],
+                    # 'max': [float(i) for i in sig_cut_file[iFile]],
                     'name': 'ML_output_FD'
                 }
             }
@@ -66,6 +68,7 @@ def make_yaml(flow_config, outputdir, suffix):
     sig_cut_mins = input['cut_variation']['bdt_cut']['sig']['min']
     sig_cut_maxs = input['cut_variation']['bdt_cut']['sig']['max']
     sig_cut_steps = input['cut_variation']['bdt_cut']['sig']['step']
+    nCut = input['cut_variation']['bdt_cut']['nCutsets']
 
     ## safely check
     if len(ptmins) != len(ptmaxs):
@@ -74,14 +77,24 @@ def make_yaml(flow_config, outputdir, suffix):
                          and sig cuts({len(sig_cut_mins)}, {len(sig_cut_maxs)}) are not the same''')
 
     # create a new yaml file for each combination
-    nCut = len(np.arange(sig_cut_mins[0], sig_cut_maxs[0], sig_cut_steps[0]))
+    # if sig_cut_steps[0] < 0:
+    #     nCut = len(np.arange(sig_cut_mins[0], sig_cut_maxs[0], -sig_cut_steps[0]))
+    # else:
+    #     nCut = len(np.arange(sig_cut_mins[0], sig_cut_maxs[0], sig_cut_steps[0]))
     bkg_cut_pt, sig_cut_pt = {}, {}
 
     for ipt in range(len(ptmins)):
-        sig_cut_pt[ipt] = list(np.arange(sig_cut_mins[ipt], sig_cut_maxs[ipt], sig_cut_steps[ipt]))
+        if sig_cut_steps[ipt] < 0:
+            sig_cut_pt[ipt] = list(np.linspace(sig_cut_maxs[ipt], sig_cut_mins[ipt], nCut))
+            print(sig_cut_mins[ipt])
+            print(nCut)
+            print(sig_cut_pt[ipt])
+        else:
+            sig_cut_pt[ipt] = list(np.arange(sig_cut_mins[ipt], sig_cut_maxs[ipt], sig_cut_steps[ipt]))
         bkg_cut_pt[ipt] = list(np.arange(bkg_cut_mins[ipt], bkg_cut_maxs[ipt], bkg_cut_steps[ipt])) if bkg_cut_steps[ipt] != 0 else [bkg_cut_maxs[ipt]] * nCut
 
     sig_cut_file = {iFile: [sig_cut_pt[ipt][iFile] for ipt in range(len(ptmins))] for iFile in range(nCut)}
+    print(sig_cut_file)
     bkg_cut_file = {iFile: [bkg_cut_pt[ipt][iFile] for ipt in range(len(ptmins))] for iFile in range(nCut)}
 
     combinations = make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, sig_cut_file, bkg_cut_file)
@@ -90,8 +103,6 @@ def make_yaml(flow_config, outputdir, suffix):
     for iFile in range(nCut):
         with open(f'{outputdir}/config/cutset_{suffix}_{iFile:02}.yml', 'w') as file:
             yaml.dump(combinations[iFile], file, default_flow_style=False)
-    with open(f'{outputdir}/config/Output.yml', 'w') as file:
-        yaml.dump("#output results", file, default_flow_style=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')

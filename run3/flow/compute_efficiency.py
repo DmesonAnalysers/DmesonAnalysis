@@ -7,7 +7,8 @@ import os
 import numpy as np
 from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins
-sys.path.append('../../../..')
+### please fill your path of DmeasonAnalysis
+sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import ComputeEfficiency
 

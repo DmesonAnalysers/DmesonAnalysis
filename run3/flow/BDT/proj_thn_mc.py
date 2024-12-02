@@ -5,6 +5,7 @@ python3 proj_thn_mc.py config_flow.yml config_cutset.yml -o path/to/output -s te
                                                         --ptweightsB path/to/file histName
 '''
 import ROOT
+import uproot
 import yaml
 import argparse
 import sys
@@ -12,7 +13,8 @@ import os
 from ROOT import gROOT
 from alive_progress import alive_bar
 from scipy.interpolate import InterpolatedUnivariateSpline
-sys.path.append('../../../..')
+### please fill your path of DmeasonAnalysis
+sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
 from utils.TaskFileLoader import LoadSparseFromTask
 
 
@@ -60,13 +62,13 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
 
     # compute the pt weights
     if ptweights:
-        ptWeights = ROOT.TFile(ptweights[0]).Get(ptweights[1])
+        ptWeights = uproot.open(ptweights[0])[ptweights[1]]
         bins = ptWeights.axis(0).edges()
         ptCentW = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
         sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values())
 
     if ptweightsB:
-        ptWeightsB = ROOT.TFile(ptweightsB[0]).Get(ptweightsB[1])
+        ptWeightsB = uproot.open(ptweightsB[0])[ptweightsB[1]]
         bins = ptWeightsB.axis(0).edges()
         ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
         sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
@@ -98,7 +100,6 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
             ptHighLabel = ptMax * 10
 
             # apply pt weights for reconstruction level
-            #TODO: delete the Bspeciesweights part
             ## apply cuts
             for iVar in cutVars:
                 if iVar == 'InvMass':
@@ -109,6 +110,15 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
 
                 if 'RecoAll' in sparseReco:
                     sparseReco['RecoAll'].GetAxis(axisNum).SetRange(binMin, binMax)
+
+                # # debug test
+                # ts = sparseReco['RecoPrompt']
+                # ts.GetAxis(7).SetRange(2, 2) # make sure it is prompt
+                # ts.Projection(7).Draw()
+                # input('Press Enter to continue...')
+                # test = ts.Projection(7).Integral()
+                # print(f'test: {test}')
+                # exit()
 
                 if particleName == 'Dzero':
                     sparseReco['RecoPrompt'].GetAxis(7).SetRange(2, 2) # make sure it is prompt
