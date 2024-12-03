@@ -266,7 +266,7 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     if not isinstance(df_column_to_save_list, list):
         print('\033[91mERROR: df_column_to_save_list must be defined!\033[0m')
         sys.exit()
-    if 'inv_mass' not in df_column_to_save_list:
+    if 'fM' not in df_column_to_save_list:
         print('\033[93mWARNING: inv_mass is not going to be saved in the output dataframe!\033[0m')
     if 'fPt' not in df_column_to_save_list:
         print('\033[93mWARNING: fPt is not going to be saved in the output dataframe!\033[0m')
