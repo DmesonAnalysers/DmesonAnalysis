@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from hipe4ml import plot_utils
 from hipe4ml.model_handler import ModelHandler
 from hipe4ml.tree_handler import TreeHandler
+from hipe4ml_converter.h4ml_converter import H4MLConverter
 
 def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylint: disable=too-many-statements, too-many-branches
     '''
@@ -103,8 +104,8 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
             yTest = LabelsArray.copy()
 
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
-        PromptDfSelForEff = TestSet[pd.Series(yTest).array == 1]
-        FDDfSelForEff = pd.DataFrame() if FDDf.empty else TestSet[pd.Series(yTest).array == 2]
+        PromptDfSelForEff = TestSet[yTest == 1]
+        FDDfSelForEff = pd.DataFrame() if FDDf.empty else TestSet[yTest == 2]
         del TotDf
 
     else:
@@ -156,10 +157,10 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
 
     # hyperparams optimization
     if inputCfg['ml']['hyper_par_opt']['do_hyp_opt']:
-        print('Perform bayesian optimization')
+        print('Perform optuna optimization')
 
-        BayesOptConfig = inputCfg['ml']['hyper_par_opt']['bayes_opt_config']
-        if not isinstance(BayesOptConfig, dict):
+        OptunaOptConfig = inputCfg['ml']['hyper_par_opt']['bayes_opt_config']
+        if not isinstance(OptunaOptConfig, dict):
             print('\033[91mERROR: bayes_opt_config must be defined!\033[0m')
             sys.exit()
 
@@ -180,11 +181,10 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
         print('Performing hyper-parameters optimisation: ...', end='\r')
         OutFileHypPars = open(f'{OutPutDirPt}/HyperParOpt_pT_{PtBin[0]}_{PtBin[1]}.txt', 'wt')
         sys.stdout = OutFileHypPars
-        ModelHandl.optimize_params_bayes(TrainTestData, BayesOptConfig, metric,
-                                         nfold=inputCfg['ml']['hyper_par_opt']['nfolds'],
-                                         init_points=inputCfg['ml']['hyper_par_opt']['initpoints'],
-                                         n_iter=inputCfg['ml']['hyper_par_opt']['niter'],
-                                         njobs=inputCfg['ml']['hyper_par_opt']['njobs'])
+        ModelHandl.optimize_params_optuna(TrainTestData, OptunaOptConfig, metric,
+                                          n_trials=inputCfg['ml']['hyper_par_opt']['ntrials'],
+                                          direction=inputCfg['ml']['hyper_par_opt']['direction'],
+                                          save_study=f'pT_{PtBin[0]}_{PtBin[1]}')
         OutFileHypPars.close()
         sys.stdout = sys.__stdout__
         print('Performing hyper-parameters optimisation: Done!')
@@ -228,6 +228,10 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
     ROCCurveFig.savefig(f'{OutPutDirPt}/ROCCurveAll_pT_{PtBin[0]}_{PtBin[1]}.pdf')
     pickle.dump(ROCCurveFig, open(f'{OutPutDirPt}/ROCCurveAll_pT_{PtBin[0]}_{PtBin[1]}.pkl', 'wb'))
     #_____________________________________________
+    model_converter = H4MLConverter(ModelHandl) 
+    model_onnx = model_converter.convert_model_onnx(1, len(TrainCols))
+    model_converter.dump_model_onnx(f'{OutPutDirPt}/XGBoostModel_pT_{PtBin[0]}_{PtBin[1]}_onnx.onnx') # dump the model in ONNX format
+    #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 9)
     ROCCurveTTFig = plot_utils.plot_roc_train_test(TrainTestData[3], yPredTest, TrainTestData[1], yPredTrain, None,
                                                    LegLabels, inputCfg['ml']['roc_auc_average'],
@@ -264,8 +268,8 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
         sys.exit()
     if 'inv_mass' not in df_column_to_save_list:
         print('\033[93mWARNING: inv_mass is not going to be saved in the output dataframe!\033[0m')
-    if 'pt_cand' not in df_column_to_save_list:
-        print('\033[93mWARNING: pt_cand is not going to be saved in the output dataframe!\033[0m')
+    if 'fPt' not in df_column_to_save_list:
+        print('\033[93mWARNING: fPt is not going to be saved in the output dataframe!\033[0m')
     PromptDfPtSelForEff = PromptDfPtSelForEff.loc[:, df_column_to_save_list]
     if FDDfPtSelForEff.empty:
         out = 'Signal'
@@ -327,11 +331,11 @@ def main(): #pylint: disable=too-many-statements
         BkgHandler = DataHandler
 
     PtBins = [[a, b] for a, b in zip(inputCfg['pt_ranges']['min'], inputCfg['pt_ranges']['max'])]
-    PromptHandler.slice_data_frame('pt_cand', PtBins, True)
+    PromptHandler.slice_data_frame('fPt', PtBins, True)
     if FDHandler is not None:
-        FDHandler.slice_data_frame('pt_cand', PtBins, True)
-    DataHandler.slice_data_frame('pt_cand', PtBins, True)
-    BkgHandler.slice_data_frame('pt_cand', PtBins, True)
+        FDHandler.slice_data_frame('fPt', PtBins, True)
+    DataHandler.slice_data_frame('fPt', PtBins, True)
+    BkgHandler.slice_data_frame('fPt', PtBins, True)
     print('Loading and preparing data files: Done!')
 
     for iBin, PtBin in enumerate(PtBins):
