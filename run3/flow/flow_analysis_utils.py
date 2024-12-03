@@ -575,3 +575,58 @@ def getD0ReflHistos(reflFile, ptMins, ptMaxs):
     reflFile.Close()
 
     return True, hMCSgn, hMCRefl
+
+def get_particle_info(particleName):
+    '''
+    Get particle information
+
+    Input:
+        - particleName: 
+            the name of the particle
+
+    Output:
+        - particleTit: 
+            the title of the particle
+        - massAxisTit: 
+            the title of the mass axis
+        - decay: 
+            the decay of the particle
+        - massForFit: 
+            float, the mass of the particle
+    '''
+
+    if particleName == 'Dplus':
+        particleTit = 'D^{+}'
+        massAxisTit = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(411).Mass()
+        decay = 'D^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
+    elif particleName == 'Ds':
+        particleTit = 'D_{s}^{+}'
+        massAxisTit = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
+        decay = 'D_{s}^{+} #rightarrow #phi#pi^{+} #rightarrow K^{+}K^{#minus}#pi^{+}'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(431).Mass()
+    elif particleName == 'LctopKpi':
+        particleTit = '#Lambda_{c}^{+}'
+        massAxisTit = '#it{M}(pK#pi) (GeV/#it{c}^{2})'
+        decay = '#Lambda_{c}^{+} #rightarrow pK^{#minus}#pi^{+}'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(4122).Mass()
+    elif particleName == 'LctopK0s':
+        massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
+        decay = '#Lambda_{c}^{+} #rightarrow pK^{0}_{s}'
+        massForFit = 2.25 # please calfully check the mass of Lc->pK0s, it is constant
+        # massForFit = ROOT.TDatabasePDG.Instance().GetParticle(4122).Mass()
+    elif particleName == 'Dstar':
+        particleTit = 'D^{*+}'
+        massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'
+        decay = 'D^{*+} #rightarrow D^{0}#pi^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(413).Mass() - ROOT.TDatabasePDG.Instance().GetParticle(421).Mass()
+    elif particleName == 'Dzero':
+        particleTit = 'D^{0}'
+        massAxisTit = '#it{M}(K#pi) (GeV/#it{c}^{2})'
+        decay = 'D^{0} #rightarrow K^{#minus}#pi^{+}'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(421).Mass()
+    else:
+        print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dzero, Dplus, Ds, Dstar, and Lc. Exit!')
+        sys.exit()
+
+    return particleTit, massAxisTit, decay, massForFit

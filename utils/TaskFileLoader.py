@@ -6,7 +6,7 @@ import sys
 from ROOT import TFile  # pylint: disable=import-error,no-name-in-module
 
 # pylint: disable=too-many-branches,too-many-statements, too-many-return-statements
-def LoadSparseFromTask(infilename, inputCfg):
+def LoadSparseFromTask(infilename, inputCfg, no_List_isMC=False):
     '''
     Method to retrieve sparses from output task file
 
@@ -14,6 +14,10 @@ def LoadSparseFromTask(infilename, inputCfg):
     ----------
     - input root file name
     - config dictionary from yaml file with name of objects in root file
+    - flag to whether load 'isMC' and list from config
+        - if True, load sparses for MC and no list
+        - if False, load 'isMC' from config and load sparse from list
+        - default is False
 
     Returns
     ----------
@@ -27,64 +31,105 @@ def LoadSparseFromTask(infilename, inputCfg):
     if not indirData:
         print(f'Directory {inputCfg["dirname"]} not found!')
         return None, None
-    inlistData = indirData.Get(inputCfg['listname'])
-    if not inlistData:
-        print(f'List {inputCfg["listname"]} not found!')
-        return None, None
+    
+    if not no_List_isMC:
+        inlistData = indirData.Get(inputCfg['listname'])
+        if not inlistData:
+            print(f'List {inputCfg["listname"]} not found!')
+            return None, None
+        isMC = inputCfg['isMC'] if 'isMC' in inputCfg else False
+    else:
+        isMC = True
 
     sparses, sparsesGen = {}, {}
     if inputCfg['sparsenameAll']:
-        sparses['RecoAll'] = inlistData.FindObject(inputCfg['sparsenameAll']) # not mandatory for MC
+        if not no_List_isMC:
+            sparses['RecoAll'] = inlistData.FindObject(inputCfg['sparsenameAll']) # not mandatory for MC
+        else:
+            sparses['RecoAll'] = indirData.Get(inputCfg['sparsenameAll'])
         if not sparses['RecoAll']:
             print(f'ERROR: sparse {inputCfg["sparsenameAll"]} not found!')
             return None, None
-    if inputCfg['isMC']:
+    if isMC:
         if ((inputCfg['sparsenamePrompt'] is not None and inputCfg['sparsenameAll'] == inputCfg['sparsenamePrompt']) or
                 (inputCfg['sparsenameFD'] is not None and inputCfg['sparsenameAll'] == inputCfg['sparsenameFD'])):
             print('ERROR: do not use the same object for different sparses, this gives an error when merged! Exit')
             sys.exit()
         if inputCfg['sparsenamePrompt'] is not None:
-            sparses['RecoPrompt'] = inlistData.FindObject(inputCfg['sparsenamePrompt'])
+            if not no_List_isMC:
+                sparses['RecoPrompt'] = inlistData.FindObject(inputCfg['sparsenamePrompt'])
+            else:
+                sparses['RecoPrompt'] = indirData.Get(inputCfg['sparsenamePrompt'])
+                sparses['RecoPrompt'].SetName("SparseRecoPrompt")
             if not sparses['RecoPrompt']:
                 print(f'ERROR: sparse {inputCfg["sparsenamePrompt"]} not found!')
                 return None, None
         if inputCfg['sparsenameFD'] is not None:
-            sparses['RecoFD'] = inlistData.FindObject(inputCfg['sparsenameFD'])
+            if not no_List_isMC:
+                sparses['RecoFD'] = inlistData.FindObject(inputCfg['sparsenameFD'])
+            else:
+                sparses['RecoFD'] = sparses['RecoPrompt'].Clone('SparseRecoFD')
             if not sparses['RecoFD']:
                 print(f'ERROR: sparse {inputCfg["sparsenameFD"]} not found!')
                 return None, None
-        sparsesGen['GenPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPrompt'])
+        if not no_List_isMC:
+            sparsesGen['GenPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPrompt'])
+        else:
+            sparsesGen['GenPrompt'] = indirData.Get(inputCfg['sparsenameGenPrompt'])
+            sparsesGen['GenPrompt'].SetName("SparseGenPrompt")
         if not sparsesGen['GenPrompt']:
             print(f'ERROR: sparse {inputCfg["sparsenameGenPrompt"]} not found!')
             return None, None
-        sparsesGen['GenFD'] = inlistData.FindObject(inputCfg['sparsenameGenFD'])
+        if not no_List_isMC:
+            sparsesGen['GenFD'] = inlistData.FindObject(inputCfg['sparsenameGenFD'])
+        else:
+            sparsesGen['GenFD'] = sparsesGen['GenPrompt'].Clone('SparseGenFD')
         if not sparsesGen['GenFD']:
             print(f'ERROR: sparse {inputCfg["sparsenameGenFD"]} not found!')
             return None, None
         
+        # For D0, the reflection and reconstruction are in the same sparse
         if inputCfg['enableRef']:
             if inputCfg['sparsenameRefl'] is not None:
-                sparses['RecoRefl'] = inlistData.FindObject(inputCfg['sparsenameRefl'])
+                if not no_List_isMC:
+                    sparses['RecoRefl'] = inlistData.FindObject(inputCfg['sparsenameRefl'])
+                else:
+                    sparses['RecoRefl'] = indirData.Get(inputCfg['sparsenameRefl'])
+                    sparses['RecoRefl'].SetName("SparseRefl")
+                    sparses['RecoReflPrompt'] = sparses['RecoRefl'].Clone('SparseReflPrompt')
+                    sparses['RecoReflFD'] = sparses['RecoRefl'].Clone('SparseReflFD')
             if not sparses['RecoRefl']:
                 print(f'ERROR: sparse {inputCfg["sparsenameRefl"]} not found!')
                 return None, None
 
         if inputCfg['enableSecPeak']:
             if inputCfg['sparsenamePromptSecPeak'] is not None:
-                sparses['RecoSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenamePromptSecPeak'])
+                if not no_List_isMC:
+                    sparses['RecoSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenamePromptSecPeak'])
+                else:
+                    sparses['RecoSecPeakPrompt'] = indirData.Get(inputCfg['sparsenamePromptSecPeak'])
                 if not sparses['RecoSecPeakPrompt']:
                     print(f'ERROR: sparse {inputCfg["sparsenamePromptSecPeak"]} not found!')
                     return None, None
             if inputCfg['sparsenameFDSecPeak'] is not None:
-                sparses['RecoSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameFDSecPeak'])
+                if not no_List_isMC:
+                    sparses['RecoSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameFDSecPeak'])
+                else:
+                    sparses['RecoSecPeakFD'] = indirData.Get(inputCfg['sparsenameFDSecPeak'])
                 if not sparses['RecoSecPeakFD']:
                     print(f'ERROR: sparse {inputCfg["sparsenameFDSecPeak"]} not found!')
                     return None, None
-            sparsesGen['GenSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPromptSecPeak'])
+            if not no_List_isMC:
+                sparsesGen['GenSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPromptSecPeak'])
+            else:
+                sparsesGen['GenSecPeakPrompt'] = indirData.Get(inputCfg['sparsenameGenPromptSecPeak'])
             if not sparsesGen['GenSecPeakPrompt']:
                 print(f'ERROR: sparse {inputCfg["sparsenameGenPromptSecPeak"]} not found!')
                 return None, None
-            sparsesGen['GenSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameGenFDSecPeak'])
+            if not no_List_isMC:
+                sparsesGen['GenSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameGenFDSecPeak'])
+            else:
+                sparsesGen['GenSecPeakFD'] = indirData.Get(inputCfg['sparsenameGenFDSecPeak'])
             if not sparsesGen['GenSecPeakFD']:
                 print(f'ERROR: sparse {inputCfg["sparsenameGenFDSecPeak"]} not found!')
                 return None, None

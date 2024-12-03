@@ -31,19 +31,6 @@ use_inv_mass_bins: false # use binning in invariant mass distribution, neglects 
 apply_btd_cuts: false # apply bdt cuts
 bkg_ml_cuts: [0.08, 0.08, 0.08, 0.08, 0.08, 0.08] # max probability for bkg, one for each pt bin
 sig_ml_cuts: [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]       # min probability for sig, one for each pt bin
-cut_variation:
-       bdt_cut: {
-              bkg: { 
-                     min: [0.002, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                     max: [0.05, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4],
-                     step: [0.002, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
-                       },
-              sig: { 
-                     min: [0.5, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
-                     max: [1.0, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-                     step: [0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
-                       }     
-       }
 
 
 # ep/sp subevents
@@ -79,3 +66,83 @@ BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be betw
 
 # efficiency
 eff_filename: 'task_output.root'
+
+# cut variation
+cut_variation:
+       bdt_cut: {
+              bkg: { 
+                     min: [0.1],
+                     max: [0.01],
+                     step: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0., 0., 0., 0., 0.]
+                       },
+              sig: { 
+                     min: [0.05],
+                     max: [0.4],
+                     step: [0.05]
+                       },
+       }
+       nCutSets: 6
+       # please just make sure that the nCutSets is the same as the number of the min to max+step
+
+# these configurations are available only for the MC
+#_______________________________________________________________________________________________________________________
+## axes for the MC from Dtask
+### for D0: mass-2 pt-3 bdt_bkg-0 bdt_prompt-6 bdt_nonprompt-1
+axes_mc: {mass: 3,
+              pt: 4,
+              bdt_bkg: 0,
+              bdt_sig: 1}
+
+#_______________________________________________________________________________________________________________________
+## used for the MC in projection_thnsparse.py
+### for D0, D+, Ds
+MC_filename: [/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/test/AnalysisResults_mc_301750.root]
+dirname: hf-task-d0
+sparsenameAll: null
+sparsenamePrompt: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
+sparsenameFD: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
+### only for D0
+enableRef: yes #reflection for D0
+sparsenameRefl: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
+sparsenameGenPrompt: hSparseAcc
+sparsenameGenFD: hSparseAcc
+### only for Ds
+enableSecPeak: no #no second peak for D+
+sparsenamePromptSecPeak: null
+sparsenameFDSecPeak: null
+sparsenameGenPromptSecPeak: null
+sparsenameGenFDSecPeak: null
+
+### ptweight
+ptweightPath: ''
+ptweightName: ''
+ptweightBPath: ''
+ptweightBName: ''
+
+#_______________________________________________________________________________________________________________________
+## used for compute_frac_cut_var.py 
+histoNameRaw: hRawYieldsTrueSimFit # also ComputeV2vsFDFrac.py
+histoNameEffPrompt: hEffPrompt
+histoNameEffFD: hEffFD
+
+minimisation:
+    correlated: true # true --> fully correlated, false --> fully uncorrelated
+    doRawYieldSmearing: false # whether to smear the yields with a poissonian error
+    setseed: false # set the seed for Poissonian smearing
+    applyEffVariation:
+        enable: false
+        relvariation: 0.05
+        option: decreasing # available options: [upshift, downshift, decreasing, increasing]
+        prompt: true
+        feeddown: true
+
+linearplot: 
+    enable: true #enable linear plots NpromptVsNFD
+    uncbands: false #enable upper/lower linear plots limits
+    outfileformat: ['png', 'pdf', 'jpg'] # linear plot saved in different output formats (e.g. png, pdf, etc.). Plots are already saved in the ouput TFile
+
+## used for ComputeV2vsFDFrac.py
+histoNameV2: hvnSimFit
+graphNameV2: gvnSimFit
+histoNameFracFD: hFDFrac
+histoNameFracPrompt: hPromptFrac
