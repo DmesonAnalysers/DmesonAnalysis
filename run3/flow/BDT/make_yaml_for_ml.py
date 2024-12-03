@@ -9,7 +9,31 @@ import os
 import numpy as np
 
 def make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, sig_cut_file, bkg_cut_file):
-    #TODO: add comments
+    '''
+    Create a dictionary with the combination of cuts for each cutset
+
+    Parameters:
+    mass_axis: int
+        axis number for the invariant mass
+    pt_axis: int
+        axis number for the pt
+    bkg_axis: int
+        axis number for the bkg output
+    sig_axis: int
+        axis number for the signal output
+    ptmins: list
+        list of lower pt edges
+    ptmaxs: list
+        list of upper pt edges
+    sig_cut_file: dict
+        dictionary with the signal cut for each cutset
+    bkg_cut_file: dict
+        dictionary with the background cut for each cutset
+
+    Returns:
+    combinations: dict
+        dictionary with the combination of cuts for each cutset
+    '''
     combinations = {}
     for iFile in range((len(sig_cut_file))):
         combinations[iFile] = {
@@ -35,8 +59,6 @@ def make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, sig
                     'axisnum': sig_axis,
                     'min': [float(i) for i in sig_cut_file[iFile]],
                     'max': [1.1 for _ in range(len(sig_cut_file[iFile]))],
-                    # 'min': [0 for _ in range(len(sig_cut_file[iFile]))],
-                    # 'max': [float(i) for i in sig_cut_file[iFile]],
                     'name': 'ML_output_FD'
                 }
             }
@@ -68,7 +90,7 @@ def make_yaml(flow_config, outputdir, suffix):
     sig_cut_mins = input['cut_variation']['bdt_cut']['sig']['min']
     sig_cut_maxs = input['cut_variation']['bdt_cut']['sig']['max']
     sig_cut_steps = input['cut_variation']['bdt_cut']['sig']['step']
-    nCut = input['cut_variation']['bdt_cut']['nCutsets']
+    nCut = input['cut_variation']['nCutSets']
 
     ## safely check
     if len(ptmins) != len(ptmaxs):
@@ -76,28 +98,34 @@ def make_yaml(flow_config, outputdir, suffix):
                          bkg cuts({len(bkg_cut_mins)}, {len(bkg_cut_maxs)}),
                          and sig cuts({len(sig_cut_mins)}, {len(sig_cut_maxs)}) are not the same''')
 
-    # create a new yaml file for each combination
-    # if sig_cut_steps[0] < 0:
-    #     nCut = len(np.arange(sig_cut_mins[0], sig_cut_maxs[0], -sig_cut_steps[0]))
-    # else:
-    #     nCut = len(np.arange(sig_cut_mins[0], sig_cut_maxs[0], sig_cut_steps[0]))
     bkg_cut_pt, sig_cut_pt = {}, {}
 
     for ipt in range(len(ptmins)):
         if sig_cut_steps[ipt] < 0:
             sig_cut_pt[ipt] = list(np.linspace(sig_cut_maxs[ipt], sig_cut_mins[ipt], nCut))
-            print(sig_cut_mins[ipt])
-            print(nCut)
-            print(sig_cut_pt[ipt])
         else:
-            sig_cut_pt[ipt] = list(np.arange(sig_cut_mins[ipt], sig_cut_maxs[ipt], sig_cut_steps[ipt]))
+            sig_cut_pt[ipt] = list(np.arange(sig_cut_mins[ipt], sig_cut_maxs[ipt]+sig_cut_steps[ipt], sig_cut_steps[ipt]))
         bkg_cut_pt[ipt] = list(np.arange(bkg_cut_mins[ipt], bkg_cut_maxs[ipt], bkg_cut_steps[ipt])) if bkg_cut_steps[ipt] != 0 else [bkg_cut_maxs[ipt]] * nCut
 
     sig_cut_file = {iFile: [sig_cut_pt[ipt][iFile] for ipt in range(len(ptmins))] for iFile in range(nCut)}
-    print(sig_cut_file)
     bkg_cut_file = {iFile: [bkg_cut_pt[ipt][iFile] for ipt in range(len(ptmins))] for iFile in range(nCut)}
 
     combinations = make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, sig_cut_file, bkg_cut_file)
+
+    print(f'''
+The axis number for the invariant mass is {mass_axis}
+The axis number for the pt is {pt_axis}
+The axis number for the bkg output is {bkg_axis}
+The axis number for the signal output is {sig_axis}
+''')
+    for iFile in range(nCut):
+        print(f'''
+For cutset {iFile}:
+    ptmin: {ptmins}
+    ptmax: {ptmaxs}
+    sig cut: {sig_cut_file[iFile]}
+    bkg cut: {bkg_cut_file[iFile]}
+''')
 
     os.makedirs(f'{outputdir}/config', exist_ok=True)
     for iFile in range(nCut):

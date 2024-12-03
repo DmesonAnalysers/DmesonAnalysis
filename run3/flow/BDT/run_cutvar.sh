@@ -1,97 +1,95 @@
 #!/bin/bash
 
-export config_flow="path/to/config_flow.yml"
-export anres_dir="path/to/analysis_results_data.root"
-export output_dir="path/to/output/BDT"
+#Parameters
+#----------
+#- config (str): path of directory with config files
+#- an_res_file (str): path of directory with analysis results
+#- centrality (str): centrality class
+#- resolution (str/int): resolution file or resolution value
+#- outputdir (str): output directory
+#- suffix (str): suffix for output files
+#- vn_method (str): vn technique (sp, ep, deltaphi)
+#- skip_make_yaml (bool): skip make yaml
+#- skip_cut_variation (bool): skip cut variation
+#- skip_proj_mc (bool): skip projection for MC
+#- skip_efficiency (bool): skip efficiency
+#- skip_vn (bool): skip vn extraction
+#- skip_frac_cut_var (bool): skip fraction by cut variation
+#- skip_data_driven_frac (bool): skip fraction by data-driven method
+#- skip_v2_vs_frac (bool): skip v2 vs FD fraction
+#----------
+
+export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow_d0_test_ml.yml"
+export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/test/AnalysisResults_301827.root"
+export output_dir="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/test"
 export cent="k3050"
 export vn_method="sp"
-export res_file="path/to/resolution.root"
-export suffix="suffix"
+export res_file="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/Results/2060/k3050/small/sp/resolution/resosp3050s_291131_inte_gain_Reso.root"
+export suffix="D0_anti"
 
-#___________________________________________________________________________________________________________________________
-# Paths for the scripts
-export MakeyamlPath="./make_yaml_for_ml.py"
-export SimFitPath="./../get_vn_vs_mass.py"
-export ProjPath="./proj_thn_mc.py"
-export EffPath="./../compute_efficiency.py"
-export CurVarFracPath="./compute_frac_cut_var.py"
-export DataDrivenFracPath="./ComputeDataDriFrac_flow.py"
-export v2vsFDFracPath="./ComputeV2vsFDFrac.py"
+export smy=False # True or False
+export scv=False # True or False
+export spm=False # True or False
+export seff=False # True or False
+export svn=False # True or False
+export sfcv=False # True or False
+export sddf=False # True or False
+export sv2vf=False # True or False
 
-export output_dir="${output_dir}/cutvar_${suffix}"
+if [ $smy = False ]; then
+	export skip_make_yaml=""
+else
+	export skip_make_yaml="--skip_make_yaml"
+fi
 
-#___________________________________________________________________________________________________________________________
-# make yaml file
-echo -e "\e[34mpython3 make_yaml.py ${config_flow} -o ${output_dir} -s ${suffix}\e[0m"
-python3 ${MakeyamlPath} ${config_flow} -o ${output_dir} -s ${suffix}
+if [ $scv = False ]; then
+	export skip_cut_variation=""
+else
+	export skip_cut_variation="--skip_cut_variation"
+fi
 
-#___________________________________________________________________________________________________________________________
-# Get the number of projection files for different cutsets
-CutVarNum=$(find "${output_dir}/config" -type f -name "cutset*.yml" | wc -l)
-echo "Number of cutsets: ${CutVarNum}"
+if [ $spm = False ]; then
+	export skip_proj_mc=""
+else
+	export skip_proj_mc="--skip_proj_mc"
+fi
 
-#___________________________________________________________________________________________________________________________
-# Cut variation (aply the cut and project)
-echo -e "\e[34mpython3 cut_variation.py ${config_flow} ${anres_dir} -c ${cent} -o ${output_dir} -s ${suffix}\e[0m"
-python3 cut_variation.py ${config_flow} ${anres_dir} -c ${cent} -r ${res_file} -o ${output_dir} -s ${suffix}
+if [ $seff = False ]; then
+	export skip_efficiency=""
+else
+	export skip_efficiency="--skip_efficiency"
+fi
 
-#___________________________________________________________________________________________________________________________
-# projection for MC and apply the ptweights
-for ((i=0; i<${CutVarNum}; i++)); do
-	iCutSets=$(printf "%02d" $i)
-	echo -e "\e[34mpyhon3 proj_thn_mc.py ${config_flow} ${output_dir}/config/cutset_${suffix}_${iCutSets}.yml -o ${output_dir} -s ${suffix}_${iCutSets}\e[0m"
-	python3 ${ProjPath} ${config_flow} \
-						${output_dir}/config/cutset_${suffix}_${iCutSets}.yml \
-						-o ${output_dir} \
-						-s ${suffix}_${iCutSets}
-done
+if [ $svn = False ]; then
+	export skip_vn=""
+else
+	export skip_vn="--skip_vn"
+fi
 
-#___________________________________________________________________________________________________________________________
-# compute the efficiency
-for ((i=0; i<${CutVarNum}; i++)); do
-	iCutSets=$(printf "%02d" $i)
-	echo -e "\e[34mpython3 compute_efficiency.py ${config_flow} ${output_dir}/proj_mc/proj_mc_${suffix}_${iCutSets}.root -c ${cent} -o ${output_dir} -s ${suffix}_${iCutSets}\e[0m"
-	python3 ${EffPath} ${config_flow} \
-			${output_dir}/proj_mc/proj_mc_${suffix}_${iCutSets}.root \
-			-c ${cent} \
-			-o ${output_dir} \
-			-s ${suffix}_${iCutSets}
-done
+if [ $sfcv = False ]; then
+	export skip_frac_cut_var=""
+else
+	export skip_frac_cut_var="--skip_frac_cut_var"
+fi
 
-#___________________________________________________________________________________________________________________________
-# do the simulation fit to get the raw yields
-if [ ! -d "${output_dir}/ry" ]; then mkdir -p ${output_dir}/ry; fi
+if [ $sddf = False ]; then
+	export skip_data_driven_frac=""
+else
+	export skip_data_driven_frac="--skip_data_driven_frac"
+fi
 
-for ((i=0; i<${CutVarNum}; i++)); do
-	iCutSets=$(printf "%02d" $i)
-	echo -e "\e[34mpython3 get_vn_vs_mass.py ${config_flow} ${cent} ${output_dir}/proj/proj_${suffix}_${iCutSets}.root -o ${output_dir}/ry -s _${suffix}_${iCutSets} -vn ${vn_method} --batch\e[0m"
-	python3 ${SimFitPath} ${config_flow} ${cent} \
-			${output_dir}/proj/proj_${suffix}_${iCutSets}.root \
-			-o ${output_dir}/ry \
-			-s _${suffix}_${iCutSets} \
-			-vn ${vn_method} \
-			--batch
-done
+if [ $sv2vf = False ]; then
+	export skip_v2_vs_frac=""
+else
+	export skip_v2_vs_frac="--skip_v2_vs_frac"
+fi
 
-#___________________________________________________________________________________________________________________________
-# compute the fraction by cut variation method
-echo -e "\e[34mpython3 compute_frac_cut_var.py ${config_flow} ${output_dir} -o ${output_dir} -s ${suffix}\e[0m"
-python3 ${CurVarFracPath} ${config_flow} \
-					${output_dir} \
-					-o ${output_dir} \
-					-s ${suffix}
-
-#___________________________________________________________________________________________________________________________
-# compute fraction by Data-driven method
-echo -e "\e[34mpython3 ComputeDataDrivenFraction.py -i ${output_dir} -o ${output_dir} -s ${suffix}\e[0m"
-python3 ${DataDrivenFracPath} \
-		-i ${output_dir} \
-		-o ${output_dir} \
-		-s ${suffix}
-
-#___________________________________________________________________________________________________________________________
-# compute v2 vs FD fraction
-python3 ${v2vsFDFracPath} ${config_flow} \
-		-i ${output_dir} \
-		-o ${output_dir} \
-		-s ${suffix}
+python3 run_cutvar.py $config_flow $anres_dir -c $cent -r $res_file -o $output_dir -s $suffix -vn $vn_method \
+						$skip_make_yaml \
+						$skip_cut_variation \
+						$skip_proj_mc \
+						$skip_efficiency \
+						$skip_vn \
+						$skip_frac_cut_var \
+						$skip_data_driven_frac \
+						$skip_v2_vs_frac

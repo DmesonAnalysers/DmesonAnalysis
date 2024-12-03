@@ -6,13 +6,15 @@ run: python ComputeDataDrivenFraction.py --inputdir path/to/input --outputdir pa
 import argparse
 import os
 import sys
-sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
-from ROOT import TFile, TCanvas, TLegend  # pylint: disable=import-error,no-name-in-module
+sys.path.append('../../../')
+from ROOT import TFile, TCanvas, TLegend, gROOT  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDFractionCutSet
 from utils.StyleFormatter import SetGlobalStyle
 
 
-def data_driven_frac(inputdir, outputdir, suffix):
+def data_driven_frac(inputdir, outputdir, suffix, batch=False):
+
+    gROOT.SetBatch(batch)
 
     if os.path.exists(f'{inputdir}/eff'):
         effFiles = [f'{inputdir}/eff/{file}'
@@ -141,10 +143,12 @@ if __name__ == "__main__":
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
+    parser.add_argument("--batch", '-b',action='store_true', help="run in batch mode")
     args = parser.parse_args()
 
     data_driven_frac(
         args.inputdir,
         args.outputdir,
-        args.suffix
+        args.suffix,
+        args.batch
     )

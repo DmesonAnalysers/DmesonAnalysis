@@ -5,10 +5,10 @@ import argparse
 import sys
 import os
 import numpy as np
-from ROOT import TFile, TCanvas, TH1F, TLegend  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TH1F, TLegend, gROOT  # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins
 ### please fill your path of DmeasonAnalysis
-sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
+sys.path.append('../../../')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import ComputeEfficiency
 
@@ -159,7 +159,9 @@ def compute_eff(config_file, centclass, inputFile, outputdir, suffix):
     outfile.Close()
     input(f'Saving efficiency histograms to {outfile_name}. Press any key to exit.')
 
-def compute_eff_thns(config_file, centclass, inputFile, outputdir, suffix):
+def compute_eff_thns(config_file, centclass, inputFile, outputdir, suffix, batch=False):
+
+    gROOT.SetBatch(batch)
 
     #_____________________________________________________________________________________
     # Read configuration file
@@ -279,6 +281,8 @@ if __name__ == "__main__":
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
+    parser.add_argument("--batch", "-b", action="store_true",
+                        help="batch mode")
     args = parser.parse_args()
 
     if not args.infileName:
@@ -293,4 +297,5 @@ if __name__ == "__main__":
             centclass=args.centclass,
             inputFile=args.infileName,
             outputdir=args.outputdir,
-            suffix=args.suffix)
+            suffix=args.suffix,
+            batch=args.batch)

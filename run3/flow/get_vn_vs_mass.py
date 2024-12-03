@@ -13,8 +13,9 @@ from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGra
 from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kGreen, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos, get_particle_info # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../..')
-gInterpreter.ProcessLine(f'#include "/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/invmassfitter/InvMassFitter.cxx"')
-gInterpreter.ProcessLine(f'#include "/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/invmassfitter/VnVsMassFitter.cxx"')
+sys.path.append('../..')
+gInterpreter.ProcessLine(f'#include "./invmassfitter/InvMassFitter.cxx"')
+gInterpreter.ProcessLine(f'#include "./invmassfitter/VnVsMassFitter.cxx"')
 from ROOT import InvMassFitter, VnVsMassFitter
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus, RebinHisto
@@ -120,8 +121,11 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             sys.exit()
 
     # set particle configuration
-    # for ds add dplus mass
-    _, massAxisTit, decay, massForFit = get_particle_info(particleName)
+    if particleName == 'Ds':
+        _, massAxisTit, decay, massForFit = get_particle_info(particleName)
+        massDplus = TDatabasePDG.Instance().GetParticle(411).Mass()
+    else:
+        _, massAxisTit, decay, massForFit = get_particle_info(particleName)
 
     # load histos
     infile = TFile.Open(inFileName)

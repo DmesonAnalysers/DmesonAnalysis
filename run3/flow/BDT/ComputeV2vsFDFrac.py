@@ -56,8 +56,7 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     fracFiles.sort()
     v2Files.sort()
 
-    nSets = len(v2Files)
-    print(f"Number of sets: {nSets}")
+    nSets = len(fracFiles)
     if nSets != len(v2Files):
         raise ValueError('Number of eff and frac files do not match')
 
@@ -68,7 +67,7 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         inV2File = TFile.Open(v2File)
         hV2.append(inV2File.Get(histoNameV2))
         gV2.append(inV2File.Get(graphNameV2))
-        print(gV2[-1])
+
         inFracFile = TFile.Open(fracFile)
         hFracFD.append(inFracFile.Get(histoNameEffFD))
         hFracPrompt.append(inFracFile.Get(histoNameEffPrompt))
@@ -105,7 +104,6 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
         for iSet, (v2, fracFD, v2Unc, fracFDUnc) in enumerate(zip(v2Values, fracFDValues, v2Unc, fracFDUnc)):
             print(f"pt: {ptCent:.2f}, v2: {v2:.2f}, fracFD: {fracFD:.2f}")
-            print(iSet)
             gFracVsV2[iPt].SetPoint(iSet, fracFD, v2)
             gFracVsV2[iPt].SetPointError(iSet, fracFDUnc, v2Unc)
         

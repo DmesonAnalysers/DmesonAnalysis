@@ -5,34 +5,36 @@ import os
 import numpy as np
 from itertools import product
 import ROOT
-from ROOT import TFile, TCanvas, TLegend, TLatex
+from ROOT import TFile, TCanvas, TLegend, TLatex, gROOT
 from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, gRandom, TF1  # pylint: disable=import-error,no-name-in-module
 from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow # pylint: disable=import-error,no-name-in-module
 from ROOT import kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross, kOpenDiamond # pylint: disable=import-error,no-name-in-module
 from os.path import exists
-sys.path.append('../../../..')
+sys.path.append('../../../')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, ApplyVariationToList
 
-def find_input(inputPath, inputs):
-    root_files = {}
-    for ifile, input in enumerate(inputs):
-        if not exists(f'{inputPath}/{input}'):
-            raise FileNotFoundError(f'{input} not found in {inputPath}')
+def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
 
-        root_files[ifile] = []
-        for filename in os.listdir(f'{inputPath}/{input}'):
-            if filename.startswith(inputs[input]) and filename.endswith('.root'):
-                root_files[ifile].append(f'{inputPath}/{input}/{filename}')
-    return root_files[0], root_files[1]
-
-def compute_frac_cut_var(config, inputPath, outputdir, suffix):
+    gROOT.SetBatch(batch)
 
     with open(config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
-    inputFilesRaw, inputFilesEff = find_input(inputPath, {'ry': 'raw_yields','eff': 'eff'})
-    print(inputFilesRaw, inputFilesEff)
+    if os.path.exists(f'{inputdir}/eff'):
+        effFiles = [f'{inputdir}/eff/{file}'
+                    for file in os.listdir(f'{inputdir}/eff') if file.endswith('.root') and suffix in file]
+    else:
+        raise ValueError(f'No eff fodel found in {inputdir}')
+    
+    if os.path.exists(f'{inputdir}/ry'):
+        rawYieldFiles = [f'{inputdir}/ry/{file}' 
+                        for file in os.listdir(f'{inputdir}/ry') if file.endswith('.root') and suffix in file]
+    else:
+        raise ValueError(f'No ry folder found in {inputdir}')
+    
+    effFiles.sort()
+    rawYieldFiles.sort()
 
     # load configuration
     #TODO: apply smearing
@@ -41,8 +43,9 @@ def compute_frac_cut_var(config, inputPath, outputdir, suffix):
     histoNameEffPrompt = config['histoNameEffPrompt']
     histoNameEffFD = config['histoNameEffFD']
 
-    nSets = len(inputFilesRaw)
+    nSets = len(rawYieldFiles)
 
+    #TODO: apply smearing
     doRawYieldsSmearing = config['minimisation']['doRawYieldSmearing']
 
     applyEffVariation = config['minimisation']['applyEffVariation']['enable']
@@ -56,13 +59,14 @@ def compute_frac_cut_var(config, inputPath, outputdir, suffix):
     # load inputs raw yields and efficiencies
     hCrossSecPrompt, hCrossSecFD = [], []
 
-    for inFileNameRawYield, inFileNameEff in zip(inputFilesRaw, inputFilesEff):
+    for inFileNameRawYield, inFileNameEff in zip(rawYieldFiles, effFiles):
 
         inFileRawYield = ROOT.TFile.Open(inFileNameRawYield)
         hRawYields.append(inFileRawYield.Get(histoNameRaw))
         hRawYields[-1].SetDirectory(0)
 
         inFileEff = TFile.Open(inFileNameEff)
+        
         hEffPrompt.append(inFileEff.Get(histoNameEffPrompt))
         hEffFD.append(inFileEff.Get(histoNameEffFD))
         hEffPrompt[-1].SetDirectory(0)
@@ -159,6 +163,10 @@ def compute_frac_cut_var(config, inputPath, outputdir, suffix):
             if applyEffVarToFD:
                 listEffFD = ApplyVariationToList(listEffFD, relEffVariation, effVariationOpt)
 
+        print(f'Pt: {ptMin:.1f}-{ptMax:.1f}')
+        for i in range(len(listEffPrompt)):
+            print(f'Eff Prompt: {listEffPrompt[i]:.3f}    Eff FD: {listEffFD[i]:.3f}    Raw Yield: {listRawYield[i]:.2f}')
+
         corrYields, covMatrixCorrYields, chiSquare, matrices = \
             GetPromptFDYieldsAnalyticMinimisation(listEffPrompt, listEffFD, listRawYield, listEffPromptUnc, listEffFDUnc,
                                                 listRawYieldUnc, config['minimisation']['correlated'])
@@ -219,14 +227,15 @@ def compute_frac_cut_var(config, inputPath, outputdir, suffix):
                                                     hRawYieldFDVsCut[iPt].GetBinContent(iCutSet+1))
 
             if config['linearplot']['enable']:
-                fNfdNprompt[iPt].append(TF1(f'cutset{iCutSet+1}', '[1]*x + [0]', 0., max(corrYields)/2.))
+                max_corr_yields = max(corrYields)
+                fNfdNprompt[iPt].append(TF1(f'cutset{iCutSet+1}', '[1]*x + [0]', 0., max_corr_yields.item()/2.))
                 fNfdNprompt[iPt][iCutSet].SetParameter(0, rawY/effP)
                 fNfdNprompt[iPt][iCutSet].SetParameter(1, -effF/effP)
                 if config['linearplot']['uncbands']:
                     fNfdNpromptUpper[iPt].append(TF1(f'fNfdNpromptUpper{iPt}{iCutSet+1}',
-                                                    '[1]*x + [0]', 0., max(corrYields)/2.))
+                                                    '[1]*x + [0]', 0., max_corr_yields.item()/2.))
                     fNfdNpromptLower[iPt].append(TF1(f'fNfdNpromptLower{iPt}{iCutSet+1}',
-                                                    '[1]*x + [0]', 0., max(corrYields)/2.))
+                                                    '[1]*x + [0]', 0., max_corr_yields.item()/2.))
                     fNfdNpromptUpper[iPt][iCutSet].SetTitle(f'Lower Limit cutset{iCutSet+1}')
                     fNfdNpromptLower[iPt][iCutSet].SetTitle(f'Upper Limit cutset{iCutSet+1}')
                     fNfdNpromptUpper[iPt][iCutSet].SetParameter(0, (rawY+rawYunc)/(effP+effPunc))
@@ -235,7 +244,7 @@ def compute_frac_cut_var(config, inputPath, outputdir, suffix):
                     fNfdNpromptLower[iPt][iCutSet].SetParameter(1, -(effF-effFunc)/(effP-effPunc))
                 fNfdNprompt[iPt][iCutSet].GetYaxis().SetTitle('#it{N}_{prompt}')
                 fNfdNprompt[iPt][iCutSet].GetXaxis().SetTitle('#it{N}_{feed-down}')
-                fNfdNprompt[iPt][iCutSet].GetYaxis().SetRangeUser(0., 1.5*max(corrYields))
+                fNfdNprompt[iPt][iCutSet].GetYaxis().SetRangeUser(0., 1.5*max_corr_yields.item())
                 fNfdNprompt[iPt][iCutSet].SetTitle('')
                 fNfdNprompt[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
                 cLinearPlot[iPt].cd()
@@ -375,7 +384,7 @@ def compute_frac_cut_var(config, inputPath, outputdir, suffix):
             cCorrMatrix[iPt].SaveAs(f'{outFileNameCorrMatrixPDF}]')
         if config['linearplot']['enable']:
             for iformat in config['linearplot']['outfileformat']:
-                outFileNameLinPlot = args.outFileName.replace('.root', f'_LinearPlot{iPt+1}_{iPt+2}.{iformat}')
+                outFileNameLinPlot = outFileName.replace('.root', f'_LinearPlot{iPt+1}_{iPt+2}.{iformat}')
                 cLinearPlot[iPt].SaveAs(f'{outFileNameLinPlot}')
     
     
@@ -384,12 +393,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
     parser.add_argument("config", metavar="text",
                         default="config.yaml", help="flow configuration file")
-    parser.add_argument('inputPath', metavar='text',
+    parser.add_argument('inputdir', metavar='text',
                         default='path/to/eff/proj_mc', help='input path')
     parser.add_argument("--outputdir", "-o", metavar="text",
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
+    parser.add_argument("--batch", "-b", action="store_true",
+                        help="run in batch mode")
     args = parser.parse_args()
 
-    compute_frac_cut_var(args.config, args.inputPath, args.outputdir, args.suffix)
+    compute_frac_cut_var(args.config, args.inputdir, args.outputdir, args.suffix, args.batch)
