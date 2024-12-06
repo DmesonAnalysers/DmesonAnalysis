@@ -299,7 +299,6 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
             legFrac.AddEntry(hPromptFracVsCut[iPt], 'Prompt', 'lpe')
             legFrac.AddEntry(hFDFracVsCut[iPt], 'Non-prompt', 'lpe')
 
-            deltaY = 0.
         cEff.append(TCanvas(f'cEff_{ptString}', '', 800, 800))
         cEff[iPt].DrawFrame(0.5, hEffPromptVsCut[iPt].GetMinimum()/5, nSets + 0.5, 1., f'{commonString};efficiency')
         cEff[iPt].SetLogy()

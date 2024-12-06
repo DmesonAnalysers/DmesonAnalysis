@@ -19,13 +19,13 @@
 #- skip_v2_vs_frac (bool): skip v2 vs FD fraction
 #----------
 
-export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow_d0_test_ml.yml"
-export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/test/AnalysisResults_301827.root"
-export output_dir="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/test"
+export config_flow="path/to/config_flow.yml"
+export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/306077/AnalysisResults_data.root"
+export output_dir="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/results/test"
 export cent="k3050"
 export vn_method="sp"
 export res_file="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/Results/2060/k3050/small/sp/resolution/resosp3050s_291131_inte_gain_Reso.root"
-export suffix="D0_anti"
+export suffix="small_pt2_3"
 
 export smy=False # True or False
 export scv=False # True or False

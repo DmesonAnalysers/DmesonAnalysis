@@ -81,7 +81,6 @@ cut_variation:
                      step: [0.05]
                        },
        }
-       nCutSets: 6
        # please just make sure that the nCutSets is the same as the number of the min to max+step
 
 # these configurations are available only for the MC

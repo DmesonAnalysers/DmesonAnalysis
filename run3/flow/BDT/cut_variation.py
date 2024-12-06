@@ -10,7 +10,7 @@ import os
 import sys
 from alive_progress import alive_bar
 sys.path.append('..')
-from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, compute_r2
+from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, get_cut_sets
 
 def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     with open(config, 'r') as ymlCfgFile:
@@ -34,6 +34,7 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     sig_cut_mins = config['cut_variation']['bdt_cut']['sig']['min']
     sig_cut_maxs = config['cut_variation']['bdt_cut']['sig']['max']
     sig_cut_steps = config['cut_variation']['bdt_cut']['sig']['step']
+    correlated_cuts = config['minimisation']['correlated']
 
     # get resolution
     resoFile = ROOT.TFile(resolution, 'READ')
@@ -53,19 +54,12 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
 
     os.makedirs(f'{outputdir}/proj', exist_ok=True)
 
-    #TODO: uncorrelated method
-    #TODO: to be created a new method to calculate the signal cuts, then do not need the make_yml_for_ml.py
-    # for mc, just input the iCutSet, not the config file
+    nCutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets(pt_mins, pt_maxs, 
+                                                                                    sig_cut_mins, sig_cut_maxs, 
+                                                                                    sig_cut_steps, bkg_cut_mins, 
+                                                                                    bkg_cut_maxs, bkg_cut_steps, 
+                                                                                    correlated_cuts)
 
-    sgn_cuts = [np.arange(sig_cut_mins[iPt], sig_cut_maxs[iPt] + sig_cut_steps[iPt], sig_cut_steps[iPt]) for iPt in range(len(pt_mins))]
-    nCutSets = len(sgn_cuts[0])
-    if bkg_cut_steps[0] != 0:
-        bkg_cuts = [np.arange(bkg_cut_mins[iPt], bkg_cut_maxs[iPt], bkg_cut_steps[iPt]) for iPt in range(len(pt_mins))]
-    else:
-        bkg_cuts = [[bkg_cut_maxs[ipt] for _ in range(nCutSets)] for ipt in range(len(pt_mins))]
-    
-    bkg_edge = 0
-    sig_edge = 1
     with alive_bar(nCutSets, title='Processing BDT cuts') as bar:
         for iCut in range(nCutSets):
             print(f'Processing BDT cuts: {iCut}')
@@ -79,16 +73,22 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
                 outfile.mkdir(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
                 outfile.cd(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
         
+                # apply the cuts
                 inv_mass_bin = inv_mass_bins[ipt]
                 thnsparse_selcent.GetAxis(axis_pt).SetRangeUser(pt_min, pt_max)
-                thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(bkg_edge, bkg_cuts[ipt][iCut])
-                thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sgn_cuts[ipt][iCut], sig_edge)
-                print(f'pT range: {pt_min} - {pt_max}; bkg BDT cut: {bkg_edge} - {bkg_cuts[ipt][iCut]}; sig BDT cut: {sgn_cuts[ipt][iCut]} - {sig_edge}')
+                thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(bkg_cut_lower[ipt][iCut], bkg_cut_upper[ipt][iCut])
+                thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
+                print(f'''pT range: {pt_min} - {pt_max};
+bkg BDT cut: {bkg_cut_lower[ipt][iCut]} - {bkg_cut_upper[ipt][iCut]};
+sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
+''')
 
+                # project the mass
                 hist_mass = thnsparse_selcent.Projection(axis_mass)
                 hist_mass.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
                 hist_mass.Write()
 
+                # project the vn
                 hist_vn_sp = get_vn_versus_mass(thnsparse_selcent, inv_mass_bin, axis_mass, axis_sp)
                 hist_vn_sp.SetDirectory(0)
                 hist_vn_sp.SetName(f'hist_vn_sp_pt{pt_min}_{pt_max}')

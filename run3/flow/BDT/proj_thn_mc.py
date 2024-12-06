@@ -14,7 +14,7 @@ from ROOT import gROOT
 from alive_progress import alive_bar
 from scipy.interpolate import InterpolatedUnivariateSpline
 ### please fill your path of DmeasonAnalysis
-sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
+sys.path.append('../../..')
 from utils.TaskFileLoader import LoadSparseFromTask
 
 
@@ -108,21 +108,15 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
                 binMin = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['min'][iPt] * 1.0001)
                 binMax = sparseReco[refSparse].GetAxis(axisNum).FindBin(cutVars[iVar]['max'][iPt] * 0.9999)
 
+                if iVar == 'ML_output_FD' or iVar == 'ML_output_Bkg':
+                    print(f'{iVar}: {cutVars[iVar]["min"][iPt]} < {iVar} < {cutVars[iVar]["max"][iPt]}')
+
                 if 'RecoAll' in sparseReco:
                     sparseReco['RecoAll'].GetAxis(axisNum).SetRange(binMin, binMax)
 
-                # # debug test
-                # ts = sparseReco['RecoPrompt']
-                # ts.GetAxis(7).SetRange(2, 2) # make sure it is prompt
-                # ts.Projection(7).Draw()
-                # input('Press Enter to continue...')
-                # test = ts.Projection(7).Integral()
-                # print(f'test: {test}')
-                # exit()
-
                 if particleName == 'Dzero':
-                    sparseReco['RecoPrompt'].GetAxis(7).SetRange(2, 2) # make sure it is prompt
-                    sparseReco['RecoFD'].GetAxis(7).SetRange(3, 3)  # make sure it is non-prompt
+                    sparseReco['RecoPrompt'].GetAxis(6).SetRange(2, 2) # make sure it is prompt
+                    sparseReco['RecoFD'].GetAxis(6).SetRange(3, 3)  # make sure it is non-prompt
                     sparseReco['RecoPrompt'].GetAxis(8).SetRange(1, 2)  # make sure it is signal
                     sparseReco['RecoFD'].GetAxis(8).SetRange(1, 2)  # make sure it is signal
                 #TODO: add other particles
@@ -133,10 +127,10 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
                     sparseReco['RecoRefl'].GetAxis(8).SetRange(3, 4)  # make sure it is reflection
                     sparseReco['RecoRefl'].GetAxis(axisNum).SetRange(binMin, binMax)
                     sparseReco['RecoReflPrompt'].GetAxis(8).SetRange(3, 4)  # make sure it is reflection
-                    sparseReco['RecoReflPrompt'].GetAxis(7).SetRange(2, 2)  # make sure it is prompt reflection
+                    sparseReco['RecoReflPrompt'].GetAxis(6).SetRange(2, 2)  # make sure it is prompt reflection
                     sparseReco['RecoReflPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
                     sparseReco['RecoReflFD'].GetAxis(8).SetRange(3, 4)  # make sure it is reflection
-                    sparseReco['RecoReflFD'].GetAxis(7).SetRange(3, 3)  # make sure it is non-prompt reflection
+                    sparseReco['RecoReflFD'].GetAxis(6).SetRange(3, 3)  # make sure it is non-prompt reflection
                     sparseReco['RecoReflFD'].GetAxis(axisNum).SetRange(binMin, binMax)
 
                 if enableSecPeak:

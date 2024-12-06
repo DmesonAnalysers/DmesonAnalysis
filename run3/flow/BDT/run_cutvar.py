@@ -1,7 +1,11 @@
 import os
+import sys
+import numpy as np
 import argparse
 import yaml
 import shutil
+sys.path.append('..')
+from flow_analysis_utils import get_cut_sets
 
 def check_dir(dir):
 
@@ -29,7 +33,22 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# Load the configuration file
 	with open(config_flow, 'r') as cfgFlow:
 		config = yaml.safe_load(cfgFlow)
-	nCutSets = config["cut_variation"]["nCutSets"]
+
+	ptmins = config['ptmins']
+	ptmaxs = config['ptmaxs']
+
+	correlated_cuts = config['minimisation']['correlated']
+
+	sig_cut_mins = config['cut_variation']['bdt_cut']['sig']['min']
+	sig_cut_maxs = config['cut_variation']['bdt_cut']['sig']['max']
+	sig_cut_steps = config['cut_variation']['bdt_cut']['sig']['step']
+	bkg_cut_mins = config['cut_variation']['bdt_cut']['bkg']['min']
+	bkg_cut_maxs = config['cut_variation']['bdt_cut']['bkg']['max']
+	bkg_cut_steps = config['cut_variation']['bdt_cut']['bkg']['step']
+	
+	nCutSets, _, _, _, _ = get_cut_sets(ptmins, ptmaxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bkg_cut_mins, bkg_cut_maxs, bkg_cut_steps, correlated_cuts)
+
+	print(f"\033[32mNumber of cutsets: {nCutSets}\033[0m")
 
 	output_dir = f"{output}/cutvar_{suffix}"
 
@@ -43,7 +62,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		os.system(f"python3 {MakeyamlPath} {config_flow} -o {output_dir} -s {suffix}")
 	else:
 		print("\033[33mWARNING: Make yaml will not be performed\033[0m")
-	#TODO: obtain the number of cutsets from the yaml file
+	#TODO: 1.keep the yaml file for the user to check 2.modify the proj_thn_mc 3.use make_combination in proj_thn_mc.py
 
 #___________________________________________________________________________________________________________________________
 	# Cut variation (aply the cut and project)
