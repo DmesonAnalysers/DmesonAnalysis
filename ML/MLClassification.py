@@ -72,11 +72,8 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
             yTest = LabelsArray.copy()
 
         TrainTestData = [TrainSet, yTrain, TestSet, yTest]
-        PromptDfSelForEff = pd.concat([PromptDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).array == 1]], sort=False)
-        if FDDf.empty:
-            FDDfSelForEff = pd.DataFrame()
-        else:
-            FDDfSelForEff = pd.concat([FDDf.iloc[nCandToKeep:], TestSet[pd.Series(yTest).array == 2]], sort=False)
+        PromptDfSelForEff = TestSet[yTest == 1]
+        FDDfSelForEff = pd.DataFrame() if FDDf.empty else TestSet[yTest == 2]
         del TotDf
 
     elif dataset_opt == 'max_signal':
@@ -184,7 +181,7 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
         ModelHandl.optimize_params_optuna(TrainTestData, OptunaOptConfig, metric,
                                           n_trials=inputCfg['ml']['hyper_par_opt']['ntrials'],
                                           direction=inputCfg['ml']['hyper_par_opt']['direction'],
-                                          save_study=f'pT_{PtBin[0]}_{PtBin[1]}')
+                                          save_study=f'{OutPutDirPt}/OptunaStudy_pT_{PtBin[0]}_{PtBin[1]}')
         OutFileHypPars.close()
         sys.stdout = sys.__stdout__
         print('Performing hyper-parameters optimisation: Done!')
@@ -230,7 +227,7 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
     #_____________________________________________
     model_converter = H4MLConverter(ModelHandl) 
     model_onnx = model_converter.convert_model_onnx(1, len(TrainCols))
-    model_converter.dump_model_onnx(f'{OutPutDirPt}/XGBoostModel_pT_{PtBin[0]}_{PtBin[1]}_onnx.onnx') # dump the model in ONNX format
+    model_converter.dump_model_onnx(f'{OutPutDirPt}/ModelHandler_pT_{PtBin[0]}_{PtBin[1]}.onnx') # dump the model in ONNX format
     #_____________________________________________
     plt.rcParams["figure.figsize"] = (10, 9)
     ROCCurveTTFig = plot_utils.plot_roc_train_test(TrainTestData[3], yPredTest, TrainTestData[1], yPredTrain, None,
@@ -266,7 +263,7 @@ def appl(inputCfg, PtBin, OutPutDirPt, ModelHandl, DataDfPtSel, PromptDfPtSelFor
     if not isinstance(df_column_to_save_list, list):
         print('\033[91mERROR: df_column_to_save_list must be defined!\033[0m')
         sys.exit()
-    if 'inv_mass' not in df_column_to_save_list:
+    if 'fM' not in df_column_to_save_list:
         print('\033[93mWARNING: inv_mass is not going to be saved in the output dataframe!\033[0m')
     if 'fPt' not in df_column_to_save_list:
         print('\033[93mWARNING: fPt is not going to be saved in the output dataframe!\033[0m')
@@ -317,6 +314,13 @@ def main(): #pylint: disable=too-many-statements
     with open(args.cfgFileName, 'r') as ymlCfgFile:
         inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
     print('Loading analysis configuration: Done!')
+
+    if inputCfg.get('savecfg'):
+        # Save the YAML file to the folder
+        if not os.path.isdir(os.path.expanduser(inputCfg['output']['dir'])):
+            os.makedirs(os.path.expanduser(inputCfg['output']['dir']))
+        with open(f'{os.path.expanduser(inputCfg["output"]["dir"])}/cfg.yml', 'w') as ymlOutFile:
+            yaml.dump(inputCfg, ymlOutFile, default_flow_style=False)
 
     print('Loading and preparing data files: ...', end='\r')
     PromptHandler = TreeHandler(inputCfg['input']['prompt'], inputCfg['input']['treename'])
