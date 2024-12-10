@@ -315,6 +315,13 @@ def main(): #pylint: disable=too-many-statements
         inputCfg = yaml.load(ymlCfgFile, yaml.FullLoader)
     print('Loading analysis configuration: Done!')
 
+    if inputCfg.get('savecfg'):
+        # Save the YAML file to the folder
+        if not os.path.isdir(os.path.expanduser(inputCfg['output']['dir'])):
+            os.makedirs(os.path.expanduser(inputCfg['output']['dir']))
+        with open(f'{os.path.expanduser(inputCfg["output"]["dir"])}/cfg.yml', 'w') as ymlOutFile:
+            yaml.dump(inputCfg, ymlOutFile, default_flow_style=False)
+
     print('Loading and preparing data files: ...', end='\r')
     PromptHandler = TreeHandler(inputCfg['input']['prompt'], inputCfg['input']['treename'])
     FDHandler = None if inputCfg['input']['FD'] is None else TreeHandler(inputCfg['input']['FD'],
