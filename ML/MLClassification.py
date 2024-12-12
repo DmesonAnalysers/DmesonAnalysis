@@ -20,7 +20,7 @@ from hipe4ml.model_handler import ModelHandler
 from hipe4ml.tree_handler import TreeHandler
 from hipe4ml_converter.h4ml_converter import H4MLConverter
 
-def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylint: disable=too-many-statements, too-many-branches
+def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf, nCandSummary): #pylint: disable=too-many-statements, too-many-branches
     '''
     function for data preparation
     '''
@@ -56,7 +56,9 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
         if nFD > nCandToKeep:
             print((f'Remaining FD candidates ({nFD - nCandToKeep}) will be used for the '
                    'efficiency together with test set'))
-
+        if inputCfg.get('savecands'):
+            nCandSummary.append([nCandToKeep, nCandToKeep, nCandToKeep])
+            
         TotDf = pd.concat([BkgDf.iloc[:nCandToKeep], PromptDf.iloc[:nCandToKeep], FDDf.iloc[:nCandToKeep]], sort=True)
         if FDDf.empty:
             LabelsArray = np.array([0]*nCandToKeep + [1]*nCandToKeep)
@@ -85,6 +87,8 @@ def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf): #pylin
             nCandBkg = nBkg
             print('\033[93mWARNING: using all bkg available, not good!\033[0m')
         print(f'Fraction of real data candidates used for ML: {nCandBkg/nBkg:.5f}')
+        if inputCfg.get('savecands'):
+            nCandSummary.append([nCandBkg, nPrompt, nFD])
 
         TotDf = pd.concat([BkgDf.iloc[:nCandBkg], PromptDf, FDDf], sort=True)
         if FDDf.empty:
@@ -342,6 +346,7 @@ def main(): #pylint: disable=too-many-statements
     BkgHandler.slice_data_frame('fPt', PtBins, True)
     print('Loading and preparing data files: Done!')
 
+    nCandSummary = []
     for iBin, PtBin in enumerate(PtBins):
         print(f'\n\033[94mStarting ML analysis --- {PtBin[0]} < pT < {PtBin[1]} GeV/c\033[0m')
 
@@ -357,7 +362,7 @@ def main(): #pylint: disable=too-many-statements
         FDDfPt = pd.DataFrame() if FDHandler is None else FDHandler.get_slice(iBin)
         TrainTestData, PromptDfSelForEff, FDDfSelForEff = data_prep(inputCfg, iBin, PtBin, OutPutDirPt,
                                                                     PromptHandler.get_slice(iBin), FDDfPt,
-                                                                    BkgHandler.get_slice(iBin))
+                                                                    BkgHandler.get_slice(iBin), nCandSummary)
         if args.apply and inputCfg['data_prep']['test_fraction'] < 1.:
             print('\033[93mWARNING: Using only a fraction of the MC for the application! Are you sure?\033[0m')
 
@@ -386,5 +391,10 @@ def main(): #pylint: disable=too-many-statements
         for data in TrainTestData:
             del data
         del PromptDfSelForEff, FDDfSelForEff
+
+    if inputCfg.get('savecands'):
+        with open(f"{inputCfg["output"]["dir"]}/ncands.txt", 'w') as file:
+            for ibin, candPtSummary in enumerate(nCandSummary):
+                file.write(f"bin{ibin}:     BKG: {candPtSummary[0]},     PROMPT: {candPtSummary[1]},    FD: {candPtSummary[2]} \n")
 
 main()
