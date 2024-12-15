@@ -71,6 +71,7 @@ def check_anres(config, an_res_file, centrality, resolution,
     # sanity check of the pt bins
     bin_edges = [thnsparse.GetAxis(axis_pt).GetBinLowEdge(bin) for bin in range(1, thnsparse.GetAxis(axis_pt).GetNbins() + 1)]
     bin_edges.append(thnsparse.GetAxis(axis_pt).GetBinUpEdge(thnsparse.GetAxis(axis_pt).GetNbins()))
+    print(f"bin_edges: {bin_edges}")
     if any(pt_min not in bin_edges or pt_max not in bin_edges for pt_min, pt_max in zip(pt_mins, pt_maxs)):
         sys.exit('\033[91m FATAL: Too granular pt bins, pt_min or pt_max not in the bin edges\033[0m')
 
