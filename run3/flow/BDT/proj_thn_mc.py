@@ -14,12 +14,12 @@ from ROOT import gROOT
 from alive_progress import alive_bar
 from scipy.interpolate import InterpolatedUnivariateSpline
 ### please fill your path of DmeasonAnalysis
-sys.path.append('../../..')
+sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
 from utils.TaskFileLoader import LoadSparseFromTask
 
 
 
-def proj_MC(config, cutsetConfig, outputdir, suffix):
+def proj_MC(config, cutsetConfig, ptweights, ptweightsB, outputdir, suffix):
 
     with open(config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
@@ -31,17 +31,15 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
     particleName = config['Dmeson']
     enableRef = config['enableRef']
     enableSecPeak = config['enableSecPeak']
-    ptweights = [config['ptweightPath'], config['ptweightName']]
-    ptweightsB = [config['ptweightBPath'], config['ptweightBName']]
     Bspeciesweights = config['Bspeciesweights'] if 'Bspeciesweights' in config else None
 
     #TODO: safety checks for Dmeson reflecton and secondary peak
 
     # check the arguments
-    if '' in ptweights:
+    if ptweights == []:
         print('\033[91m WARNING: pt weights will not be provided! \033[0m')
         ptweights = None
-    if '' in ptweightsB:
+    if ptweightsB == []:
         print('\033[91m WARNING: B weights will not not be provided! \033[0m')
         ptweightsB = None
     if Bspeciesweights == None:
@@ -115,22 +113,22 @@ def proj_MC(config, cutsetConfig, outputdir, suffix):
                     sparseReco['RecoAll'].GetAxis(axisNum).SetRange(binMin, binMax)
 
                 if particleName == 'Dzero':
-                    sparseReco['RecoPrompt'].GetAxis(6).SetRange(2, 2) # make sure it is prompt
-                    sparseReco['RecoFD'].GetAxis(6).SetRange(3, 3)  # make sure it is non-prompt
-                    sparseReco['RecoPrompt'].GetAxis(8).SetRange(1, 2)  # make sure it is signal
-                    sparseReco['RecoFD'].GetAxis(8).SetRange(1, 2)  # make sure it is signal
+                    sparseReco['RecoPrompt'].GetAxis(8).SetRange(2, 2) # make sure it is prompt
+                    sparseReco['RecoFD'].GetAxis(8).SetRange(3, 3)  # make sure it is non-prompt
+                    sparseReco['RecoPrompt'].GetAxis(6).SetRange(1, 2)  # make sure it is signal
+                    sparseReco['RecoFD'].GetAxis(6).SetRange(1, 2)  # make sure it is signal
                 #TODO: add other particles
                 sparseReco['RecoPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
                 sparseReco['RecoFD'].GetAxis(axisNum).SetRange(binMin, binMax)
 
                 if enableRef:
-                    sparseReco['RecoRefl'].GetAxis(8).SetRange(3, 4)  # make sure it is reflection
+                    sparseReco['RecoRefl'].GetAxis(6).SetRange(3, 4)  # make sure it is reflection
                     sparseReco['RecoRefl'].GetAxis(axisNum).SetRange(binMin, binMax)
-                    sparseReco['RecoReflPrompt'].GetAxis(8).SetRange(3, 4)  # make sure it is reflection
-                    sparseReco['RecoReflPrompt'].GetAxis(6).SetRange(2, 2)  # make sure it is prompt reflection
+                    sparseReco['RecoReflPrompt'].GetAxis(6).SetRange(3, 4)  # make sure it is reflection
+                    sparseReco['RecoReflPrompt'].GetAxis(8).SetRange(2, 2)  # make sure it is prompt reflection
                     sparseReco['RecoReflPrompt'].GetAxis(axisNum).SetRange(binMin, binMax)
-                    sparseReco['RecoReflFD'].GetAxis(8).SetRange(3, 4)  # make sure it is reflection
-                    sparseReco['RecoReflFD'].GetAxis(6).SetRange(3, 3)  # make sure it is non-prompt reflection
+                    sparseReco['RecoReflFD'].GetAxis(6).SetRange(3, 4)  # make sure it is reflection
+                    sparseReco['RecoReflFD'].GetAxis(8).SetRange(3, 3)  # make sure it is non-prompt reflection
                     sparseReco['RecoReflFD'].GetAxis(axisNum).SetRange(binMin, binMax)
 
                 if enableSecPeak:
@@ -406,6 +404,10 @@ if __name__ == "__main__":
                         default="config.yaml", help="flow configuration file")
     parser.add_argument('cutsetConfig', metavar='text',
                         default='cutsetConfig.yaml', help='cutset configuration file')
+    parser.add_argument("--ptweights", "-w", metavar="text", nargs=2, required=False,
+                        default=[], help="path to pt weights file and histogram name")
+    parser.add_argument("--ptweightsB", "-wb", metavar="text", nargs=2, required=False,
+                        default=[], help="path to pt weightsB file and histogram name")
     parser.add_argument("--outputdir", "-o", metavar="text",
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
@@ -414,5 +416,7 @@ if __name__ == "__main__":
 
     proj_MC(config=args.config,
             cutsetConfig=args.cutsetConfig,
+            ptweights=args.ptweights,
+            ptweightsB=args.ptweightsB,
             outputdir=args.outputdir,
             suffix=args.suffix)
