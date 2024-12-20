@@ -13,8 +13,7 @@ import os
 from ROOT import gROOT
 from alive_progress import alive_bar
 from scipy.interpolate import InterpolatedUnivariateSpline
-### please fill your path of DmeasonAnalysis
-sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis')
+sys.path.append('../../..')
 from utils.TaskFileLoader import LoadSparseFromTask
 
 
