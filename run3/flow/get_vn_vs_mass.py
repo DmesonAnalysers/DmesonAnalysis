@@ -11,10 +11,11 @@ import numpy as np
 import yaml
 from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kGreen, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
-from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos # pylint: disable=import-error,no-name-in-module
-sys.path.append('../../')
-gInterpreter.ProcessLine(f'#include "invmassfitter/InvMassFitter.cxx"')
-gInterpreter.ProcessLine(f'#include "invmassfitter/VnVsMassFitter.cxx"')
+from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos, get_particle_info # pylint: disable=import-error,no-name-in-module
+sys.path.append('../../..')
+sys.path.append('../..')
+gInterpreter.ProcessLine(f'#include "./invmassfitter/InvMassFitter.cxx"')
+gInterpreter.ProcessLine(f'#include "./invmassfitter/VnVsMassFitter.cxx"')
 from ROOT import InvMassFitter, VnVsMassFitter
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus, RebinHisto
@@ -120,38 +121,11 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             sys.exit()
 
     # set particle configuration
-    massDplus = TDatabasePDG.Instance().GetParticle(411).Mass()
-    massDs = TDatabasePDG.Instance().GetParticle(431).Mass()
-    massLc = TDatabasePDG.Instance().GetParticle(4122).Mass()
-    massDstar = TDatabasePDG.Instance().GetParticle(413).Mass() - TDatabasePDG.Instance().GetParticle(421).Mass()
-    massD0 = TDatabasePDG.Instance().GetParticle(421).Mass()
-    if particleName == 'Dplus':
-        massAxisTit = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
-        massForFit=massDplus
-        decay = 'D^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
-    elif particleName == 'Ds':
-        massAxisTit = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
-        decay = 'D_{s}^{+} #rightarrow #phi#pi^{+} #rightarrow K^{+}K^{#minus}#pi^{+}'
-        massForFit = massDs
-    elif particleName == 'LctopKpi':
-        massAxisTit = '#it{M}(pK#pi) (GeV/#it{c}^{2})'
-        decay = '#Lambda_{c}^{+} #rightarrow pK^{#minus}#pi^{+}'
-        massForFit = massLc
-    elif particleName == 'LctopK0s':
-        massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
-        decay = '#Lambda_{c}^{+} #rightarrow pK^{0}_{s}'
-        massForFit = 2.25
-    elif particleName == 'Dstar':
-        massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'
-        decay = 'D^{*+} #rightarrow D^{0}#pi^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
-        massForFit = massDstar
-    elif particleName == 'D0':
-        massAxisTit = '#it{M}(K#pi) (GeV/#it{c}^{2})'
-        decay = 'D^{0} #rightarrow K^{#minus}#pi^{+}'
-        massForFit = massD0
+    if particleName == 'Ds':
+        _, massAxisTit, decay, massForFit = get_particle_info(particleName)
+        massDplus = TDatabasePDG.Instance().GetParticle(411).Mass()
     else:
-        print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dplus, Ds, Dstar, and Lc. Exit!')
-        sys.exit()
+        _, massAxisTit, decay, massForFit = get_particle_info(particleName)
 
     # load histos
     infile = TFile.Open(inFileName)
@@ -223,6 +197,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                                     f';{ptTit};width second peak mass fit', nPtBins, ptBinsArr)
         hSigmaSecPeakFitVn = TH1D('hSigmaSecondPeakFitVn', f';{ptTit};width second peak vn fit', nPtBins, ptBinsArr)
         hRawYieldsSimFit = TH1D('hRawYieldsSimFit', f';{ptTit};raw yield', nPtBins, ptBinsArr)
+        hRawYieldsTrueSimFit = TH1D('hRawYieldsTrueSimFit', f';{ptTit};raw yield true', nPtBins, ptBinsArr)
         hRawYieldsSecPeakSimFit = TH1D('hRawYieldsSecondPeakSimFit',
                                        f';{ptTit};raw yield second peak', nPtBins, ptBinsArr)
         hRawYieldsSignificanceSimFit = TH1D('hRawYieldsSignificanceSimFit',
@@ -241,6 +216,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         SetObjectStyle(hMeanSecPeakFitVn, color=kBlack, markerstyle=kFullCircle)
         SetObjectStyle(hSigmaSecPeakFitVn, color=kBlack, markerstyle=kFullCircle)
         SetObjectStyle(hRawYieldsSimFit, color=kBlack, markerstyle=kFullCircle)
+        SetObjectStyle(hRawYieldsTrueSimFit, color=kBlack, markerstyle=kFullCircle)
         SetObjectStyle(hRawYieldsSecPeakSimFit, color=kBlack, markerstyle=kFullCircle)
         SetObjectStyle(hRawYieldsSignificanceSimFit, color=kBlack, markerstyle=kFullCircle)
         SetObjectStyle(hRawYieldsSoverBSimFit, color=kBlack, markerstyle=kFullCircle)
@@ -413,8 +389,10 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             hProbSimFit.SetBinError(iPt+1, 1.e-20)
             hRawYieldsSimFit.SetBinContent(iPt+1, vnResults['ry'])
             hRawYieldsSimFit.SetBinError(iPt+1, vnResults['ryUnc'])
-            hRawYieldsSignificanceSimFit.SetBinContent(iPt+1, vnResults['sgn'])
-            hRawYieldsSignificanceSimFit.SetBinError(iPt+1, vnResults['sgnUnc'])
+            hRawYieldsTrueSimFit.SetBinContent(iPt+1, vnResults['ryTrue'])
+            hRawYieldsTrueSimFit.SetBinError(iPt+1, vnResults['ryTrueUnc'])
+            hRawYieldsSignificanceSimFit.SetBinContent(iPt+1, vnResults['signif'])
+            hRawYieldsSignificanceSimFit.SetBinError(iPt+1, vnResults['signifUnc'])
             hvnSimFit.SetBinContent(iPt+1, vnResults['vn'])
             hvnSimFit.SetBinError(iPt+1, vnResults['vnUnc'])
             gvnSimFit.SetPoint(iPt, (ptMin+ptMax)/2, vnResults['vn'])
@@ -461,7 +439,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 latex.DrawLatex(0.18, 0.75, f'#sigma = {vnResults["sigma"]:.3f} #pm {vnResults["sigmaUnc"]:.3f} GeV/c^{2}')
                 latex.DrawLatex(0.18, 0.70, f'S = {vnResults["ry"]:.0f} #pm {vnResults["ryUnc"]:.0f}')
                 latex.DrawLatex(0.18, 0.65, f'S/B (3#sigma) = {vnResults["ry"]/vnResults["bkg"]:.2f}')
-                latex.DrawLatex(0.18, 0.60, f'Signif. (3#sigma) = {round(vnResults["sgn"], 2)}')
+                latex.DrawLatex(0.18, 0.60, f'Signif. (3#sigma) = {round(vnResults["signif"], 2)}')
                 if useRefl:
                     latex.DrawLatex(0.18, 0.20, f'RoverS = {SoverR:.2f}')
                 cSimFit[iPt].cd(2)
@@ -746,6 +724,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         hSigmaSecPeakFitMass.Write()
         hSigmaSecPeakFitVn.Write()
         hRawYieldsSimFit.Write()
+        hRawYieldsTrueSimFit.Write()
         hRawYieldsSecPeakSimFit.Write()
         hRawYieldsSignificanceSimFit.Write()
         hRawYieldsSoverBSimFit.Write()

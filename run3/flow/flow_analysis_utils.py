@@ -380,6 +380,10 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl):
             sigmaUnc: uncertainty of sigma value
             ry: raw yield
             ryUnc: uncertainty of raw yield
+            ryTrue: true raw yield
+            ryTrueUnc: uncertainty of true raw yield
+            signif: significance
+            signifUnc: uncertainty of significance
             chi2: reduced chi2
             prob: fit probability
             fTotFuncMass: total fit function for mass
@@ -418,9 +422,13 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl):
     vn_results['bkg'] = bkg.value
     vn_results['bkgUnc'] = bkgUnc.value
     sgn, sgnUnc = ctypes.c_double(), ctypes.c_double()
-    vnFitter.Significance(3, sgn, sgnUnc)
-    vn_results['sgn'] = sgn.value
-    vn_results['sgnUnc'] = sgnUnc.value
+    vnFitter.Signal(3, sgn, sgnUnc)
+    vn_results['ryTrue'] = sgn.value
+    vn_results['ryTrueUnc'] = sgnUnc.value
+    signif, signifUnc = ctypes.c_double(), ctypes.c_double()
+    vnFitter.Significance(3, signif, signifUnc)
+    vn_results['signif'] = signif.value
+    vn_results['signifUnc'] = signifUnc.value
 
     if secPeak:
         vn_results['secPeakMeanMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(6))
@@ -575,3 +583,150 @@ def getD0ReflHistos(reflFile, ptMins, ptMaxs):
     reflFile.Close()
 
     return True, hMCSgn, hMCRefl
+
+import yaml
+
+def get_particle_info(particleName):
+    '''
+    Get particle information
+
+    Input:
+        - particleName: 
+            the name of the particle
+
+    Output:
+        - particleTit: 
+            the title of the particle
+        - massAxisTit: 
+            the title of the mass axis
+        - decay: 
+            the decay of the particle
+        - massForFit: 
+            float, the mass of the particle
+    '''
+
+    if particleName == 'Dplus':
+        particleTit = 'D^{+}'
+        massAxisTit = '#it{M}(K#pi#pi) (GeV/#it{c}^{2})'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(411).Mass()
+        decay = 'D^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
+    elif particleName == 'Ds':
+        particleTit = 'D_{s}^{+}'
+        massAxisTit = '#it{M}(KK#pi) (GeV/#it{c}^{2})'
+        decay = 'D_{s}^{+} #rightarrow #phi#pi^{+} #rightarrow K^{+}K^{#minus}#pi^{+}'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(431).Mass()
+    elif particleName == 'LctopKpi':
+        particleTit = '#Lambda_{c}^{+}'
+        massAxisTit = '#it{M}(pK#pi) (GeV/#it{c}^{2})'
+        decay = '#Lambda_{c}^{+} #rightarrow pK^{#minus}#pi^{+}'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(4122).Mass()
+    elif particleName == 'LctopK0s':
+        massAxisTit = '#it{M}(pK^{0}_{s}) (GeV/#it{c}^{2})'
+        decay = '#Lambda_{c}^{+} #rightarrow pK^{0}_{s}'
+        massForFit = 2.25 # please calfully check the mass of Lc->pK0s, it is constant
+        # massForFit = ROOT.TDatabasePDG.Instance().GetParticle(4122).Mass()
+    elif particleName == 'Dstar':
+        particleTit = 'D^{*+}'
+        massAxisTit = '#it{M}(K#pi#pi) - #it{M}(K#pi) (GeV/#it{c}^{2})'
+        decay = 'D^{*+} #rightarrow D^{0}#pi^{+} #rightarrow K^{#minus}#pi^{+}#pi^{+}'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(413).Mass() - ROOT.TDatabasePDG.Instance().GetParticle(421).Mass()
+    elif particleName == 'Dzero':
+        particleTit = 'D^{0}'
+        massAxisTit = '#it{M}(K#pi) (GeV/#it{c}^{2})'
+        decay = 'D^{0} #rightarrow K^{#minus}#pi^{+}'
+        massForFit = ROOT.TDatabasePDG.Instance().GetParticle(421).Mass()
+    else:
+        print(f'ERROR: the particle "{particleName}" is not supported! Choose between Dzero, Dplus, Ds, Dstar, and Lc. Exit!')
+        sys.exit()
+
+    return particleTit, massAxisTit, decay, massForFit
+
+def get_cut_sets(pt_mins, pt_maxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bkg_cut_mins=[], bkg_cut_maxs=[], bkg_cut_steps=[], correlated_cuts=True):
+    '''
+    Get cut sets
+
+    Input:
+        - pt_mins:
+            list of floats, list of minimum pt values
+        - pt_maxs:
+            list of floats, list of maximum pt values
+        - sig_cut_mins:
+            list of floats, list of minimum signal cut values
+        - sig_cut_maxs:
+            list of floats, list of maximum signal cut values
+        - sig_cut_steps:
+            list of floats, list of signal cut steps
+        - bkg_cut_mins:
+            list of floats, list of minimum background cut values (default: [])
+        - bkg_cut_maxs:
+            list of floats, list of maximum background cut values (default: [])
+        - bkg_cut_steps:
+            list of floats, list of background cut steps (default: [])
+        - correlated_cuts:
+            bool, if True, use correlated cuts (default: True)
+
+    Output:
+        - nCutSets:
+            int, number of cut sets
+        - sgn_cuts_lower:
+            list of lists of floats, list of lower edge for signal cuts
+        - sgn_cuts_upper:
+            list of lists of floats, list of upper edge for signal cuts
+        - bkg_cuts_lower:
+            list of lists of floats, list of lower edge for background cuts (0)
+        - bkg_cuts_upper:
+            list of lists of floats, list of upper edge for background cuts
+    '''
+    nCutSets = 0
+    sgn_cuts_lower, sgn_cuts_upper, bkg_cuts_lower, bkg_cuts_upper = {}, {}, {}, {}
+    if correlated_cuts:
+
+        # compute the signal cutsets for each pt bin
+        sgn_cuts_lower = [list(np.arange(sig_cut_mins[iPt], sig_cut_maxs[iPt], sig_cut_steps[iPt])) for iPt in range(len(pt_mins))]
+        sgn_cuts_upper = [[1.0 for _ in range(len(sgn_cuts_lower[0]))] for iPt in range(len(pt_mins))]
+
+        # compute the ncutsets by the first signal cut
+        nCutSets = len(sgn_cuts_lower[0])
+
+        # bkg cuts lower edge should always be 0
+        bkg_cuts_lower = [[0. for _ in range(nCutSets)] for ipt in range(len(pt_mins))]
+        bkg_cuts_upper = [[bkg_cut_maxs[ipt] for _ in range(nCutSets)] for ipt in range(len(pt_mins))]
+
+    else:
+
+        # uniform step
+        for iPt in range(len(pt_mins)):
+
+            if sig_cut_mins[iPt] != 0.1:
+                print('ERROR: the first signal cut should be 0.1')
+                sys.exit(1)
+
+            sig_cut_temp = sig_cut_mins[iPt]
+            sgn_cuts_lower[iPt] = [0.03, 0.45, 0.65, 0.78, 0.9]
+            sgn_cuts_upper[iPt] = [0.43, 0.63, 0.76, 0.88, 1]
+
+            if iPt == 0:
+                # compute the ncutsets by the first signal cut
+                nCutSets = len(sgn_cuts_lower[iPt])
+
+            # bkg cuts
+            bkg_cuts_lower[iPt] = [0. for _ in range(nCutSets)]
+            bkg_cuts_upper[iPt] = [bkg_cut_maxs[iPt] for _ in range(nCutSets)]
+
+    return nCutSets, sgn_cuts_lower, sgn_cuts_upper, bkg_cuts_lower, bkg_cuts_upper
+
+def get_cut_sets_config(config):
+    with open(config, 'r') as ymlCfgFile:
+        config = yaml.load(ymlCfgFile, yaml.FullLoader)
+
+    ptmins = input['ptmins']
+    ptmaxs = input['ptmaxs']
+    bkg_cut_mins = config['cut_variation']['bdt_cut']['bkg']['min']
+    bkg_cut_maxs = config['cut_variation']['bdt_cut']['bkg']['max']
+    bkg_cut_steps = config['cut_variation']['bdt_cut']['bkg']['step']
+    sig_cut_mins = config['cut_variation']['bdt_cut']['sig']['min']
+    sig_cut_maxs = config['cut_variation']['bdt_cut']['sig']['max']
+    sig_cut_steps = config['cut_variation']['bdt_cut']['sig']['step']
+    correlated_cuts = config['minimisation']['correlated']
+
+    return get_cut_sets(ptmins, ptmaxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bkg_cut_mins, bkg_cut_maxs, bkg_cut_steps, correlated_cuts)
