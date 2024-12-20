@@ -20,6 +20,7 @@ def check_dir(dir):
 	return
 
 def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffix, vn_method, 
+						   skip_calc_weights=False,
 						   skip_make_yaml=False, 
 						   skip_cut_variation=False,
 						   skip_proj_mc=False,
@@ -52,6 +53,21 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 
 	output_dir = f"{output}/cutvar_{suffix}"
 
+	# the pT weights histograms
+	PtWeightsDHistoName = 'hPtWeightsFONLLtimesTAMUDcent'
+	PtWeightsBHistoName = 'hPtWeightsFONLLtimesTAMUBcent'
+
+#___________________________________________________________________________________________________________________________
+	# calculate the pT weights
+	if not skip_calc_weights:
+		check_dir(f"{output_dir}/ptweights")
+		CalcWeiPath = "./ComputePtWeights.py"
+
+		print(f"\033[32mpython3 {CalcWeiPath} {config_flow} -o {output_dir} -s {suffix}\033[0m")
+		os.system(f"python3 {CalcWeiPath} {config_flow} -o {output_dir} -s {suffix}")
+	else:
+		print("\033[33mWARNING: Calculation of weights will not be performed\033[0m")
+
 #___________________________________________________________________________________________________________________________
 	# make yaml file
 	if not skip_make_yaml:
@@ -80,11 +96,25 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	if not skip_proj_mc:
 		check_dir(f"{output_dir}/proj_mc")
 		ProjMcPath = "./proj_thn_mc.py"
+		
+		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root'):
+			for i in range(nCutSets):
+				iCutSets = f"{i:02d}"
+				print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
+				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -o {output_dir} -s {suffix}_{iCutSets}")
+		else:
+			for i in range(nCutSets):
+				iCutSets = f"{i:02d}"
+				print(
+					f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml "
+					f"-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent "
+					f"-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent "
+					f"-o {output_dir} -s {suffix}_{iCutSets} \033[0m"
+				)
+				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml \
+						-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent \
+						-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent -o {output_dir} -s {suffix}_{iCutSets}")
 
-		for i in range(nCutSets):
-			iCutSets = f"{i:02d}"
-			print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
-			os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -o {output_dir} -s {suffix}_{iCutSets}")
 	else:
 		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")							
 
@@ -161,6 +191,7 @@ if __name__ == "__main__":
 	parser.add_argument("--outputdir", "-o", metavar="text", default=".", help="output directory")
 	parser.add_argument("--suffix", "-s", metavar="text", default="", help="suffix for output files")
 	parser.add_argument("--vn_method", "-vn", metavar="text", default="sp", help="vn technique (sp, ep, deltaphi)")
+	parser.add_argument("--skip_calc_weights", "-scw", action="store_true", help="skip calculation of weights")
 	parser.add_argument("--skip_make_yaml", "-smy", action="store_true", help="skip make yaml")
 	parser.add_argument("--skip_cut_variation", "-scv", action="store_true", help="skip cut variation")
 	parser.add_argument("--skip_proj_mc", "-spm", action="store_true", help="skip projection for MC")
@@ -172,6 +203,7 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	run_full_cut_variation(args.flow_config, args.anres_dir, args.centrality, args.resolution, args.outputdir, args.suffix, args.vn_method, 
+						args.skip_calc_weights,
 						args.skip_make_yaml, 
 						args.skip_cut_variation, 
 						args.skip_proj_mc, 

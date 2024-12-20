@@ -68,7 +68,8 @@ def LoadSparseFromTask(infilename, inputCfg, no_List_isMC=False):
             if not no_List_isMC:
                 sparses['RecoFD'] = inlistData.FindObject(inputCfg['sparsenameFD'])
             else:
-                sparses['RecoFD'] = sparses['RecoPrompt'].Clone('SparseRecoFD')
+                sparses['RecoFD'] = indirData.Get(inputCfg['sparsenameFD'])
+                sparses['RecoFD'].SetName("SparseRecoFD")
             if not sparses['RecoFD']:
                 print(f'ERROR: sparse {inputCfg["sparsenameFD"]} not found!')
                 return None, None
@@ -83,7 +84,8 @@ def LoadSparseFromTask(infilename, inputCfg, no_List_isMC=False):
         if not no_List_isMC:
             sparsesGen['GenFD'] = inlistData.FindObject(inputCfg['sparsenameGenFD'])
         else:
-            sparsesGen['GenFD'] = sparsesGen['GenPrompt'].Clone('SparseGenFD')
+            sparsesGen['GenFD'] = indirData.Get(inputCfg['sparsenameGenFD'])
+            sparsesGen['GenFD'].SetName("SparseGenFD")
         if not sparsesGen['GenFD']:
             print(f'ERROR: sparse {inputCfg["sparsenameGenFD"]} not found!')
             return None, None
@@ -108,6 +110,7 @@ def LoadSparseFromTask(infilename, inputCfg, no_List_isMC=False):
                     sparses['RecoSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenamePromptSecPeak'])
                 else:
                     sparses['RecoSecPeakPrompt'] = indirData.Get(inputCfg['sparsenamePromptSecPeak'])
+                    sparses['RecoSecPeakPrompt'].SetName("SparseRecoSecPeakPrompt")
                 if not sparses['RecoSecPeakPrompt']:
                     print(f'ERROR: sparse {inputCfg["sparsenamePromptSecPeak"]} not found!')
                     return None, None
@@ -116,6 +119,7 @@ def LoadSparseFromTask(infilename, inputCfg, no_List_isMC=False):
                     sparses['RecoSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameFDSecPeak'])
                 else:
                     sparses['RecoSecPeakFD'] = indirData.Get(inputCfg['sparsenameFDSecPeak'])
+                    sparses['RecoSecPeakFD'].SetName("SparseRecoSecPeakFD")
                 if not sparses['RecoSecPeakFD']:
                     print(f'ERROR: sparse {inputCfg["sparsenameFDSecPeak"]} not found!')
                     return None, None
@@ -123,6 +127,7 @@ def LoadSparseFromTask(infilename, inputCfg, no_List_isMC=False):
                 sparsesGen['GenSecPeakPrompt'] = inlistData.FindObject(inputCfg['sparsenameGenPromptSecPeak'])
             else:
                 sparsesGen['GenSecPeakPrompt'] = indirData.Get(inputCfg['sparsenameGenPromptSecPeak'])
+                sparsesGen['GenSecPeakPrompt'].SetName("SparseGenSecPeakPrompt")
             if not sparsesGen['GenSecPeakPrompt']:
                 print(f'ERROR: sparse {inputCfg["sparsenameGenPromptSecPeak"]} not found!')
                 return None, None
@@ -130,6 +135,7 @@ def LoadSparseFromTask(infilename, inputCfg, no_List_isMC=False):
                 sparsesGen['GenSecPeakFD'] = inlistData.FindObject(inputCfg['sparsenameGenFDSecPeak'])
             else:
                 sparsesGen['GenSecPeakFD'] = indirData.Get(inputCfg['sparsenameGenFDSecPeak'])
+                sparsesGen['GenSecPeakFD'].SetName("SparseGenSecPeakFD")
             if not sparsesGen['GenSecPeakFD']:
                 print(f'ERROR: sparse {inputCfg["sparsenameGenFDSecPeak"]} not found!')
                 return None, None
