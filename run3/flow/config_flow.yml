@@ -127,7 +127,6 @@ sparsenameGenFD: hSparseAcc # also used in computting pT weights
 ### only for D0
 enableRef: true #reflection for D0. 
 # if `enableRef` is set to `true`,  and `ReflFile` is empty, then `ReflFile` will be aotumatically filled.
-#! delete the `InclRefl`. 
 sparsenameRefl: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
 # if `ReflFile` is filled, then it will use the filled one
 ReflFile: ''
