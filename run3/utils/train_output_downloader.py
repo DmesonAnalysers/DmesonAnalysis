@@ -191,8 +191,15 @@ def download_full_config(input_list_filename, config):
             os.system(f"alien.py cp {lfn}/full_config.json file:{output_directory}")
             with open(f"{output_directory}/full_config.json", "r") as infile:
                 data = json.load(infile)
+            
+            # Extract all dictionaries from the "configuration" fields
+            task_cfg = {}
+            for workflow in data["workflows"]:
+                configuration = workflow.get("configuration", {})
+                task_cfg.update(configuration)
+
             with open(f"{output_directory}/full_config.json", "w") as outfile:
-                json.dump(data, outfile, indent=4)
+                json.dump(task_cfg, outfile, indent=4)
             os.remove(xml_file)
             print('full_config.json loaded!')
             
