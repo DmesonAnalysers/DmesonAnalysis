@@ -331,18 +331,13 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
     if(fVnRflLimited) fitter.Config().ParSettings(nparsmass+fNParsVnBkg+NvnParsSgn-1).SetLimits(fVnRflMin,fVnRflMax);
   }
   if(fTemplates) {
-    for(int iTemplPar=0; iTemplPar<this->fInitWeights.size()/2; iTemplPar++) {
-      // cout << "Setting template parameter " << iTemplPar << endl;
-      // cout << "Mass func parameter " << iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl << endl;
-      // cout << fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).Name() << endl;
-      // cout << "[" << fInitWeights[iTemplPar] << ", " << fWeightsLowerLims[iTemplPar]
-      //      << ", " << fWeightsUpperLims[iTemplPar] << "]" << endl;
-      // cout << "Vn func parameter " << iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn << endl;
-      // cout << "[" << fInitWeights[iTemplPar+this->fInitWeights.size()/2] << ", " << fWeightsLowerLims[iTemplPar+this->fInitWeights.size()/2]
-      //      << ", " << fWeightsUpperLims[iTemplPar+this->fInitWeights.size()/2] << "]" << endl;
-      // cout << fitter.Config().ParSettings(iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn).Name() << endl;
+    for(int iTemplPar=0; iTemplPar<this->fInitWeights.size(); iTemplPar++) {
+      cout << "Setting template parameter " << iTemplPar << endl;
+      cout << "Mass func parameter " << iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl << endl;
+      cout << fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).Name() << endl;
+      cout << "[" << fInitWeights[iTemplPar] << ", " << fWeightsLowerLims[iTemplPar]
+           << ", " << fWeightsUpperLims[iTemplPar] << "]" << endl;
 
-      // cout << "---" << endl;
       if(this->fWeightsLowerLims[iTemplPar] > this->fWeightsUpperLims[iTemplPar]) {
         cout << "Fix mass" << endl;
         fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).SetValue(fInitWeights[iTemplPar]);
@@ -351,15 +346,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
         cout << "Vary mass" << endl;
         fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).SetValue(fInitWeights[iTemplPar]);
         fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).SetLimits(fWeightsLowerLims[iTemplPar],fWeightsUpperLims[iTemplPar]);        
-      }
-      if(this->fWeightsLowerLims[iTemplPar] > this->fWeightsUpperLims[iTemplPar]) {
-        cout << "Fix vn" << endl;
-        fitter.Config().ParSettings(iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn).SetValue(fInitWeights[iTemplPar+this->fInitWeights.size()/2]);
-        fitter.Config().ParSettings(iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn).Fix();
-      } else {
-        cout << "Vary vn" << endl;
-        fitter.Config().ParSettings(iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn).SetValue(fInitWeights[iTemplPar+this->fInitWeights.size()/2]);
-        fitter.Config().ParSettings(iTemplPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn).SetLimits(fWeightsLowerLims[iTemplPar+this->fInitWeights.size()/2],fWeightsUpperLims[iTemplPar+this->fInitWeights.size()/2]);        
       }
       cout << "---" << endl;
     }
@@ -393,6 +379,7 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
       fMassTotFunc->SetParError(iPar,result.ParError(iPar));
     }
     if(iPar>=nparsmass && iPar<nparsvn-NvnParsSgn) {
+      cout << "Setting parameter " << iPar-nparsmass << " of fVnBkgFunc to " << result.Parameter(iPar) << endl; 
       fVnBkgFunc->SetParameter(iPar-nparsmass,result.Parameter(iPar));
       fVnBkgFunc->SetParError(iPar-nparsmass,result.ParError(iPar));
     }
@@ -419,34 +406,34 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
     }
   }
   if(fTemplates) {
-    int nParBeforeTemplsMass = fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl;
-    cout << "Size of fKDETemplates: " << this->fKDETemplates.size() << endl;
-    cout << "Eval func 1: " << this->fKDETemplates[0].Eval(1.8) << endl;
-    // cout << "Eval func 2: " << this->fKDETemplates[1].Eval(1.8) << endl;
-    cout << "Coeff first func mass: " << result.Parameter(nParBeforeTemplsMass) << endl;
-    cout << "Coeff second func mass: " << result.Parameter(nParBeforeTemplsMass+1) << endl;
+    int idxParMassTemplsScaling = fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl;
+    int idxParVnSgn = idxParMassTemplsScaling+fNParsTempls+fNParsVnBkg;
+    double vnSgn = result.Parameter(idxParVnSgn);
     for(int iTempl=0; iTempl<fKDETemplates.size(); iTempl++) {
       fKDEMassTemplatesDraw.push_back(new TF1(fKDETemplates[iTempl].GetName(),
-                      [&, this, iTempl, nParBeforeTemplsMass, result] (double *x, double *par) {
-                         double paramValue = result.Parameter(iTempl + nParBeforeTemplsMass);
-                         double kdeEval = this->fKDETemplates[iTempl].Eval(x[0]);
-                         return paramValue * kdeEval;
+                      [&, this, iTempl, idxParMassTemplsScaling, result] (double *x, double *par) {
+                         double templScalingPar = result.Parameter(iTempl + idxParMassTemplsScaling);
+                         double kdeTemplEval = this->fKDETemplates[iTempl].Eval(x[0]);
+                         return templScalingPar * kdeTemplEval;
                       }, fMassMin, fMassMax, 0));
+
+      fKDEVnTemplatesDraw.push_back(new TF1(Form("vnTempl_%s", fKDETemplates[iTempl].GetName()),
+                        [&, this, iTempl, result, vnSgn] (double *x, double *par) {
+                          return (vnSgn * this->fKDEMassTemplatesDraw[iTempl]->Eval(x[0])) / (this->fMassTotFunc->Eval(x[0]));
+                        }, fMassMin, fMassMax, 0));
     }
-    int nParBeforeTemplsVn = nParBeforeTemplsMass+fNParsTempls+fNParsVnBkg+fNParsVnSgn;
-    cout << "Coeff first func vn: " << result.Parameter(nParBeforeTemplsVn) << endl;
-    cout << "Coeff second func vn: " << result.Parameter(nParBeforeTemplsMass+1) << endl;
-    for(int iTempl=0; iTempl<fKDETemplates.size(); iTempl++) {
-      fKDEVnTemplatesDraw.push_back(new TF1(fKDETemplates[iTempl].GetName(),
-                      [&, this, iTempl, nParBeforeTemplsVn, result] (double *x, double *par) {
-                       double paramValue = result.Parameter(iTempl + fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg);
-                       double kdeEval = this->fKDETemplates[iTempl].Eval(x[0]);
-                       return paramValue * kdeEval;
+
+    fKDEVnTemplatesDraw.push_back(new TF1("vnBkg",
+                      [&, this, result, vnSgn] (double *x, double *par) {
+                        return (this->fVnBkgFunc->Eval(x[0]) * this->fMassBkgFunc->Eval(x[0])) / (this->fMassTotFunc->Eval(x[0]));
                       }, fMassMin, fMassMax, 0));
-    }
+
+    fKDEVnTemplatesDraw.push_back(new TF1("vnSgn",
+                      [&, this, result, vnSgn] (double *x, double *par) {
+                        return (vnSgn * this->fMassSgnFunc->Eval(x[0])) / (this->fMassTotFunc->Eval(x[0]));
+                      }, fMassMin, fMassMax, 0));
   }
 
-  cout << "DrawFit: " << drawFit << endl;
   if(drawFit) {DrawFit();}
 
   fVn = fVnTotFunc->GetParameter(fVnTotFunc->GetNpar()-NvnParsSgn);
@@ -1245,7 +1232,7 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
   Double_t Templates = 0;
   // if(fTemplates) {Templates += VnTemplates(m,vntemplpars);}
   if(fTemplates) {Templates += VnTemplates(m,templpars);}
-  
+
   return (vnSgn*Sgn+vnBkg*Bkg+vnSecPeak*SecPeak+vnRefl*Refl+vnSgn*Templates)/(Sgn+Bkg+SecPeak+Refl+Templates);
 }
 

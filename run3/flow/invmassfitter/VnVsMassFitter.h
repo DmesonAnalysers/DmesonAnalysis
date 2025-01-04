@@ -153,6 +153,7 @@ public:
   TF1* GetMassBkgRflFunc() const {
     if(fReflections) return fMassBkgRflFunc;
     else return nullptr;
+  }
   std::vector<TF1*> GetMassTemplFuncts() const {
     if(fTemplates) return fKDEMassTemplatesDraw;
     else return {};

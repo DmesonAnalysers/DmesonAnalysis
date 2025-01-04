@@ -10,7 +10,7 @@ import ctypes
 import numpy as np
 import yaml
 from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kGreen, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kGreen, kMagenta, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos, get_particle_info # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../..')
 sys.path.append('../..')
@@ -407,7 +407,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             fBkgFuncMass.append(vnResults['fBkgFuncMass'])
             fBkgFuncVn.append(vnResults['fBkgFuncVn'])
             fMassTemplFuncts[iPt] = vnResults['fMassTemplFuncts']
-            # fVnTemplFuncts[iPt] = vnResults['fVnTemplFuncts']
+            fVnTemplFuncts[iPt] = vnResults['fVnTemplFuncts']
 
             if useRefl:
                 fMassBkgRflFunc.append(vnResults['fMassBkgRflFunc'])
@@ -477,9 +477,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 if useRefl:
                     latex.DrawLatex(0.18, 0.20, f'RoverS = {SoverR:.2f}')
                 print(f'Drawing fMassTemplFuncts')
-                print(fMassTemplFuncts)
                 for iMassTemplFunct, massTemplFunct in enumerate(fMassTemplFuncts[iPt]):
-                    print("Setting object styleeee")
                     SetObjectStyle(massTemplFunct, color=kMagenta+iMassTemplFunct*2, linewidth=3)
                     print(f'Eval: {massTemplFunct.Eval(1.8)}')
                     massTemplFunct.SetLineColor(1)
@@ -502,13 +500,19 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 if secPeak:
                     latex.DrawLatex(0.18, 0.75,
                                     f'#it{{v}}{harmonic}(D^{{+}}) = {vnResults["vnSecPeak"]:.3f} #pm {vnResults["vnSecPeakUnc"]:.3f}')
-                # print(f'Drawing fVnTemplFuncts')
-                # print(fVnTemplFuncts)
-                # for iVnTemplFunct in fVnTemplFuncts[iPt]:
-                #     print(f'Eval: {iVnTemplFunct.Eval(1.8)}')
-                #     iVnTemplFunct.Draw('same')
-                #     cSimFit[iCanv].Modified()
-                #     cSimFit[iCanv].Update()
+                print(f'Drawing fVnTemplFuncts')
+                print(fVnTemplFuncts)
+                for iVnTemplFunct, vnTemplFunct in enumerate(fVnTemplFuncts[iPt]):
+                    print(f'Eval: {vnTemplFunct.Eval(1.8)}')
+                    file = TFile.Open("WriteTF1.root", "recreate")
+                    file.cd()
+                    vnTemplFunct.Write()
+                    file.Close()
+                    cSimFit[iPt].cd(2)
+                    vnTemplFunct.SetLineColor(iVnTemplFunct+1)
+                    vnTemplFunct.Draw('same')
+                    cSimFit[iCanv].Modified()
+                    cSimFit[iCanv].Update()
                 cSimFit[iCanv].Modified()
                 cSimFit[iCanv].Update()
 
