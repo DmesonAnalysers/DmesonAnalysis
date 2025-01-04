@@ -186,12 +186,11 @@ private:
   Double_t MassSignal(Double_t *m, Double_t *pars);
   Double_t MassBkg(Double_t *m, Double_t *pars);
   Double_t MassRfl(Double_t *m,Double_t *par);
-  Double_t MassTemplates(Double_t *m,Double_t *pars);
-  Double_t VnTemplates(Double_t *m,Double_t *pars);
   Double_t MassBkgRfl(Double_t *m,Double_t *par);
+  Double_t MassTemplates(Double_t *m,Double_t *pars);
   Double_t MassSecondPeak(Double_t *m,Double_t *par);
-  Double_t vnBkgFunc(Double_t *m, Double_t *pars);
   Double_t MassFunc(Double_t *m, Double_t *pars);
+  Double_t vnBkgFunc(Double_t *m, Double_t *pars);
   Double_t vnFunc(Double_t *m, Double_t *pars);
 
     ///private methods

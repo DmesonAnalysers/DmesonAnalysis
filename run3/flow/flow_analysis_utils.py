@@ -2,11 +2,11 @@
 Analysis utilities for flow analysis
 '''
 
+import ROOT
 import os
 import sys
 import ctypes
 from itertools import combinations
-import ROOT
 import numpy as np
 
 def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False):
@@ -29,9 +29,6 @@ def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False
         - hist_mass_proj:
             TH1D, histogram with vn as a function of mass
     '''
-    print('GETTING VNVSMASS')
-    print(f'AXIS MASS: {mass_axis}')   
-    print(f'AXIS VN: {vn_axis}')   
     hist_vn_proj = thnSparse.Projection(vn_axis, mass_axis)
     hist_mass_proj = thnSparse.Projection(mass_axis)
     hist_mass_proj.Reset()
@@ -73,8 +70,6 @@ def get_occupancy(thnSparse, occupancy_axis, debug=False):
         - hist_occupancy:
             TH1D, histogram with vn as a function of mass
     '''
-    print('GETTING OCCUPANCY')
-    print(f'AXIS: {occupancy_axis}')
     hist_occupancy = thnSparse.Projection(occupancy_axis)
     
     if debug:
@@ -100,8 +95,6 @@ def get_evselbits(thnSparse, evselbits_axis, debug=False):
         - hist_evselbits:
             TH1D, histogram with vn as a function of mass
     '''
-    print('GETTING EVSELBITS')
-    print(f'AXIS: {evselbits_axis}')
     hist_evselbits = thnSparse.Projection(evselbits_axis)
     
     if debug:

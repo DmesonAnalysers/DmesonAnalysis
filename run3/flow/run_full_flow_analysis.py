@@ -115,7 +115,6 @@ def run_full_analysis(config,
         print("\n\033[92m Starting vn extraction\033[0m")
         print(f"\033[92m {command_vn}\033[0m")
         os.system(command_vn)
-    exit()
 
     # copy config file
     if not os.path.exists(f"{outputdir}/config"):

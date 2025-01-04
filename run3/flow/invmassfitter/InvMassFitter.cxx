@@ -261,13 +261,6 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
   /// returns 2 if there is no signal and the fit is performed with only background
   TVirtualFitter::SetDefaultFitter("Minuit");
 
-  for(int iFunc=0; iFunc<fTemplatesFuncts.size(); iFunc++) {
-    cout << "[InvMassFitter] Evaluating template " << iFunc << ": " << fTemplatesFuncts[iFunc].Eval(2) << endl;
-    cout << "[InvMassFitter] InitWeight " << fInitWeights[iFunc] << endl;
-    cout << "[InvMassFitter] MinWeight " << fWeightsLowerLims[iFunc] << endl;
-    cout << "[InvMassFitter] MaxWeight " << fWeightsUpperLims[iFunc] << endl;
-  }
-  
   Double_t integralHisto=fHistoInvMass->Integral(fHistoInvMass->FindBin(fMinMass),fHistoInvMass->FindBin(fMaxMass),"width");
 
   fOnlySideBands = kTRUE;
@@ -327,14 +320,10 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
     fRflFunc = CreateReflectionFunction("freflect");
     fBkRFunc = CreateBackgroundPlusReflectionFunction("fbkgrfl");
   }
-  // cout << "sfTemplates: " << fTemplates << endl;
   if(fTemplates){
     printf("   ---> Final fit includes templates\n");
     fTemplFunc = CreateTemplatesFunction("ftempl");
   }
-  // for(int iFunc=0; iFunc<fTemplatesFuncts.size(); iFunc++) {
-  //   cout << "[InvMassFitter] Inserting template " << fTemplatesFuncts[iFunc].Eval(2.0) << endl;
-  // }
   fTotFunc = CreateTotalFitFunction("funcmass");
 
   if(doFinalFit){
@@ -631,21 +620,14 @@ TF1* InvMassFitter::CreateTotalFitFunction(TString fname){
     }
   }
   if(fTemplates && fTemplFunc){
-    cout << "Setting template parameters" << endl;
-    cout << "Number of template parameters " << fNParsTempls << endl;
-    cout << "Number of parameters of fTemplFunc " << fTemplFunc->GetNpar() << endl;
     for(Int_t ipar=0; ipar<fNParsTempls; ipar++){
       Double_t parmin,parmax;
       fTemplFunc->GetParLimits(ipar,parmin,parmax);
       ftot->SetParLimits(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,parmin,parmax);
-      cout << "Setting iPar" << ipar << " to " << fTemplFunc->GetParameter(ipar)
-           << ", parname: " << fTemplFunc->GetParName(ipar) << ", parlimits: [" 
-           << parmin << "," << parmax << "]" << endl;
       ftot->SetParameter(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,fTemplFunc->GetParameter(ipar));
       ftot->SetParName(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,fTemplFunc->GetParName(ipar));
     }
   }
-  cout << "Returning fTot" << endl;
   return ftot;
 }
 //__________________________________________________________________________

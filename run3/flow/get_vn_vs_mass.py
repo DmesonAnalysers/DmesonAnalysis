@@ -19,7 +19,7 @@ gInterpreter.ProcessLine(f'#include "./invmassfitter/VnVsMassFitter.cxx"')
 from ROOT import InvMassFitter, VnVsMassFitter
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus, RebinHisto
-from kde_producer import kde_producer, kde_producer_sim
+from kde_producer import kde_producer_grid, kde_producer_sim
 
 def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                    outputdir, suffix, vn_method, batch):
@@ -120,30 +120,26 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         else:
             print('ERROR: only kGaus, k2Gaus and k2GausSigmaRatioPar signal functions supported! Exit!')
             sys.exit()
-        
-    useKDEtemplates = True if fitConfig.get('UseKDETemplates') else False
-    KDEtemplates = [[None]*len(fitConfig['MCTemplatesFlags'][iPt]) for iPt in range(len(ptMins))]
-    KDEtemplatesNames = [[None]*len(fitConfig['MCTemplatesFlags'][iPt]) for iPt in range(len(ptMins))]
-    if useKDEtemplates:
+
+    KDEtemplates = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+    if fitConfig.get('IncludeKDETempls'):
         for iPt in range(len(ptMins)):
-            for iFlag, flag in enumerate(fitConfig['MCTemplatesFlags'][iPt]):
-                if fitConfig.get('ProduceNew') and not fitConfig.get('FromSim'):
-                    KDEtemplates[iPt][iFlag], hist_templ = kde_producer(fitConfig['MCTemplatesInputs'][iPt][iFlag],
-                                                     'fM', ptMins[iPt], ptMaxs[iPt], 
-                                                     fitConfig['inv_mass_bins'][iPt], flag)
-                    KDEtemplatesNames[iPt][iFlag] = fitConfig['MCTemplatesNames'][iPt][iFlag]
-                elif fitConfig.get('ProduceNew') and fitConfig.get('FromSim'):
-                    KDEtemplates[iPt][iFlag] = kde_producer_sim(fitConfig['MCTemplatesInputs'][iPt][iFlag],
-                                                                fitConfig['MCTemplatesTreeNames'][iPt][iFlag],
-                                                                ptMins[iPt], ptMaxs[iPt], fitConfig['MCTemplatesFlags'][iPt][iFlag])
-                    KDEtemplatesNames[iPt][iFlag] = fitConfig['MCTemplatesTreeNames'][iPt][iFlag]
+            for iFlag, flag in enumerate(fitConfig['TemplsFlags']):
+                if fitConfig.get('FromGrid'):
+                    KDEtemplates[iPt][iFlag], hist_templ = kde_producer_grid(fitConfig['TemplsInputs'][iFlag],
+                                                     'fM', ptMins[iPt], ptMaxs[iPt], flag)
+                elif fitConfig.get('FromSim'):
+                    KDEtemplates[iPt][iFlag] = kde_producer_sim(fitConfig['TemplsInputs'][iFlag],
+                                                                fitConfig['TemplsTreeNames'][iFlag],
+                                                                ptMins[iPt], ptMaxs[iPt], fitConfig['TemplsFlags'][iFlag])
+                elif fitConfig.get('FromFile'):
+                    templFile = TFile.Open(f'{fitConfig["FromFile"]}', 'r')
+                    KDEtemplates[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}')
+                    templFile.Close()
                 else:
-                    templFile = TFile.Open(f'{fitConfig["MCTemplatesFiles"][iPt][iFlag]}', 'r')
-                    KDEtemplates[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}/kde_')
-    print(f"Number of KDE templates loaded: {len(KDEtemplates)}")
-    print(KDEtemplates)
+                    print(f'ERROR: incorrect setting for including KDEs in fit! Exit!')
+                    sys.exit()
     KDEtemplatesFuncts = [[KDE.GetFunction() for KDE in KDEtemplatesPt] for KDEtemplatesPt in KDEtemplates]
-    print(KDEtemplatesFuncts)
     
     # set particle configuration
     if particleName == 'Ds':
@@ -162,8 +158,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     hMassIns, hMassOuts, hMassInsForFit, hMassOutsForFit = [], [], [], []
     fTotFuncMass, fTotFuncVn, fSgnFuncMass, fBkgFuncMass, fMassBkgRflFunc,fBkgFuncVn = [], [], [], [], [], []
     hMCSgn, hMCRefl = [], []
-    fMassTemplFuncts = [[None]*len(fitConfig['MCTemplatesFlags'][iPt]) for iPt in range(len(ptMins))]
-    fVnTemplFuncts = [[None]*len(fitConfig['MCTemplatesFlags'][iPt]) for iPt in range(len(ptMins))]
+    fMassTemplFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+    fVnTemplFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
     hist_reso = infile.Get('hist_reso')
     hist_reso.SetDirectory(0)
     reso = hist_reso.GetBinContent(1)
@@ -393,8 +389,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 vnFitter[iPt].SetTemplateReflections(hMCRefl[iPt],reflFuncStr,massMin,massMax)
                 vnFitter[iPt].SetFixReflOverS(SoverR)
                 vnFitter[iPt].SetReflVnOption(0) # kSameVnSignal
-            if useKDEtemplates:
-                vnFitter[iPt].SetKDETemplates(KDEtemplatesFuncts[iPt], fitConfig['MCTemplatesTreeNames'][iPt],
+            if fitConfig.get('IncludeKDETempls'):
+                vnFitter[iPt].SetKDETemplates(KDEtemplatesFuncts[iPt], fitConfig['TemplsTreeNames'],
                                               fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], 
                                               fitConfig['MaxWeights'][iPt])
 
@@ -476,10 +472,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 latex.DrawLatex(0.18, 0.60, f'Signif. (3#sigma) = {round(vnResults["signif"], 2)}')
                 if useRefl:
                     latex.DrawLatex(0.18, 0.20, f'RoverS = {SoverR:.2f}')
-                print(f'Drawing fMassTemplFuncts')
                 for iMassTemplFunct, massTemplFunct in enumerate(fMassTemplFuncts[iPt]):
                     SetObjectStyle(massTemplFunct, color=kMagenta+iMassTemplFunct*2, linewidth=3)
-                    print(f'Eval: {massTemplFunct.Eval(1.8)}')
                     massTemplFunct.SetLineColor(1)
                     massTemplFunct.Draw('same')
                     cSimFit[iCanv].Modified()
@@ -500,19 +494,13 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 if secPeak:
                     latex.DrawLatex(0.18, 0.75,
                                     f'#it{{v}}{harmonic}(D^{{+}}) = {vnResults["vnSecPeak"]:.3f} #pm {vnResults["vnSecPeakUnc"]:.3f}')
-                print(f'Drawing fVnTemplFuncts')
-                print(fVnTemplFuncts)
-                for iVnTemplFunct, vnTemplFunct in enumerate(fVnTemplFuncts[iPt]):
-                    print(f'Eval: {vnTemplFunct.Eval(1.8)}')
-                    file = TFile.Open("WriteTF1.root", "recreate")
-                    file.cd()
-                    vnTemplFunct.Write()
-                    file.Close()
-                    cSimFit[iPt].cd(2)
-                    vnTemplFunct.SetLineColor(iVnTemplFunct+1)
-                    vnTemplFunct.Draw('same')
-                    cSimFit[iCanv].Modified()
-                    cSimFit[iCanv].Update()
+
+                if fitConfig.get('drawvncomps'):
+                    for iVnTemplFunct, vnTemplFunct in enumerate(fVnTemplFuncts[iPt]):
+                        vnTemplFunct.SetLineColor(iVnTemplFunct+1)
+                        vnTemplFunct.Draw('same')
+                        cSimFit[iCanv].Modified()
+                        cSimFit[iCanv].Update()
                 cSimFit[iCanv].Modified()
                 cSimFit[iCanv].Update()
 
@@ -743,8 +731,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         gvnUncSecPeak.Draw('pez same')
     canvVnUnc.Modified()
     canvVnUnc.Update()
-    # if not batch:
-    #     input('Press Enter to continue...')
+    if not batch:
+        input('Press Enter to continue...')
 
     #save output histos
     print(f'Saving output to {outputdir}')
@@ -775,10 +763,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             fSgnFuncMass[ipt].Write(f'fSgnFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
             fBkgFuncMass[ipt].Write(f'fBkgFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
             fBkgFuncVn[ipt].Write(f'fBkgFuncVn_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
-            print(f'Writing templates for pt{iPt}')
-            print(KDEtemplatesFuncts)
             for iFlag in range(len(KDEtemplatesFuncts[ipt])):
-                KDEtemplatesFuncts[ipt][iFlag].Write(f'Templ_pt{ptmin*10:.0f}_{ptmax*10:.0f}_flag{fitConfig["MCTemplatesFlags"][iPt][iFlag]}')
+                KDEtemplatesFuncts[ipt][iFlag].Write(f'{fitConfig["TemplsTreeNames"][iFlag]}_pt{ptmin*10:.0f}_{ptmax*10:.0f}_flag{fitConfig["TemplsFlags"][iFlag]}')
                 
         hSigmaSimFit.Write()
         hMeanSimFit.Write()
@@ -834,8 +820,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
 
     outFile.Close()
 
-    # if not batch:
-    #     input('Press enter to exit')
+    if not batch:
+        input('Press enter to exit')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
