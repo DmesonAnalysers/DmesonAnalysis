@@ -31,7 +31,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 						   skip_v2_vs_frac=False):
 
 #___________________________________________________________________________________________________________________________
-	# Load the configuration file
+	# Load and copy the configuration file
 	with open(config_flow, 'r') as cfgFlow:
 		config = yaml.safe_load(cfgFlow)
 
@@ -56,6 +56,12 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# the pT weights histograms
 	PtWeightsDHistoName = 'hPtWeightsFONLLtimesTAMUDcent'
 	PtWeightsBHistoName = 'hPtWeightsFONLLtimesTAMUBcent'
+ 
+	# copy the configuration file
+	config_suffix = 1
+	while os.path.exists(f'{output_dir}/config_flow_{suffix}_{config_suffix}.yml'):
+		config_suffix = config_suffix + 1
+	os.system(f'cp {config_flow} {output_dir}/config_flow_{suffix}_{config_suffix}.yml')
 
 #___________________________________________________________________________________________________________________________
 	# calculate the pT weights
@@ -140,9 +146,9 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 
 		for i in range(nCutSets):
 			iCutSets = f"{i:02d}"
-			print(f"\033[32mpython3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}.root -o {output_dir}/ry -s {suffix} -vn {vn_method}\033[0m")
+			print(f"\033[32mpython3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method}\033[0m")
 			print(f"\033[32mProcessing cutset {iCutSets}\033[0m")
-			os.system(f"python3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s {suffix}_{iCutSets} -vn {vn_method} --batch")
+			os.system(f"python3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method} --batch")
 	else:
 		print("\033[33mWARNING: vn extraction will not be performed\033[0m")
 
