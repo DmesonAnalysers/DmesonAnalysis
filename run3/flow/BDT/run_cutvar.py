@@ -52,6 +52,8 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	print(f"\033[32mNumber of cutsets: {nCutSets}\033[0m")
 
 	output_dir = f"{output}/cutvar_{suffix}"
+ 
+	os.system(f"mkdir -p {output_dir}")
 
 	# the pT weights histograms
 	PtWeightsDHistoName = 'hPtWeightsFONLLtimesTAMUDcent'
