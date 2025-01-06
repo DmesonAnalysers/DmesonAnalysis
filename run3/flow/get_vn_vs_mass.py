@@ -185,8 +185,9 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     if useRefl and particleName == 'Dzero':
         if reflFile == '':
             reflFile = inFileName.replace('proj', 'proj_mc')
+            useRefl, hMCSgn, hMCRefl = getD0ReflHistos(reflFile, ptMins, ptMaxs)
         else:
-            useRefl, hMCSgn,  hMCRefl = getD0ReflHistos(reflFile, ptMins, ptMaxs)
+            useRefl, hMCSgn, hMCRefl = getD0ReflHistos(reflFile, ptMins, ptMaxs)
     else:
         useRefl = False
 
@@ -705,7 +706,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             else:
                 suffix_pdf = ''
             if len(ptMins) == 1:
-                suffix = ''
+                suffix_pdf = ''
             cSimFit[iPt].SaveAs(f'{outputdir}/SimFit{suffix}_{particleName}.pdf{suffix_pdf}')
     outfile_name = f'{outputdir}/raw_yields{suffix}.root'
     outFile = TFile(outfile_name, 'recreate')
