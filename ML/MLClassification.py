@@ -20,6 +20,26 @@ from hipe4ml.model_handler import ModelHandler
 from hipe4ml.tree_handler import TreeHandler
 from hipe4ml_converter.h4ml_converter import H4MLConverter
 
+def plot_hyp_optimization_results(trials_df, OutPutDir):
+    trials_df = trials_df.drop(columns=['number'])
+    n_columns = len(trials_df.columns)
+    n_rows = (n_columns // 3) + (1 if n_columns % 3 else 0)
+    fig, axes = plt.subplots(n_rows, 3, figsize=(15, 5 * n_rows))
+    axes = axes.flatten()
+    for i, column in enumerate(trials_df.columns):
+        axes[i].plot(trials_df[column], label=column, marker='o', linestyle='-', color='b')
+        axes[i].set_xlabel('Trial')
+        if column == 'value':
+            axes[i].set_ylabel('ROC')
+            axes[i].set_title('ROC')
+        else:
+            axes[i].set_ylabel('Value')
+            axes[i].set_title(column)
+    for i in range(n_columns, len(axes)):
+        fig.delaxes(axes[i])
+    fig.savefig(f"{OutPutDir}.pdf")
+    trials_df.to_parquet(f"{OutPutDir}.parquet.gzip")
+
 def data_prep(inputCfg, iBin, PtBin, OutPutDirPt, PromptDf, FDDf, BkgDf, nCandSummary): #pylint: disable=too-many-statements, too-many-branches
     '''
     function for data preparation
@@ -182,12 +202,15 @@ def train_test(inputCfg, PtBin, OutPutDirPt, TrainTestData, iBin): #pylint: disa
         print('Performing hyper-parameters optimisation: ...', end='\r')
         OutFileHypPars = open(f'{OutPutDirPt}/HyperParOpt_pT_{PtBin[0]}_{PtBin[1]}.txt', 'wt')
         sys.stdout = OutFileHypPars
-        ModelHandl.optimize_params_optuna(TrainTestData, OptunaOptConfig, metric,
-                                          n_trials=inputCfg['ml']['hyper_par_opt']['ntrials'],
-                                          direction=inputCfg['ml']['hyper_par_opt']['direction'],
-                                          save_study=f'{OutPutDirPt}/OptunaStudy_pT_{PtBin[0]}_{PtBin[1]}')
+        OptunaStudy = ModelHandl.optimize_params_optuna(TrainTestData, OptunaOptConfig, metric,
+                                                        n_trials=inputCfg['ml']['hyper_par_opt']['ntrials'],
+                                                        direction=inputCfg['ml']['hyper_par_opt']['direction'],
+                                                        save_study=f'{OutPutDirPt}/OptunaStudy_pT_{PtBin[0]}_{PtBin[1]}')
         OutFileHypPars.close()
         sys.stdout = sys.__stdout__
+        if inputCfg['ml']['hyper_par_opt'].get('saveopthistory'):
+            plot_hyp_optimization_results(OptunaStudy.trials_dataframe(), f"{OutPutDirPt}/HypTrials_pT_{PtBin[0]}_{PtBin[1]}")
+
         print('Performing hyper-parameters optimisation: Done!')
         print(f'Output saved in {OutPutDirPt}/HyperParOpt_pT_{PtBin[0]}_{PtBin[1]}.txt')
         print(f'Best hyper-parameters:\n{ModelHandl.get_model_params()}')
