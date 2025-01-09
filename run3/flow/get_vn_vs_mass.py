@@ -19,7 +19,7 @@ gInterpreter.ProcessLine(f'#include "./invmassfitter/VnVsMassFitter.cxx"')
 from ROOT import InvMassFitter, VnVsMassFitter
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus, RebinHisto
-from kde_producer import kde_producer_grid, kde_producer_sim
+from kde_producer import kde_producer
 
 def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                    outputdir, suffix, vn_method, batch):
@@ -126,12 +126,9 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         for iPt in range(len(ptMins)):
             for iFlag, flag in enumerate(fitConfig['TemplsFlags']):
                 if fitConfig.get('FromGrid'):
-                    KDEtemplates[iPt][iFlag], hist_templ = kde_producer_grid(fitConfig['TemplsInputs'][iFlag],
-                                                     'fM', ptMins[iPt], ptMaxs[iPt], flag)
-                elif fitConfig.get('FromSim'):
-                    KDEtemplates[iPt][iFlag] = kde_producer_sim(fitConfig['TemplsInputs'][iFlag],
-                                                                fitConfig['TemplsTreeNames'][iFlag],
-                                                                ptMins[iPt], ptMaxs[iPt], fitConfig['TemplsFlags'][iFlag])
+                    KDEtemplates[iPt][iFlag] = kde_producer(fitConfig['TemplsInputs'][iFlag],
+                                                     'fM', ptMins[iPt], ptMaxs[iPt], flag, '',
+                                                     fitConfig['TemplsTreeNames'][iFlag])
                 elif fitConfig.get('FromFile'):
                     templFile = TFile.Open(f'{fitConfig["FromFile"]}', 'r')
                     KDEtemplates[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}')

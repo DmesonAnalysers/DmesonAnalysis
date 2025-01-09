@@ -65,6 +65,7 @@ public:
   void SetKDETemplates(std::vector<TF1> templs, std::vector<std::string> templsnames,
                        std::vector<Double_t> initweights, std::vector<Double_t> minweights, 
                        std::vector<Double_t> maxweights) {
+    printf("WARNING: Vn parameter of templates will be the same as the one of the signal! \n");
     fKDETemplates=templs;
     fInitWeights=initweights;
     fWeightsLowerLims=minweights;
