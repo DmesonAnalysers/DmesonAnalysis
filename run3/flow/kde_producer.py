@@ -7,14 +7,14 @@ import ROOT
 import ctypes
 from ROOT import TFile, TKDE, TCanvas, TH1D
 
-def kde_producer_grid(tree_file, var, pt_min, pt_max, flag, outfile=''):
+def kde_producer(tree_file, var, pt_min, pt_max, flag, outfile='', tree_name='O2hfcanddplite'):
     
     print(f"Producing KDE from {tree_file} for var {var}, {pt_min} <= pt < {pt_max}, flag {flag}")
     # convert the tree_file to a pandas dataframe
     dfsData = []
     with uproot.open(f'{tree_file}') as f:
         for key in f.keys():
-            if 'O2hfcanddplite' in key:
+            if tree_name in key:
                 dfData = f[key].arrays(library='pd')
                 dfsData.append(dfData)      
     full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
@@ -39,33 +39,6 @@ def kde_producer_grid(tree_file, var, pt_min, pt_max, flag, outfile=''):
         binned_var_values.Write()
         kde_func.Write()
         cOverlap.Write()
-    
-    return kde, binned_var_values 
-
-def kde_producer_sim(tree_file, tree_name, pt_min, pt_max, flag=0):
-    
-    print(f"Producing KDE from sim {tree_file} for process {tree_name}, {pt_min} <= pt < {pt_max}, flag {flag}")
-    # convert the tree_file to a pandas dataframe
-    dfsData = []
-    with uproot.open(f'{tree_file}') as f:
-        for key in f.keys():
-            if f'{tree_name}' in key:
-                dfData = f[key].arrays(library='pd')
-                dfsData.append(dfData)        
-
-    full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
-    if flag!=0:
-        flagged_dataset = full_dataset.query(f"decayflag == {flag}")
-    else:
-        flagged_dataset = full_dataset
-    pt_filtered_df = flagged_dataset.query(f"{pt_min} <= pt < {pt_max}")
-    var_values = pt_filtered_df["mass"].tolist()  # Or use `.tolist()` to get a list
-
-    kde = TKDE(len(var_values), np.asarray(var_values, 'd'), 1.7, 2.0)
-    
-    binned_var_values = TH1D(f'hBinned', f'hBinned', 5000, 1, 3)
-    for var_value in var_values:
-        binned_var_values.Fill(var_value)
     
     return kde 
 
