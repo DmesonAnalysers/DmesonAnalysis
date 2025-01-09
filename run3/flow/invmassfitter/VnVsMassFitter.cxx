@@ -325,6 +325,9 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
 
   ROOT::Fit::FitResult result = fitter.Result();
   result.Print(std::cout);
+  if(fTemplates) {
+    printf("\n --->Templates share the vn parameter with the signal! \n");
+  }
 
   //set parameters in every function
   fVnBkgFunc = new TF1("fVnBkgFunc",this,&VnVsMassFitter::vnBkgFunc,fMassMin,fMassMax,fNParsVnBkg,"VnVsMassFitter","vnBkgFunc");
