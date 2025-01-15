@@ -11,7 +11,7 @@ import sys
 sys.path.append('..')
 from flow_analysis_utils import get_cut_sets
 
-def make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, nCutSets,
+def make_combination(pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, nCutSets,
                      sig_cut_lower_file, sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file):
     '''
     Create a dictionary with the combination of cuts for each cutset
@@ -43,10 +43,6 @@ def make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, nCu
         combinations[iFile] = {
             'icutset': iFile,
             'cutvars': {
-                'InvMass': {
-                    'axisnum': mass_axis,
-                    'name': 'inv_mass'
-                },
                 'Pt': {
                     'axisnum': pt_axis,
                     'min': [i for i in ptmins],
@@ -78,7 +74,7 @@ def make_yaml(flow_config, outputdir, suffix):
     # load the variable from the input config
     # axis
     axis = input['axes_mc']
-    mass_axis = axis['mass']
+    # mass_axis = axis['mass']
     pt_axis = axis['pt']
     bkg_axis = axis['bdt_bkg']
     sig_axis = axis['bdt_sig']
@@ -112,11 +108,10 @@ def make_yaml(flow_config, outputdir, suffix):
     bkg_cut_lower_file = {i: [bkg_cut_lower[ipt][i] for ipt in range(len(ptmins))] for i in range(nCutSets)}
     bkg_cut_upper_file = {i: [bkg_cut_upper[ipt][i] for ipt in range(len(ptmins))] for i in range(nCutSets)}
 
-    combinations = make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, nCutSets,
+    combinations = make_combination(pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, nCutSets,
                                     sig_cut_lower_file, sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file)
 
     print(f'''
-The axis number for the invariant mass is {mass_axis}
 The axis number for the pt is {pt_axis}
 The axis number for the bkg output is {bkg_axis}
 The axis number for the signal output is {sig_axis}
