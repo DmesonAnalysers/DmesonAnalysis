@@ -88,16 +88,16 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		print("\033[33mWARNING: Make yaml will not be performed\033[0m")
 	#TODO: 1.keep the yaml file for the user to check 2.modify the proj_thn_mc 3.use make_combination in proj_thn_mc.py
 
-#___________________________________________________________________________________________________________________________
-	# Cut variation (aply the cut and project)
-	if not skip_cut_variation:
-		check_dir(f"{output_dir}/proj")
-		CutVarPath = "./cut_variation.py"
+# #___________________________________________________________________________________________________________________________
+# 	# Cut variation (apply the cut and project)
+# 	if not skip_cut_variation:
+# 		check_dir(f"{output_dir}/proj")
+# 		CutVarPath = "./cut_variation.py"
 
-		print(f"\033[32mpython3 {CutVarPath} {config_flow} {anres_dir} -c {cent} -r {res_file} -o {output_dir} -s {suffix}\033[0m")
-		os.system(f"python3 {CutVarPath} {config_flow} {anres_dir} -c {cent} -r {res_file} -o {output_dir} -s {suffix}")
-	else:
-		print("\033[33mWARNING: Cut variation will not be performed\033[0m")
+# 		print(f"\033[32mpython3 {CutVarPath} {config_flow} {anres_dir} -c {cent} -r {res_file} -o {output_dir} -s {suffix}\033[0m")
+# 		os.system(f"python3 {CutVarPath} {config_flow} {anres_dir} -c {cent} -r {res_file} -o {output_dir} -s {suffix}")
+# 	else:
+# 		print("\033[33mWARNING: Cut variation will not be performed\033[0m")
 
 #___________________________________________________________________________________________________________________________
 	# Projection for MC and apply the ptweights
@@ -123,8 +123,13 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 						-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent \
 						-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent -o {output_dir} -s {suffix}_{iCutSets}")
 
+		for i in range(nCutSets):
+			iCutSets = f"{i:02d}"
+			print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
+			os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
 	else:
 		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")							
+	quit()
 
 #___________________________________________________________________________________________________________________________
 	# Compute the efficiency
