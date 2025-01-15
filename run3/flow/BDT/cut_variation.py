@@ -84,6 +84,14 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
                 sparseFlow.GetAxis(axes['Flow']['pt']).SetRangeUser(pt_min, pt_max)
                 sparseFlow.GetAxis(axes['Flow']['score_bkg']).SetRangeUser(bkg_cut_lower[ipt][iCut], bkg_cut_upper[ipt][iCut])
                 sparseFlow.GetAxis(axes['Flow']['score_FD']).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
+                thnsparse_selcent.GetAxis(axis_pt).SetRangeUser(pt_min, pt_max)
+                thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(bkg_cut_lower[ipt][iCut], bkg_cut_upper[ipt][iCut])
+                
+                hist_fd = thnsparse_selcent.Projection(axis_bdt_sig)
+                hist_fd.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
+                hist_fd.Write()
+                
+                thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
                 print(f'''pT range: {pt_min} - {pt_max};
 bkg BDT cut: {bkg_cut_lower[ipt][iCut]} - {bkg_cut_upper[ipt][iCut]};
 sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}

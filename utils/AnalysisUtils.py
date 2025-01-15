@@ -74,25 +74,39 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
     mRes = np.zeros(shape=(nCutSets, 1))
 
     for iCutSet, (rawYield, effPrompt, effFD) in enumerate(zip(rawYieldList, effPromptList, effFDList)):
-        mRawYield.itemset(iCutSet, rawYield)
-        mEff.itemset((iCutSet, 0), effPrompt)
-        mEff.itemset((iCutSet, 1), effFD)
+        # mRawYield.itemset(iCutSet, rawYield)
+        # mEff.itemset((iCutSet, 0), effPrompt)
+        # mEff.itemset((iCutSet, 1), effFD)
+        # NumPy > 2.0
+        mRawYield[iCutSet] = rawYield
+        mEff[iCutSet, 0] = effPrompt
+        mEff[iCutSet, 1] = effFD
 
     mRawYield = np.matrix(mRawYield)
     mEff = np.matrix(mEff)
 
     for iIter in range(nMaxIter):
         if iIter == 0:
-            mCorrYield.itemset(0, 0)
-            mCorrYield.itemset(1, 0)
+            # mCorrYield.itemset(0, 0)
+            # mCorrYield.itemset(1, 0)
+            # NumPy > 2.0
+            mCorrYield[0] = 0
+            mCorrYield[1] = 0
         for iCutSetRow, (rawYieldUncRow, effPromptUncRow, effFDUncRow) in enumerate(\
             zip(rawYieldUncList, effPromptUncList, effFDUncList)):
             for iCutSetCol, (rawYieldUncCol, effPromptUncCol, effFDUncCol) in enumerate(\
                 zip(rawYieldUncList, effPromptUncList, effFDUncList)):
+                # uncRow = np.sqrt(rawYieldUncRow**2 + effPromptUncRow**2 *
+                #                  mCorrYield.item(0)**2 + effFDUncRow**2 * mCorrYield.item(1)**2)
+                # NumPy > 2.0
                 uncRow = np.sqrt(rawYieldUncRow**2 + effPromptUncRow**2 *
-                                 mCorrYield.item(0)**2 + effFDUncRow**2 * mCorrYield.item(1)**2)
+                                 mCorrYield[0]**2 + effFDUncRow**2 * mCorrYield[1]**2)
+                
+                # uncCol = np.sqrt(rawYieldUncCol**2 + effPromptUncCol**2 *
+                #                  mCorrYield.item(0)**2 + effFDUncCol**2 * mCorrYield.item(1)**2)
+                # NumPy > 2.0
                 uncCol = np.sqrt(rawYieldUncCol**2 + effPromptUncCol**2 *
-                                 mCorrYield.item(0)**2 + effFDUncCol**2 * mCorrYield.item(1)**2)
+                                 mCorrYield[0]**2 + effFDUncCol**2 * mCorrYield[1]**2)
                 if corr and uncRow > 0 and uncCol > 0:
                     if uncRow < uncCol:
                         rho = uncRow / uncCol
@@ -104,8 +118,11 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
                     else:
                         rho = 0.
                 covRowCol = rho * uncRow * uncCol
-                mCovSets.itemset((iCutSetRow, iCutSetCol), covRowCol)
-                mCorrSets.itemset((iCutSetRow, iCutSetCol), rho)
+                # mCovSets.itemset((iCutSetRow, iCutSetCol), covRowCol)
+                # mCorrSets.itemset((iCutSetRow, iCutSetCol), rho)
+                # NumPy > 2.0
+                mCovSets[iCutSetRow, iCutSetCol] = covRowCol
+                mCorrSets[iCutSetRow, iCutSetCol] = rho
 
         mCovSets = np.matrix(mCovSets)
         mWeights = np.linalg.inv(np.linalg.cholesky(mCovSets))
@@ -120,8 +137,12 @@ def GetPromptFDYieldsAnalyticMinimisation(effPromptList, effFDList, rawYieldList
         mRes = mEff * mCorrYield - mRawYield
         mResT = np.transpose(mRes)
 
-        if (mCorrYield.item(0)-mCorrYieldOld.item(0)) / mCorrYield.item(0) < precision and \
-            (mCorrYield.item(1)-mCorrYieldOld.item(1)) / mCorrYield.item(1) < precision:
+        # if (mCorrYield.item(0)-mCorrYieldOld.item(0)) / mCorrYield.item(0) < precision and \
+        #     (mCorrYield.item(1)-mCorrYieldOld.item(1)) / mCorrYield.item(1) < precision:
+        #     break
+        # NumPy > 2.0
+        if (mCorrYield[0]-mCorrYieldOld[0]) / mCorrYield[0] < precision and \
+            (mCorrYield[1]-mCorrYieldOld[1]) / mCorrYield[1] < precision:
             break
 
         mCorrYieldOld = np.copy(mCorrYield)

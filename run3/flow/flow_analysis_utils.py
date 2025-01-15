@@ -754,8 +754,23 @@ def get_cut_sets(pt_mins, pt_maxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bk
                 sys.exit(1)
 
             sig_cut_temp = sig_cut_mins[iPt]
-            sgn_cuts_lower[iPt] = [0.03, 0.45, 0.65, 0.78, 0.9]
-            sgn_cuts_upper[iPt] = [0.43, 0.63, 0.76, 0.88, 1]
+            # pt 4-5
+            # sgn_cuts_lower[iPt] = [0.00, 0.28, 0.40,  0.58,  0.72,  0.88,  0.98]
+            # sgn_cuts_upper[iPt] = [0.28, 0.40 ,0.58,  0.72,  0.88,  0.98,  1]
+
+            #pt5-6
+            # sgn_cuts_lower[iPt] = [0.00, 0.30, 0.45,  0.70,  0.97]
+            # sgn_cuts_upper[iPt] = [0.30, 0.45,0.70,  0.97,  1]
+            
+            sgn_cuts_lower[iPt] = [0.00, 0.28, 0.42,  0.60,  0.97]
+            sgn_cuts_upper[iPt] = [0.28, 0.42,0.60,  0.97,  1]
+            #pt 12-16
+            
+            sgn_cuts_lower[iPt] = [0.00,  0.47,0.8, 0.92]
+            sgn_cuts_upper[iPt] = [0.47,  0.8,0.92, 1]
+            
+            # sgn_cuts_lower[iPt] = [0.00,  0.5, 0.8]
+            # sgn_cuts_upper[iPt] = [0.45,   0.8, 1]
 
             if iPt == 0:
                 # compute the ncutsets by the first signal cut

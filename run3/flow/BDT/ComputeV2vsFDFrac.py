@@ -7,6 +7,7 @@ import argparse
 import os
 import yaml
 import sys
+import ROOT
 from ROOT import TFile, TCanvas, TLegend, TLatex, TGraphErrors, TF1, TH1D, TVirtualFitter, Double_t
 from ROOT import kBlack, kAzure, kCyan, kOrange
 from ROOT import kFullCircle, kOpenCircle
@@ -67,11 +68,11 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         inV2File = TFile.Open(v2File)
         hV2.append(inV2File.Get(histoNameV2))
         gV2.append(inV2File.Get(graphNameV2))
+        hV2[-1].SetDirectory(0)
 
         inFracFile = TFile.Open(fracFile)
         hFracFD.append(inFracFile.Get(histoNameEffFD))
         hFracPrompt.append(inFracFile.Get(histoNameEffPrompt))
-        hV2[-1].SetDirectory(0)
         hFracFD[-1].SetDirectory(0)
         hFracPrompt[-1].SetDirectory(0)
 
@@ -168,7 +169,6 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
         hV2VsFrac[iPt].Draw("same pZ")
         gFracVsV2[iPt].Draw("same pZ")
-        input("Press Enter to continue...")
 
         gFracVsV2[iPt].Write()
         hV2VsFrac[iPt].Write()
