@@ -88,13 +88,18 @@ def computePtWeights(config, outputDir, suffix):
             sparseGenB.GetAxis(3).SetRange(3, 3)
             hPtGenB = sparseGenB.Projection(1)
         elif Dspecie == 'Dplus':
-            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of prompt flag')
+            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of FD flag')
             hPtGenB = sparseGenB.Projection('the axis number of pT of B')
         elif Dspecie == 'Ds':
-            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of prompt flag')
-            hPtGenB = sparseGenB.Projection('the axis number of pT of B')
+            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of FD flag')
+            sparseGenBPlusBZero = sparseGenB.Clone('sparseGenBPlusBZero')
+            sparseGenBPlusBZero.GetAxis('axis of B meson species').SetRange(1, 2)
+            sparseGenLambdaBZero = sparseGenB.Clone('sparseGenLambdaBZero')
+            sparseGenLambdaBZero.GetAxis('axis of B meson species').SetRange(4, 4)
+            hPtGenB = sparseGenLambdaBZero.Projection('the axis number of pT of B')
+            hPtGenB.Add(sparseGenBPlusBZero.Projection('the axis number of pT of B'))
         elif Dspecie == 'Lc':
-            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of prompt flag')
+            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of FD flag')
             hPtGenB = sparseGenB.Projection('the axis number of pT of B')
         #TODO: modificatoin for other B mesons
         hPtGenB.SetDirectory(0)
@@ -104,14 +109,17 @@ def computePtWeights(config, outputDir, suffix):
         hPtGenB.Scale(1./hPtGenB.Integral())
     
     if Bspecie == 'BsBmix':
-        sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of prompt flag, the bin number of prompt flag')
+        sparseGenB.GetAxis('axis of B meson species').SetRange('the bin number of Bs flag, the bin number of Bs flag')
+        # based on what I saw in the taskDs, there is a axis of B meson pt, and the axis of B meson species
+        # that is recroded by flag
         hPtGenBs = sparseGenB.Projection('the axis number of pT of Bs')
         hPtGenBs.SetDirectory(0)
         hPtGenBs.SetName('hPtGenBs')
         hPtGenBs.Rebin(rebin)
-        hPtGenBs.Scale(1./hPtGenBs.Integral())
-        hPtGenB.Add(hPtGenBs) # assuming 50% Bs and 50% B, reasonable for non-prompt Ds
+        hPtGenBs.Scale(1./2 * hPtGenBs.Integral())
         hPtGenB.Scale(1./2)
+        hPtGenB.Add(hPtGenBs) # assuming 50% Bs and 50% B, reasonable for non-prompt Ds
+        
 
     infileMC.Close()
 
@@ -121,6 +129,8 @@ def computePtWeights(config, outputDir, suffix):
     sFONLLD, _, ptMinFONLL, ptMaxFONLL = ReadFONLL(shapesD['fonll'], True, Dspecie)
     if Bspecie:
         sFONLLB, _, ptMinFONLLB, ptMaxFONLLB = ReadFONLL(shapesB['fonll'], True, 'B')
+        # this ReadFONLL method should be modified to accept B meson species, but depends on the FONLL we will use
+        # now it will load all B meson
 
     if 'tamu' in shapesD and shapesD['tamu']['enabled']:
         sTAMU, _, ptMinTAMU, ptMaxTAMU = ReadTAMU(shapesD['tamu']['file'])
