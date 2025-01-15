@@ -43,23 +43,23 @@ def make_combination(pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, nCutSets,
         combinations[iFile] = {
             'icutset': iFile,
             'cutvars': {
-                'Pt': {
+                'pt': {
                     'axisnum': pt_axis,
                     'min': [i for i in ptmins],
                     'max': [j for j in ptmaxs],
                     'name': 'pt_cand'
                 },
-                'ML_output_Bkg': {
+                'score_bkg': {
                     'axisnum': bkg_axis,
                     'min': [float(i) for i in bkg_cut_lower_file[iFile]],
                     'max': [float(j) for j in bkg_cut_upper_file[iFile]],
-                    'name': 'ML_output_Bkg'
+                    'name': 'score_bkg'
                 },
-                'ML_output_FD': {
+                'score_FD': {
                     'axisnum': sig_axis,
                     'min': [float(i) for i in sig_cut_lower_file[iFile]],
                     'max': [float(j) for j in sig_cut_upper_file[iFile]],
-                    'name': 'ML_output_FD'
+                    'name': 'score_FD'
                 }
             }
         }
