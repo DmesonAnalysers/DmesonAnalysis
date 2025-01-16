@@ -57,6 +57,22 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     cent_min = cent_bins[0]
     cent_max = cent_bins[1]
     sparseFlow.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
+    thnsparse_list, thnsparse_selcent_list, thnsparse_selcents = [], [], []
+    if len(an_res_file) == 0:
+        infile = ROOT.TFile(an_res_file[0], 'READ')
+        thnsparse_list.append(infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm'))
+        print(infile.GetName())
+    else:
+        for file in an_res_file:
+            infile = ROOT.TFile(file, 'READ')
+            thnsparse_list.append(infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm'))
+            print(infile.GetName())
+
+    cent_min = cent_bins[0]
+    cent_max = cent_bins[1]
+    for thnsparse in thnsparse_list:
+        thnsparse_selcent_list.append(thnsparse.Clone(f'thnsparse_selcent{cent_min}_{cent_max}'))
+        thnsparse_selcent_list[-1].GetAxis(axis_cent).SetRangeUser(cent_min, cent_max)
 
     os.makedirs(f'{outputdir}/proj', exist_ok=True)
 
@@ -104,11 +120,79 @@ sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
 
                 # project the vn
                 hist_vn_sp = get_vn_versus_mass(sparseFlow, inv_mass_bin, axes['Flow']['mass'], axes['Flow']['sp'])
+                for iThn, thnsparse_selcent in enumerate(thnsparse_selcent_list):
+                    # apply the cuts
+                    inv_mass_bin = inv_mass_bins[ipt]
+                    thnsparse_selcent.GetAxis(axis_pt).SetRangeUser(pt_min, pt_max)
+                    thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(bkg_cut_lower[ipt][iCut], bkg_cut_upper[ipt][iCut])
+                    
+                    hist_fd_temp = thnsparse_selcent.Projection(axis_bdt_sig)
+                    hist_fd_temp.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
+                    
+                    thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
+                    print(f'''pT range: {pt_min} - {pt_max};
+bkg BDT cut: {bkg_cut_lower[ipt][iCut]} - {bkg_cut_upper[ipt][iCut]};
+sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
+''')
+                    
+                    hist_mass_temp = thnsparse_selcent.Projection(axis_mass)
+                    hist_mass_temp.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
+                    
+                    if iThn == 0:
+                        hist_fd = hist_fd_temp.Clone(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
+                        hist_fd.SetDirectory(0)
+                        hist_fd.Reset()
+                        
+                        hist_mass = hist_mass_temp.Clone(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
+                        hist_mass.SetDirectory(0)
+                        hist_mass.Reset()
+                    
+                    hist_fd.Add(hist_fd_temp)
+                    hist_mass.Add(hist_mass_temp)
+                    
+        #                 for iThn, thnSparse in enumerate(thnSparses):
+        # hist_vn_proj_temp = thnSparse.Projection(vn_axis, mass_axis)
+        # hist_vn_proj_temp.SetName(f'hist_vn_proj_{iThn}')
+        # hist_vn_proj_temp.SetDirectory(0)
+        
+        # if hist_vn_proj is None:
+        #     # 初始化 hist_vn_proj
+        #     hist_vn_proj = hist_vn_proj_temp.Clone('hist_vn_proj')
+        #     hist_vn_proj.Reset()
+        # hist_vn_proj.Add(hist_vn_proj_temp)
+                    
+#                     if iThn == 0:
+#                         hist_fd = thnsparse_selcent.Projection(axis_bdt_sig)
+#                         hist_fd.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
+#                         hist_fd.SetDirectory(0)
+                        
+#                         thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
+#                         print(f'''pT range: {pt_min} - {pt_max};
+# bkg BDT cut: {bkg_cut_lower[ipt][iCut]} - {bkg_cut_upper[ipt][iCut]};
+# sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
+# ''')
+#                         hist_mass = thnsparse_selcent.Projection(axis_mass)
+#                         hist_mass.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
+#                         hist_mass.SetDirectory(0)
+#                     else:
+#                         hist_fd_temp = thnsparse_selcent.Projection(axis_bdt_sig)
+#                         hist_fd_temp.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
+#                         hist_mass_temp = thnsparse_selcent.Projection(axis_mass)
+#                         hist_mass_temp.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
+#                         hist_fd.Add(thnsparse_selcent.Projection(axis_bdt_sig))
+#                         hist_mass.Add(thnsparse_selcent.Projection(axis_mass))
+                        
+                    thnsparse_selcents.append(thnsparse_selcent)
+
+                # project the vn
+                hist_vn_sp = get_vn_versus_mass(thnsparse_selcents, inv_mass_bin, axis_mass, axis_sp)
                 hist_vn_sp.SetDirectory(0)
                 hist_vn_sp.SetName(f'hist_vn_sp_pt{pt_min}_{pt_max}')
                 if reso > 0:
                     hist_vn_sp.Scale(1./reso)
                 print(f"hist_vn_sp.Integral(): {hist_vn_sp.Integral()}")
+                hist_fd.Write()
+                hist_mass.Write()
                 hist_vn_sp.Write()
 
             outfile.cd()
@@ -121,8 +205,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("config", metavar="text",
                         default="config.yaml", help="configuration file")
-    parser.add_argument("an_res_file", metavar="text",
-                        default="an_res.root", help="input ROOT file with anres")
+    parser.add_argument("an_res_file", metavar='text', 
+                        nargs='+', help='input ROOT files with anres')
     parser.add_argument("--centrality", "-c", metavar="text",
                         default="k3050", help="centrality class")
     parser.add_argument("--resolution", "-r", metavar="text",
