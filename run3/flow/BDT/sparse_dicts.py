@@ -9,8 +9,8 @@ def get_sparses(config):
     sparseFlow = infileflow.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm')
     infileflow.Close()
     axes_dict['Flow'] = {
-        'mass': 0,
-        'pt': 1,
+        'Mass': 0,
+        'Pt': 1,
         'cent': 2,
         'sp': 3,
         'score_bkg': 4,
@@ -26,8 +26,8 @@ def get_sparses(config):
             'score_bkg': 0,
             'score_prompt': 2,
             'score_FD': 1,
-            'mass': 3,
-            'pt': 4,
+            'Mass': 3,
+            'Pt': 4,
             'y': 5,
             'cand_type': 6,
             'pt_bmoth': 7,
@@ -37,7 +37,7 @@ def get_sparses(config):
             'occ': 11,
         }
         axes_gen = {
-            'pt': 0,
+            'Pt': 0,
             'pt_bmoth': 1,
             'y': 2,
             'origin': 3,
@@ -78,8 +78,8 @@ def get_sparses(config):
     elif config['Dmeson'] == 'Dplus':
         sparsesReco['RecoPrompt'] = infiletask.Get('hf-task-dplus/hSparseMassPrompt')
         axes_dict['RecoPrompt'] = {
-            'mass': 0,
-            'pt': 1,
+            'Mass': 0,
+            'Pt': 1,
             'score_bkg': 2,
             'score_prompt': 3,
             'score_FD': 4,
@@ -88,8 +88,8 @@ def get_sparses(config):
         }
         sparsesReco['RecoFD'] = infiletask.Get('hf-task-dplus/hSparseMassFD')
         axes_dict['RecoFD'] = {
-            'mass': 0,
-            'pt': 1,
+            'Mass': 0,
+            'Pt': 1,
             'pt_bmoth': 2,
             'flag_bhad': 3,
             'score_bkg': 4,
@@ -100,7 +100,7 @@ def get_sparses(config):
         }
         sparsesGen['GenPrompt'] = infiletask.Get('hf-task-dplus/hSparseMassGenPrompt')
         axes_dict['GenPrompt'] = {
-            'pt': 0,
+            'Pt': 0,
             'y': 1,
             'cent': 2,
             'occ': 3
@@ -108,7 +108,7 @@ def get_sparses(config):
         print(f"sparseGenPrompt: {sparsesGen['GenPrompt']}")
         sparsesGen['GenFD'] = infiletask.Get('hf-task-dplus/hSparseMassGenFD')
         axes_dict['GenFD'] = {
-            'pt': 0,
+            'Pt': 0,
             'y': 1,
             'pt_bmoth': 2,
             'flag_bhad': 3,
@@ -119,8 +119,8 @@ def get_sparses(config):
     elif config['Dmeson'] == 'Ds':
         sparsesReco['RecoPrompt'] = infiletask.Get('hf-task-ds/MC/Ds/Prompt/hSparseMass')
         axes_dict['RecoPrompt'] = {
-            'mass': 0,
-            'pt': 1,
+            'Mass': 0,
+            'Pt': 1,
             'cent': 3,
             'npvcontr': 4,
             'score_bkg': 5,
@@ -130,8 +130,8 @@ def get_sparses(config):
         }
         sparsesReco['RecoFD'] = infiletask.Get('hf-task-ds/MC/Ds/NonPrompt/hSparseMass')
         axes_dict['RecoFD'] = {
-            'mass': 0,
-            'pt': 1,
+            'Mass': 0,
+            'Pt': 1,
             'cent': 2,
             'score_bkg': 3,
             'score_prompt': 4,
@@ -142,7 +142,7 @@ def get_sparses(config):
         }
         sparsesGen['GenPrompt'] = infiletask.Get('hf-task-ds/MC/Ds/Prompt/hSparseGen')
         axes_dict['GenPrompt'] = {
-            'pt': 0,
+            'Pt': 0,
             'y': 1,
             'npvcontr': 2,
             'cent': 3,
@@ -151,7 +151,7 @@ def get_sparses(config):
         print(f"sparseGenPrompt: {sparsesGen['GenPrompt']}")
         sparsesGen['GenFD'] = infiletask.Get('hf-task-ds/MC/Ds/NonPrompt/hSparseGen')
         axes_dict['GenFD'] = {
-            'pt': 0,
+            'Pt': 0,
             'y': 1,
             'cent': 2,
             'pt_bmoth': 3,
