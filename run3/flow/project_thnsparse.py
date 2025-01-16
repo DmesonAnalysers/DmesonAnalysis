@@ -22,8 +22,6 @@ def check_anres(config, an_res_file, centrality, resolution,
     axis_mass = config['axes']['mass']
     axis_sp = config['axes']['sp']
     axis_deltaphi = config['axes']['deltaphi']
-    # axis_occupancy = config['axes']['occupancy']
-    # axis_evselbits = config['axes']['evselbits']
     inv_mass_bins = config['inv_mass_bins']
     use_inv_mass_bins = config['use_inv_mass_bins']
     if use_inv_mass_bins:
