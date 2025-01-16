@@ -41,7 +41,7 @@ def make_combination(ptmins, ptmaxs, nCutSets, sig_cut_lower_file,
         combinations[iFile] = {
             'icutset': iFile,
             'cutvars': {
-                'pt': {
+                'Pt': {
                     'min': [i for i in ptmins],
                     'max': [j for j in ptmaxs],
                     'name': 'pt_cand'
