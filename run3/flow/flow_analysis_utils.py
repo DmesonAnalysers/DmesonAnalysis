@@ -591,7 +591,7 @@ def getD0ReflHistos(reflFile, ptMins, ptMaxs):
 
     Input:
         - reflFile:
-           TFile, ROOT file, include reflections of D0 TODO: add which .py can produce reflection
+           TFile, ROOT file, include reflections of D0
         - ptMins:
             list, min pt bins
         - ptMaxs:

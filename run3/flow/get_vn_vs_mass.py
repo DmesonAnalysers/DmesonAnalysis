@@ -54,8 +54,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     massMaxs = fitConfig['MassMax']
     if not isinstance(massMaxs, list):
         massMaxs = [massMaxs] * len(ptMins)
-    useRefl = fitConfig['InclRefl']
-    reflFile = fitConfig['ReflFile']
+    useRefl = fitConfig['enableRef']
+    reflFile = fitConfig['reflFile']
 
     # read fit configuration
     if not isinstance(fixSigma, list):
@@ -203,8 +203,12 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         infileSigma2.Close()
 
     # check reflections
-    if useRefl and particleName == 'D0':
-        useRefl, hMCSgn,  hMCRefl = getD0ReflHistos(reflFile, ptMins, ptMaxs)
+    if useRefl and particleName == 'Dzero':
+        if reflFile == '':
+            reflFile = inFileName.replace('proj', 'proj_mc')
+            useRefl, hMCSgn, hMCRefl = getD0ReflHistos(reflFile, ptMins, ptMaxs)
+        else:
+            useRefl, hMCSgn, hMCRefl = getD0ReflHistos(reflFile, ptMins, ptMaxs)
     else:
         useRefl = False
 
@@ -744,6 +748,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 suffix_pdf = ')'
             else:
                 suffix_pdf = ''
+
             if len(ptMins)==1:
                 cSimFit[iPt].SaveAs(f'{outputdir}/SimFit{suffix}_{particleName}.pdf')
             else:

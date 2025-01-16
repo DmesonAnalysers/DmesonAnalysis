@@ -8,7 +8,7 @@ import os
 import yaml
 import sys
 from ROOT import TFile, TCanvas, TLegend, TLatex, TGraphErrors, TF1, TH1D, TVirtualFitter, Double_t
-from ROOT import kBlack, kAzure, kRed
+from ROOT import kBlack, kAzure, kCyan, kOrange
 from ROOT import kFullCircle, kOpenCircle
 sys.path.append('../../../')
 sys.path.append('../')
@@ -16,7 +16,7 @@ from flow_analysis_utils import get_particle_info
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor
 
 def set_frame_style(canv, Title, particleTit):
-    hFrame = canv.DrawFrame(0.0, 0.0001, 1, 0.35, f"{Title};Non-prompt {particleTit} fraction; #it{{v}}_{{2}}^{{#it{{obs}}}}")
+    hFrame = canv.DrawFrame(0.0, -0.2, 1, 0.35, f"{Title};Non-prompt {particleTit} fraction; #it{{v}}_{{2}}^{{#it{{obs}}}}")
     hFrame.GetYaxis().SetDecimals()
     hFrame.GetYaxis().SetNoExponent()
     hFrame.GetXaxis().SetMoreLogLabels()
@@ -74,7 +74,6 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         hV2[-1].SetDirectory(0)
         hFracFD[-1].SetDirectory(0)
         hFracPrompt[-1].SetDirectory(0)
-        SetObjectStyle(gV2[-1], linecolor=1, linewidth=2, markerstyle=20, markersize=1, markercolor=1)
 
     gFracVsV2, hV2VsFrac = [], [] # gFracVsV2 used for fitting, hV2VsFrac used for plotting
     hV2VsPtFD = hV2[0].Clone("hV2VsPtFD")
@@ -88,6 +87,8 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         gFracVsV2.append(TGraphErrors(-1))
         hV2VsFrac.append(TH1D(f"hV2VsFrac_{iPt}", "", 1000, 0.0, 1.0))
         hV2VsFrac[-1].SetDirectory(0)
+        SetObjectStyle(hV2VsFrac[-1], markerstyle=kFullCircle, markersize=0)
+        SetObjectStyle(gFracVsV2[-1], linecolor=kAzure+4, linewidth=2, markerstyle=kFullCircle, markersize=1, markercolor=kAzure+4)
 
         ptMin = hFracFD[0].GetBinLowEdge(iPt + 1)
         ptMax = ptMin + hFracFD[0].GetBinWidth(iPt + 1)
@@ -107,7 +108,9 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
             gFracVsV2[iPt].SetPoint(iSet, fracFD, v2)
             gFracVsV2[iPt].SetPointError(iSet, fracFDUnc, v2Unc)
         
+        # gFracVsV2Fit = TGraphErrors(gFracVsV2[-1])
         linFunc = TF1("linear", "pol1", 0, 1)
+        SetObjectStyle(linFunc, color=kOrange+1, linestyle=9, linewidth=2)
         gFracVsV2[-1].Fit("linear", "", "", 0, 1)
         chi2 = linFunc.GetChisquare()
         ndf = linFunc.GetNDF()
@@ -115,7 +118,7 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         # get the confidence intervals 0.683
         fitter = TVirtualFitter.GetFitter()
         fitter.GetConfidenceIntervals(hV2VsFrac[-1], 0.683)
-        hV2VsFrac[-1].SetLineColorAlpha(4, 0.15)
+        hV2VsFrac[-1].SetLineColorAlpha(kAzure+5, 0.15)
 
         # get the v2 value at the FD fraction = 1, and it is not the last bin?
         hV2VsPtFD.SetBinContent(iPt + 1, 
@@ -151,8 +154,10 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
             suffix_pdf = ')'
         else:
             suffix_pdf = ''
+        if nPtBins == 1:
+            suffix_pdf = ''
 
-        cFrac.append(TCanvas(f"cFrac_{ptStrings[iPt]}", "", 500, 500))
+        cFrac.append(TCanvas(f"cFrac_{ptStrings[iPt]}", "", 1200, 1200))
         set_frame_style(cFrac[-1], ptStrings[iPt], particleTit)
 
         t.SetTextSize(0.04)
@@ -161,11 +166,14 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         t.SetTextSize(0.035)
         t.DrawLatex(0.250, 0.23, f'{chi2Strings[iPt]}')
 
-        gV2[iPt].Draw("pZ")
-        hV2VsFrac[iPt].DrawCopy("same")
+        hV2VsFrac[iPt].Draw("same pZ")
+        gFracVsV2[iPt].Draw("same pZ")
+        input("Press Enter to continue...")
 
-        gV2[iPt].Write()
+        gFracVsV2[iPt].Write()
         hV2VsFrac[iPt].Write()
+
+        cFrac[-1].Update()
 
         cFrac[iPt].SaveAs(f"{outputdir}/V2VsFrac/FracV2_{suffix}.pdf{suffix_pdf}")
 
