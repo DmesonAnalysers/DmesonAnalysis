@@ -94,8 +94,9 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		check_dir(f"{output_dir}/proj")
 		CutVarPath = "./cut_variation.py"
 
-		print(f"\033[32mpython3 {CutVarPath} {config_flow} {anres_dir} -c {cent} -r {res_file} -o {output_dir} -s {suffix}\033[0m")
-		os.system(f"python3 {CutVarPath} {config_flow} {anres_dir} -c {cent} -r {res_file} -o {output_dir} -s {suffix}")
+		anres_files = " ".join(anres_dir)
+		print(f"\033[32mpython3 {CutVarPath} {config_flow} {anres_files} -c {cent} -r {res_file} -o {output_dir} -s {suffix}\033[0m")
+		os.system(f"python3 {CutVarPath} {config_flow} {anres_files} -c {cent} -r {res_file} -o {output_dir} -s {suffix}")
 	else:
 		print("\033[33mWARNING: Cut variation will not be performed\033[0m")
 
@@ -193,7 +194,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Arguments')
 	parser.add_argument('flow_config', metavar='text', default='config_flow_d0.yml', help='configuration file')
-	parser.add_argument('anres_dir', metavar='text', default='AnalysisResults.root', help='input ROOT file with anres')
+	parser.add_argument('anres_dir', metavar='text', nargs='+', help='input ROOT files with anres')
 	parser.add_argument("--centrality", "-c", metavar="text",default="k3050", help="centrality class")
 	parser.add_argument("--resolution", "-r",  default="", help="resolution file/value")
 	parser.add_argument("--outputdir", "-o", metavar="text", default=".", help="output directory")

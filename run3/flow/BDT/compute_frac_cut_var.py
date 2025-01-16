@@ -64,9 +64,8 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
         inFileRawYield = ROOT.TFile.Open(inFileNameRawYield)
         hRawYields.append(inFileRawYield.Get(histoNameRaw))
         hRawYields[-1].SetDirectory(0)
-
-        inFileEff = TFile.Open(inFileNameEff)
         
+        inFileEff = TFile.Open(inFileNameEff)
         hEffPrompt.append(inFileEff.Get(histoNameEffPrompt))
         hEffFD.append(inFileEff.Get(histoNameEffFD))
         hEffPrompt[-1].SetDirectory(0)
