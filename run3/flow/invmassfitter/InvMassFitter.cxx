@@ -93,6 +93,8 @@ InvMassFitter::InvMassFitter() :
   fFixRflOverSig(kFALSE),
   fHistoTemplRfl(0x0),
   fSmoothRfl(kFALSE),
+  fTemplates(kFALSE),
+  fNParsTempls(0),
   fRawYieldHelp(0),
   fRflFunc(0x0),
   fBkRFunc(0x0),
@@ -157,6 +159,8 @@ InvMassFitter::InvMassFitter(const TH1F *histoToFit, Double_t minvalue, Double_t
   fFixRflOverSig(kFALSE),
   fHistoTemplRfl(0x0),
   fSmoothRfl(kFALSE),
+  fTemplates(kFALSE),
+  fNParsTempls(0),
   fRawYieldHelp(0),
   fRflFunc(0x0),
   fBkRFunc(0x0),
@@ -242,6 +246,9 @@ void InvMassFitter::SetNumberOfParams(){
   if(fReflections) fNParsRfl=1;
   else fNParsRfl=0;
 
+  if(fTemplates) fNParsTempls=this->fTemplatesFuncts.size();
+  else fNParsTempls=0;
+
   if(fSecondPeak) fNParsSec=3;
   else fNParsSec=0;
 
@@ -252,7 +259,6 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
   /// returns 0 if the fit fails
   /// returns 1 if the fit succeeds
   /// returns 2 if there is no signal and the fit is performed with only background
-
   TVirtualFitter::SetDefaultFitter("Minuit");
 
   Double_t integralHisto=fHistoInvMass->Integral(fHistoInvMass->FindBin(fMinMass),fHistoInvMass->FindBin(fMaxMass),"width");
@@ -314,6 +320,10 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
     fRflFunc = CreateReflectionFunction("freflect");
     fBkRFunc = CreateBackgroundPlusReflectionFunction("fbkgrfl");
   }
+  if(fTemplates){
+    printf("   ---> Final fit includes templates\n");
+    fTemplFunc = CreateTemplatesFunction("ftempl");
+  }
   fTotFunc = CreateTotalFitFunction("funcmass");
 
   if(doFinalFit){
@@ -359,6 +369,13 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
     fRflFunc->SetLineColor(kGreen+1);
     fBkRFunc->SetLineColor(kRed+1);
     fBkRFunc->SetLineStyle(7);
+  }
+  if(fTemplates){
+    for(Int_t ipar=0; ipar<fNParsTempls; ipar++){
+      fTemplFunc->SetParameter(ipar,fTotFunc->GetParameter(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl));
+      fTemplFunc->SetParError(ipar,fTotFunc->GetParError(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl));
+    }
+    fTemplFunc->SetLineColor(kGreen+1);
   }
   fMass=fSigFunc->GetParameter(1);
   fMassErr=fSigFunc->GetParError(1);
@@ -473,6 +490,21 @@ TF1* InvMassFitter::CreateReflectionFunction(TString fname){
   return funcrfl;
 }
 //______________________________________________________________________________
+TF1* InvMassFitter::CreateTemplatesFunction(TString fname){
+  /// Creates a function for templates in the D+ inv. mass distribution
+  TF1* functempl =  new TF1(fname.Data(),this,&InvMassFitter::FitFunction4Templ,fMinMass,fMaxMass,this->fTemplatesFuncts.size(),"InvMassFitter","FitFunction4Templ");
+  for(int iPar=0; iPar<functempl->GetNpar(); iPar++) {
+    functempl->SetParName(iPar, Form("w_%s",this->fTemplatesFuncts[iPar].GetName()));
+    if(this->fWeightsLowerLims[iPar] >= this->fWeightsUpperLims[iPar]) {
+      functempl->FixParameter(iPar,this->fInitWeights[iPar]);
+    } else {
+      functempl->SetParameter(iPar,this->fInitWeights[iPar]);
+      functempl->SetParLimits(iPar,this->fWeightsLowerLims[iPar],this->fWeightsUpperLims[iPar]);
+    }
+  }
+  return functempl;
+}
+//______________________________________________________________________________
 TF1* InvMassFitter::CreateBackgroundPlusReflectionFunction(TString fname){
   /// Creates the function with sum of background and reflections
   ///
@@ -549,11 +581,11 @@ TF1* InvMassFitter::CreateSignalFitFunction(TString fname, Double_t integsig){
 
 //______________________________________________________________________________
 TF1* InvMassFitter::CreateTotalFitFunction(TString fname){
-  /// Creates the total fit fucntion (signal+background+possible second peak)
+  /// Creates the total fit function (signal+background+possible second peak)
   ///
 
   SetNumberOfParams();
-  Int_t totParams=fNParsBkg+fNParsRfl+fNParsSec+fNParsSig;
+  Int_t totParams=fNParsBkg+fNParsRfl+fNParsTempls+fNParsSec+fNParsSig;
   TF1* ftot=new TF1(fname.Data(),this,&InvMassFitter::FitFunction4Mass,fMinMass,fMaxMass,totParams,"InvMassFitter","FitFunction4Mass");
   for(Int_t ipar=0; ipar<fNParsBkg; ipar++){
     ftot->SetParameter(ipar,fBkgFunc->GetParameter(ipar));
@@ -585,6 +617,15 @@ TF1* InvMassFitter::CreateTotalFitFunction(TString fname){
       Double_t parmin,parmax;
       fRflFunc->GetParLimits(ipar,parmin,parmax);
       ftot->SetParLimits(ipar+fNParsBkg+fNParsSig+fNParsSec,parmin,parmax);
+    }
+  }
+  if(fTemplates && fTemplFunc){
+    for(Int_t ipar=0; ipar<fNParsTempls; ipar++){
+      Double_t parmin,parmax;
+      fTemplFunc->GetParLimits(ipar,parmin,parmax);
+      ftot->SetParLimits(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,parmin,parmax);
+      ftot->SetParameter(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,fTemplFunc->GetParameter(ipar));
+      ftot->SetParName(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,fTemplFunc->GetParName(ipar));
     }
   }
   return ftot;
@@ -773,6 +814,14 @@ Double_t InvMassFitter::FitFunction4SecPeak (Double_t *x, Double_t *par){
   return secgaval;
 }
 //_________________________________________________________________________
+Double_t InvMassFitter::FitFunction4Templ(Double_t *x, Double_t *par){
+  Double_t totalTempl=0;
+  for(int iFunc=0; iFunc<this->fTemplatesFuncts.size(); iFunc++) {
+    totalTempl += par[iFunc] * this->fTemplatesFuncts[iFunc].Eval(x[0]);
+  }
+  return totalTempl;
+}
+//_________________________________________________________________________
 Double_t InvMassFitter::FitFunction4Mass(Double_t *x, Double_t *par){
   /// Total fit function (signal+background+possible second peak)
   ///
@@ -783,7 +832,9 @@ Double_t InvMassFitter::FitFunction4Mass(Double_t *x, Double_t *par){
   if(fSecondPeak) sec=FitFunction4SecPeak(x,&par[fNParsBkg+fNParsSig]);
   Double_t refl=0;
   if(fReflections) refl=FitFunction4Refl(x,&par[fNParsBkg+fNParsSig+fNParsSec]);
-  return bkg+sig+sec+refl;
+  Double_t templ=0;
+  if(fTemplates) templ=FitFunction4Templ(x,&par[fNParsBkg+fNParsSig+fNParsSec+fNParsRfl]);
+  return bkg+sig+sec+refl+templ;
 }
 
 //_________________________________________________________________________
