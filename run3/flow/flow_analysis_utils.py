@@ -32,15 +32,17 @@ def get_vn_versus_mass(thnSparses, inv_mass_bins, mass_axis, vn_axis, debug=Fals
         thnSparses = [thnSparses]
         
     for iThn, thnSparse in enumerate(thnSparses):
+        hist_vn_proj_temp = thnSparse.Projection(vn_axis, mass_axis)
+        hist_vn_proj_temp.SetName(f'hist_vn_proj_{iThn}')
+        hist_vn_proj_temp.SetDirectory(0)
+        
         if iThn == 0:
-            hist_vn_proj = thnSparse.Projection(vn_axis, mass_axis)
-            hist_vn_proj.SetName(f'hist_vn_proj')
+            hist_vn_proj = hist_vn_proj_temp.Clone('hist_vn_proj')
             hist_vn_proj.SetDirectory(0)
-        else:
-            hist_vn_proj_temp = thnSparse.Projection(vn_axis, mass_axis)
-            hist_vn_proj_temp.SetName(f'hist_vn_proj_{iThn}')
-            hist_vn_proj.Add(hist_vn_proj_temp)
-    hist_vn_proj.SetName(f'hist_vn_proj')
+            hist_vn_proj.Reset()
+            
+        hist_vn_proj.Add(hist_vn_proj_temp)
+
     hist_mass_proj = thnSparse.Projection(mass_axis)
     hist_mass_proj.Reset()
     invmass_bins = np.array(inv_mass_bins)
