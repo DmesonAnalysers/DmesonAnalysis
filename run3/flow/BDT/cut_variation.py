@@ -149,38 +149,6 @@ sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
                     
                     hist_fd.Add(hist_fd_temp)
                     hist_mass.Add(hist_mass_temp)
-                    
-        #                 for iThn, thnSparse in enumerate(thnSparses):
-        # hist_vn_proj_temp = thnSparse.Projection(vn_axis, mass_axis)
-        # hist_vn_proj_temp.SetName(f'hist_vn_proj_{iThn}')
-        # hist_vn_proj_temp.SetDirectory(0)
-        
-        # if hist_vn_proj is None:
-        #     # 初始化 hist_vn_proj
-        #     hist_vn_proj = hist_vn_proj_temp.Clone('hist_vn_proj')
-        #     hist_vn_proj.Reset()
-        # hist_vn_proj.Add(hist_vn_proj_temp)
-                    
-#                     if iThn == 0:
-#                         hist_fd = thnsparse_selcent.Projection(axis_bdt_sig)
-#                         hist_fd.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
-#                         hist_fd.SetDirectory(0)
-                        
-#                         thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
-#                         print(f'''pT range: {pt_min} - {pt_max};
-# bkg BDT cut: {bkg_cut_lower[ipt][iCut]} - {bkg_cut_upper[ipt][iCut]};
-# sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
-# ''')
-#                         hist_mass = thnsparse_selcent.Projection(axis_mass)
-#                         hist_mass.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
-#                         hist_mass.SetDirectory(0)
-#                     else:
-#                         hist_fd_temp = thnsparse_selcent.Projection(axis_bdt_sig)
-#                         hist_fd_temp.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
-#                         hist_mass_temp = thnsparse_selcent.Projection(axis_mass)
-#                         hist_mass_temp.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
-#                         hist_fd.Add(thnsparse_selcent.Projection(axis_bdt_sig))
-#                         hist_mass.Add(thnsparse_selcent.Projection(axis_mass))
                         
                     thnsparse_selcents.append(thnsparse_selcent)
 
