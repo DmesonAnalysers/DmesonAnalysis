@@ -94,7 +94,8 @@ def run_full_analysis(config,
             reso_file = 1.
         reso_file_withopt = f" -r {reso_file}"
         outputdir_proj = f"-o {outputdir}/proj"
-        command_proj = f"python3 project_thnsparse.py {config} {an_res_file} {cent_withopt} {reso_file_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt}"
+        an_res_files = " ".join(an_res_file)
+        command_proj = f"python3 project_thnsparse.py {config} {an_res_files} {cent_withopt} {reso_file_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt}"
         if wagon_id != "":
             command_proj += f" {wagon_id_withopt}"
         print("\n\033[92m Starting projection\033[0m")
@@ -137,8 +138,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("config", metavar="text",
                         default="config.yaml", help="configuration file")
-    parser.add_argument("an_res_file", metavar="text",
-                        default="an_res.root", help="input ROOT file with anres")
+    # parser.add_argument("an_res_file", metavar="text",
+    #                     default="an_res.root", help="input ROOT file with anres")
+    parser.add_argument('an_res_file', metavar='text', 
+                    nargs='+', help='input ROOT files with anres')
     parser.add_argument("--centrality", "-c", metavar="text",
                         default="k3050", help="centrality class")
     parser.add_argument("--resolution", "-r",  default="",
