@@ -483,7 +483,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                         cSimFit[iCanv].Modified()
                         cSimFit[iCanv].Update()
                 cSimFit[iPt].cd(2)
-                hVnForFit[iPt].GetYaxis().SetRangeUser(-1, 1)
+                hVnForFit[iPt].GetYaxis().SetRangeUser(-0.2, 0.4)
                 hVnForFit[iPt].GetYaxis().SetTitle(f'#it{{v}}_{{{harmonic}}} ({vn_method})')
                 hVnForFit[iPt].GetXaxis().SetRangeUser(massMin, massMax)
                 hVnForFit[iPt].Draw('E')
