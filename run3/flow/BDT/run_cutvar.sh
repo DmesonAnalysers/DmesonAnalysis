@@ -20,13 +20,18 @@
 #- skip_v2_vs_frac (bool): skip v2 vs FD fraction
 #----------
 
-export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow_d0_test_ml.yml"
-export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/CombPID_3SigCut_AND/AnalysisResults_data_medium.root"
-export output_dir="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/results/medium"
+# export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow.yml"
+export config_flow="/home/wuct/ALICE/local/Results/BDT/goldenRun/uncorrelated/cutvar_pt2_3/config_flow_pt2_3_18.yml"
+export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_0.root \
+    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_1.root \
+    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_2.root \
+    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_3.root \
+    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_4.root"
+export output_dir="/home/wuct/ALICE/local/Results/BDT/full/uncorrelated"
 export cent="k3050"
 export vn_method="sp"
 export res_file="/media/wuct/wulby/ALICE/AnRes/resolution/output_reso/resospk3050_inte.root"
-export suffix="pt2_3_full"
+export suffix="pt2_3"
 
 export spw=False # True or False (skip calculation of weights)
 export smy=False # True or False (skip make yaml)

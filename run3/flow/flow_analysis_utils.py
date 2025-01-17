@@ -9,7 +9,7 @@ import ctypes
 from itertools import combinations
 import numpy as np
 
-def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False):
+def get_vn_versus_mass(thnSparses, inv_mass_bins, mass_axis, vn_axis, debug=False):
     '''
     Project vn versus mass
 
@@ -29,7 +29,21 @@ def get_vn_versus_mass(thnSparse, inv_mass_bins, mass_axis, vn_axis, debug=False
         - hist_mass_proj:
             TH1D, histogram with vn as a function of mass
     '''
-    hist_vn_proj = thnSparse.Projection(vn_axis, mass_axis)
+    if not isinstance(thnSparses, list):
+        thnSparses = [thnSparses]
+        
+    for iThn, thnSparse in enumerate(thnSparses):
+        hist_vn_proj_temp = thnSparse.Projection(vn_axis, mass_axis)
+        hist_vn_proj_temp.SetName(f'hist_vn_proj_{iThn}')
+        hist_vn_proj_temp.SetDirectory(0)
+        
+        if iThn == 0:
+            hist_vn_proj = hist_vn_proj_temp.Clone('hist_vn_proj')
+            hist_vn_proj.SetDirectory(0)
+            hist_vn_proj.Reset()
+            
+        hist_vn_proj.Add(hist_vn_proj_temp)
+
     hist_mass_proj = thnSparse.Projection(mass_axis)
     hist_mass_proj.Reset()
     invmass_bins = np.array(inv_mass_bins)
@@ -754,8 +768,23 @@ def get_cut_sets(pt_mins, pt_maxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bk
                 sys.exit(1)
 
             sig_cut_temp = sig_cut_mins[iPt]
-            sgn_cuts_lower[iPt] = [0.03, 0.45, 0.65, 0.78, 0.9]
-            sgn_cuts_upper[iPt] = [0.43, 0.63, 0.76, 0.88, 1]
+            # pt 4-5
+            # sgn_cuts_lower[iPt] = [0.00, 0.28, 0.40,  0.58,  0.72,  0.88,  0.98]
+            # sgn_cuts_upper[iPt] = [0.28, 0.40 ,0.58,  0.72,  0.88,  0.98,  1]
+
+            #pt5-6
+            # sgn_cuts_lower[iPt] = [0.00, 0.30, 0.45,  0.70,  0.97]
+            # sgn_cuts_upper[iPt] = [0.30, 0.45,0.70,  0.97,  1]
+            
+            # sgn_cuts_lower[iPt] = [0.00, 0.28, 0.42,  0.60,  0.97]
+            # sgn_cuts_upper[iPt] = [0.28, 0.42,0.60,  0.97,  1]
+            # #pt 12-16
+            
+            # sgn_cuts_lower[iPt] = [0.00,  0.47,0.8, 0.92]
+            # sgn_cuts_upper[iPt] = [0.47,  0.8,0.92, 1]
+            
+            sgn_cuts_lower[iPt] = [0.00, 0.4, 0.6]
+            sgn_cuts_upper[iPt] = [0.45, 0.6, 0.8]
 
             if iPt == 0:
                 # compute the ncutsets by the first signal cut
