@@ -68,7 +68,7 @@ def get_vn_versus_mass(thnSparses, inv_mass_bins, mass_axis, vn_axis, debug=Fals
 
     return hist_mass_proj
 
-def get_occupancy(thnSparse, occupancy_axis, debug=False):
+def get_occupancy(thnSparses, occupancy_axis, debug=False):
     '''
     Project occupancy versus mass
 
@@ -84,7 +84,21 @@ def get_occupancy(thnSparse, occupancy_axis, debug=False):
         - hist_occupancy:
             TH1D, histogram with vn as a function of mass
     '''
-    hist_occupancy = thnSparse.Projection(occupancy_axis)
+    if not isinstance(thnSparses, list):
+        thnSparses = [thnSparses]
+        
+    for iThn, thnSparse in enumerate(thnSparses):
+        hist_occupancy_temp = thnSparse.Projection(occupancy_axis)
+        hist_occupancy_temp.SetName(f'hist_occupancy_{iThn}')
+        hist_occupancy_temp.SetDirectory(0)
+        
+        if iThn == 0:
+            hist_occupancy = hist_occupancy_temp.Clone('hist_occupancy')
+            hist_occupancy.SetDirectory(0)
+            hist_occupancy.Reset()
+            
+        hist_occupancy.Add(hist_occupancy_temp)
+    # hist_occupancy = thnSparse.Projection(occupancy_axis)
     
     if debug:
         outfile = ROOT.TFile('debug.root', 'RECREATE')
@@ -109,7 +123,22 @@ def get_evselbits(thnSparse, evselbits_axis, debug=False):
         - hist_evselbits:
             TH1D, histogram with vn as a function of mass
     '''
-    hist_evselbits = thnSparse.Projection(evselbits_axis)
+    if not isinstance(thnSparse, list):
+        thnSparse = [thnSparse]
+    
+    for iThn, thnSparse in enumerate(thnSparse):
+        hist_evselbits_temp = thnSparse.Projection(evselbits_axis)
+        hist_evselbits_temp.SetName(f'hist_evselbits_{iThn}')
+        hist_evselbits_temp.SetDirectory(0)
+        
+        if iThn == 0:
+            hist_evselbits = hist_evselbits_temp.Clone('hist_evselbits')
+            hist_evselbits.SetDirectory(0)
+            hist_evselbits.Reset()
+            
+        hist_evselbits.Add(hist_evselbits_temp)
+    
+    # hist_evselbits = thnSparse.Projection(evselbits_axis)
     
     if debug:
         outfile = ROOT.TFile('debug.root', 'RECREATE')
@@ -375,7 +404,7 @@ def compute_r2(reso_file, wagon_id, cent_min, cent_max, detA, detB, detC, vn_met
     return reso
 
 # TODO: extend to vn not only v2
-def get_invmass_vs_deltaphi(thnSparse, deltaphiaxis, invmassaxis):
+def get_invmass_vs_deltaphi(thnSparses, deltaphiaxis, invmassaxis):
     '''
     Project invariant mass versus deltaphi
     
@@ -393,18 +422,31 @@ def get_invmass_vs_deltaphi(thnSparse, deltaphiaxis, invmassaxis):
         - hist_invMass_out:
             TH1D, histogram with invariant mass for out-of-plane
     ''' 
-    thn_inplane = thnSparse.Clone('thn_inplane')
-    thn_outplane = thnSparse.Clone('thn_outplane')
-    hist_cosDeltaPhi_inplane = thn_inplane.Projection(deltaphiaxis, invmassaxis)
-    hist_cosDeltaPhi_outplane = thn_outplane.Projection(deltaphiaxis, invmassaxis)
-    # In-plane (|cos(deltaphi)| < pi/4)
-    hist_cosDeltaPhi_inplane.GetYaxis().SetRangeUser(0, 1)
-    hist_invMass_in = hist_cosDeltaPhi_inplane.ProjectionX()
-    # Out-of-plane (|cos(deltaphi)| > pi/4)
-    hist_cosDeltaPhi_outplane.GetYaxis().SetRangeUser(-1, 0)
-    hist_invMass_out = hist_cosDeltaPhi_outplane.ProjectionX()
-    hist_invMass_in.SetLineColor(ROOT.kRed)
-    del thn_inplane, thn_outplane, hist_cosDeltaPhi_inplane, hist_cosDeltaPhi_outplane
+    if not isinstance(thnSparses, list):
+        thnSparses = [thnSparses]
+    
+    for iThn, thnSparse in enumerate(thnSparses):
+        thn_inplane = thnSparse.Clone(f'thn_inplane')
+        thn_outplane = thnSparse.Clone(f'thn_outplane')
+        hist_cosDeltaPhi_inplane_temp = thn_inplane.Projection(deltaphiaxis, invmassaxis)
+        hist_cosDeltaPhi_outplane_temp = thn_outplane.Projection(deltaphiaxis, invmassaxis)
+        # In-plane (|cos(deltaphi)| < pi/4)
+        hist_cosDeltaPhi_inplane_temp.GetYaxis().SetRangeUser(0, 1)
+        hist_invMass_in_temp = hist_cosDeltaPhi_inplane_temp.Clone(f'hist_invMass_in')
+        # Out-of-plane (|cos(deltaphi)| > pi/4)
+        hist_cosDeltaPhi_outplane_temp.GetYaxis().SetRangeUser(-1, 0)
+        hist_invMass_out_temp = hist_cosDeltaPhi_outplane_temp.Clone(f'hist_invMass_out')
+        if iThn == 0:
+            hist_invMass_in = hist_invMass_in_temp.Clone('hist_invMass_in')
+            hist_invMass_in.SetDirectory(0)
+            hist_invMass_in.Reset()
+            hist_invMass_out = hist_invMass_out_temp.Clone('hist_invMass_out')
+            hist_invMass_out.SetDirectory(0)
+            hist_invMass_out.Reset()
+        hist_invMass_in.Add(hist_invMass_in_temp)
+        hist_invMass_out.Add(hist_invMass_out_temp)
+        hist_invMass_in.SetLineColor(ROOT.kRed)
+        del thn_inplane, thn_outplane, hist_cosDeltaPhi_inplane_temp, hist_cosDeltaPhi_outplane_temp, hist_invMass_in_temp, hist_invMass_out_temp
     
     return hist_invMass_in, hist_invMass_out
 

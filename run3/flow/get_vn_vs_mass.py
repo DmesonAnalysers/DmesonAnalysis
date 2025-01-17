@@ -55,7 +55,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     if not isinstance(massMaxs, list):
         massMaxs = [massMaxs] * len(ptMins)
     useRefl = fitConfig['enableRef']
-    reflFile = fitConfig['reflFile']
+    reflFile = fitConfig['ReflFile']
 
     # read fit configuration
     if not isinstance(fixSigma, list):
