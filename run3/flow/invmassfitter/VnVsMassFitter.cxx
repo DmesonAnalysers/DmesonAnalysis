@@ -79,6 +79,8 @@ VnVsMassFitter::VnVsMassFitter()
   ,fPolDegreeVnBkg(3)
   ,fReflections(kFALSE)
   ,fNParsRfl(0)
+  ,fTemplates(kFALSE)
+  ,fNParsTempls(0)
   ,fRflOverSig(0.)
   ,fFixRflOverSig(kFALSE)
   ,fHistoTemplRfl(0x0)
@@ -164,6 +166,8 @@ VnVsMassFitter::VnVsMassFitter(TH1F* hMass, TH1F* hvn, Double_t min, Double_t ma
   ,fPolDegreeVnBkg(3)
   ,fReflections(kFALSE)
   ,fNParsRfl(0)
+  ,fTemplates(kFALSE)
+  ,fNParsTempls(0)
   ,fRflOverSig(0.)
   ,fFixRflOverSig(kFALSE)
   ,fHistoTemplRfl(0x0)
@@ -224,7 +228,7 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   if(!fMassHisto || !fVnVsMassHisto) {printf("Histograms not set! Exit."); return kFALSE;}
   DefineNumberOfParameters();
 
-  const Int_t nparsmass = fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl;
+  const Int_t nparsmass = fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls;
   Int_t NvnParsSgn = 1;
   if(fSecondPeak && fDoSecondPeakVn) {NvnParsSgn+=1;}
   if(fReflections && fVnRflOpt==kFreePar) {NvnParsSgn+=1;}
@@ -234,7 +238,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   if(!massprefit) {printf("Impossible to perform the mass prefit"); return kFALSE;}
   Bool_t vnprefit=VnSBPrefit();
   if(!vnprefit) {printf("Impossible to perform the bkg vn prefit"); return kFALSE;}
-
   std::vector<Double_t> initpars;
   for(Int_t iBkgPar=0; iBkgPar<fNParsMassBkg; iBkgPar++) {
     initpars.push_back(fMassFuncFromPrefit->GetParameter(iBkgPar));
@@ -247,6 +250,9 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   }
   for(Int_t iReflPar=0; iReflPar<fNParsRfl; iReflPar++) {
     initpars.push_back(fMassFuncFromPrefit->GetParameter(iReflPar+fNParsMassBkg+fNParsMassSgn+fNParsSec));
+  }
+  for(Int_t iTemplPar=0; iTemplPar<fNParsTempls; iTemplPar++) {
+    initpars.push_back(fMassFuncFromPrefit->GetParameter(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl));
   }
   for(Int_t iVnBkgPar=0; iVnBkgPar<fNParsVnBkg; iVnBkgPar++) {
     if(vnprefit) {initpars.push_back(fVnBkgFuncSb->GetParameter(iVnBkgPar));}
@@ -297,6 +303,17 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
     if(fFixRflOverSig) fitter.Config().ParSettings(fNParsMassBkg+fNParsMassSgn+fNParsSec).Fix();
     if(fVnRflLimited) fitter.Config().ParSettings(nparsmass+fNParsVnBkg+NvnParsSgn-1).SetLimits(fVnRflMin,fVnRflMax);
   }
+  if(fTemplates) {
+    for(int iTemplPar=0; iTemplPar<this->fInitWeights.size(); iTemplPar++) {
+      if(this->fWeightsLowerLims[iTemplPar] > this->fWeightsUpperLims[iTemplPar]) {
+        fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).SetValue(fInitWeights[iTemplPar]);
+        fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).Fix();
+      } else {
+        fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).SetValue(fInitWeights[iTemplPar]);
+        fitter.Config().ParSettings(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl).SetLimits(fWeightsLowerLims[iTemplPar],fWeightsUpperLims[iTemplPar]);        
+      }
+    }
+  }
 
   fitter.Config().MinimizerOptions().SetPrintLevel(0);
   fitter.Config().SetMinimizer("Minuit2","Migrad");
@@ -308,6 +325,9 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
 
   ROOT::Fit::FitResult result = fitter.Result();
   result.Print(std::cout);
+  if(fTemplates) {
+    printf("\n --->Templates share the vn parameter with the signal! \n");
+  }
 
   //set parameters in every function
   fVnBkgFunc = new TF1("fVnBkgFunc",this,&VnVsMassFitter::vnBkgFunc,fMassMin,fMassMax,fNParsVnBkg,"VnVsMassFitter","vnBkgFunc");
@@ -349,6 +369,35 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
       fMassSecPeakFunc->SetParError(iPar-(fNParsMassBkg+fNParsMassSgn),result.ParError(iPar));
     }
   }
+  if(fTemplates) {
+    int idxParMassTemplsScaling = fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl;
+    int idxParVnSgn = idxParMassTemplsScaling+fNParsTempls+fNParsVnBkg;
+    double vnSgn = result.Parameter(idxParVnSgn);
+    for(int iTempl=0; iTempl<fKDETemplates.size(); iTempl++) {
+      fKDEMassTemplatesDraw.push_back(new TF1(fKDETemplates[iTempl].GetName(),
+                      [&, this, iTempl, idxParMassTemplsScaling, result] (double *x, double *par) {
+                         double templScalingPar = result.Parameter(iTempl + idxParMassTemplsScaling);
+                         double kdeTemplEval = this->fKDETemplates[iTempl].Eval(x[0]);
+                         return templScalingPar * kdeTemplEval;
+                      }, fMassMin, fMassMax, 0));
+
+      fKDEVnTemplatesDraw.push_back(new TF1(Form("vnTempl_%s", fKDETemplates[iTempl].GetName()),
+                        [&, this, iTempl, vnSgn] (double *x, double *par) {
+                          return (vnSgn * this->fKDEMassTemplatesDraw[iTempl]->Eval(x[0])) / (this->fMassTotFunc->Eval(x[0]));
+                        }, fMassMin, fMassMax, 0));
+    }
+
+    fKDEVnTemplatesDraw.push_back(new TF1("vnBkg",
+                      [&, this, vnSgn] (double *x, double *par) {
+                        return (this->fVnBkgFunc->Eval(x[0]) * this->fMassBkgFunc->Eval(x[0])) / (this->fMassTotFunc->Eval(x[0]));
+                      }, fMassMin, fMassMax, 0));
+
+    fKDEVnTemplatesDraw.push_back(new TF1("vnSgn",
+                      [&, this, vnSgn] (double *x, double *par) {
+                        return (vnSgn * this->fMassSgnFunc->Eval(x[0])) / (this->fMassTotFunc->Eval(x[0]));
+                      }, fMassMin, fMassMax, 0));
+  }
+
   if(drawFit) {DrawFit();}
 
   fVn = fVnTotFunc->GetParameter(fVnTotFunc->GetNpar()-NvnParsSgn);
@@ -366,7 +415,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   fChiSquare = result.MinFcnValue();
   fNDF = result.Ndf();
   fProb = result.Prob();
-
   return kTRUE;
 }
 
@@ -421,6 +469,14 @@ void VnVsMassFitter::DrawHere(TVirtualPad* c){
     fMassTotFunc->SetRange(fMassMin,fMassMax);
     fMassTotFunc->Draw("same");
   }
+  if(fTemplates) {
+    for(int iMassTempl=0; iMassTempl<this->fKDEMassTemplatesDraw.size(); iMassTempl++) {
+      fKDEMassTemplatesDraw[iMassTempl]->SetLineColor(kMagenta);
+      fKDEMassTemplatesDraw[iMassTempl]->SetRange(fMassMin,fMassMax);
+      fKDEMassTemplatesDraw[iMassTempl]->Draw("same");
+    }
+  }
+
   TPaveText* massinfo = new TPaveText(0.45,0.7,1.,0.87,"NDC");
   massinfo->SetTextFont(42);
   massinfo->SetTextSize(0.05);
@@ -458,6 +514,13 @@ void VnVsMassFitter::DrawHere(TVirtualPad* c){
     fVnTotFunc->SetLineColor(kBlue);
     fVnTotFunc->SetRange(fMassMin,fMassMax);
     fVnTotFunc->Draw("same");
+  }
+  if(fTemplates) {
+    for(int iVnTempl=0; iVnTempl<this->fKDEVnTemplatesDraw.size(); iVnTempl++) {
+      fKDEVnTemplatesDraw[iVnTempl]->SetLineColor(kMagenta);
+      fKDEVnTemplatesDraw[iVnTempl]->SetRange(fMassMin,fMassMax);
+      fKDEVnTemplatesDraw[iVnTempl]->Draw("same");
+    }
   }
 
   TPaveText* vninfo = new TPaveText(-0.45,0.7,1.,0.87,"NDC");
@@ -504,6 +567,7 @@ Bool_t VnVsMassFitter::MassPrefit() {
     if(fRflOverSig>0) {fMassFitter->SetInitialReflOverS(fRflOverSig);}
     if(fFixRflOverSig) {fMassFitter->SetFixReflOverS(fRflOverSig);}
   }
+  if(fTemplates) {fMassFitter->SetTemplates(fKDETemplates, fInitWeights, fWeightsLowerLims, fWeightsUpperLims);}
   Bool_t status = fMassFitter->MassFitter(kFALSE);
 
   if(status) {
@@ -515,7 +579,6 @@ Bool_t VnVsMassFitter::MassPrefit() {
   }
   if(fReflections) fRawYieldHelp=fMassFitter->GetRawYield();
 
-  cout << "Status " << status << endl;
   return status;
 }
 
@@ -644,6 +707,13 @@ void VnVsMassFitter::DefineNumberOfParameters() {
     fNParsRfl=0;
     fNParsVnRfl=0;
   }
+
+  if(fTemplates) {
+    fNParsTempls=fKDETemplates.size();
+  }
+  else {
+    fNParsTempls=0;
+  }
   
   if(fSecondPeak) {
     fNParsSec=3;
@@ -710,19 +780,24 @@ void VnVsMassFitter::SetParNames() {
       break;
   }
 
-  for(Int_t iPar=0; iPar<fNParsVnBkg; iPar++) {fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl+iPar,fVnBkgFuncSb->GetParName(iPar));}
+  for(Int_t iPar=0; iPar<fNParsVnBkg; iPar++) {fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl+fNParsTempls+iPar,fVnBkgFuncSb->GetParName(iPar));}
 
   if(fReflections) {fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsSec,"ReflOverS");}
+  if(fTemplates) {
+    for(int iTempl=0; iTempl<this->fNParsTempls; iTempl++) {
+      fVnTotFunc->SetParName(iTempl+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl,Form("wm_%s", fKDETemplates[iTempl].GetName()));
+    }
+  }
 
   if(fSecondPeak) {
     fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn,"SecPeakInt");
     fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+1,"SecPeakMean");
     fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+2,"SecPeakSigma");
   }
-  fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsRfl+fNParsSec+fNParsVnBkg,Form("v%dSgn",fHarmonic));
+  fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsRfl+fNParsSec+fNParsTempls+fNParsVnBkg,Form("v%dSgn",fHarmonic));
   
-  if(fSecondPeak && fDoSecondPeakVn) {fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsRfl+fNParsSec+fNParsVnBkg+1,Form("v%dSecPeak",fHarmonic));}
-  if(fReflections && fVnRflOpt==kFreePar) {fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsRfl+fNParsSec+fNParsVnBkg+1+fNParsVnSecPeak,Form("v%dRefl",fHarmonic));}
+  if(fSecondPeak && fDoSecondPeakVn) {fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsRfl+fNParsSec+fNParsTempls+fNParsVnBkg+1,Form("v%dSecPeak",fHarmonic));}
+  if(fReflections && fVnRflOpt==kFreePar) {fVnTotFunc->SetParName(fNParsMassBkg+fNParsMassSgn+fNParsRfl+fNParsSec+fNParsVnBkg+fNParsTempls+1+fNParsVnSecPeak,Form("v%dRefl",fHarmonic));}
 }
 
 //_________________________________________________________________________
@@ -944,6 +1019,17 @@ Double_t VnVsMassFitter::MassRfl(Double_t *m,Double_t *pars){
 }
 
 //_________________________________________________________________________
+Double_t VnVsMassFitter::MassTemplates(Double_t *m,Double_t *pars){
+  // Add the contributions of the templates loaded in fKDETemplates, each
+  // scaled by a multiplicative constant, left as free fit parameter
+  Double_t totalTemplates = 0.;
+  for(int iTempl=0; iTempl<fNParsTempls; iTempl++) {
+    totalTemplates += pars[iTempl]*fKDETemplates[iTempl].Eval(m[0]);
+  }
+  return totalTemplates;
+}
+
+//_________________________________________________________________________
 Double_t VnVsMassFitter::MassBkgRfl(Double_t *m,Double_t *pars){
 
   if(!fHistoTemplRfl) {return MassBkg(m,pars);}
@@ -1003,10 +1089,14 @@ Double_t VnVsMassFitter::MassFunc(Double_t *m, Double_t *pars) {
   //reflection parameters
   Double_t rflpars[1]; //maximum number of parameters for rfl = 1 for the implemented functions
   for(Int_t iPar=0; iPar<fNParsRfl; iPar++) {rflpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec];}
+  //templates parameters
+  Double_t templpars[fNParsTempls]; //one parameter for each template (i.e. its scaling parameter)
+  for(Int_t iPar=0; iPar<fNParsTempls; iPar++) { templpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl];}
 
   Double_t total = MassSignal(m,sgnpars)+MassBkg(m,bkgpars);
   if(fSecondPeak) {total += MassSecondPeak(m,secpeakpars);}
   if(fReflections) {total += MassRfl(m,rflpars);}
+  if(fTemplates) {total += MassTemplates(m,templpars);}
 
   return total;
 }
@@ -1027,15 +1117,21 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
   //reflection parameters
   Double_t rflpars[1]; //maximum number of parameters for rfl = 1 for the implemented functions
   for(Int_t iPar=0; iPar<fNParsRfl; iPar++) {rflpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec];}
+  //templates parameters
+  Double_t templpars[fNParsTempls]; //one parameter for each template (i.e. its scaling parameter)
+  for(Int_t iPar=0; iPar<fNParsTempls; iPar++) {templpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl];}
+
   //bkg vn parameters
   const Int_t nVnBkgPars = fNParsVnBkg;
   Double_t vnbkgpars[nVnBkgPars];
-  for(Int_t iPar=0; iPar<fNParsVnBkg; iPar++) {vnbkgpars[iPar] = pars[iPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl];}
+  for(Int_t iPar=0; iPar<fNParsVnBkg; iPar++) {
+    vnbkgpars[iPar] = pars[iPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls];
+  }
   //signal vn parameter
-  Double_t vnSgn = pars[fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsVnBkg];
+  Double_t vnSgn = pars[fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg];
   //second peak vn parameter
   Double_t vnSecPeak = 0;
-  if(fSecondPeak && fDoSecondPeakVn) {vnSecPeak = pars[fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsVnBkg+fNParsVnSgn];}
+  if(fSecondPeak && fDoSecondPeakVn) {vnSecPeak = pars[fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn];}
   //refl vn parameter
   Double_t vnRefl = 0;
   if(fReflections) {
@@ -1057,7 +1153,6 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
         break;
     }
   }
-  
   Double_t vnBkg = vnBkgFunc(m,vnbkgpars);
   Double_t Sgn = MassSignal(m,masssgnpars);
   Double_t Bkg = MassBkg(m,massbkgpars);
@@ -1071,8 +1166,10 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
     if(fVnRflOpt==kSameVnBkg) Bkg += MassRfl(m,rflpars);
     else Refl += MassRfl(m,rflpars);
   }
+  Double_t Templates = 0;
+  if(fTemplates) {Templates += MassTemplates(m,templpars);}
 
-  return (vnSgn*Sgn+vnBkg*Bkg+vnSecPeak*SecPeak+vnRefl*Refl)/(Sgn+Bkg+SecPeak+Refl);
+  return (vnSgn*Sgn+vnBkg*Bkg+vnSecPeak*SecPeak+vnRefl*Refl+vnSgn*Templates)/(Sgn+Bkg+SecPeak+Refl+Templates);
 }
 
 //______________________________________________________________________________

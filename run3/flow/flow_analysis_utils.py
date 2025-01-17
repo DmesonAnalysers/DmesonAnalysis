@@ -1,6 +1,7 @@
 '''
 Analysis utilities for flow analysis
 '''
+
 import ROOT
 import os
 import sys
@@ -67,6 +68,55 @@ def get_vn_versus_mass(thnSparses, inv_mass_bins, mass_axis, vn_axis, debug=Fals
 
     return hist_mass_proj
 
+def get_occupancy(thnSparse, occupancy_axis, debug=False):
+    '''
+    Project occupancy versus mass
+
+    Input:
+        - thnSparse:
+            THnSparse, input THnSparse obeject (already projected in centrality and pt)
+        - occupancy_axis:
+            int, axis number for occupancy
+        - debug:
+            bool, if True, create a debug file with the projections (default: False)
+
+    Output:
+        - hist_occupancy:
+            TH1D, histogram with vn as a function of mass
+    '''
+    hist_occupancy = thnSparse.Projection(occupancy_axis)
+    
+    if debug:
+        outfile = ROOT.TFile('debug.root', 'RECREATE')
+        hist_occupancy.Write()
+        outfile.Close()
+
+    return hist_occupancy
+
+def get_evselbits(thnSparse, evselbits_axis, debug=False):
+    '''
+    Project evselbits versus mass
+
+    Input:
+        - thnSparse:
+            THnSparse, input THnSparse obeject (already projected in centrality and pt)
+        - evselbits_axis:
+            int, axis number for evselbits
+        - debug:
+            bool, if True, create a debug file with the projections (default: False)
+
+    Output:
+        - hist_evselbits:
+            TH1D, histogram with vn as a function of mass
+    '''
+    hist_evselbits = thnSparse.Projection(evselbits_axis)
+    
+    if debug:
+        outfile = ROOT.TFile('debug.root', 'RECREATE')
+        hist_evselbits.Write()
+        outfile.Close()
+
+    return hist_evselbits
 
 def get_resolution(dets, det_lables, cent_min_max):
     '''
@@ -431,6 +481,8 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl):
     vn_results['fBkgFuncMass'] = vnFitter.GetMassBkgFitFunc()
     vn_results['fBkgFuncVn'] = vnFitter.GetVnVsMassBkgFitFunc()
     vn_results['fSgnFuncMass'] = vnFitter.GetMassSignalFitFunc()
+    vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
+    vn_results['fVnTemplFuncts'] = vnFitter.GetVnTemplFuncts()
     bkg, bkgUnc = ctypes.c_double(), ctypes.c_double()
     vnFitter.Background(3, bkg, bkgUnc)
     vn_results['bkg'] = bkg.value
