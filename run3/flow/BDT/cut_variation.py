@@ -10,7 +10,7 @@ import os
 import sys
 from alive_progress import alive_bar
 sys.path.append('..')
-from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, get_cut_sets
+from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, get_cut_sets_config
 
 def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     with open(config, 'r') as ymlCfgFile:
@@ -28,13 +28,6 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     inv_mass_bins = config['inv_mass_bins']
     axis_bdt_bkg = config['axes']['bdt_bkg']
     axis_bdt_sig = config['axes']['bdt_sig']
-    bkg_cut_mins = config['cut_variation']['bdt_cut']['bkg']['min']
-    bkg_cut_maxs = config['cut_variation']['bdt_cut']['bkg']['max']
-    bkg_cut_steps = config['cut_variation']['bdt_cut']['bkg']['step']
-    sig_cut_mins = config['cut_variation']['bdt_cut']['sig']['min']
-    sig_cut_maxs = config['cut_variation']['bdt_cut']['sig']['max']
-    sig_cut_steps = config['cut_variation']['bdt_cut']['sig']['step']
-    correlated_cuts = config['minimisation']['correlated']
 
     # get resolution
     resoFile = ROOT.TFile(resolution, 'READ')
@@ -44,15 +37,10 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     reso = histo_reso.GetBinContent(1)
 
     thnsparse_list, thnsparse_selcent_list, thnsparse_selcents = [], [], []
-    if len(an_res_file) == 0:
-        infile = ROOT.TFile(an_res_file[0], 'READ')
+    for file in an_res_file:
+        infile = ROOT.TFile(file, 'READ')
         thnsparse_list.append(infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm'))
         print(infile.GetName())
-    else:
-        for file in an_res_file:
-            infile = ROOT.TFile(file, 'READ')
-            thnsparse_list.append(infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm'))
-            print(infile.GetName())
 
     cent_min = cent_bins[0]
     cent_max = cent_bins[1]
@@ -62,11 +50,8 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
 
     os.makedirs(f'{outputdir}/proj', exist_ok=True)
 
-    nCutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets(pt_mins, pt_maxs, 
-                                                                                    sig_cut_mins, sig_cut_maxs, 
-                                                                                    sig_cut_steps, bkg_cut_mins, 
-                                                                                    bkg_cut_maxs, bkg_cut_steps, 
-                                                                                    correlated_cuts)
+    CutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(config)
+    nCutSets = max(CutSets)
 
     with alive_bar(nCutSets, title='Processing BDT cuts') as bar:
         for iCut in range(nCutSets):
@@ -110,38 +95,6 @@ sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
                     
                     hist_fd.Add(hist_fd_temp)
                     hist_mass.Add(hist_mass_temp)
-                    
-        #                 for iThn, thnSparse in enumerate(thnSparses):
-        # hist_vn_proj_temp = thnSparse.Projection(vn_axis, mass_axis)
-        # hist_vn_proj_temp.SetName(f'hist_vn_proj_{iThn}')
-        # hist_vn_proj_temp.SetDirectory(0)
-        
-        # if hist_vn_proj is None:
-        #     # 初始化 hist_vn_proj
-        #     hist_vn_proj = hist_vn_proj_temp.Clone('hist_vn_proj')
-        #     hist_vn_proj.Reset()
-        # hist_vn_proj.Add(hist_vn_proj_temp)
-                    
-#                     if iThn == 0:
-#                         hist_fd = thnsparse_selcent.Projection(axis_bdt_sig)
-#                         hist_fd.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
-#                         hist_fd.SetDirectory(0)
-                        
-#                         thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
-#                         print(f'''pT range: {pt_min} - {pt_max};
-# bkg BDT cut: {bkg_cut_lower[ipt][iCut]} - {bkg_cut_upper[ipt][iCut]};
-# sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
-# ''')
-#                         hist_mass = thnsparse_selcent.Projection(axis_mass)
-#                         hist_mass.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
-#                         hist_mass.SetDirectory(0)
-#                     else:
-#                         hist_fd_temp = thnsparse_selcent.Projection(axis_bdt_sig)
-#                         hist_fd_temp.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
-#                         hist_mass_temp = thnsparse_selcent.Projection(axis_mass)
-#                         hist_mass_temp.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
-#                         hist_fd.Add(thnsparse_selcent.Projection(axis_bdt_sig))
-#                         hist_mass.Add(thnsparse_selcent.Projection(axis_mass))
                         
                     thnsparse_selcents.append(thnsparse_selcent)
 

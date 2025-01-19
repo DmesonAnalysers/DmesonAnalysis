@@ -68,7 +68,7 @@ def get_vn_versus_mass(thnSparses, inv_mass_bins, mass_axis, vn_axis, debug=Fals
 
     return hist_mass_proj
 
-def get_occupancy(thnSparse, occupancy_axis, debug=False):
+def get_occupancy(thnSparses, occupancy_axis, debug=False):
     '''
     Project occupancy versus mass
 
@@ -84,7 +84,21 @@ def get_occupancy(thnSparse, occupancy_axis, debug=False):
         - hist_occupancy:
             TH1D, histogram with vn as a function of mass
     '''
-    hist_occupancy = thnSparse.Projection(occupancy_axis)
+    if not isinstance(thnSparses, list):
+        thnSparses = [thnSparses]
+        
+    for iThn, thnSparse in enumerate(thnSparses):
+        hist_occupancy_temp = thnSparse.Projection(occupancy_axis)
+        hist_occupancy_temp.SetName(f'hist_occupancy_{iThn}')
+        hist_occupancy_temp.SetDirectory(0)
+        
+        if iThn == 0:
+            hist_occupancy = hist_occupancy_temp.Clone('hist_occupancy')
+            hist_occupancy.SetDirectory(0)
+            hist_occupancy.Reset()
+            
+        hist_occupancy.Add(hist_occupancy_temp)
+    # hist_occupancy = thnSparse.Projection(occupancy_axis)
     
     if debug:
         outfile = ROOT.TFile('debug.root', 'RECREATE')
@@ -109,7 +123,22 @@ def get_evselbits(thnSparse, evselbits_axis, debug=False):
         - hist_evselbits:
             TH1D, histogram with vn as a function of mass
     '''
-    hist_evselbits = thnSparse.Projection(evselbits_axis)
+    if not isinstance(thnSparse, list):
+        thnSparse = [thnSparse]
+    
+    for iThn, thnSparse in enumerate(thnSparse):
+        hist_evselbits_temp = thnSparse.Projection(evselbits_axis)
+        hist_evselbits_temp.SetName(f'hist_evselbits_{iThn}')
+        hist_evselbits_temp.SetDirectory(0)
+        
+        if iThn == 0:
+            hist_evselbits = hist_evselbits_temp.Clone('hist_evselbits')
+            hist_evselbits.SetDirectory(0)
+            hist_evselbits.Reset()
+            
+        hist_evselbits.Add(hist_evselbits_temp)
+    
+    # hist_evselbits = thnSparse.Projection(evselbits_axis)
     
     if debug:
         outfile = ROOT.TFile('debug.root', 'RECREATE')
@@ -375,7 +404,7 @@ def compute_r2(reso_file, wagon_id, cent_min, cent_max, detA, detB, detC, vn_met
     return reso
 
 # TODO: extend to vn not only v2
-def get_invmass_vs_deltaphi(thnSparse, deltaphiaxis, invmassaxis):
+def get_invmass_vs_deltaphi(thnSparses, deltaphiaxis, invmassaxis):
     '''
     Project invariant mass versus deltaphi
     
@@ -393,18 +422,31 @@ def get_invmass_vs_deltaphi(thnSparse, deltaphiaxis, invmassaxis):
         - hist_invMass_out:
             TH1D, histogram with invariant mass for out-of-plane
     ''' 
-    thn_inplane = thnSparse.Clone('thn_inplane')
-    thn_outplane = thnSparse.Clone('thn_outplane')
-    hist_cosDeltaPhi_inplane = thn_inplane.Projection(deltaphiaxis, invmassaxis)
-    hist_cosDeltaPhi_outplane = thn_outplane.Projection(deltaphiaxis, invmassaxis)
-    # In-plane (|cos(deltaphi)| < pi/4)
-    hist_cosDeltaPhi_inplane.GetYaxis().SetRangeUser(0, 1)
-    hist_invMass_in = hist_cosDeltaPhi_inplane.ProjectionX()
-    # Out-of-plane (|cos(deltaphi)| > pi/4)
-    hist_cosDeltaPhi_outplane.GetYaxis().SetRangeUser(-1, 0)
-    hist_invMass_out = hist_cosDeltaPhi_outplane.ProjectionX()
-    hist_invMass_in.SetLineColor(ROOT.kRed)
-    del thn_inplane, thn_outplane, hist_cosDeltaPhi_inplane, hist_cosDeltaPhi_outplane
+    if not isinstance(thnSparses, list):
+        thnSparses = [thnSparses]
+    
+    for iThn, thnSparse in enumerate(thnSparses):
+        thn_inplane = thnSparse.Clone(f'thn_inplane')
+        thn_outplane = thnSparse.Clone(f'thn_outplane')
+        hist_cosDeltaPhi_inplane_temp = thn_inplane.Projection(deltaphiaxis, invmassaxis)
+        hist_cosDeltaPhi_outplane_temp = thn_outplane.Projection(deltaphiaxis, invmassaxis)
+        # In-plane (|cos(deltaphi)| < pi/4)
+        hist_cosDeltaPhi_inplane_temp.GetYaxis().SetRangeUser(0, 1)
+        hist_invMass_in_temp = hist_cosDeltaPhi_inplane_temp.Clone(f'hist_invMass_in')
+        # Out-of-plane (|cos(deltaphi)| > pi/4)
+        hist_cosDeltaPhi_outplane_temp.GetYaxis().SetRangeUser(-1, 0)
+        hist_invMass_out_temp = hist_cosDeltaPhi_outplane_temp.Clone(f'hist_invMass_out')
+        if iThn == 0:
+            hist_invMass_in = hist_invMass_in_temp.Clone('hist_invMass_in')
+            hist_invMass_in.SetDirectory(0)
+            hist_invMass_in.Reset()
+            hist_invMass_out = hist_invMass_out_temp.Clone('hist_invMass_out')
+            hist_invMass_out.SetDirectory(0)
+            hist_invMass_out.Reset()
+        hist_invMass_in.Add(hist_invMass_in_temp)
+        hist_invMass_out.Add(hist_invMass_out_temp)
+        hist_invMass_in.SetLineColor(ROOT.kRed)
+        del thn_inplane, thn_outplane, hist_cosDeltaPhi_inplane_temp, hist_cosDeltaPhi_outplane_temp, hist_invMass_in_temp, hist_invMass_out_temp
     
     return hist_invMass_in, hist_invMass_out
 
@@ -707,7 +749,7 @@ def get_particle_info(particleName):
 
     return particleTit, massAxisTit, decay, massForFit
 
-def get_cut_sets(pt_mins, pt_maxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bkg_cut_mins=[], bkg_cut_maxs=[], bkg_cut_steps=[], correlated_cuts=True):
+def get_cut_sets(pt_mins, pt_maxs, sig_cut, bkg_cut_maxs, correlated_cuts=True):
     '''
     Get cut sets
 
@@ -716,98 +758,94 @@ def get_cut_sets(pt_mins, pt_maxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bk
             list of floats, list of minimum pt values
         - pt_maxs:
             list of floats, list of maximum pt values
-        - sig_cut_mins:
-            list of floats, list of minimum signal cut values
-        - sig_cut_maxs:
-            list of floats, list of maximum signal cut values
-        - sig_cut_steps:
-            list of floats, list of signal cut steps
-        - bkg_cut_mins:
-            list of floats, list of minimum background cut values (default: [])
+        - sig_cut:
+            list or dict, signal cut
         - bkg_cut_maxs:
-            list of floats, list of maximum background cut values (default: [])
-        - bkg_cut_steps:
-            list of floats, list of background cut steps (default: [])
+            list of (floats or list of floats), list of maximum bkg cut
         - correlated_cuts:
-            bool, if True, use correlated cuts (default: True)
+            bool, if True, correlated cuts
 
     Output:
         - nCutSets:
-            int, number of cut sets
-        - sgn_cuts_lower:
+            list of ints, number of cut sets
+        - sig_cuts_lower:
             list of lists of floats, list of lower edge for signal cuts
-        - sgn_cuts_upper:
+        - sig_cuts_upper:
             list of lists of floats, list of upper edge for signal cuts
         - bkg_cuts_lower:
             list of lists of floats, list of lower edge for background cuts (0)
         - bkg_cuts_upper:
             list of lists of floats, list of upper edge for background cuts
     '''
-    nCutSets = 0
-    sgn_cuts_lower, sgn_cuts_upper, bkg_cuts_lower, bkg_cuts_upper = {}, {}, {}, {}
+    nCutSets = []
+    sig_cuts_lower, sig_cuts_upper, bkg_cuts_lower, bkg_cuts_upper = {}, {}, {}, {}
     if correlated_cuts:
+        sig_cut_mins = sig_cut['min']
+        sig_cut_maxs = sig_cut['max']
+        sig_cut_steps = sig_cut['step']
 
         # compute the signal cutsets for each pt bin
-        sgn_cuts_lower = [list(np.arange(sig_cut_mins[iPt], sig_cut_maxs[iPt], sig_cut_steps[iPt])) for iPt in range(len(pt_mins))]
-        sgn_cuts_upper = [[1.0 for _ in range(len(sgn_cuts_lower[0]))] for iPt in range(len(pt_mins))]
+        sig_cuts_lower = [list(np.arange(sig_cut_mins[iPt], sig_cut_maxs[iPt], sig_cut_steps[iPt])) for iPt in range(len(pt_mins))]
+        sig_cuts_upper = [[1.0 for _ in range(len(sig_cuts_lower[iPt]))] for iPt in range(len(pt_mins))]
 
-        # compute the ncutsets by the first signal cut
-        nCutSets = len(sgn_cuts_lower[0])
+        # compute the ncutsets by signal cut for each pt bin
+        nCutSets = [len(sig_cuts_lower[iPt]) for iPt in range(len(pt_mins))]
 
         # bkg cuts lower edge should always be 0
-        bkg_cuts_lower = [[0. for _ in range(nCutSets)] for ipt in range(len(pt_mins))]
-        bkg_cuts_upper = [[bkg_cut_maxs[ipt] for _ in range(nCutSets)] for ipt in range(len(pt_mins))]
+        bkg_cuts_lower = [[0. for _ in range(nCutSets[iPt])] for iPt in range(len(pt_mins))]
+        bkg_cuts_upper = [[bkg_cut_maxs[iPt] for _ in range(nCutSets[iPt])] for iPt in range(len(pt_mins))]
 
     else:
+        # load the signal cut
+        sig_cuts_lower = [sig_cut[iPt]['min'] for iPt in range(len(pt_mins))]
+        sig_cuts_upper = [sig_cut[iPt]['max'] for iPt in range(len(pt_mins))]
+        
+        # compute the ncutsets by the signal cut for each pt bin
+        nCutSets = [len(sig_cuts_lower[iPt]) for iPt in range(len(pt_mins))]
+        
+        # load the background cut
+        bkg_cuts_lower = [[0. for _ in range(nCutSets[iPt])] for iPt in range(len(pt_mins))]
+        bkg_cuts_upper = [[bkg_cut_maxs[iPt] for _ in range(nCutSets[iPt])] for iPt in range(len(pt_mins))]
+        
+    # safety check
 
-        # uniform step
-        for iPt in range(len(pt_mins)):
+    for iPt in range(len(pt_mins)):
+        assert len(sig_cuts_lower[iPt]) == len(sig_cuts_upper[iPt]) == len(bkg_cuts_lower[iPt]) == len(bkg_cuts_upper[iPt]) == nCutSets[iPt], \
+            f"Mismatch in lengths for pt bin {iPt}: {len(sig_cuts_lower[iPt])}, {len(sig_cuts_upper[iPt])}, \
+            {len(bkg_cuts_lower[iPt])}, {len(bkg_cuts_upper[iPt])}, \
+            {nCutSets[iPt]}"
 
-            if sig_cut_mins[iPt] != 0.1:
-                print('ERROR: the first signal cut should be 0.1')
-                sys.exit(1)
-
-            sig_cut_temp = sig_cut_mins[iPt]
-            # pt 4-5
-            # sgn_cuts_lower[iPt] = [0.00, 0.28, 0.40,  0.58,  0.72,  0.88,  0.98]
-            # sgn_cuts_upper[iPt] = [0.28, 0.40 ,0.58,  0.72,  0.88,  0.98,  1]
-
-            #pt5-6
-            # sgn_cuts_lower[iPt] = [0.00, 0.30, 0.45,  0.70,  0.97]
-            # sgn_cuts_upper[iPt] = [0.30, 0.45,0.70,  0.97,  1]
-            
-            # sgn_cuts_lower[iPt] = [0.00, 0.28, 0.42,  0.60,  0.97]
-            # sgn_cuts_upper[iPt] = [0.28, 0.42,0.60,  0.97,  1]
-            # #pt 12-16
-            
-            # sgn_cuts_lower[iPt] = [0.00,  0.47,0.8, 0.92]
-            # sgn_cuts_upper[iPt] = [0.47,  0.8,0.92, 1]
-            
-            sgn_cuts_lower[iPt] = [0.00, 0.4, 0.6]
-            sgn_cuts_upper[iPt] = [0.45, 0.6, 0.8]
-
-            if iPt == 0:
-                # compute the ncutsets by the first signal cut
-                nCutSets = len(sgn_cuts_lower[iPt])
-
-            # bkg cuts
-            bkg_cuts_lower[iPt] = [0. for _ in range(nCutSets)]
-            bkg_cuts_upper[iPt] = [bkg_cut_maxs[iPt] for _ in range(nCutSets)]
-
-    return nCutSets, sgn_cuts_lower, sgn_cuts_upper, bkg_cuts_lower, bkg_cuts_upper
+    return nCutSets, sig_cuts_lower, sig_cuts_upper, bkg_cuts_lower, bkg_cuts_upper
 
 def get_cut_sets_config(config):
+    '''
+    Get cut sets from configuration file
+    Input:
+        - config:
+            str, flow configuration file
+    Output:
+        - nCutSets:
+            list of ints, number of cut sets
+        - sig_cuts_lower:
+            list of lists of floats, list of lower edge for signal cuts
+        - sig_cuts_upper:
+            list of lists of floats, list of upper edge for signal cuts
+        - bkg_cuts_lower:
+            list of lists of floats, list of lower edge for background cuts (0)
+        - bkg_cuts_upper:
+            list of lists of floats, list of upper edge for background cuts
+    '''
     with open(config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
-    ptmins = input['ptmins']
-    ptmaxs = input['ptmaxs']
-    bkg_cut_mins = config['cut_variation']['bdt_cut']['bkg']['min']
-    bkg_cut_maxs = config['cut_variation']['bdt_cut']['bkg']['max']
-    bkg_cut_steps = config['cut_variation']['bdt_cut']['bkg']['step']
-    sig_cut_mins = config['cut_variation']['bdt_cut']['sig']['min']
-    sig_cut_maxs = config['cut_variation']['bdt_cut']['sig']['max']
-    sig_cut_steps = config['cut_variation']['bdt_cut']['sig']['step']
+    ptmins = config['ptmins']
+    ptmaxs = config['ptmaxs']
     correlated_cuts = config['minimisation']['correlated']
+    if correlated_cuts:
+        sig_cut = config['cut_variation']['corr_bdt_cut']['sig']
+        bkg_cut_maxs = config['cut_variation']['corr_bdt_cut']['bkg_max']
+    else:
+        sig_cut = config['cut_variation']['uncorr_bdt_cut']['sig']
+        bkg_cut_maxs = config['cut_variation']['uncorr_bdt_cut']['bkg_max']
 
-    return get_cut_sets(ptmins, ptmaxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bkg_cut_mins, bkg_cut_maxs, bkg_cut_steps, correlated_cuts)
+    return get_cut_sets(ptmins, ptmaxs, sig_cut, bkg_cut_maxs, correlated_cuts)
