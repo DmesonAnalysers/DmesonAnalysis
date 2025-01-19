@@ -5,7 +5,7 @@ import argparse
 import yaml
 import shutil
 sys.path.append('..')
-from flow_analysis_utils import get_cut_sets
+from flow_analysis_utils import get_cut_sets_config
 
 def check_dir(dir):
 
@@ -32,22 +32,11 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 
 #___________________________________________________________________________________________________________________________
 	# Load and copy the configuration file
-	with open(config_flow, 'r') as cfgFlow:
-		config = yaml.safe_load(cfgFlow)
-
-	ptmins = config['ptmins']
-	ptmaxs = config['ptmaxs']
-
-	correlated_cuts = config['minimisation']['correlated']
-
-	sig_cut_mins = config['cut_variation']['bdt_cut']['sig']['min']
-	sig_cut_maxs = config['cut_variation']['bdt_cut']['sig']['max']
-	sig_cut_steps = config['cut_variation']['bdt_cut']['sig']['step']
-	bkg_cut_mins = config['cut_variation']['bdt_cut']['bkg']['min']
-	bkg_cut_maxs = config['cut_variation']['bdt_cut']['bkg']['max']
-	bkg_cut_steps = config['cut_variation']['bdt_cut']['bkg']['step']
+	# with open(config_flow, 'r') as cfgFlow:
+	# 	config = yaml.safe_load(cfgFlow)
 	
-	nCutSets, _, _, _, _ = get_cut_sets(ptmins, ptmaxs, sig_cut_mins, sig_cut_maxs, sig_cut_steps, bkg_cut_mins, bkg_cut_maxs, bkg_cut_steps, correlated_cuts)
+	CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
+	nCutSets = max(CutSets)
 
 	print(f"\033[32mNumber of cutsets: {nCutSets}\033[0m")
 

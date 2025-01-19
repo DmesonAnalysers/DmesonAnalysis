@@ -9,7 +9,7 @@ import os
 import numpy as np
 import sys
 sys.path.append('..')
-from flow_analysis_utils import get_cut_sets
+from flow_analysis_utils import get_cut_sets_config
 
 def make_combination(ptmins, ptmaxs, nCutSets, sig_cut_lower_file, 
                      sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file):
@@ -82,15 +82,26 @@ def make_yaml(flow_config, outputdir, suffix):
 
     ## safety check
     if len(ptmins) != len(ptmaxs):
-        raise ValueError(f'''The number of pt bins({len(ptmins)}, {len(ptmaxs)}),
-                         bkg cuts({len(bkg_cut_mins)}, {len(bkg_cut_maxs)}),
-                         and sig cuts({len(sig_cut_mins)}, {len(sig_cut_maxs)}) are not the same''')
+        raise ValueError(f'''The number of pt bins({len(ptmins)}, {len(ptmaxs)} are not the same''')
 
-    nCutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets(ptmins, ptmaxs, 
-                                                                                        sig_cut_mins, sig_cut_maxs, 
-                                                                                        sig_cut_steps, bkg_cut_mins, 
-                                                                                        bkg_cut_maxs, bkg_cut_steps, 
-                                                                                        input['minimisation']['correlated'])
+    nCutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(flow_config)
+    
+    maxCutSets = max(nCutSets)
+    sig_cut_lower_file, sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file = {}, {}, {}, {}
+    for iCut in range(maxCutSets):
+        sig_cut_lower_file[iCut], sig_cut_upper_file[iCut], bkg_cut_lower_file[iCut], bkg_cut_upper_file[iCut] = [], [], [], []
+        for iPt in range(len(ptmins)):
+            # consider the different number of cutsets for each pt bin
+            if iCut < nCutSets[iPt]:
+                sig_cut_lower_file[iCut].append(sig_cut_lower[iPt][iCut])
+                sig_cut_upper_file[iCut].append(sig_cut_upper[iPt][iCut])
+                bkg_cut_lower_file[iCut].append(bkg_cut_lower[iPt][iCut])
+                bkg_cut_upper_file[iCut].append(bkg_cut_upper[iPt][iCut])
+            else:
+                sig_cut_lower_file[iCut].append(sig_cut_lower[iPt][nCutSets[iPt]-1])
+                sig_cut_upper_file[iCut].append(sig_cut_upper[iPt][nCutSets[iPt]-1])
+                bkg_cut_lower_file[iCut].append(bkg_cut_lower[iPt][nCutSets[iPt]-1])
+                bkg_cut_upper_file[iCut].append(bkg_cut_upper[iPt][nCutSets[iPt]-1])
 
     sig_cut_lower_file = {i: [sig_cut_lower[ipt][i] for ipt in range(len(ptmins))] for i in range(nCutSets)}
     sig_cut_upper_file = {i: [sig_cut_upper[ipt][i] for ipt in range(len(ptmins))] for i in range(nCutSets)}
@@ -111,10 +122,11 @@ def make_yaml(flow_config, outputdir, suffix):
 ''')
 
     os.makedirs(f'{outputdir}/config', exist_ok=True)
-    for iFile in range(nCutSets):
+    for iFile in range(maxCutSets):
         with open(f'{outputdir}/config/cutset_{suffix}_{iFile:02}.yml', 'w') as file:
             yaml.dump(combinations[iFile], file, default_flow_style=False)
     print(f'Yaml files are saved in {outputdir}/config')
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
     parser.add_argument('flow_config', metavar='text', default='config_flow.yml')

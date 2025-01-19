@@ -64,6 +64,7 @@ def run_full_analysis(config,
         print(f"\033[92m Creating output directory {outputdir}\033[0m")
         os.makedirs(outputdir)
 
+    script_dir = os.path.dirname(os.path.realpath(__file__))
 
     if resolution and not skip_resolution:
         # warning
@@ -74,7 +75,7 @@ def run_full_analysis(config,
         if not os.path.exists(f"{outputdir}/resolution"):
             os.makedirs(f"{outputdir}/resolution")
         outputdir_reso = f"-o {outputdir}/resolution/"
-        command_reso = f"python3 compute_reso.py {an_res_file} {cent_withopt} {suffix_withopt} {outputdir_reso} {vn_method_withopt}"
+        command_reso = f"python3 {os.path.join(script_dir, 'compute_reso.py')} {an_res_file} {cent_withopt} {suffix_withopt} {outputdir_reso} {vn_method_withopt}"
         if wagon_id != "":
             command_reso += f" {wagon_id_withopt}"
         print("\n\033[92m Starting resolution extraction\033[0m")
@@ -95,7 +96,7 @@ def run_full_analysis(config,
         reso_file_withopt = f" -r {reso_file}"
         outputdir_proj = f"-o {outputdir}/proj"
         an_res_files = " ".join(an_res_file)
-        command_proj = f"python3 project_thnsparse.py {config} {an_res_files} {cent_withopt} {reso_file_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt}"
+        command_proj = f"python3 {os.path.join(script_dir, 'project_thnsparse.py')} {config} {an_res_files} {cent_withopt} {reso_file_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt}"
         if wagon_id != "":
             command_proj += f" {wagon_id_withopt}"
         print("\n\033[92m Starting projection\033[0m")
@@ -110,9 +111,9 @@ def run_full_analysis(config,
         proj_file = f"{outputdir}/proj/"
         proj_file += f"proj{suffix}.root"
         if not batch:
-            command_vn = f"python3 get_vn_vs_mass.py {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} {vn_method_withopt}"
+            command_vn = f"python3 {os.path.join(script_dir, 'get_vn_vs_mass.py')} {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} {vn_method_withopt}"
         else:
-            command_vn = f"python3 get_vn_vs_mass.py {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} {vn_method_withopt} --batch"
+            command_vn = f"python3 {os.path.join(script_dir, 'get_vn_vs_mass.py')} {config} {centrality} {proj_file} {outputdir_rawyield} {suffix_withopt} {vn_method_withopt} --batch"
         print("\n\033[92m Starting vn extraction\033[0m")
         print(f"\033[92m {command_vn}\033[0m")
         os.system(command_vn)
@@ -127,7 +128,7 @@ def run_full_analysis(config,
         if not os.path.exists(f"{outputdir}/eff"):
             os.makedirs(f"{outputdir}/eff")
         outputdir_eff = f"-o {outputdir}/eff"
-        command_eff = f"python3 compute_efficiency.py {config} {outputdir_eff} {suffix_withopt}"
+        command_eff = f"python3 {os.path.join(script_dir, 'compute_efficiency.py')} {config} {outputdir_eff} {suffix_withopt}"
         print("\n\033[92m Starting efficiency estimation\033[0m")
         print(f"\033[92m {command_eff}\033[0m")
         os.system(command_eff)
@@ -138,8 +139,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("config", metavar="text",
                         default="config.yaml", help="configuration file")
-    # parser.add_argument("an_res_file", metavar="text",
-    #                     default="an_res.root", help="input ROOT file with anres")
     parser.add_argument('an_res_file', metavar='text', 
                     nargs='+', help='input ROOT files with anres')
     parser.add_argument("--centrality", "-c", metavar="text",

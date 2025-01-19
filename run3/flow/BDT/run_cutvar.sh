@@ -21,7 +21,7 @@
 #----------
 
 # export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow.yml"
-export config_flow="/home/wuct/ALICE/local/Results/BDT/goldenRun/uncorrelated/cutvar_pt2_3/config_flow_pt2_3_18.yml"
+export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow.yml"
 export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_0.root \
     /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_1.root \
     /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_2.root \
@@ -33,15 +33,15 @@ export vn_method="sp"
 export res_file="/media/wuct/wulby/ALICE/AnRes/resolution/output_reso/resospk3050_inte.root"
 export suffix="pt2_3"
 
-export spw=False # True or False (skip calculation of weights)
+export spw=True # True or False (skip calculation of weights)
 export smy=False # True or False (skip make yaml)
-export scv=False # True or False (skip cut variation)
-export spm=False # True or False (skip projection for MC)
-export seff=False # True or False (skip efficiency)
-export svn=False # True or False (skip vn extraction)
-export sfcv=False # True or False (skip fraction by cut variation)
-export sddf=False # True or False (skip fraction by data-driven method)
-export sv2vf=False # True or False (skip v2 vs fraction)
+export scv=True # True or False (skip cut variation)
+export spm=True # True or False (skip projection for MC)
+export seff=True # True or False (skip efficiency)
+export svn=True # True or False (skip vn extraction)
+export sfcv=True # True or False (skip fraction by cut variation)
+export sddf=True # True or False (skip fraction by data-driven method)
+export sv2vf=True # True or False (skip v2 vs fraction)
 
 if [ $spw = False ]; then
 	export skip_calc_weights=""

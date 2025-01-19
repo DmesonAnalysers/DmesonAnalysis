@@ -13,7 +13,7 @@ from alive_progress import alive_bar
 from sparse_dicts import get_sparses
 
 sys.path.append('..')
-from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, get_cut_sets
+from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, get_cut_sets_config
 
 def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     with open(config, 'r') as ymlCfgFile:
@@ -35,6 +35,8 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     sig_cut_maxs = config['cut_variation']['bdt_cut']['sig']['max']
     sig_cut_steps = config['cut_variation']['bdt_cut']['sig']['step']
     correlated_cuts = config['minimisation']['correlated']
+    axis_bdt_bkg = config['axes']['bdt_bkg']
+    axis_bdt_sig = config['axes']['bdt_sig']
 
     # get resolution
     resoFile = ROOT.TFile(resolution, 'READ')
@@ -58,15 +60,10 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     cent_max = cent_bins[1]
     sparseFlow.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
     thnsparse_list, thnsparse_selcent_list, thnsparse_selcents = [], [], []
-    if len(an_res_file) == 0:
-        infile = ROOT.TFile(an_res_file[0], 'READ')
+    for file in an_res_file:
+        infile = ROOT.TFile(file, 'READ')
         thnsparse_list.append(infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm'))
         print(infile.GetName())
-    else:
-        for file in an_res_file:
-            infile = ROOT.TFile(file, 'READ')
-            thnsparse_list.append(infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm'))
-            print(infile.GetName())
 
     cent_min = cent_bins[0]
     cent_max = cent_bins[1]
@@ -76,11 +73,8 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
 
     os.makedirs(f'{outputdir}/proj', exist_ok=True)
 
-    nCutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets(pt_mins, pt_maxs, 
-                                                                                    sig_cut_mins, sig_cut_maxs, 
-                                                                                    sig_cut_steps, bkg_cut_mins, 
-                                                                                    bkg_cut_maxs, bkg_cut_steps, 
-                                                                                    correlated_cuts)
+    CutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(config)
+    nCutSets = max(CutSets)
 
     with alive_bar(nCutSets, title='Processing BDT cuts') as bar:
         for iCut in range(nCutSets):
