@@ -86,12 +86,7 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
 
             for ipt, (pt_min, pt_max) in enumerate(zip(pt_mins, pt_maxs)):
                 # consider the different number of cutsets for each pt bin
-                if iCut < CutSets[ipt]:
-                    sig_cut_lower[iCut].append(sig_cut_lower[ipt][iCut])
-                    sig_cut_upper[iCut].append(sig_cut_upper[ipt][iCut])
-                    bkg_cut_lower[iCut].append(bkg_cut_lower[ipt][iCut])
-                    bkg_cut_upper[iCut].append(bkg_cut_upper[ipt][iCut])
-                else:
+                if iCut >= CutSets[ipt]:
                     sig_cut_lower[iCut].append(sig_cut_lower[ipt][nCutSets[ipt]-1])
                     sig_cut_upper[iCut].append(sig_cut_upper[ipt][nCutSets[ipt]-1])
                     bkg_cut_lower[iCut].append(bkg_cut_lower[ipt][nCutSets[ipt]-1])
