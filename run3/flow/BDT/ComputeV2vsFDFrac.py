@@ -7,12 +7,13 @@ import argparse
 import os
 import yaml
 import sys
+import ROOT
 from ROOT import TFile, TCanvas, TLegend, TLatex, TGraphErrors, TF1, TH1D, TVirtualFitter, Double_t
 from ROOT import kBlack, kAzure, kCyan, kOrange
 from ROOT import kFullCircle, kOpenCircle
 sys.path.append('../../../')
 sys.path.append('../')
-from flow_analysis_utils import get_particle_info
+from flow_analysis_utils import get_particle_info, get_cut_sets_config
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor
 
 def set_frame_style(canv, Title, particleTit):
@@ -32,6 +33,9 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
     with open(config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
+        
+    ptmins = config['ptmins']
+    ptmaxs = config['ptmaxs']
 
     histoNameV2 = config['histoNameV2']
     graphNameV2 = config['graphNameV2']
@@ -40,6 +44,9 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     particleName = config['Dmeson']
 
     particleTit, _, decay, _ = get_particle_info(particleName)
+    
+    CutSets, _, _, _, _ = get_cut_sets_config(config)
+    nCutSets = max(CutSets)
 
     if os.path.exists(f'{inputdir}/DataDrivenFrac'):
         fracFiles = [f'{inputdir}/DataDrivenFrac/{file}'
@@ -56,8 +63,7 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     fracFiles.sort()
     v2Files.sort()
 
-    nSets = len(fracFiles)
-    if nSets != len(v2Files):
+    if len(fracFiles) != len(v2Files):
         raise ValueError('Number of eff and frac files do not match')
 
     hV2, gV2, hFracFD, hFracPrompt = [], [], [], []
@@ -67,11 +73,11 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         inV2File = TFile.Open(v2File)
         hV2.append(inV2File.Get(histoNameV2))
         gV2.append(inV2File.Get(graphNameV2))
+        hV2[-1].SetDirectory(0)
 
         inFracFile = TFile.Open(fracFile)
         hFracFD.append(inFracFile.Get(histoNameEffFD))
         hFracPrompt.append(inFracFile.Get(histoNameEffPrompt))
-        hV2[-1].SetDirectory(0)
         hFracFD[-1].SetDirectory(0)
         hFracPrompt[-1].SetDirectory(0)
 
@@ -81,18 +87,16 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
     cFrac, ptStrings, chi2Strings = [], [], []
     
-    nPtBins = hFracFD[0].GetNbinsX()
-    for iPt in range(nPtBins):
+    nPtBins = len(ptmins)
+    for iPt, (ptMin, ptMax) in enumerate(zip(ptmins, ptmaxs)):
+        ptCent = (ptMin + ptMax) / 2
+        nSets = CutSets[iPt]
 
         gFracVsV2.append(TGraphErrors(-1))
         hV2VsFrac.append(TH1D(f"hV2VsFrac_{iPt}", "", 1000, 0.0, 1.0))
         hV2VsFrac[-1].SetDirectory(0)
         SetObjectStyle(hV2VsFrac[-1], markerstyle=kFullCircle, markersize=0)
         SetObjectStyle(gFracVsV2[-1], linecolor=kAzure+4, linewidth=2, markerstyle=kFullCircle, markersize=1, markercolor=kAzure+4)
-
-        ptMin = hFracFD[0].GetBinLowEdge(iPt + 1)
-        ptMax = ptMin + hFracFD[0].GetBinWidth(iPt + 1)
-        ptCent = hFracFD[0].GetBinCenter(iPt + 1)
 
         avrV2XErrL.append(Double_t(sum(gV2[i].GetErrorXlow(iPt) for i in range(nSets)) / nSets))
         avrV2XErrH.append(Double_t(sum(gV2[i].GetErrorXhigh(iPt) for i in range(nSets)) / nSets))
@@ -168,7 +172,6 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
         hV2VsFrac[iPt].Draw("same pZ")
         gFracVsV2[iPt].Draw("same pZ")
-        input("Press Enter to continue...")
 
         gFracVsV2[iPt].Write()
         hV2VsFrac[iPt].Write()

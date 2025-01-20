@@ -11,6 +11,8 @@ from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow # pylint: disable=import
 from ROOT import kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross, kOpenDiamond # pylint: disable=import-error,no-name-in-module
 from os.path import exists
 sys.path.append('../../../')
+sys.path.append('..')
+from flow_analysis_utils import get_cut_sets_config
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, ApplyVariationToList
 
@@ -37,13 +39,16 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     rawYieldFiles.sort()
 
     # load configuration
+    ptmins = config['ptmins']
+    ptmaxs = config['ptmaxs']
+    
     #TODO: apply smearing
 
     histoNameRaw = config['histoNameRaw']
     histoNameEffPrompt = config['histoNameEffPrompt']
     histoNameEffFD = config['histoNameEffFD']
 
-    nSets = len(rawYieldFiles)
+    # nSets = len(rawYieldFiles)
 
     #TODO: apply smearing
     doRawYieldsSmearing = config['minimisation']['doRawYieldSmearing']
@@ -55,6 +60,9 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     applyEffVarToFD = config['minimisation']['applyEffVariation']['feeddown']
 
     hRawYields, hEffPrompt, hEffFD = [], [], []
+    
+    CutSets, _, _, _, _ = get_cut_sets_config(config)
+    nCutSets = max(CutSets)
 
     # load inputs raw yields and efficiencies
     hCrossSecPrompt, hCrossSecFD = [], []
@@ -64,9 +72,8 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
         inFileRawYield = ROOT.TFile.Open(inFileNameRawYield)
         hRawYields.append(inFileRawYield.Get(histoNameRaw))
         hRawYields[-1].SetDirectory(0)
-
-        inFileEff = TFile.Open(inFileNameEff)
         
+        inFileEff = TFile.Open(inFileNameEff)
         hEffPrompt.append(inFileEff.Get(histoNameEffPrompt))
         hEffFD.append(inFileEff.Get(histoNameEffFD))
         hEffPrompt[-1].SetDirectory(0)
@@ -135,16 +142,15 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
             fNfdNpromptUpper = []
             fNfdNpromptLower = []
 
-    for iPt in range(hRawYields[0].GetNbinsX()):
-        ptMin = hRawYields[0].GetBinLowEdge(iPt+1)
-        ptMax = ptMin + hRawYields[0].GetBinWidth(iPt+1)
+    for iPt, (ptMin, ptMax) in enumerate(zip(ptmins, ptmaxs)):
+        nSets = CutSets[iPt]
 
-        listRawYield = [hRaw.GetBinContent(iPt+1) for hRaw in hRawYields]
-        listRawYieldUnc = [hRaw.GetBinError(iPt+1) for hRaw in hRawYields]
-        listEffPrompt = [hEffP.GetBinContent(iPt+1) for hEffP in hEffPrompt]
-        listEffPromptUnc = [hEffP.GetBinError(iPt+1) for hEffP in hEffPrompt]
-        listEffFD = [hEffF.GetBinContent(iPt+1) for hEffF in hEffFD]
-        listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD]
+        listRawYield = [hRaw.GetBinContent(iPt+1) for hRaw in hRawYields[:nSets]]
+        listRawYieldUnc = [hRaw.GetBinError(iPt+1) for hRaw in hRawYields[:nSets]]
+        listEffPrompt = [hEffP.GetBinContent(iPt+1) for hEffP in hEffPrompt[:nSets]]
+        listEffPromptUnc = [hEffP.GetBinError(iPt+1) for hEffP in hEffPrompt[:nSets]]
+        listEffFD = [hEffF.GetBinContent(iPt+1) for hEffF in hEffFD[:nSets]]
+        listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD[:nSets]]
 
         if config['linearplot']['enable']:
             fNfdNprompt.append([])

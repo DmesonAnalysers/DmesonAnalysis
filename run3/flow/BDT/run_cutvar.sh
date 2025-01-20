@@ -20,23 +20,28 @@
 #- skip_v2_vs_frac (bool): skip v2 vs FD fraction
 #----------
 
-export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow_d0_test_ml.yml"
-export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/CombPID_3SigCut_AND/AnalysisResults_data_medium.root"
-export output_dir="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/results/medium"
+# export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow.yml"
+export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow.yml"
+export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_0.root \
+    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_1.root \
+    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_2.root \
+    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_3.root \
+    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_4.root"
+export output_dir="/home/wuct/ALICE/local/Results/BDT/full/uncorrelated"
 export cent="k3050"
 export vn_method="sp"
 export res_file="/media/wuct/wulby/ALICE/AnRes/resolution/output_reso/resospk3050_inte.root"
-export suffix="pt2_3_full"
+export suffix="pt2_3"
 
-export spw=False # True or False (skip calculation of weights)
+export spw=True # True or False (skip calculation of weights)
 export smy=False # True or False (skip make yaml)
-export scv=False # True or False (skip cut variation)
-export spm=False # True or False (skip projection for MC)
-export seff=False # True or False (skip efficiency)
-export svn=False # True or False (skip vn extraction)
-export sfcv=False # True or False (skip fraction by cut variation)
-export sddf=False # True or False (skip fraction by data-driven method)
-export sv2vf=False # True or False (skip v2 vs fraction)
+export scv=True # True or False (skip cut variation)
+export spm=True # True or False (skip projection for MC)
+export seff=True # True or False (skip efficiency)
+export svn=True # True or False (skip vn extraction)
+export sfcv=True # True or False (skip fraction by cut variation)
+export sddf=True # True or False (skip fraction by data-driven method)
+export sv2vf=True # True or False (skip v2 vs fraction)
 
 if [ $spw = False ]; then
 	export skip_calc_weights=""

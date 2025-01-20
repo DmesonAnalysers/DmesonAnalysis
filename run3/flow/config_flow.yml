@@ -67,19 +67,34 @@ eff_filename: 'task_output.root'
 
 # cut variation
 cut_variation:
-       bdt_cut: {
-              bkg: { 
-                     min: [0.1],
-                     max: [0.01],
-                     step: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0., 0., 0., 0., 0.]
-                       },
-              sig: { 
-                     min: [0.05],
-                     max: [0.4],
-                     step: [0.05]
-                       },
-       }
-       # please just make sure that the nCutSets is the same as the number of the min to max+step
+       corr_bdt_cut:
+              bkg_max: [0.001, 0.001, 0.001, 0.001, 0.001, 0.002, 0.002, 0.01, 0.08, 0.1]
+              sig: # the max value is not contained in the range
+                     min: [0.1, 0.2, 0.15, 0.15, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+                     max: [0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92, 0.92]
+                     step: [0.15, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04]
+       uncorr_bdt_cut:
+            bkg_max: # max probability for bkg, one for each pt bin
+                - [0.001, 0.001, 0.001, 0.008, 0.0006] # pt 1
+                - [0.001, 0.001, 0.001, 0.008, 0.0006] # pt 2
+                - [0.001, 0.001, 0.001, 0.008, 0.0006] # pt 3
+                - [0.001, 0.001, 0.001, 0.008, 0.0006] # pt 4
+                - [0.001, 0.001, 0.001, 0.008, 0.0006] # pt 5
+                - [0.001, 0.001, 0.001, 0.008, 0.0006] # pt 6
+            sig:
+                - min: [0.00, 0.30, 0.45, 0.70, 0.97] # min pt 1
+                  max: [0.30, 0.45, 0.70, 0.97, 1.00] # max pt 1
+                - min: [0.00, 0.30, 0.45, 0.70, 0.97] # min pt 2
+                  max: [0.30, 0.45, 0.70, 0.97, 1.00] # max pt 2
+                - min: [0.00, 0.30, 0.45, 0.70, 0.97] # min pt 3
+                  max: [0.30, 0.45, 0.70, 0.97, 1.00] # max pt 3
+                - min: [0.00, 0.30, 0.45, 0.70, 0.97] # min pt 4
+                  max: [0.30, 0.45, 0.70, 0.97, 1.00] # max pt 4
+                - min: [0.00, 0.30, 0.45, 0.70, 0.97] # min pt 5
+                  max: [0.30, 0.45, 0.70, 0.97, 1.00] # max pt 5
+                - min: [0.00, 0.30, 0.45, 0.70, 0.97] # min pt 6
+                  max: [0.30, 0.45, 0.70, 0.97, 1.00] # max pt 6
+       
 
 # these configurations are available only for the MC
 #_______________________________________________________________________________________________________________________
@@ -117,7 +132,7 @@ shapes:
 #_______________________________________________________________________________________________________________________
 ## used for the MC in projection_thnsparse.py
 ### for D0, D+, Ds
-MC_filename: [/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/CombPID_noSigCut/AnalysisResults_mc_medium_306505.root]
+MC_filename: [path/to/MCfile.root]
 dirname: hf-task-d0
 sparsenameAll: null
 sparsenamePrompt: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
@@ -125,11 +140,11 @@ sparsenameFD: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
 sparsenameGenPrompt: hSparseAcc # also used in computting pT weights
 sparsenameGenFD: hSparseAcc # also used in computting pT weights
 ### only for D0
-enableRef: true #reflection for D0. 
+enableRef: false #reflection for D0. 
 # if `enableRef` is set to `true`,  and `ReflFile` is empty, then `ReflFile` will be aotumatically filled.
 sparsenameRefl: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
 # if `ReflFile` is filled, then it will use the filled one
-ReflFile: ''
+reflFile: ''
 ### only for Ds
 enableSecPeak: no #no second peak for D+
 sparsenamePromptSecPeak: null
@@ -139,7 +154,7 @@ sparsenameGenFDSecPeak: null
 
 #_______________________________________________________________________________________________________________________
 ## used for compute_frac_cut_var.py 
-histoNameRaw: hRawYieldsTrueSimFit # also ComputeV2vsFDFrac.py
+histoNameRaw: hRawYieldsSimFit # also ComputeV2vsFDFrac.py
 histoNameEffPrompt: hEffPrompt
 histoNameEffFD: hEffFD
 

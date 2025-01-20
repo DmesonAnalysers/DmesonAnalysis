@@ -14,8 +14,10 @@ from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos, get_particle_info # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../..')
 sys.path.append('../..')
-gInterpreter.ProcessLine(f'#include "./invmassfitter/InvMassFitter.cxx"')
-gInterpreter.ProcessLine(f'#include "./invmassfitter/VnVsMassFitter.cxx"')
+import os
+script_dir = os.path.dirname(os.path.realpath(__file__))
+gInterpreter.ProcessLine(f'#include "{script_dir}/invmassfitter/InvMassFitter.cxx"')
+gInterpreter.ProcessLine(f'#include "{script_dir}/invmassfitter/VnVsMassFitter.cxx"')
 from ROOT import InvMassFitter, VnVsMassFitter
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus, RebinHisto
@@ -55,7 +57,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     if not isinstance(massMaxs, list):
         massMaxs = [massMaxs] * len(ptMins)
     useRefl = fitConfig['enableRef']
-    reflFile = fitConfig['reflFile']
+    reflFile = fitConfig['ReflFile']
 
     # read fit configuration
     if not isinstance(fixSigma, list):
@@ -483,7 +485,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                         cSimFit[iCanv].Modified()
                         cSimFit[iCanv].Update()
                 cSimFit[iPt].cd(2)
-                hVnForFit[iPt].GetYaxis().SetRangeUser(-1, 1)
+                hVnForFit[iPt].GetYaxis().SetRangeUser(-0.2, 0.4)
                 hVnForFit[iPt].GetYaxis().SetTitle(f'#it{{v}}_{{{harmonic}}} ({vn_method})')
                 hVnForFit[iPt].GetXaxis().SetRangeUser(massMin, massMax)
                 hVnForFit[iPt].Draw('E')

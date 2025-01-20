@@ -10,7 +10,7 @@ import os
 import sys
 from alive_progress import alive_bar
 sys.path.append('..')
-from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, get_cut_sets
+from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, get_cut_sets_config
 
 def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     with open(config, 'r') as ymlCfgFile:
@@ -28,13 +28,6 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     inv_mass_bins = config['inv_mass_bins']
     axis_bdt_bkg = config['axes']['bdt_bkg']
     axis_bdt_sig = config['axes']['bdt_sig']
-    bkg_cut_mins = config['cut_variation']['bdt_cut']['bkg']['min']
-    bkg_cut_maxs = config['cut_variation']['bdt_cut']['bkg']['max']
-    bkg_cut_steps = config['cut_variation']['bdt_cut']['bkg']['step']
-    sig_cut_mins = config['cut_variation']['bdt_cut']['sig']['min']
-    sig_cut_maxs = config['cut_variation']['bdt_cut']['sig']['max']
-    sig_cut_steps = config['cut_variation']['bdt_cut']['sig']['step']
-    correlated_cuts = config['minimisation']['correlated']
 
     # get resolution
     resoFile = ROOT.TFile(resolution, 'READ')
@@ -43,22 +36,22 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
     histo_reso.SetDirectory(0)
     reso = histo_reso.GetBinContent(1)
 
-    infile = ROOT.TFile(an_res_file, 'READ')
-    thnsparse = infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm')
-    print(infile.GetName())
+    thnsparse_list, thnsparse_selcent_list, thnsparse_selcents = [], [], []
+    for file in an_res_file:
+        infile = ROOT.TFile(file, 'READ')
+        thnsparse_list.append(infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm'))
+        print(infile.GetName())
 
     cent_min = cent_bins[0]
     cent_max = cent_bins[1]
-    thnsparse_selcent = thnsparse.Clone(f'thnsparse_selcent{cent_min}_{cent_max}')
-    thnsparse_selcent.GetAxis(axis_cent).SetRangeUser(cent_min, cent_max)
+    for thnsparse in thnsparse_list:
+        thnsparse_selcent_list.append(thnsparse.Clone(f'thnsparse_selcent{cent_min}_{cent_max}'))
+        thnsparse_selcent_list[-1].GetAxis(axis_cent).SetRangeUser(cent_min, cent_max)
 
     os.makedirs(f'{outputdir}/proj', exist_ok=True)
 
-    nCutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets(pt_mins, pt_maxs, 
-                                                                                    sig_cut_mins, sig_cut_maxs, 
-                                                                                    sig_cut_steps, bkg_cut_mins, 
-                                                                                    bkg_cut_maxs, bkg_cut_steps, 
-                                                                                    correlated_cuts)
+    CutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(config)
+    nCutSets = max(CutSets)
 
     with alive_bar(nCutSets, title='Processing BDT cuts') as bar:
         for iCut in range(nCutSets):
@@ -73,27 +66,46 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
                 outfile.mkdir(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
                 outfile.cd(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
         
-                # apply the cuts
-                inv_mass_bin = inv_mass_bins[ipt]
-                thnsparse_selcent.GetAxis(axis_pt).SetRangeUser(pt_min, pt_max)
-                thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(bkg_cut_lower[ipt][iCut], bkg_cut_upper[ipt][iCut])
-                thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
-                print(f'''pT range: {pt_min} - {pt_max};
+                for iThn, thnsparse_selcent in enumerate(thnsparse_selcent_list):
+                    # apply the cuts
+                    inv_mass_bin = inv_mass_bins[ipt]
+                    thnsparse_selcent.GetAxis(axis_pt).SetRangeUser(pt_min, pt_max)
+                    thnsparse_selcent.GetAxis(axis_bdt_bkg).SetRangeUser(bkg_cut_lower[ipt][iCut], bkg_cut_upper[ipt][iCut])
+                    
+                    hist_fd_temp = thnsparse_selcent.Projection(axis_bdt_sig)
+                    hist_fd_temp.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
+                    
+                    thnsparse_selcent.GetAxis(axis_bdt_sig).SetRangeUser(sig_cut_lower[ipt][iCut], sig_cut_upper[ipt][iCut])
+                    print(f'''pT range: {pt_min} - {pt_max};
 bkg BDT cut: {bkg_cut_lower[ipt][iCut]} - {bkg_cut_upper[ipt][iCut]};
 sig BDT cut: {sig_cut_lower[ipt][iCut]} - {sig_cut_upper[ipt][iCut]}
 ''')
-
-                # project the mass
-                hist_mass = thnsparse_selcent.Projection(axis_mass)
-                hist_mass.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
-                hist_mass.Write()
+                    
+                    hist_mass_temp = thnsparse_selcent.Projection(axis_mass)
+                    hist_mass_temp.SetName(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}_{iThn}')
+                    
+                    if iThn == 0:
+                        hist_fd = hist_fd_temp.Clone(f'hist_fd_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
+                        hist_fd.SetDirectory(0)
+                        hist_fd.Reset()
+                        
+                        hist_mass = hist_mass_temp.Clone(f'hist_mass_cent{cent_min}_{cent_max}_pt{pt_min}_{pt_max}')
+                        hist_mass.SetDirectory(0)
+                        hist_mass.Reset()
+                    
+                    hist_fd.Add(hist_fd_temp)
+                    hist_mass.Add(hist_mass_temp)
+                        
+                    thnsparse_selcents.append(thnsparse_selcent)
 
                 # project the vn
-                hist_vn_sp = get_vn_versus_mass(thnsparse_selcent, inv_mass_bin, axis_mass, axis_sp)
+                hist_vn_sp = get_vn_versus_mass(thnsparse_selcents, inv_mass_bin, axis_mass, axis_sp)
                 hist_vn_sp.SetDirectory(0)
                 hist_vn_sp.SetName(f'hist_vn_sp_pt{pt_min}_{pt_max}')
                 if reso > 0:
                     hist_vn_sp.Scale(1./reso)
+                hist_fd.Write()
+                hist_mass.Write()
                 hist_vn_sp.Write()
 
             outfile.cd()
@@ -106,8 +118,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument("config", metavar="text",
                         default="config.yaml", help="configuration file")
-    parser.add_argument("an_res_file", metavar="text",
-                        default="an_res.root", help="input ROOT file with anres")
+    parser.add_argument("an_res_file", metavar='text', 
+                        nargs='+', help='input ROOT files with anres')
     parser.add_argument("--centrality", "-c", metavar="text",
                         default="k3050", help="centrality class")
     parser.add_argument("--resolution", "-r", metavar="text",
