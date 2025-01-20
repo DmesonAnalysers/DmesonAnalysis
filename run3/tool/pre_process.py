@@ -27,6 +27,7 @@ def cook_thnsparse(thnsparse_list, ptmins, ptmaxs, axestokeep):
     '''
     thnsparses = {}
     for iThn, thnsparse in enumerate(thnsparse_list):
+        #TODO: add possibility to apply cuts for different variables
         for iPt in range(0, len(ptmins)):
             binMin = thnsparse.GetAxis(1).FindBin(ptmins[iPt]*1.00001)
             binMax = thnsparse.GetAxis(1).FindBin(ptmaxs[iPt]*0.99999)

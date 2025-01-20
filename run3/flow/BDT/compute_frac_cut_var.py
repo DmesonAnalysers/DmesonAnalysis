@@ -16,11 +16,11 @@ from flow_analysis_utils import get_cut_sets_config
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, ApplyVariationToList
 
-def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
+def compute_frac_cut_var(config_flow, inputdir, outputdir, suffix, batch=False):
 
     gROOT.SetBatch(batch)
 
-    with open(config, 'r') as ymlCfgFile:
+    with open(config_flow, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
     if os.path.exists(f'{inputdir}/eff'):
@@ -61,7 +61,7 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
 
     hRawYields, hEffPrompt, hEffFD = [], [], []
     
-    CutSets, _, _, _, _ = get_cut_sets_config(config)
+    CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
     nCutSets = max(CutSets)
 
     # load inputs raw yields and efficiencies

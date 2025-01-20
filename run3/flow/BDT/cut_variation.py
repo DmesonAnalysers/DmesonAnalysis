@@ -12,8 +12,8 @@ from alive_progress import alive_bar
 sys.path.append('..')
 from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, get_cut_sets_config
 
-def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
-    with open(config, 'r') as ymlCfgFile:
+def cut_var(config_flow, an_res_file, centrality, resolution, outputdir, suffix):
+    with open(config_flow, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
     pt_mins = config['ptmins']
     pt_maxs = config['ptmaxs']
@@ -50,7 +50,7 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
 
     os.makedirs(f'{outputdir}/proj', exist_ok=True)
 
-    CutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(config)
+    CutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(config_flow)
     nCutSets = max(CutSets)
 
     with alive_bar(nCutSets, title='Processing BDT cuts') as bar:
@@ -64,10 +64,11 @@ def cut_var(config, an_res_file, centrality, resolution, outputdir, suffix):
             for ipt, (pt_min, pt_max) in enumerate(zip(pt_mins, pt_maxs)):
                 # consider the different number of cutsets for each pt bin
                 if iCut >= CutSets[ipt]:
-                    sig_cut_lower[iCut].append(sig_cut_lower[ipt][nCutSets[ipt]-1])
-                    sig_cut_upper[iCut].append(sig_cut_upper[ipt][nCutSets[ipt]-1])
-                    bkg_cut_lower[iCut].append(bkg_cut_lower[ipt][nCutSets[ipt]-1])
-                    bkg_cut_upper[iCut].append(bkg_cut_upper[ipt][nCutSets[ipt]-1])
+                    print(f'CutSet {iCut} not available for pt bin {pt_min} - {pt_max}')
+                    sig_cut_lower[iCut].append(sig_cut_lower[ipt][CutSets[ipt]-1])
+                    sig_cut_upper[iCut].append(sig_cut_upper[ipt][CutSets[ipt]-1])
+                    bkg_cut_lower[iCut].append(bkg_cut_lower[ipt][CutSets[ipt]-1])
+                    bkg_cut_upper[iCut].append(bkg_cut_upper[ipt][CutSets[ipt]-1])
 
                 outfile.mkdir(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
                 outfile.cd(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cut_var(
-        config=args.config,
+        config_flow=args.config,
         an_res_file=args.an_res_file,
         centrality=args.centrality,
         resolution=args.resolution,
