@@ -29,9 +29,9 @@ def set_frame_style(canv, Title, particleTit):
     hFrame.GetXaxis().SetTitleOffset(1.4)
     hFrame.GetYaxis().SetNdivisions(505)
 
-def v2_vs_frac(config, inputdir, outputdir, suffix):
+def v2_vs_frac(config_flow, inputdir, outputdir, suffix):
 
-    with open(config, 'r') as ymlCfgFile:
+    with open(config_flow, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
         
     ptmins = config['ptmins']
@@ -45,7 +45,7 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
     particleTit, _, decay, _ = get_particle_info(particleName)
     
-    CutSets, _, _, _, _ = get_cut_sets_config(config)
+    CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
     nCutSets = max(CutSets)
 
     if os.path.exists(f'{inputdir}/DataDrivenFrac'):
