@@ -139,6 +139,18 @@ def proj_MC(config, cutsetConfig, ptweights, ptweightsB, outputdir, suffix):
                 hVarRefl, hVarReflPrompt, hVarReflFD, hVarPrompt, hVarFD = None, None, None, None, None
                 varName = 'Pt' if iVar == 'Pt' else 'Mass'
                 axisNum = cutVars[iVar]['axisnum']
+
+                if iVar == 'Mass':
+                    massBinMin = sparseReco[refSparse].GetAxis(axisNum).FindBin(config['MassMin'][iPt] * 1.0001)
+                    massBinMax = sparseReco[refSparse].GetAxis(axisNum).FindBin(config['MassMax'][iPt] * 0.9999)
+                    sparseReco[refSparse].GetAxis(axisNum).SetRange(massBinMin, massBinMax)
+                    sparseReco['RecoPrompt'].GetAxis(axisNum).SetRange(massBinMin, massBinMax)
+                    sparseReco['RecoFD'].GetAxis(axisNum).SetRange(massBinMin, massBinMax)
+                    if enableRef:
+                        sparseReco['RecoRefl'].GetAxis(axisNum).SetRange(massBinMin, massBinMax)
+                        sparseReco['RecoReflPrompt'].GetAxis(axisNum).SetRange(massBinMin, massBinMax)
+                        sparseReco['RecoReflFD'].GetAxis(axisNum).SetRange(massBinMin, massBinMax)
+                
                 if 'RecoAll' in sparseReco:
                     hVar = sparseReco['RecoAll'].Projection(axisNum)
                     hVar.SetName(f'h{varName}_{ptLowLabel:.0f}_{ptHighLabel:.0f}')

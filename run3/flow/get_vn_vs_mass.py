@@ -43,6 +43,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     ptBinsArr = np.asarray(ptLims, 'd')
     ptTit = '#it{p}_{T} (GeV/#it{c})'
     fixSigma = fitConfig['FixSigma']
+    fixSigmaFromFile = fitConfig['FixSigmaFromFile']
     fixMean = fitConfig['FixMean']
     harmonic = fitConfig['harmonic']
     particleName = fitConfig['Dmeson']
@@ -374,7 +375,21 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             # Sigma
             vnFitter[iPt].SetInitialGaussianSigma(fitConfig['Sigma'][iPt], 1)
             if fixSigma[iPt]:
+                if fixSigmaFromFile != '':
+                    sigmaFile = TFile.Open(fixSigmaFromFile)
+                    hSigmaFromFile = sigmaFile.Get('hSigmaSimFit')
+                    hSigmaFromFile.SetDirectory(0)
+                    sigmaBin = hSigmaFromFile.FindBin((ptMin+ptMax)/2)
+                    if hSigmaFromFile.GetBinLowEdge(sigmaBin) != ptMin:
+                        print(f'ERROR: bin edges do not match! Exit!')
+                        sys.exit()
+                    print(f'Fixing sigma from file: {hSigmaFromFile.GetBinContent(sigmaBin)}')
+                    vnFitter[iPt].SetInitialGaussianSigma(hSigmaFromFile.GetBinContent(sigmaBin), 1)
+                else:
+                    vnFitter[iPt].SetInitialGaussianSigma(fitConfig['Sigma'][iPt], 1)
                 vnFitter[iPt].FixSigmaFromMassFit()
+            else:
+                vnFitter[iPt].SetInitialGaussianSigma(fitConfig['Sigma'][iPt], 1)
             # nSigma4SB
             if 'NSigma4SB' in fitConfig:
                 vnFitter[iPt].SetNSigmaForVnSB(fitConfig['NSigma4SB'][iPt])
