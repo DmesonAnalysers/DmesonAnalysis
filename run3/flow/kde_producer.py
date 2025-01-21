@@ -41,11 +41,16 @@ def kde_producer(tree_file, var, pt_min, pt_max, flag, outfile='', tree_name='O2
     binned_var_values.Scale(kde_func.GetMaximum() / binned_var_values.GetBinContent(max_bin))
     
     if outfile != '':
+        cOverlap = TCanvas('cOverlap', 'cOverlap', 600, 600)
+        cOverlap.cd()
+        binned_var_values.Draw()
+        kde_func.Draw('same')
         outfile.mkdir(f'KDE_pT_{pt_min}_{pt_max}_flag{flag}')
         outfile.cd(f'KDE_pT_{pt_min}_{pt_max}_flag{flag}')
-        kde_func.Write()
         kde.Write('kde')
         binned_var_values.Write()
+        kde_func.Write()
+        cOverlap.Write()
     
     return kde, kde_func, binned_var_values
 
