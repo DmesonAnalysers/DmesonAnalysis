@@ -7,7 +7,7 @@ import os
 import numpy as np
 from ROOT import TFile, TCanvas, TH1F, TLegend, gROOT  # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins
-### please fill your path of DmeasonAnalysis
+### please fill your path of DmesonAnalysis
 sys.path.append('../../../')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import ComputeEfficiency

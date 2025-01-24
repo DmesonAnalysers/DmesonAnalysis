@@ -15,6 +15,7 @@ from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos, get_particle_info # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../..')
 sys.path.append('../..')
+sys.path.append('/Users/mcosti/Analysis/DmesonAnalysis/')
 import os
 script_dir = os.path.dirname(os.path.realpath(__file__))
 gInterpreter.ProcessLine(f'#include "{script_dir}/invmassfitter/InvMassFitter.cxx"')
