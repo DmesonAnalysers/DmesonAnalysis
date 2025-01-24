@@ -49,10 +49,10 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	PtWeightsBHistoName = 'hPtWeightsFONLLtimesTAMUBcent'
  
 	# copy the configuration file
-	config_suffix = 1
-	while os.path.exists(f'{output_dir}/config_flow_{suffix}_{config_suffix}.yml'):
+	os.makedirs(f'{output_dir}/config_flow', exist_ok=True)
+	while os.path.exists(f'{output_dir}/config_flow/config_flow_{suffix}_{config_suffix}.yml'):
 		config_suffix = config_suffix + 1
-	os.system(f'cp {config_flow} {output_dir}/config_flow_{suffix}_{config_suffix}.yml')
+	os.system(f'cp {config_flow} {output_dir}/config_flow/config_flow_{suffix}_{config_suffix}.yml')
 
 #___________________________________________________________________________________________________________________________
 	# calculate the pT weights
