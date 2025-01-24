@@ -11,7 +11,7 @@ import numpy as np
 import yaml
 from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kGreen, kMagenta, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
-from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos, get_particle_info # pylint: disable=import-error,no-name-in-module
+from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, get_refl_histo, get_particle_info # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../..')
 sys.path.append('../..')
 import os
@@ -209,9 +209,9 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     if useRefl and particleName == 'Dzero':
         if reflFile == '':
             reflFile = inFileName.replace('proj', 'proj_mc')
-            useRefl, hMCSgn, hMCRefl = getD0ReflHistos(reflFile, ptMins, ptMaxs)
+            useRefl, hMCSgn, hMCRefl = get_refl_histo(reflFile, ptMins, ptMaxs)
         else:
-            useRefl, hMCSgn, hMCRefl = getD0ReflHistos(reflFile, ptMins, ptMaxs)
+            useRefl, hMCSgn, hMCRefl = get_refl_histo(reflFile, ptMins, ptMaxs)
     else:
         useRefl = False
 

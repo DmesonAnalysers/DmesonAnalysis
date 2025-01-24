@@ -641,7 +641,7 @@ def check_histo_exists(file, histo_name):
         histo_exists = True
     return histo_exists
 
-def getD0ReflHistos(reflFile, ptMins, ptMaxs):
+def get_refl_histo(reflFile, ptMins, ptMaxs):
     '''
     Method that loads MC histograms for the reflections of D0
 
