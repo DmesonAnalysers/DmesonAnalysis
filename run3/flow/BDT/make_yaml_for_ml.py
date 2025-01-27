@@ -72,21 +72,19 @@ def make_yaml(flow_config, outputdir, suffix):
     ptmins = input['ptmins']
     ptmaxs = input['ptmaxs']
 
-    # cut variation
-    bkg_cut_mins = input['cut_variation']['bdt_cut']['bkg']['min']
-    bkg_cut_maxs = input['cut_variation']['bdt_cut']['bkg']['max']
-    bkg_cut_steps = input['cut_variation']['bdt_cut']['bkg']['step']
-    sig_cut_mins = input['cut_variation']['bdt_cut']['sig']['min']
-    sig_cut_maxs = input['cut_variation']['bdt_cut']['sig']['max']
-    sig_cut_steps = input['cut_variation']['bdt_cut']['sig']['step']
-
     ## safety check
     if len(ptmins) != len(ptmaxs):
         raise ValueError(f'''The number of pt bins({len(ptmins)}, {len(ptmaxs)} are not the same''')
 
     nCutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(flow_config)
+    # print(f"sig_cut_lower: {sig_cut_lower}")
+    # print(f"sig_cut_upper: {sig_cut_upper}")
+    # print(f"bkg_cut_lower: {bkg_cut_lower}")
+    # print(f"bkg_cut_upper: {bkg_cut_upper}")
     
     maxCutSets = max(nCutSets)
+    # print(f"nCutSets: {nCutSets}")
+    # print(f"maxCutSets: {maxCutSets}")
     sig_cut_lower_file, sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file = {}, {}, {}, {}
     for iCut in range(maxCutSets):
         sig_cut_lower_file[iCut], sig_cut_upper_file[iCut], bkg_cut_lower_file[iCut], bkg_cut_upper_file[iCut] = [], [], [], []
@@ -103,15 +101,23 @@ def make_yaml(flow_config, outputdir, suffix):
                 bkg_cut_lower_file[iCut].append(bkg_cut_lower[iPt][nCutSets[iPt]-1])
                 bkg_cut_upper_file[iCut].append(bkg_cut_upper[iPt][nCutSets[iPt]-1])
 
-    sig_cut_lower_file = {i: [sig_cut_lower[ipt][i] for ipt in range(len(ptmins))] for i in range(nCutSets)}
-    sig_cut_upper_file = {i: [sig_cut_upper[ipt][i] for ipt in range(len(ptmins))] for i in range(nCutSets)}
-    bkg_cut_lower_file = {i: [bkg_cut_lower[ipt][i] for ipt in range(len(ptmins))] for i in range(nCutSets)}
-    bkg_cut_upper_file = {i: [bkg_cut_upper[ipt][i] for ipt in range(len(ptmins))] for i in range(nCutSets)}
+    # print(f"sig_cut_lower_file: {sig_cut_lower_file}")
+    # print(f"sig_cut_upper_file: {sig_cut_upper_file}")
+    # print(f"bkg_cut_lower_file: {bkg_cut_lower_file}")
+    # print(f"bkg_cut_upper_file: {bkg_cut_upper_file}")
+    # sig_cut_lower_file = {i: [sig_cut_lower[ipt][i] for ipt in range(len(ptmins))] for i in range(0, maxCutSets-1)}
+    # sig_cut_upper_file = {i: [sig_cut_upper[ipt][i] for ipt in range(len(ptmins))] for i in range(0, maxCutSets-1)}
+    # bkg_cut_lower_file = {i: [bkg_cut_lower[ipt][i] for ipt in range(len(ptmins))] for i in range(0, maxCutSets-1)}
+    # bkg_cut_upper_file = {i: [bkg_cut_upper[ipt][i] for ipt in range(len(ptmins))] for i in range(0, maxCutSets-1)}
 
-    combinations = make_combination(ptmins, ptmaxs, nCutSets, sig_cut_lower_file, 
+    # print(f"sig_cut_lower_file: {sig_cut_lower_file}")
+    # print(f"sig_cut_upper_file: {sig_cut_upper_file}")
+    # print(f"bkg_cut_lower_file: {bkg_cut_lower_file}")
+    # print(f"bkg_cut_upper_file: {bkg_cut_upper_file}")
+    combinations = make_combination(ptmins, ptmaxs, maxCutSets, sig_cut_lower_file, 
                                     sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file)
 
-    for iFile in range(nCutSets):
+    for iFile in range(maxCutSets):
         print(f'''For cutset {iFile}:
         ptmin: {ptmins}
         ptmax: {ptmaxs}
@@ -130,10 +136,9 @@ def make_yaml(flow_config, outputdir, suffix):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
     parser.add_argument('flow_config', metavar='text', default='config_flow.yml')
+    parser.add_argument('--preprocessed', action='store_true', help='Flag to indicate preprocessing of the sparses')
     parser.add_argument("--outputdir", "-o", metavar="text", default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text", default="", help="suffix for output files")
     args = parser.parse_args()
 
-    make_yaml(args.flow_config,
-                args.outputdir,
-                args.suffix)
+    make_yaml(args.flow_config, args.outputdir, args.suffix)

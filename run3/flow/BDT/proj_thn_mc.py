@@ -13,23 +13,41 @@ import os
 from ROOT import gROOT, TFile
 from alive_progress import alive_bar
 from scipy.interpolate import InterpolatedUnivariateSpline
-from sparse_dicts import get_sparses
+from sparse_dicts import get_sparses 
 sys.path.append('..')
 from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins
 
 ### please fill your path of DmesonAnalysis
 sys.path.append('../../..')
 
-def proj_data(sparseFlow, axes, inv_mass_bins, reso):
-    hist_mass = sparseFlow.Projection(axes['Flow']['Mass'])
-    hist_mass.Write(f'hist_mass_proj')
+def proj_data(sparse_flow, axes, inv_mass_bins, reso):
 
-    # project the vn
-    hist_vn_sp = get_vn_versus_mass(sparseFlow, inv_mass_bins, axes['Flow']['Mass'], axes['Flow']['sp'])
-    hist_vn_sp.SetDirectory(0)
-    if reso > 0:
-        hist_vn_sp.Scale(1./reso)
-    print(f"hist_vn_sp.Integral(): {hist_vn_sp.Integral()}")
+    print(f"type(sparse_flow): {type(sparse_flow)}")
+    if isinstance(sparse_flow, dict):
+        for isparse, (key, sparse) in enumerate(sparse_flow.items()):
+            hist_mass_temp = sparse.Projection(axes['Flow']['Mass'])
+            hist_mass_temp.SetName(f'hist_mass_proj_{isparse}')
+            hist_mass_temp.SetDirectory(0)
+
+            if isparse == 0:
+                hist_mass = hist_mass_temp.Clone('hist_mass_proj')
+                hist_mass.SetDirectory(0)
+                hist_mass.Reset()
+
+            hist_mass.Add(hist_mass_temp)
+
+        hist_vn_sp = get_vn_versus_mass(list(sparse_flow.values()), inv_mass_bins, axes['Flow']['Mass'], axes['Flow']['sp'])
+        hist_vn_sp.SetDirectory(0)
+        if reso > 0:
+            hist_vn_sp.Scale(1./reso)
+    else:
+        hist_mass = sparse_flow.Projection(axes['Flow']['Mass'])
+        hist_vn_sp = get_vn_versus_mass(sparse_flow, inv_mass_bins, axes['Flow']['Mass'], axes['Flow']['sp'])
+        hist_vn_sp.SetDirectory(0)
+        if reso > 0:
+            hist_vn_sp.Scale(1./reso)
+
+    hist_mass.Write(f'hist_mass_proj')
     hist_vn_sp.Write(f'hist_vn_sp_proj')
 
 def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB):
@@ -256,6 +274,8 @@ if __name__ == "__main__":
                         default="config.yaml", help="flow configuration file")
     parser.add_argument('cutsetConfig', metavar='text',
                         default='cutsetConfig.yaml', help='cutset configuration file')
+    parser.add_argument('--preprocessed', action='store_true', 
+                        help='Determines whether the sparses are pre-processed')
     parser.add_argument("--ptweights", "-w", metavar="text", nargs=2, required=False,
                         default=[], help="path to pt weights file and histogram name")
     parser.add_argument("--ptweightsB", "-wb", metavar="text", nargs=2, required=False,
@@ -272,7 +292,6 @@ if __name__ == "__main__":
 
     with open(args.config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
-
 
     os.makedirs(f'{args.outputdir}/proj', exist_ok=True)
     outfile = ROOT.TFile(f'{args.outputdir}/proj/proj_{args.suffix}.root', 'RECREATE')
@@ -295,20 +314,25 @@ if __name__ == "__main__":
         histo_reso.SetDirectory(0)
         reso = histo_reso.GetBinContent(1)
     
+    outfile.cd()
+    histo_reso.Write()
     outfile.mkdir(outfile_dir)
     outfile.cd(outfile_dir)
-    histo_reso.Write()
     histo_cent.Write()
     resofile.Close()
     infilemc.Close()
-    
-    # quit()
 
     # load thnsparse
-    sparseFlow, sparsesReco, sparsesGen, axes = get_sparses(config)
+    print(f"args.preprocessed: {args.preprocessed}")
+    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, args.preprocessed, f'{args.outputdir}/pre/AnRes')
+
     cent, (cent_min, cent_max) = get_centrality_bins(args.centrality)
-    sparseFlow.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
+    if not args.preprocessed:
+        for key, iSparse in sparsesFlow.items():
+            iSparse.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
     for key, iSparse in sparsesGen.items():
+        iSparse.GetAxis(axes[key]['cent']).SetRangeUser(cent_min, cent_max)
+    for key, iSparse in sparsesReco.items():
         iSparse.GetAxis(axes[key]['cent']).SetRangeUser(cent_min, cent_max)
 
     with open(args.cutsetConfig, 'r') as ymlCutSetFile:
@@ -324,10 +348,25 @@ if __name__ == "__main__":
             print(f'Projecting distributions for {ptMin:.1f} < pT < {ptMax:.1f} GeV/c')
             ptLowLabel = ptMin * 10
             ptHighLabel = ptMax * 10
+            outfile.mkdir(f'cent_bins{cent}/pt_bins{int(ptLowLabel)}_{int(ptHighLabel)}')
+            outfile.cd(f'cent_bins{cent}/pt_bins{int(ptLowLabel)}_{int(ptHighLabel)}')
+    
+            print(f"sparsesFlow: {sparsesFlow}")
+            if args.preprocessed:
+                print('PREPROCESSED')
+                sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetAxis(axes['Flow']['score_FD']).SetRangeUser(cutVars['score_FD']['min'][iPt], cutVars['score_FD']['max'][iPt])
+                proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], axes, config['inv_mass_bins'][iPt], reso)
+                print(f"Projected data!")
             
-            ## apply cuts
+            if not args.preprocessed:
+                print('NOT PREPROCESSED')
+                for iSparse, (key, sparse) in enumerate(sparsesFlow.items()):
+                    for iVar in cutVars:
+                        sparse.GetAxis(axes['Flow'][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
+                proj_data(sparsesFlow, axes, config['inv_mass_bins'][iPt], reso)
+                print(f"Projected data!")
+            
             for iVar in cutVars:
-                sparseFlow.GetAxis(axes['Flow'][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
                 for key, iSparse in sparsesReco.items():
                     iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
                 if iVar == 'pt':
@@ -336,11 +375,6 @@ if __name__ == "__main__":
                 if iVar == 'score_FD' or iVar == 'score_bkg':
                     print(f'{iVar}: {cutVars[iVar]["min"][iPt]} < {iVar} < {cutVars[iVar]["max"][iPt]}')
 
-            outfile.mkdir(f'cent_bins{cent}/pt_bins{ptLowLabel}_{ptHighLabel}')
-            outfile.cd(f'cent_bins{cent}/pt_bins{ptLowLabel}_{ptHighLabel}')
-            proj_data(sparseFlow, axes, config['inv_mass_bins'][iPt], reso)
-            print(f"Projected data!")
-            # outfile.cd()
             proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
             print(f"Projected mc reco!")
             proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)

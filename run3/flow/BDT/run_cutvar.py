@@ -19,7 +19,8 @@ def check_dir(dir):
 
 	return
 
-def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffix, vn_method, 
+def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffix, vn_method, use_preprocessed, 
+						   skip_preprocess=False,
 						   skip_calc_weights=False,
 						   skip_make_yaml=False, 
 						   skip_cut_variation=False,
@@ -54,6 +55,21 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		config_suffix = config_suffix + 1
 	os.system(f'cp {config_flow} {output_dir}/config_flow_{suffix}_{config_suffix}.yml')
 
+	print('CIAOOOOO')
+#___________________________________________________________________________________________________________________________
+	# preprocess the AnalysisResults.root files
+	print(f"skip_preprocess: {skip_preprocess}")
+	if not skip_preprocess:
+		use_preprocessed = True
+		check_dir(f"{output_dir}/proj")
+		PreProcessPath = "../../tool/pre_process.py"
+
+		print(f"\033[32mpython3 {PreProcessPath} {config_flow} --pre -s {suffix}\033[0m")
+		os.system(f"python3 {PreProcessPath} {config_flow} --pre -s {suffix}")
+	else:
+		print("\033[33mWARNING: Pre-process will not be performed\033[0m")
+	print('CIAOOOOO2')
+
 #___________________________________________________________________________________________________________________________
 	# calculate the pT weights
 	if not skip_calc_weights:
@@ -70,9 +86,10 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	if not skip_make_yaml:
 		check_dir(f"{output_dir}/config")
 		MakeyamlPath = './make_yaml_for_ml.py'
+		pre_process = "--preprocessed" if not skip_preprocess else ""
 
-		print(f"\033[32mpython3 {MakeyamlPath} {config_flow} -o {output_dir} -s {suffix}\033[0m")
-		os.system(f"python3 {MakeyamlPath} {config_flow} -o {output_dir} -s {suffix}")
+		print(f"\033[32mpython3 {MakeyamlPath} {config_flow} {pre_process} -o {output_dir} -s {suffix}\033[0m")
+		os.system(f"python3 {MakeyamlPath} {config_flow} {pre_process} -o {output_dir} -s {suffix}")
 	else:
 		print("\033[33mWARNING: Make yaml will not be performed\033[0m")
 	#TODO: 1.keep the yaml file for the user to check 2.modify the proj_thn_mc 3.use make_combination in proj_thn_mc.py
@@ -82,22 +99,22 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	if not skip_proj_mc:
 		check_dir(f"{output_dir}/proj")
 		ProjMcPath = "./proj_thn_mc.py"
-		
+		pre_process = "--preprocessed" if use_preprocessed else ""
 		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root'):
 			for i in range(nCutSets):
 				iCutSets = f"{i:02d}"
-				print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
-				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+				print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
+				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
 		else:
 			for i in range(nCutSets):
 				iCutSets = f"{i:02d}"
 				print(
-					f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml "
+					f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} "
 					f"-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent "
 					f"-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent "
 					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} \033[0m"
 				)
-				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml \
+				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} \
 						-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent \
 						-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
 
@@ -117,7 +134,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 			os.system(f"python3 {EffPath} {config_flow} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -c {cent} -o {output_dir} -s {suffix}_{iCutSets} --batch")
 	else:
 		print("\033[33mWARNING: Efficiency will not be performed\033[0m")
-	quit()
+	# quit()
 
 #___________________________________________________________________________________________________________________________
 	# do the simulation fit to get the raw yields
@@ -178,6 +195,8 @@ if __name__ == "__main__":
 	parser.add_argument("--outputdir", "-o", metavar="text", default=".", help="output directory")
 	parser.add_argument("--suffix", "-s", metavar="text", default="", help="suffix for output files")
 	parser.add_argument("--vn_method", "-vn", metavar="text", default="sp", help="vn technique (sp, ep, deltaphi)")
+	parser.add_argument("--preprocessed", "-prep", action="store_true", help="use preprocessed input")
+	parser.add_argument("--skip_pre_process", "-sprep", action="store_true", help="skip preprocessing of AnalysisResults files")
 	parser.add_argument("--skip_calc_weights", "-scw", action="store_true", help="skip calculation of weights")
 	parser.add_argument("--skip_make_yaml", "-smy", action="store_true", help="skip make yaml")
 	parser.add_argument("--skip_cut_variation", "-scv", action="store_true", help="skip cut variation")
@@ -189,7 +208,10 @@ if __name__ == "__main__":
 	parser.add_argument("--skip_v2_vs_frac", "-sv2fd", action="store_true", help="skip v2 vs FD fraction")
 	args = parser.parse_args()
 
-	run_full_cut_variation(args.flow_config, args.anres_dir, args.centrality, args.resolution, args.outputdir, args.suffix, args.vn_method, 
+	print(f"args.skip_pre_process: {args.skip_pre_process}")
+	print(f"args.skip_pre_process: {args.skip_calc_weights}")
+	run_full_cut_variation(args.flow_config, args.anres_dir, args.centrality, args.resolution, args.outputdir, args.suffix, args.vn_method, args.preprocessed, 
+						args.skip_pre_process,
 						args.skip_calc_weights,
 						args.skip_make_yaml, 
 						args.skip_cut_variation, 

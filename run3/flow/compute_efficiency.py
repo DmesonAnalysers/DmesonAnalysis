@@ -24,13 +24,14 @@ def check_cent_sel(charm_hadron, centmin, centmax, infile):
 
     nprongs = 2 if charm_hadron == 'Dzero' else 3
     cent_hist = infile.Get(f'hf-candidate-creator-{nprongs}prong/hSelCollisionsCent')
-    for i in range(cent_hist.GetNbinsX()):
-        if not (cent_hist.GetBinContent(centmin + 1) > 0 \
-            and cent_hist.GetBinContent(centmin) == 0 \
-            and cent_hist.GetBinContent(centmax) > 0 \
-            and cent_hist.GetBinContent(centmax + 1) == 0):
-            print(f'\033[91mFATAL: Invalid centrality class: [{centmin}-{centmax}]. Exit!\033[0m')
-            sys.exit(1)
+    if cent_hist.GetBinContent(centmin + 1) == 0:
+        print(f'\033[93mWARNING: No entries in the first bin for centrality class: [{centmin}-{centmax}]!\033[0m')
+    if cent_hist.GetBinContent(centmin) != 0:
+        print(f'\033[93mWARNING: Non-empty bins for cent<{centmin}!\033[0m')
+    if cent_hist.GetBinContent(centmax) == 0:
+        print(f'\033[93mWARNING: No entries in the last bin for centrality class: [{centmin}-{centmax}]!\033[0m')
+    if cent_hist.GetBinContent(centmax + 1) != 0:
+        print(f'\033[93mWARNING: Non-empty bins for cent>{centmax}!\033[0m')
 
 def compute_eff(config_file, centclass, inputFile, outputdir, suffix):
     '''
@@ -202,10 +203,11 @@ def compute_eff_thns(config_file, centclass, inputFile, outputdir, suffix, batch
     for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         ## get inpput histograms
         ## whether need to minus reflection from prompt or FD?
-        hRecoPrompt.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins%0.f_%0.f/hPromptPt' % (ptMin*10, ptMax*10)))
-        hRecoFD.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins%0.f_%0.f/hFDPt' % (ptMin*10, ptMax*10)))
-        hGenPrompt.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins%0.f_%0.f/hPromptGenPt' % (ptMin*10, ptMax*10)))
-        hGenFD.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins%0.f_%0.f/hFDGenPt' % (ptMin*10, ptMax*10)))
+        print(f"infile: {infile}")
+        hRecoPrompt.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hPromptPt'))
+        hRecoFD.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hFDPt'))
+        hGenPrompt.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hPromptGenPt'))
+        hGenFD.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hFDGenPt'))
 
         ## load the values
         nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (ctypes.c_double() for _ in range(4))
