@@ -20,6 +20,8 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
 
     gROOT.SetBatch(batch)
 
+    CutSets, _, _, _, _ = get_cut_sets_config(config)
+    nCutSets = max(CutSets)
     with open(config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
@@ -60,9 +62,6 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     applyEffVarToFD = config['minimisation']['applyEffVariation']['feeddown']
 
     hRawYields, hEffPrompt, hEffFD = [], [], []
-    
-    CutSets, _, _, _, _ = get_cut_sets_config(config)
-    nCutSets = max(CutSets)
 
     # load inputs raw yields and efficiencies
     hCrossSecPrompt, hCrossSecFD = [], []

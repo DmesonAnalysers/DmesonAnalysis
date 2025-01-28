@@ -46,35 +46,6 @@ def cook_thnsparse(thnsparse_list, ptmins, ptmaxs, axestokeep):
                 sparses[iPt].Add(thn_proj)
     return sparses
 
-# def rebin_sparse(sparse, ipt, axvars, config):
-    # if 'Mass' in axvars:
-    #     bin_diffs = np.round(np.diff(config['inv_mass_bins'][ipt]), 2)
-    #     print(f"bin_diffs: {bin_diffs}")
-    #     min_diff = min(bin_diffs)
-    #     print(f"min_diff: {min_diff}")
-    #     divided_diffs = bin_diffs / min_diff
-    #     print(f"divided_diffs: {divided_diffs}")
-    #     are_all_integers = np.all(divided_diffs == np.floor(divided_diffs))
-    #     print(f"are_all_integers: {are_all_integers}")
-    #     rebin_factor = min_diff / sparse.GetAxis(0).GetBinWidth(1)
-    #     iteration = 0
-    #     while rebin_factor != np.floor(rebin_factor) or iteration<=5:
-    #         iteration = iteration+1
-    #         rebin_factor = min_diff / (2*iteration*sparse.GetAxis(0).GetBinWidth(1))
-    #         print(f"sparse.GetAxis(0).GetBinWidth(1): {sparse.GetAxis(0).GetBinWidth(1)}")
-    #         print(f"rebin_factor: {rebin_factor}")
-            # floored_rebin = np.floor(rebin_factor)
-            # print(f"floored_rebin: {floored_rebin}")
-    # if 'score_FD' in axvars:
-    #     if config['minimisation']['correlated']:
-    #         bin_width = config['cut_variation']['corr_bdt_cut']['sig']['step'][ipt]
-    #         rebin_fd = bin_width / (sparse.GetAxis(2).GetBinWidth(1))
-    #         if rebin_fd == np.floor(rebin_fd):
-    #             rebinned_sparse = sparse.Rebin(array.array('i', [4,1,int(rebin_fd)]))
-    #         print(f"sparse.GetNbins(): {sparse.GetNbins()}")
-    #         print(f"rebinned_sparse.GetNbins(): {rebinned_sparse.GetNbins()}")
-    # return rebinned_sparse
-
 def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir):
     
     # Load the ThnSparse
@@ -95,12 +66,9 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
         
         # add possibility to apply cuts for different variables
         for iThn, (sparse_key, sparse) in enumerate(thnsparse_list.items()):
-            print(sparse)
             sparse.GetAxis(sparse_axes['Flow']['Pt']).SetRangeUser(ptmin, ptmax)
             sparse.GetAxis(sparse_axes['Flow']['cent']).SetRangeUser(centmin, centmax)
             sparse.GetAxis(sparse_axes['Flow']['score_bkg']).SetRangeUser(0, bkg_max_cut)
-            
-            print(axestokeep)
             thn_proj = sparse.Projection(len(axestokeep), array.array('i', [sparse_axes['Flow'][axtokeep] for axtokeep in axestokeep]), 'O')
             thn_proj.SetName(sparse.GetName())
             
@@ -206,107 +174,3 @@ if __name__ == "__main__":
         
         # you have to know the sigma from the differet prompt enhance samples is stable first
         get_sigma(preFiles, args.config_pre, centrality, resolution, outputDir, skip_projection=args.skip_projection)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-def rebin_sparses(config, ptmins, ptmaxs, varstokeep, outputDir):
-    
-    # Load the ThnSparse
-    thnsparse_list, _, _, axes_dict = get_sparses(config, True, False)
-
-    def process_pt_bin(iPt, ptmin, ptmax, centmax, centmin, bkg_max_cut, thnsparse_list, axes, axestokeep, axesbins, outputDir):
-        pre_thnsparse = None
-        # add posibility to apply cuts for different variables
-        print(f"CIAOOO: {thnsparse_list}")
-        print(f"CIAOOO: {axes}")
-        bin_edges_arrays = [axbin for axbin in axesbins]
-        print(f"bin_edges_arrays: {bin_edges_arrays}")
-        
-        
-        list_ranges = [list(range(1,len(bin))) for bin in axesbins]
-        result = list(itertools.product(*list_ranges))
-        n_dims = len(bin_edges_arrays)  # Number of dimensions
-        n_bins = [len(edges) - 1 for edges in bin_edges_arrays]  # Number of bins per dimension
-        xmin = [min(edges) for edges in bin_edges_arrays]
-        xmax = [max(edges) for edges in bin_edges_arrays]
-        print(f"list_ranges: {list_ranges}")
-        # print(result)
-        print(f"n_bins: {n_bins}")
-        print(f"n_dims: {n_dims}")
-        print(f"array.array('d', xmin): {array.array('d', xmin)}")
-        print(f"array.array('d', xmax): {array.array('d', xmax)}")
-        sparse_refilled = ROOT.THnSparseD(
-            "sparse_refilled", "Sparse Refilled",
-            n_dims,
-            array.array('i', n_bins),  # Number of bins per dimension
-            array.array('d', xmin),   # Minimum values
-            array.array('d', xmax)    # Maximum values
-        )
-
-        # Step 4: Set custom bin edges for each dimension
-        for dim in range(n_dims):
-            axis = sparse_refilled.GetAxis(dim)
-            axis.Set(len(bin_edges_arrays[dim]) - 1, array.array('d', bin_edges_arrays[dim]))
-
-
-
-
-        for iThn, (sparse_key, sparse) in enumerate(thnsparse_list.items()):
-            print(f"thnsparse: {sparse}")
-
-
-            sparse.GetAxis(axes['Flow']['Pt']).SetRangeUser(ptmin, ptmax)
-            sparse.GetAxis(axes['Flow']['cent']).SetRangeUser(centmin, centmax)
-            sparse.GetAxis(axes['Flow']['score_bkg']).SetRangeUser(0, bkg_max_cut)
-
-            for ibin in result:
-                print("\n")
-                print(f"ibin: {ibin}")
-                for iax, ax in enumerate(axestokeep):
-                    # print(f"bin_edges_arrays[idim]: {bin_edges_arrays[idim]}")
-                    # print(f"bin_edges_arrays[idim][ibin[idim]-1]: {bin_edges_arrays[idim][ibin[idim]-1]}")
-                    # print(f"bin_edges_arrays[idim][ibin[idim]]: {bin_edges_arrays[idim][ibin[idim]]}")
-                    sparse.GetAxis(axes_dict['Flow'][ax]).SetRangeUser(bin_edges_arrays[iax][ibin[iax]-1], bin_edges_arrays[iax][ibin[iax]])
-                
-                # print(f"sparse.Projection(0).Integral(): {sparse.Projection(0).Integral()}")
-                sparse_refilled.SetBinContent(np.asarray(ibin, 'i'), sparse.Projection(0).Integral())
-
-
-            thn_proj = sparse.Projection(len(axestokeep), array.array('i', axes['Flow'][varstokeep]), 'O')
-            thn_proj.SetName(sparse.GetName())
-            
-            if iThn == 0:
-                pre_sparse = thn_proj.Clone()
-            else:
-                pre_sparse.Add(thn_proj)
-        
-        os.makedirs(f'{outputDir}/pre/AnRes', exist_ok=True)
-        outFile = ROOT.TFile(f'{outputDir}/pre/AnRes/AnalysisResults_pt{iPt}.root', 'RECREATE')
-        outFile.mkdir('hf-task-flow-charm-hadrons')
-        outFile.cd('hf-task-flow-charm-hadrons')
-        pre_sparse.Write()
-        outFile.Close()
-        
-        del pre_sparse
-        
-        print(f'Finished processing pT bin {ptmin} - {ptmax}')
-   
-    mass_pt_bins = config['inv_mass_bins']
-    bkg_maxs = config['cut_variation']['corr_bdt_cut']['bkg_max']
-    sig_cuts = config['cut_variation']['corr_bdt_cut']['sig']
-    fd_bins = [np.arange(sig_cuts['min'][iPt], sig_cuts['max'][iPt], sig_cuts['step'][iPt]).tolist() for iPt in range(len(ptmins))] + [1]
-    sp_bins = np.arange(config['sp_bins']['min'], config['sp_bins']['max'], config['sp_bins']['step']).tolist()
-    new_bins = [[mass_bin, fd_bin, sp_bins] for mass_bin, fd_bin in zip(mass_pt_bins, fd_bins)]
-    
-    max_workers = 6
-    # Loop over each pt bin in parallel
-    with concurrent.futures.ThreadPoolExecutor(max_workers) as executor:
-        tasks = [executor.submit(process_pt_bin, iPt, ptmin, ptmax, 30, 40, bkg_maxs[iPt], thnsparse_list, axes_dict, varstokeep, new_bins[iPt], outputDir) for iPt, (ptmin, ptmax) in enumerate(zip(ptmins, ptmaxs))]
-        for task in concurrent.futures.as_completed(tasks):
-            task.result()

@@ -31,6 +31,8 @@ def set_frame_style(canv, Title, particleTit):
 
 def v2_vs_frac(config, inputdir, outputdir, suffix):
 
+    CutSets, _, _, _, _ = get_cut_sets_config(config)
+    nCutSets = max(CutSets)
     with open(config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
         
@@ -45,8 +47,6 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
     particleTit, _, decay, _ = get_particle_info(particleName)
     
-    CutSets, _, _, _, _ = get_cut_sets_config(config)
-    nCutSets = max(CutSets)
 
     if os.path.exists(f'{inputdir}/DataDrivenFrac'):
         fracFiles = [f'{inputdir}/DataDrivenFrac/{file}'
