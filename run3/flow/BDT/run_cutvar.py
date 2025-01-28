@@ -103,15 +103,23 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		else:
 			for i in range(nCutSets):
 				iCutSets = f"{i:02d}"
+				# TODO: load the path and bool from the config file
+				given_weights = True
+				if given_weights:
+					ptweightsPath = '/home/wuct/ALICE/local/Results/BDT/k3050/full/uncorrelated/cutvar_pt1_4/ptweights/pTweight_pt1_4.root'
+				else:
+					ptweightsPath = f'{output_dir}/ptweights/pTweight_{suffix}.root'
 				print(
 					f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml "
-					f"-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent "
-					f"-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent "
+					f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
+					f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
 					f"-o {output_dir} -s {suffix}_{iCutSets} \033[0m"
 				)
-				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml \
-						-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent \
-						-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent -o {output_dir} -s {suffix}_{iCutSets}")
+				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml "
+						f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
+						f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
+						f"-o {output_dir} -s {suffix}_{iCutSets}")
+				
 
 	else:
 		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")							
