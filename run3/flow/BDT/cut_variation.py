@@ -31,7 +31,7 @@ def cut_var(config_flow, an_res_file, centrality, resolution, outputdir, suffix)
 
     # get resolution
     resoFile = ROOT.TFile(resolution, 'READ')
-    histo_reso = resoFile.Get(f'{det_A}_{det_B}_{det_C}/histo_reso')
+    histo_reso = resoFile.Get(f'{det_A}_{det_B}_{det_C}/histo_reso_delta_cent')
     histo_reso.SetName('hist_reso')
     histo_reso.SetDirectory(0)
     reso = histo_reso.GetBinContent(1)
