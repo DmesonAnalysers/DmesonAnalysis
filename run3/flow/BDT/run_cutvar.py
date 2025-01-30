@@ -32,8 +32,8 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 
 #___________________________________________________________________________________________________________________________
 	# Load and copy the configuration file
-	# with open(config_flow, 'r') as cfgFlow:
-	# 	config = yaml.safe_load(cfgFlow)
+	with open(config_flow, 'r') as cfgFlow:
+		config = yaml.safe_load(cfgFlow)
 	
 	CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
 	nCutSets = max(CutSets)
@@ -45,10 +45,14 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	os.system(f"mkdir -p {output_dir}")
 
 	# the pT weights histograms
-	PtWeightsDHistoName = 'hPtWeightsFONLLtimesTAMUDcent'
-	PtWeightsBHistoName = 'hPtWeightsFONLLtimesTAMUBcent'
- 
+	if 'ptWeights_path' in config and config['ptWeights_path'] is not None:
+		given_ptweights = True
+		given_ptWeightsPath = config['ptWeights_path']
+	else:
+		given_ptweights = False
+  
 	# copy the configuration file
+	config_suffix = 0
 	os.makedirs(f'{output_dir}/config_flow', exist_ok=True)
 	while os.path.exists(f'{output_dir}/config_flow/config_flow_{suffix}_{config_suffix}.yml'):
 		config_suffix = config_suffix + 1
@@ -95,7 +99,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		check_dir(f"{output_dir}/proj_mc")
 		ProjMcPath = "./proj_thn_mc.py"
 		
-		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root'):
+		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root') and not given_ptweights:
 			for i in range(nCutSets):
 				iCutSets = f"{i:02d}"
 				print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
@@ -103,12 +107,12 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		else:
 			for i in range(nCutSets):
 				iCutSets = f"{i:02d}"
-				# TODO: load the path and bool from the config file
-				given_weights = True
-				if given_weights:
-					ptweightsPath = '/home/wuct/ALICE/local/Results/BDT/k3050/full/uncorrelated/cutvar_pt1_4/ptweights/pTweight_pt1_4.root'
+
+				if given_ptweights:
+					ptweightsPath = given_ptWeightsPath
 				else:
 					ptweightsPath = f'{output_dir}/ptweights/pTweight_{suffix}.root'
+     
 				print(
 					f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml "
 					f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
@@ -119,8 +123,6 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 						f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
 						f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
 						f"-o {output_dir} -s {suffix}_{iCutSets}")
-				
-
 	else:
 		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")							
 
