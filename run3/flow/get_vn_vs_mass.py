@@ -373,7 +373,6 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             if fixMean[iPt]:
                 vnFitter[iPt].FixMeanFromMassFit()
             # Sigma
-            vnFitter[iPt].SetInitialGaussianSigma(fitConfig['Sigma'][iPt], 1)
             if fixSigma[iPt]:
                 if fixSigmaFromFile != '':
                     sigmaFile = TFile.Open(fixSigmaFromFile)

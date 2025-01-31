@@ -265,6 +265,7 @@ def proj_MC(config, cutsetConfig, ptweights, ptweightsB, outputdir, suffix):
             # end of apply pt weights for reconstruction level
 
             # apply pt weights for generation level
+            ## pt bins
             binGenMin = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMin*1.0001)
             binGenMax = sparseGen['GenPrompt'].GetAxis(0).FindBin(ptMax*0.9999)
             if particleName == 'Dzero':
