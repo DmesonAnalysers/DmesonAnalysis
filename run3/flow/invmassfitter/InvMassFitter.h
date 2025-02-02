@@ -102,9 +102,9 @@ class InvMassFitter : public TNamed {
   void SetTemplates(std::vector<TF1> templates, std::vector<Double_t> initweights,
                     std::vector<Double_t> minweights, std::vector<Double_t> maxweights) {
     fTemplatesFuncts=templates;
-    fInitWeights=initweights;
-    fWeightsLowerLims=minweights;
-    fWeightsUpperLims=maxweights;
+    fMassInitWeights=initweights;
+    fMassWeightsLowerLims=minweights;
+    fMassWeightsUpperLims=maxweights;
     fTemplates=kTRUE;
   }
 
@@ -258,9 +258,9 @@ class InvMassFitter : public TNamed {
   TF1*                  fTemplFunc;            /// fit function for templates
   Bool_t                fTemplates;            /// flag use/not use templates fit functions
   Int_t                 fNParsTempls;          /// fit parameters in templates fit function
-  std::vector<Double_t> fWeightsUpperLims;     /// upper limit of the templates' weights
-  std::vector<Double_t> fWeightsLowerLims;     /// lower limit of the templates' weights
-  std::vector<Double_t> fInitWeights;          /// init value of the templates' weights
+  std::vector<Double_t> fMassWeightsUpperLims;     /// upper limit of the templates' weights
+  std::vector<Double_t> fMassWeightsLowerLims;     /// lower limit of the templates' weights
+  std::vector<Double_t> fMassInitWeights;          /// init value of the templates' weights
   
   /// \cond CLASSIMP     
   ClassDef(InvMassFitter,9); /// class for invariant mass fit

@@ -19,28 +19,31 @@ def kde_producer(tree_file, var, pt_min, pt_max, flag, outfile='', tree_name='O2
                 dfsData.append(dfData)      
     full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
     pt_filtered_df = full_dataset.query(f"{pt_min} <= fPt < {pt_max}")
-    filtered_df = pt_filtered_df.query(f"fFlagMcMatchRec == {flag} or fFlagMcMatchRec == {-flag}")
+    filtered_df = pt_filtered_df.query(f"fFlagMcDecayChanRec == {flag} or fFlagMcDecayChanRec == {-flag}")
     var_values = filtered_df[f'{var}'].tolist()  # Or use `.tolist()` to get a list
-    
-    kde = TKDE(len(var_values), np.asarray(var_values, 'd'), 1.7, 2.0)
+
+    kde = TKDE(len(var_values), np.asarray(var_values, 'd'), min(var_values), max(var_values))
     kde_func = kde.GetFunction(1000)
     
-    binned_var_values = TH1D(f'hBinned', f'hBinned', 5000, 1, 3)
+    binned_var_values = TH1D(f'hBinned', f'hBinned', 100, min(var_values), max(var_values))
     for var_value in var_values:
         binned_var_values.Fill(var_value)
     
-    if outfile != '':
-        cOverlap = TCanvas('cOverlap', 'cOverlap', 600, 600)
-        cOverlap.cd()
-        binned_var_values.Draw()
-        kde_func.Draw('same')
-        outfile.mkdir(f'KDE_pT_{pt_low}_{pt_max}_flag{flag}')
-        outfile.cd(f'KDE_pT_{pt_low}_{pt_max}_flag{flag}')
-        binned_var_values.Write()
-        kde_func.Write()
-        cOverlap.Write()
+    max_content = 0
+    for bin_idx in range(1, binned_var_values.GetNbinsX() + 1):
+        bin_content = binned_var_values.GetBinContent(bin_idx)
+        if bin_content > max_content:
+            max_content = bin_content
+            max_bin = bin_idx
+    binned_var_values.Scale(kde_func.GetMaximum() / binned_var_values.GetBinContent(max_bin))
     
-    return kde 
+    if outfile != '':
+        outfile.mkdir(f'KDE_pT_{pt_min}_{pt_max}_flag{flag}')
+        outfile.cd(f'KDE_pT_{pt_min}_{pt_max}_flag{flag}')
+        kde_func.Write()
+        binned_var_values.Write()
+    
+    return kde, kde_func, binned_var_values
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
