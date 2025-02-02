@@ -98,12 +98,14 @@ VnVsMassFitter::VnVsMassFitter()
   ,fVnRflMax(1.)
   ,fSecondPeak(kFALSE)
   ,fMassSecPeakFunc(0x0)
+  ,fVnSecPeakFunc(0x0)
   ,fNParsSec(0)
   ,fSecMass(-999.)
   ,fSecWidth(9999.)
   ,fFixSecMass(kFALSE)
   ,fFixSecWidth(kFALSE)
   ,fDoSecondPeakVn(kFALSE)
+  ,fFixVnSecPeakToSgn(kFALSE)
   ,fHarmonic(2) {
 
     //default constructor
@@ -185,12 +187,14 @@ VnVsMassFitter::VnVsMassFitter(TH1F* hMass, TH1F* hvn, Double_t min, Double_t ma
   ,fVnRflMax(1.)
   ,fSecondPeak(kFALSE)
   ,fMassSecPeakFunc(0x0)
+  ,fVnSecPeakFunc(0x0)
   ,fNParsSec(0)
   ,fSecMass(-999.)
   ,fSecWidth(9999.)
   ,fFixSecMass(kFALSE)
   ,fFixSecWidth(kFALSE)
   ,fDoSecondPeakVn(kFALSE)
+  ,fFixVnSecPeakToSgn(kFALSE)
   ,fHarmonic(2) {
 
     //standard constructor
@@ -220,6 +224,7 @@ VnVsMassFitter::~VnVsMassFitter() {
   if(fHistoTemplRflInit)  delete fHistoTemplRflInit;
   if(fMassRflFunc)        delete fMassRflFunc;
   if(fMassSecPeakFunc)    delete fMassSecPeakFunc;
+  if(fVnSecPeakFunc)      delete fVnSecPeakFunc;
 }
 
 //________________________________________________________________
@@ -516,10 +521,10 @@ void VnVsMassFitter::DrawHere(TVirtualPad* c){
     fVnTotFunc->Draw("same");
   }
   if(fTemplates) {
-    for(int iVnTempl=0; iVnTempl<this->fKDEVnTemplatesDraw.size(); iVnTempl++) {
-      fKDEVnTemplatesDraw[iVnTempl]->SetLineColor(kMagenta);
-      fKDEVnTemplatesDraw[iVnTempl]->SetRange(fMassMin,fMassMax);
-      fKDEVnTemplatesDraw[iVnTempl]->Draw("same");
+    for(int iVnTempl=0; iVnTempl<this->fVnCompsDraw.size(); iVnTempl++) {
+      fVnCompsDraw[iVnTempl]->SetLineColor(kMagenta);
+      fVnCompsDraw[iVnTempl]->SetRange(fMassMin,fMassMax);
+      fVnCompsDraw[iVnTempl]->Draw("same");
     }
   }
 
@@ -567,7 +572,7 @@ Bool_t VnVsMassFitter::MassPrefit() {
     if(fRflOverSig>0) {fMassFitter->SetInitialReflOverS(fRflOverSig);}
     if(fFixRflOverSig) {fMassFitter->SetFixReflOverS(fRflOverSig);}
   }
-  if(fTemplates) {fMassFitter->SetTemplates(fKDETemplates, fInitWeights, fWeightsLowerLims, fWeightsUpperLims);}
+  if(fTemplates) {fMassFitter->SetTemplates(fKDETemplates, fMassInitWeights, fMassWeightsLowerLims, fMassWeightsUpperLims);}
   Bool_t status = fMassFitter->MassFitter(kFALSE);
 
   if(status) {
@@ -866,7 +871,6 @@ void VnVsMassFitter::Background(Double_t min, Double_t max, Double_t &background
 }
 
 //__________________________________________________________________________
-
 void VnVsMassFitter::Significance(Double_t nOfSigma,Double_t &significance,Double_t &errsignificance) const  {
   /// Return significance in mean +- n sigma
   ///
@@ -879,7 +883,6 @@ void VnVsMassFitter::Significance(Double_t nOfSigma,Double_t &significance,Doubl
 }
 
 //__________________________________________________________________________
-
 void VnVsMassFitter::Significance(Double_t min, Double_t max, Double_t &significance,Double_t &errsignificance) const {
   /// Return significance integral in a range
   ///

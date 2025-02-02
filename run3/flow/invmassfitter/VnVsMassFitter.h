@@ -63,17 +63,22 @@ public:
     fReflections=kTRUE;
   }
   void SetKDETemplates(std::vector<TF1> templs, std::vector<std::string> templsnames,
-                       std::vector<Double_t> initweights, std::vector<Double_t> minweights, 
-                       std::vector<Double_t> maxweights) {
-    printf("WARNING: Vn parameter of templates will be the same as the one of the signal! \n");
+                       std::vector<Double_t> initweights, std::vector<Double_t> minweights, std::vector<Double_t> maxweights, 
+                       std::vector<Double_t> vninitweights, std::vector<Double_t> vnminweights, std::vector<Double_t> vnmaxweights, 
+                       Bool_t samevnofsignal) {
     fKDETemplates=templs;
-    fInitWeights=initweights;
-    fWeightsLowerLims=minweights;
-    fWeightsUpperLims=maxweights;
+    fMassInitWeights=initweights;
+    fMassWeightsLowerLims=minweights;
+    fMassWeightsUpperLims=maxweights;
+    fVnInitWeights=vninitweights;
+    fVnWeightsLowerLims=vnminweights;
+    fVnWeightsUpperLims=vnmaxweights;
     for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
       fKDETemplates[iFunc].SetName(templsnames[iFunc].data());
       fKDETemplates[iFunc].SetTitle(templsnames[iFunc].data());
     }
+    if(samevnofsignal) {printf("WARNING: Vn parameter of templates will be the same as the one of the signal! \n");}
+    fTemplSameVnOfSignal=samevnofsignal;
     fTemplates=kTRUE;
   }
   void SetInitialReflOverS(Double_t rovers){fRflOverSig=rovers;}
@@ -155,15 +160,47 @@ public:
     if(fReflections) return fMassBkgRflFunc;
     else return nullptr;
   }
+  TF1* GetMassSecPeakFunc() const {
+    if(fSecondPeak) return fMassSecPeakFunc;
+    else return nullptr;
+  }
+  TF1* GetVnSecPeakFunc() const {
+    if(fSecondPeak) return fVnSecPeakFunc;
+    else return nullptr;
+  }
   std::vector<TF1*> GetMassTemplFuncts() const {
     if(fTemplates) return fKDEMassTemplatesDraw;
     else return {};
   }
-  std::vector<TF1*> GetVnTemplFuncts() const {
-    if(fTemplates) return fKDEVnTemplatesDraw;
-    else return {};
+  std::vector<TF1*> GetVnCompsFuncts() const {
+    return fVnCompsDraw;
   }
-
+  std::vector<double> GetVnTemplates() const {
+    std::vector<double> vnPars;
+    if(!fTemplSameVnOfSignal) {
+      for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
+        vnPars.push_back(fVnTotFunc->GetParameter(iFunc+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn+fNParsVnSecPeak+fNParsRfl));
+      }
+    } else {
+      for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
+        vnPars.push_back(GetVn());
+      }
+    }
+    return vnPars;
+  }
+  std::vector<double> GetVnTemplatesUncertainties() const {
+    std::vector<double> vnPars;
+    if(!fTemplSameVnOfSignal) {
+      for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
+        vnPars.push_back(fVnTotFunc->GetParError(iFunc+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn+fNParsVnSecPeak+fNParsRfl));
+      }
+    } else {
+      for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
+        vnPars.push_back(GetVnUncertainty());
+      }
+    }
+    return vnPars;
+  }
   //struct for global chi2 (for simultaneus fit)
   struct GlobalChi2 {
     GlobalChi2(ROOT::Math::IMultiGenFunction & f1,ROOT::Math::IMultiGenFunction & f2) : fChi2_1(&f1), fChi2_2(&f2) {}
@@ -193,6 +230,7 @@ private:
   Double_t MassFunc(Double_t *m, Double_t *pars);
   Double_t vnBkgFunc(Double_t *m, Double_t *pars);
   Double_t vnFunc(Double_t *m, Double_t *pars);
+  Double_t VnTemplates(Double_t *m,Double_t *pars);
 
     ///private methods
   void DefineNumberOfParameters();
@@ -202,96 +240,103 @@ private:
   void SetParNames();
 
     ///data members
-  TH1F*                 fMassHisto;                   /// mass histogram to fit
-  TH1F*                 fVnVsMassHisto;               /// vn vs. mass histogram to fit
-  Int_t                 fMassSgnFuncType;             /// type of mass signal fit function
-  Int_t                 fMassBkgFuncType;             /// type of mass bkg fit function
-  Int_t                 fVnBkgFuncType;               /// type of vn bkg fit function
-  TF1*                  fMassFuncFromPrefit;          /// mass fit function (1st step, from prefit)
-  TF1*                  fMassBkgFunc;                 /// mass bkg fit function (final, after simultaneus fit)
-  TF1*                  fMassSgnFunc;                 /// mass signal fit function (final, after simultaneus fit)
-  TF1*                  fMassTotFunc;                 /// mass fit function (final, after simultaneus fit)
-  TF1*                  fVnBkgFuncSb;                 /// vn bkg fit function (1st step from SB prefit)
-  TF1*                  fVnBkgFunc;                   /// vn bkg fit function (final, after simultaneus fit)
-  TF1*                  fVnTotFunc;                   /// vn fit function (final, after simultaneus fit)
-  InvMassFitter*        fMassFitter;                  /// mass fitter for mass prefit
-  Double_t              fMassMin;                     /// upper mass limit
-  Double_t              fMassMax;                     /// lower mass limit
-  Double_t              fVn;                          /// vn of the signal from fit
-  Double_t              fVnUncertainty;               /// uncertainty on vn of the signal from simultaneus fit
-  Double_t              fSigma;                       /// mass peak width from simultaneus fit
-  Double_t              fSigmaUncertainty;            /// uncertainty on mass peak width from simultaneus fit
-  Double_t              fMean;                        /// mass peak position from simultaneus fit
-  Double_t              fMeanUncertainty;             /// uncertainty on mass peak position from simultaneus fit
-  Double_t              fRawYield;                    /// raw yield from simultaneus fit
-  Double_t              fRawYieldUncertainty;         /// uncertainty raw yield from simultaneus fit
-  Double_t              fChiSquare;                   /// simultaneus fit chi square
-  Int_t                 fNDF;                         /// simultaneus fit number of degree of freedom
-  Double_t              fProb;                        /// simultaneus fit probability
-  Double_t              fSBVnPrefitChiSquare;         /// vn SB prefit chi square
-  Int_t                 fSBVnPrefitNDF;               /// vn SB prefit number of degree of freedom
-  Double_t              fSBVnPrefitProb;              /// vn SB prefit probability
-  Double_t              fMassPrefitChiSquare;         /// Mass prefit chi square
-  Int_t                 fMassPrefitNDF;               /// Mass prefit number of degree of freedom
-  Double_t              fMassPrefitProb;              /// Mass prefit probability
-  Int_t                 fNSigmaForSB;                 /// number of sigma for sidebands region (vn bkg prefit)
-  Double_t              fSigmaInit;                   /// initialization for peak width
-  Double_t              fMeanInit;                    /// initialization for peak position
-  Double_t              fSigma2GausInit;              /// initialization for second peak width in case of k2Gaus
-  Double_t              fFrac2GausInit;               /// initialization for fraction of second gaussian in case of k2Gaus
-  Bool_t                fMeanFixedFromMassFit;        /// flag to fix peak position from mass prefit
-  Bool_t                fSigmaFixedFromMassFit;       /// flag to fix peak width from mass prefit
-  Bool_t                fSigma2GausFixedFromMassFit;  /// flag to fix second peak width from mass prefit in case of k2Gaus
-  Bool_t                fFrac2GausFixedFromMassFit;   /// flag to fix fraction of second gaussian in case of k2Gaus
-  Double_t              fMassParticle;                /// mass of selected particle
-  Int_t                 fNParsMassSgn;                /// number of parameters in mass signal fit function
-  Int_t                 fNParsMassBkg;                /// number of parameters in mass bkg fit function
-  Int_t                 fNParsVnBkg;                  /// number of parameters in vn bkg fit function
-  Int_t                 fNParsVnSgn;                  /// number of parameters in vn sgn fit function (1)
-  Int_t                 fNParsVnSecPeak;              /// number of parameters in vn sec peak fit function (1 if included, 0 otherwise)
-  Int_t                 fNParsVnRfl;                  /// number of parameters in vn refl fit function (1 if included, 0 otherwise)
-  Int_t                 fSigmaFixed;                  /// flag to fix peak width
-  Int_t                 fMeanFixed;                   /// flag to fix peak position
-  Int_t                 fSigma2GausFixed;             /// flag to fix second peak width in case of k2Gaus
-  Int_t                 fFrac2GausFixed;              /// flag to fix fraction of second gaussian in case of k2Gaus
-  Int_t                 fPolDegreeBkg;                /// degree of polynomial expansion for back fit (option 6 for back)
-  Int_t                 fPolDegreeVnBkg;              /// degree of polynomial expansion for vn back fit (option 6 for back)
-  Bool_t                fReflections;                 /// flag use/not use reflections
-  Int_t                 fNParsRfl;                    /// fit parameters in reflection fit function
-  Double_t              fRflOverSig;                  /// reflection/signal
-  Bool_t                fFixRflOverSig;               /// switch for fix refl/signal
-  TH1F*                 fHistoTemplRfl;               /// histogram with reflection template
-  TH1F*                 fHistoTemplRflInit;           /// initial histogram with reflection template
-  TF1*                  fMassRflFunc;                 /// fit function for reflections
-  TF1*                  fMassBkgRflFunc;              /// mass bkg fit function plus reflections (final, after simultaneus fit)
-  TString               fRflOpt;                      /// refelction option
-  Double_t              fMinRefl;                     /// minimum for refelction histo
-  Double_t              fMaxRefl;                     /// maximum for refelction histo
-  Bool_t                fSmoothRfl;                   /// switch for smoothing of reflection template
-  Double_t              fRawYieldHelp;                /// internal variable for fit with reflections
-  Int_t                 fVnRflOpt;                    /// option for reflection vn type
-  Bool_t                fVnRflLimited;                /// flag to limit or not the vn of reflections
-  Double_t              fVnRflMin;                    /// minimum vn of reflections
-  Double_t              fVnRflMax;                    /// maximum vn of reflections
-  Bool_t                fSecondPeak;                  /// switch off/on second peak (for D+->KKpi in Ds)
-  TF1*                  fMassSecPeakFunc;             /// fit function for second peak
-  Int_t                 fNParsSec;                    /// number of parameters in second peak fit function
-  Double_t              fSecMass;                     /// position of the 2nd peak
-  Double_t              fSecWidth;                    /// width of the 2nd peak
-  Bool_t                fFixSecMass;                  /// flag to fix the position of the 2nd peak
-  Bool_t                fFixSecWidth;                 /// flag to fix the width of the 2nd peak
-  Double_t              fVnSecPeak;                   /// vn of second peak from fit
-  Bool_t                fDoSecondPeakVn;              /// flag to introduce second peak vn in the vn vs. mass fit
-  Double_t              fVnSecPeakUncertainty;        /// vn uncertainty of second peak from fit
-  Int_t                 fHarmonic;                    /// harmonic number for drawing
-  Bool_t                fTemplates;                   /// flag use/not use templates
-  Int_t                 fNParsTempls;                 /// fit parameters to include templates
-  std::vector<TF1>      fKDETemplates;                /// vector to store TKDE to be added as templates to the fit function 
-  std::vector<TF1 *>    fKDEVnTemplatesDraw;          /// vector to store TKDE to be added as templates to the fit function 
-  std::vector<TF1 *>    fKDEMassTemplatesDraw;        /// vector to store TKDE to be added as templates to the fit function 
-  std::vector<Double_t> fWeightsUpperLims;            /// upper limit of the templates' weights
-  std::vector<Double_t> fWeightsLowerLims;            /// lower limit of the templates' weights
-  std::vector<Double_t> fInitWeights;                 /// init values of the templates' weights
+  TH1F*                 fMassHisto;                     /// mass histogram to fit
+  TH1F*                 fVnVsMassHisto;                 /// vn vs. mass histogram to fit
+  Int_t                 fMassSgnFuncType;               /// type of mass signal fit function
+  Int_t                 fMassBkgFuncType;               /// type of mass bkg fit function
+  Int_t                 fVnBkgFuncType;                 /// type of vn bkg fit function
+  TF1*                  fMassFuncFromPrefit;            /// mass fit function (1st step, from prefit)
+  TF1*                  fMassBkgFunc;                   /// mass bkg fit function (final, after simultaneus fit)
+  TF1*                  fMassSgnFunc;                   /// mass signal fit function (final, after simultaneus fit)
+  TF1*                  fMassTotFunc;                   /// mass fit function (final, after simultaneus fit)
+  TF1*                  fVnBkgFuncSb;                   /// vn bkg fit function (1st step from SB prefit)
+  TF1*                  fVnBkgFunc;                     /// vn bkg fit function (final, after simultaneus fit)
+  TF1*                  fVnTotFunc;                     /// vn fit function (final, after simultaneus fit)
+  InvMassFitter*        fMassFitter;                    /// mass fitter for mass prefit
+  Double_t              fMassMin;                       /// upper mass limit
+  Double_t              fMassMax;                       /// lower mass limit
+  Double_t              fVn;                            /// vn of the signal from fit
+  Double_t              fVnUncertainty;                 /// uncertainty on vn of the signal from simultaneus fit
+  Double_t              fSigma;                         /// mass peak width from simultaneus fit
+  Double_t              fSigmaUncertainty;              /// uncertainty on mass peak width from simultaneus fit
+  Double_t              fMean;                          /// mass peak position from simultaneus fit
+  Double_t              fMeanUncertainty;               /// uncertainty on mass peak position from simultaneus fit
+  Double_t              fRawYield;                      /// raw yield from simultaneus fit
+  Double_t              fRawYieldUncertainty;           /// uncertainty raw yield from simultaneus fit
+  Double_t              fChiSquare;                     /// simultaneus fit chi square
+  Int_t                 fNDF;                           /// simultaneus fit number of degree of freedom
+  Double_t              fProb;                          /// simultaneus fit probability
+  Double_t              fSBVnPrefitChiSquare;           /// vn SB prefit chi square
+  Int_t                 fSBVnPrefitNDF;                 /// vn SB prefit number of degree of freedom
+  Double_t              fSBVnPrefitProb;                /// vn SB prefit probability
+  Double_t              fMassPrefitChiSquare;           /// Mass prefit chi square
+  Int_t                 fMassPrefitNDF;                 /// Mass prefit number of degree of freedom
+  Double_t              fMassPrefitProb;                /// Mass prefit probability
+  Int_t                 fNSigmaForSB;                   /// number of sigma for sidebands region (vn bkg prefit)
+  Double_t              fSigmaInit;                     /// initialization for peak width
+  Double_t              fMeanInit;                      /// initialization for peak position
+  Double_t              fSigma2GausInit;                /// initialization for second peak width in case of k2Gaus
+  Double_t              fFrac2GausInit;                 /// initialization for fraction of second gaussian in case of k2Gaus
+  Bool_t                fMeanFixedFromMassFit;          /// flag to fix peak position from mass prefit
+  Bool_t                fSigmaFixedFromMassFit;         /// flag to fix peak width from mass prefit
+  Bool_t                fSigma2GausFixedFromMassFit;    /// flag to fix second peak width from mass prefit in case of k2Gaus
+  Bool_t                fFrac2GausFixedFromMassFit;     /// flag to fix fraction of second gaussian in case of k2Gaus
+  Double_t              fMassParticle;                  /// mass of selected particle
+  Int_t                 fNParsMassSgn;                  /// number of parameters in mass signal fit function
+  Int_t                 fNParsMassBkg;                  /// number of parameters in mass bkg fit function
+  Int_t                 fNParsVnBkg;                    /// number of parameters in vn bkg fit function
+  Int_t                 fNParsVnSgn;                    /// number of parameters in vn sgn fit function (1)
+  Int_t                 fNParsVnSecPeak;                /// number of parameters in vn sec peak fit function (1 if included, 0 otherwise)
+  Int_t                 fNParsVnRfl;                    /// number of parameters in vn refl fit function (1 if included, 0 otherwise)
+  Int_t                 fSigmaFixed;                    /// flag to fix peak width
+  Int_t                 fMeanFixed;                     /// flag to fix peak position
+  Int_t                 fSigma2GausFixed;               /// flag to fix second peak width in case of k2Gaus
+  Int_t                 fFrac2GausFixed;                /// flag to fix fraction of second gaussian in case of k2Gaus
+  std::vector<Double_t> fMassBkgInitPars;               /// init values of the templates' weights
+  Int_t                 fPolDegreeBkg;                  /// degree of polynomial expansion for back fit (option 6 for back)
+  Int_t                 fPolDegreeVnBkg;                /// degree of polynomial expansion for vn back fit (option 6 for back)
+  Bool_t                fReflections;                   /// flag use/not use reflections
+  Int_t                 fNParsRfl;                      /// fit parameters in reflection fit function
+  Double_t              fRflOverSig;                    /// reflection/signal
+  Bool_t                fFixRflOverSig;                 /// switch for fix refl/signal
+  TH1F*                 fHistoTemplRfl;                 /// histogram with reflection template
+  TH1F*                 fHistoTemplRflInit;             /// initial histogram with reflection template
+  TF1*                  fMassRflFunc;                   /// fit function for reflections
+  TF1*                  fMassBkgRflFunc;                /// mass bkg fit function plus reflections (final, after simultaneus fit)
+  TString               fRflOpt;                        /// refelction option
+  Double_t              fMinRefl;                       /// minimum for refelction histo
+  Double_t              fMaxRefl;                       /// maximum for refelction histo
+  Bool_t                fSmoothRfl;                     /// switch for smoothing of reflection template
+  Double_t              fRawYieldHelp;                  /// internal variable for fit with reflections
+  Int_t                 fVnRflOpt;                      /// option for reflection vn type
+  Bool_t                fVnRflLimited;                  /// flag to limit or not the vn of reflections
+  Double_t              fVnRflMin;                      /// minimum vn of reflections
+  Double_t              fVnRflMax;                      /// maximum vn of reflections
+  Bool_t                fSecondPeak;                    /// switch off/on second peak (for D+->KKpi in Ds)
+  TF1*                  fMassSecPeakFunc;               /// fit function for second peak
+  TF1*                  fVnSecPeakFunc;                 /// fit function for second peak
+  Int_t                 fNParsSec;                      /// number of parameters in second peak fit function
+  Double_t              fSecMass;                       /// position of the 2nd peak
+  Double_t              fSecWidth;                      /// width of the 2nd peak
+  Bool_t                fFixSecMass;                    /// flag to fix the position of the 2nd peak
+  Bool_t                fFixSecWidth;                   /// flag to fix the width of the 2nd peak
+  Double_t              fVnSecPeak;                     /// vn of second peak from fit
+  Bool_t                fDoSecondPeakVn;                /// flag to introduce second peak vn in the vn vs. mass fit
+  Bool_t                fFixVnSecPeakToSgn;             /// flag to fix the vn of the second peak to the one of signal
+  Double_t              fVnSecPeakUncertainty;          /// vn uncertainty of second peak from fit
+  Int_t                 fHarmonic;                      /// harmonic number for drawing
+  Bool_t                fTemplates;                     /// flag use/not use templates
+  Int_t                 fNParsTempls;                   /// fit parameters to include templates
+  std::vector<TF1>      fKDETemplates;                  /// vector to store TKDE to be added as templates to the fit function 
+  std::vector<TF1 *>    fVnCompsDraw;                   /// vector to store TKDE to be added as templates to the fit function 
+  std::vector<TF1 *>    fKDEMassTemplatesDraw;          /// vector to store TKDE to be added as templates to the fit function 
+  std::vector<Double_t> fMassWeightsUpperLims;          /// upper limit of the templates' weights
+  std::vector<Double_t> fMassWeightsLowerLims;          /// lower limit of the templates' weights
+  std::vector<Double_t> fVnWeightsUpperLims;            /// upper limit of the templates' weights
+  std::vector<Double_t> fVnWeightsLowerLims;            /// lower limit of the templates' weights
+  std::vector<Double_t> fMassInitWeights;               /// init values of the templates' weights
+  std::vector<Double_t> fVnInitWeights;                 /// init values of the templates' weights
+  Bool_t                fTemplSameVnOfSignal;           /// init values of the templates' weights
 
     /// \cond CLASSDEF
   ClassDef(VnVsMassFitter,5);
