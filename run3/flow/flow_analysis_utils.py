@@ -523,7 +523,6 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
     vn_results['fBkgFuncMass'] = vnFitter.GetMassBkgFitFunc()
     vn_results['fBkgFuncVn'] = vnFitter.GetVnVsMassBkgFitFunc()
     vn_results['fSgnFuncMass'] = vnFitter.GetMassSignalFitFunc()
-    vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
     
     vn_results['fVnCompsFuncts'] = {}
     vnComps = vnFitter.GetVnCompsFuncts()
@@ -531,8 +530,9 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
     vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
     if secPeak:
         vn_results['fVnCompsFuncts']['vnSecPeak'] = vnComps[2]
+    vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
     if useTempl:
-        for iTempl in range(len(vnComps)-2-secPeak):
+        for iTempl in range(len(vn_results['fMassTemplFuncts'])):
             vn_results['fVnCompsFuncts'][f'vnTempl{iTempl}'] = vnComps[2+secPeak+iTempl]
     
     bkg, bkgUnc = ctypes.c_double(), ctypes.c_double()
@@ -548,19 +548,28 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
     vn_results['signif'] = signif.value
     vn_results['signifUnc'] = signifUnc.value
 
+    massSgnPars = vnFitter.GetNMassSgnPars()
+    massBkgPars = vnFitter.GetNMassBkgPars()
+    massSecPeakPars = vnFitter.GetNMassSecPeakPars()
+    massReflPars = vnFitter.GetNMassReflPars()
+    massTemplPars = len(vn_results['fMassTemplFuncts'])
+    totMassPars = massSgnPars + massBkgPars + massSecPeakPars +  massReflPars + massTemplPars
+    vnSgnPars = vnFitter.GetNVnSgnPars()
+    vnBkgPars = vnFitter.GetNVnBkgPars()
+
     if secPeak:
         vn_results['fMassSecPeakFunc'] = vnFitter.GetMassSecPeakFunc()
         vn_results['fVnSecPeakFunct'] = vnFitter.GetVnSecPeakFunc()
-        vn_results['secPeakMeanMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(6))
-        vn_results['secPeakMeanMassUnc'] = vn_results['fTotFuncMass'].GetParError(6)
-        vn_results['secPeakSigmaMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(7))
-        vn_results['secPeakSigmaMassUnc'] = vn_results['fTotFuncMass'].GetParError(7)
-        vn_results['secPeakMeanVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(6))
-        vn_results['secPeakMeanVnUnc'] = vn_results['fTotFuncVn'].GetParError(6)
-        vn_results['secPeakSigmaVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(7))
-        vn_results['secPeakSigmaVnUnc'] = vn_results['fTotFuncVn'].GetParError(7)
-        vn_results['vnSecPeak'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(11 + len(vn_results['fMassTemplFuncts'])))
-        vn_results['vnSecPeakUnc'] = vn_results['fTotFuncVn'].GetParError(11)
+        vn_results['secPeakMeanMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(massSgnPars + massBkgPars + 1))
+        vn_results['secPeakMeanMassUnc'] = vn_results['fTotFuncMass'].GetParError(massSgnPars + massBkgPars + 1)
+        vn_results['secPeakSigmaMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(massSgnPars + massBkgPars + 2))
+        vn_results['secPeakSigmaMassUnc'] = vn_results['fTotFuncMass'].GetParError(massSgnPars + massBkgPars + 2)
+        vn_results['secPeakMeanVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(totMassPars + vnSgnPars + vnBkgPars + 1))
+        vn_results['secPeakMeanVnUnc'] = vn_results['fTotFuncVn'].GetParError(vnSgnPars + vnBkgPars + 1)
+        vn_results['secPeakSigmaVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(totMassPars + vnSgnPars + vnBkgPars + 2))
+        vn_results['secPeakSigmaVnUnc'] = vn_results['fTotFuncVn'].GetParError(vnSgnPars + vnBkgPars + 2)
+        vn_results['vnSecPeak'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(totMassPars + vnSgnPars + vnBkgPars))
+        vn_results['vnSecPeakUnc'] = vn_results['fTotFuncVn'].GetParError(totMassPars + vnSgnPars + vnBkgPars)
 
     if useRefl:
         vn_results['fMassRflFunc'] = vnFitter.GetMassRflFunc()
