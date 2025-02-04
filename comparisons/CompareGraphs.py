@@ -324,9 +324,6 @@ for ext in outExtensions:
                 histo.Write()
         outFile.Close()
     else:
-        if inputCfg.get('DrawGrid'):
-            cOut.SetGridx()
-            cOut.SetGridy()
         cOut.SaveAs(f'{outFileName}.{ext}')
 
 input("Press enter to exit")
