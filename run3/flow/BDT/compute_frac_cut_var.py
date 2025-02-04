@@ -46,9 +46,6 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     
     #TODO: apply smearing
 
-    histoNameRaw = config['histoNameRaw']
-    histoNameEffPrompt = config['histoNameEffPrompt']
-    histoNameEffFD = config['histoNameEffFD']
 
     # nSets = len(rawYieldFiles)
 
@@ -69,12 +66,12 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     for inFileNameRawYield, inFileNameEff in zip(rawYieldFiles, effFiles):
 
         inFileRawYield = ROOT.TFile.Open(inFileNameRawYield)
-        hRawYields.append(inFileRawYield.Get(histoNameRaw))
+        hRawYields.append(inFileRawYield.Get('hRawYieldsSimFit'))
         hRawYields[-1].SetDirectory(0)
         
         inFileEff = TFile.Open(inFileNameEff)
-        hEffPrompt.append(inFileEff.Get(histoNameEffPrompt))
-        hEffFD.append(inFileEff.Get(histoNameEffFD))
+        hEffPrompt.append(inFileEff.Get('hEffPrompt'))
+        hEffFD.append(inFileEff.Get('hEffFD'))
         hEffPrompt[-1].SetDirectory(0)
         hEffFD[-1].SetDirectory(0)
 
@@ -350,7 +347,7 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     hCorrYieldFD.Write()
     for covElem in product(range(2), range(2)):
         hCovCorrYields[covElem[0]][covElem[1]].Write()
-    for iPt in range(hRawYields[0].GetNbinsX()):
+    for iPt in range(len(ptmins)):
         cDistr[iPt].Write()
         cEff[iPt].Write()
         cFrac[iPt].Write()
@@ -371,7 +368,7 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     outFileNameDistrPDF = outFileName.replace('.root', '_Distr.pdf')
     outFileNameFracPDF = outFileName.replace('.root', '_Frac.pdf')
     outFileNameCorrMatrixPDF = outFileName.replace('.root', '_CorrMatrix.pdf')
-    for iPt in range(hRawYields[0].GetNbinsX()):
+    for iPt in range(len(ptmins)):
         if iPt == 0:
             cEff[iPt].SaveAs(f'{outFileNameEffPDF}[')
             cDistr[iPt].SaveAs(f'{outFileNameDistrPDF}[')

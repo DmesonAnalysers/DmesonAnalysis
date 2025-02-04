@@ -108,7 +108,7 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         fracFDUnc = [hFracFD[i].GetBinError(iPt + 1) for i in range(nSets)]
 
         for iSet, (v2, fracFD, v2Unc, fracFDUnc) in enumerate(zip(v2Values, fracFDValues, v2Unc, fracFDUnc)):
-            print(f"pt: {ptCent:.2f}, v2: {v2:.2f}, fracFD: {fracFD:.2f}")
+            print(f"pt: {ptCent:.4f}, v2: {v2:.4f}, fracFD: {fracFD:.4f}")
             gFracVsV2[iPt].SetPoint(iSet, fracFD, v2)
             gFracVsV2[iPt].SetPointError(iSet, fracFDUnc, v2Unc)
         
@@ -126,15 +126,15 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
         # get the v2 value at the FD fraction = 1, and it is not the last bin?
         hV2VsPtFD.SetBinContent(iPt + 1, 
-                                hV2VsFrac[-1].GetBinContent(hV2VsFrac[-1].FindBin(1.0) - 1))
+                                hV2VsFrac[-1].GetBinContent(hV2VsFrac[-1].GetNbinsX()))
         hV2VsPtFD.SetBinError(iPt + 1,
-                                hV2VsFrac[-1].GetBinError(hV2VsFrac[-1].FindBin(1.0) - 1))
+                                hV2VsFrac[-1].GetBinError(hV2VsFrac[-1].GetNbinsX()))
         
         # get the v2 value at the FD fraction = 0, and it is the first bin?
         hV2VsPtPrompt.SetBinContent(iPt + 1, 
-                                    hV2VsFrac[-1].GetBinContent(hV2VsFrac[-1].FindBin(0.0)))
+                                    hV2VsFrac[-1].GetBinContent(hV2VsFrac[-1].GetBin(1)))
         hV2VsPtPrompt.SetBinError(iPt + 1,
-                                    hV2VsFrac[-1].GetBinError(hV2VsFrac[-1].FindBin(0.0)))
+                                    hV2VsFrac[-1].GetBinError(hV2VsFrac[-1].GetBin(1)))
         
         #TODO: plot the v2 vs pt, and the center of the pt bin is calculate by the average of pT
 
@@ -151,7 +151,7 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     t.SetTextFont(42)
     t.SetTextColor(kBlack)
 
-    for iPt in range(nPtBins):
+    for iPt, (ptMin, ptMax) in enumerate(zip(ptmins, ptmaxs)):
         if iPt == 0:
             suffix_pdf = '('
         elif iPt == nPtBins-1:
@@ -173,22 +173,23 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         hV2VsFrac[iPt].Draw("same pZ")
         gFracVsV2[iPt].Draw("same pZ")
 
-        gFracVsV2[iPt].Write()
-        hV2VsFrac[iPt].Write()
-
         cFrac[-1].Update()
 
         cFrac[iPt].SaveAs(f"{outputdir}/V2VsFrac/FracV2_{suffix}.pdf{suffix_pdf}")
 
+        outFile.mkdir(f"pt_{int(ptMin*10)}_{int(ptMax*10)}")
+        outFile.cd(f"pt_{int(ptMin*10)}_{int(ptMax*10)}")
+        gFracVsV2[iPt].Write('gV2VsFrac')
+        hV2VsFrac[iPt].Write('hV2VsFrac')
+
+    outFile.cd()
     PtTit = "#it{p}_{T} GeV/#it{c}"
     leg = TLegend(0.55, 0.75, 0.88, 0.89)
     leg.SetTextSize(0.045)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
-    SetObjectStyle(hV2VsPtFD, color=GetROOTColor("kAzure+4 "), fillstyle=1)
+    SetObjectStyle(hV2VsPtFD, color=GetROOTColor("kAzure+4"), fillstyle=1)
     SetObjectStyle(hV2VsPtPrompt, color=GetROOTColor("kRed+1"), fillstyle=1)
-    # SetObjectStyle(hV2VsPtFD, GetROOTColor("kAzure+4"), 1)
-    # SetObjectStyle(hV2VsPtPrompt, GetROOTColor("kRed+1"), 1)
 
     cV2VsPtFD = TCanvas("cV2VsPtFD", "non-prompt v2 versus pt")
     cV2VsPtFD.SetCanvasSize(800, 800)
