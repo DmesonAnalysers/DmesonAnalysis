@@ -51,7 +51,7 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
     # Load the ThnSparse
     thnsparse_list, _, _, sparse_axes = get_sparses(config, True, False, False)
 
-    out_file = TFile(f'Projections_{centmin}_{centmax}_{ptmins}_{ptmaxs}.root', 'recreate')
+    out_file = TFile(f'{outputDir}/pre/AnRes/Projections_{centmin}_{centmax}_{ptmins}_{ptmaxs}.root', 'recreate')
     for isparse, (key, sparse) in enumerate(thnsparse_list.items()):
         if 'Flow' in key:
             out_file.mkdir(f'Flow_{isparse}')

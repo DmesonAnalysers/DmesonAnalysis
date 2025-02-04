@@ -39,7 +39,7 @@ def run_full_analysis(config,
     - skip_projection (bool): skip projection extraction
     - skip_vn (bool): skip raw yield extraction
     - skip_efficiency (bool): skip efficiency estimation
-    - preprocess (bool): preprocess inputs
+    - preprocess (bool): preprocess inputs, flag --skip_preprocess in bash script
     - inputspreprocessed (bool): take preprocessed files as inputs
     - batch (bool): suppress video output
     """

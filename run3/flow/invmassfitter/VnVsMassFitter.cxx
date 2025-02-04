@@ -433,7 +433,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   }
   if(fTemplates) {
     for(int iTempl=0; iTempl<fKDETemplates.size(); iTempl++) {
-      // fKDEMassTemplatesDraw.push_back(new TF1("fMass",
       fKDEMassTemplatesDraw.push_back(new TF1(fKDETemplates[iTempl].GetName(),
                       [&, this, iTempl, idxParMassTemplsScaling, result] (double *x, double *par) {
                          double templScalingPar = result.Parameter(iTempl + idxParMassTemplsScaling);
@@ -447,7 +446,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
                             return (vnSgn * this->fKDEMassTemplatesDraw[iTempl]->Eval(x[0])) / (this->fMassTotFunc->Eval(x[0]));
                           }, fMassMin, fMassMax, 0));
       } else {
-        // fVnCompsDraw.push_back(new TF1("vnTempl",
         fVnCompsDraw.push_back(new TF1(Form("vnTempl_%s", fKDETemplates[iTempl].GetName()),
                   [&, this, iTempl, idxParVnTempl, result] (double *x, double *par) {
                     double templVnScalingPar = result.Parameter(iTempl + idxParVnTempl);
