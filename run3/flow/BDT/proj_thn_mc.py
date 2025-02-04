@@ -20,9 +20,8 @@ from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins
 ### please fill your path of DmesonAnalysis
 sys.path.append('../../..')
 
-def proj_data(sparse_flow, axes, inv_mass_bins, reso):
+def proj_data(sparse_flow, ptMin, ptMax, axes, inv_mass_bins, reso):
 
-    print(f"type(sparse_flow): {type(sparse_flow)}")
     if isinstance(sparse_flow, dict):
         for isparse, (key, sparse) in enumerate(sparse_flow.items()):
             hist_mass_temp = sparse.Projection(axes['Flow']['Mass'])
@@ -47,119 +46,143 @@ def proj_data(sparse_flow, axes, inv_mass_bins, reso):
         if reso > 0:
             hist_vn_sp.Scale(1./reso)
 
-    hist_mass.Write(f'hist_mass_proj')
-    hist_vn_sp.Write(f'hist_vn_sp_proj')
+    hist_mass.Write(f'hist_mass_proj_pt{int(ptMin*10)}_{int(ptMax*10)}')
+    hist_vn_sp.Write(f'hist_vn_sp_proj_pt{int(ptMin*10)}_{int(ptMax*10)}')
 
 def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB):
-    for iVar in ('Mass', 'Pt'):
-        hVarRefl, hVarReflPrompt, hVarReflFD, hVarPrompt, hVarFD = None, None, None, None, None
-        if 'RecoAll' in sparsesReco:
-            hVar = sparsesReco['RecoAll'].Projection(axes['RecoAll'][iVar])
-            hVar.Write(f'RecoAll{iVar}')
+    
+    ### project mass
+    if 'RecoAll' in sparsesReco:
+        hMass = sparsesReco['RecoAll'].Projection(axes['RecoAll']['Mass'])
+        hPt = sparsesReco['RecoAll'].Projection(axes['RecoAll']['Pt'])
 
-        if iVar != 'pt':
-            hVarPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt'][iVar])
-            hVarFD = sparsesReco['RecoFD'].Projection(axes['RecoFD'][iVar])
-        else:
-            ### no pt weights
-            if not ptWeights and not ptWeightsB:
-                hVarPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt'][iVar])
-                hVarFD = sparsesReco['RecoFD'].Projection(axes['RecoFD'][iVar])
+    hMassPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt']['Mass'])
+    hMassFD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Mass'])    
 
-        ### pt weights for prompt
-        if ptWeights:
-            hVarPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt'][iVar])
-            for iBin in range(1, hVarPrompt.GetNbinsX()+1):
-                if hVarPrompt.GetBinContent(iBin) > 0.:
-                    relStatUnc = hVarPrompt.GetBinError(iBin) / hVarPrompt.GetBinContent(iBin)
-                    ptCent = hVarPrompt.GetBinCenter(iBin)
-                    hVarPrompt.SetBinContent(iBin, hVarPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
-                    hVarPrompt.SetBinError(iBin, hVarPrompt.GetBinContent(iBin) * relStatUnc)
+    ### project pt
+    hPtRefl, hPtReflPrompt, hPtReflFD, hPtPrompt, hPtFD = None, None, None, None, None
 
-        ### pt weights for non-prompt, but no B species weights
-        if ptWeightsB and not Bspeciesweights:
-            hPtBvsPtD = sparsesReco['RecoFD'].Projection(2, axes['RecoFD'][iVar])
-            for iPtD in range(1, hPtBvsPtD.GetXaxis().GetNbins()+1):
-                for iPtB in range(1, hPtBvsPtD.GetYaxis().GetNbins()+1):
-                    ptCentB = hPtBvsPtD.GetYaxis().GetBinCenter(iPtB)
-                    origContent = hPtBvsPtD.GetBinContent(iPtD, iPtB)
-                    origError = hPtBvsPtD.GetBinError(iPtD, iPtB)
-                    weight = 0
-                    if sPtWeightsB(ptCentB) > 0:
-                        weight = sPtWeightsB(ptCentB)
-                    content = origContent * weight
-                    error = 0
-                    if origContent > 0:
-                        error = origError / origContent * content
-                    hPtBvsPtD.SetBinContent(iPtD, iPtB, content)
-                    hPtBvsPtD.SetBinError(iPtD, iPtB, error)
-            hVarFD = hPtBvsPtD.ProjectionX(f'hFD{iVar}', 0, hPtBvsPtD.GetYaxis().GetNbins()+1, 'e')
-        ### pt weights from B for non-prompt and B species weights
-        elif ptWeightsB and Bspeciesweights:
-            hPtBvsBspecievsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD'][iVar], 3, 2)
-            for iPtD in range(1, hPtBvsBspecievsPtD.GetXaxis().GetNbins()+1):
-                for iBspecie in range(1, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1):
-                    for iPtB in range(1, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1):
-                        ptCentB = hPtBvsBspecievsPtD.GetZaxis().GetBinCenter(iPtB)
-                        origContent = hPtBvsBspecievsPtD.GetBinContent(iPtD, iBspecie, iPtB)
-                        origError = hPtBvsBspecievsPtD.GetBinError(iPtD, iBspecie, iPtB)
-                        weight = Bspeciesweights[iBspecie-1]
-                        if sPtWeightsB(ptCentB) > 0:
-                            weight *= sPtWeightsB(ptCentB)
-                        content = origContent * weight
-                        error = 0
-                        if origContent > 0:
-                            error = origError / origContent * content
-                        hPtBvsBspecievsPtD.SetBinContent(iPtD, iBspecie, iPtB, content)
-                        hPtBvsBspecievsPtD.SetBinError(iPtD, iBspecie, iPtB, error)
-            hVarFD = hPtBvsBspecievsPtD.ProjectionX(f'hFD{iVar}', 0, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1,
-                                                    0, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1, 'e')
-        ### only B species weights
-        elif Bspeciesweights:
-            hBspecievsPtD = sparsesReco['RecoFD'].Projection(3, axes['RecoFD'][iVar])
-            for iPtD in range(1, hBspecievsPtD.GetXaxis().GetNbins()+1):
-                for iBspecie in range(1, hBspecievsPtD.GetYaxis().GetNbins()+1):
-                    origContent = hBspecievsPtD.GetBinContent(iPtD, iBspecie)
-                    origError = hBspecievsPtD.GetBinError(iPtD, iBspecie)
+    ### no pt weights
+    if not ptWeights and not ptWeightsB:
+        hPtPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt']['Pt'])
+        hPtFD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'])
+
+    ### pt weights for prompt
+    if ptWeights:
+        hPtPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt']['Pt'])
+        for iBin in range(1, hPtPrompt.GetNbinsX()+1):
+            if hPtPrompt.GetBinContent(iBin) > 0.:
+                relStatUnc = hPtPrompt.GetBinError(iBin) / hPtPrompt.GetBinContent(iBin)
+                ptCent = hPtPrompt.GetBinCenter(iBin)
+                hPtPrompt.SetBinContent(iBin, hPtPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
+                hPtPrompt.SetBinError(iBin, hPtPrompt.GetBinContent(iBin) * relStatUnc)
+        ### initially use prompt weights for FD, eventually overwrite
+        hPtFD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'])
+        for iBin in range(1, hPtFD.GetNbinsX()+1):
+            if hPtFD.GetBinContent(iBin) > 0.:
+                relStatUnc = hPtFD.GetBinError(iBin) / hPtFD.GetBinContent(iBin)
+                ptCent = hPtFD.GetBinCenter(iBin)
+                hPtFD.SetBinContent(iBin, hPtFD.GetBinContent(iBin) * sPtWeights(ptCent))
+                hPtFD.SetBinError(iBin, hPtFD.GetBinContent(iBin) * relStatUnc)
+    ### pt weights for non-prompt, but no B species weights
+    if ptWeightsB and not Bspeciesweights:
+        hPtBvsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['pt_bmoth'])
+        for iPtD in range(1, hPtBvsPtD.GetXaxis().GetNbins()+1):
+            for iPtB in range(1, hPtBvsPtD.GetYaxis().GetNbins()+1):
+                ptCentB = hPtBvsPtD.GetYaxis().GetBinCenter(iPtB)
+                origContent = hPtBvsPtD.GetBinContent(iPtD, iPtB)
+                origError = hPtBvsPtD.GetBinError(iPtD, iPtB)
+                weight = 0
+                if sPtWeightsB(ptCentB) > 0:
+                    weight = sPtWeightsB(ptCentB)
+                content = origContent * weight
+                error = 0
+                if origContent > 0:
+                    error = origError / origContent * content
+                hPtBvsPtD.SetBinContent(iPtD, iPtB, content)
+                hPtBvsPtD.SetBinError(iPtD, iPtB, error)
+        hPtFD = hPtBvsPtD.ProjectionX(f'hFDPt', 0, hPtBvsPtD.GetYaxis().GetNbins()+1, 'e')
+    ### pt weights from B for non-prompt and B species weights
+    elif ptWeightsB and Bspeciesweights:
+        hPtBvsBspecievsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['flag_bhad'], axes['RecoFD']['pt_bmoth'])
+        for iPtD in range(1, hPtBvsBspecievsPtD.GetXaxis().GetNbins()+1):
+            for iBspecie in range(1, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1):
+                for iPtB in range(1, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1):
+                    ptCentB = hPtBvsBspecievsPtD.GetZaxis().GetBinCenter(iPtB)
+                    origContent = hPtBvsBspecievsPtD.GetBinContent(iPtD, iBspecie, iPtB)
+                    origError = hPtBvsBspecievsPtD.GetBinError(iPtD, iBspecie, iPtB)
                     weight = Bspeciesweights[iBspecie-1]
+                    if sPtWeightsB(ptCentB) > 0:
+                        weight *= sPtWeightsB(ptCentB)
                     content = origContent * weight
                     error = 0
                     if origContent > 0:
                         error = origError / origContent * content
-                    hBspecievsPtD.SetBinContent(iPtD, iBspecie, content)
-                    hBspecievsPtD.SetBinError(iPtD, iBspecie, error)
-            hVarFD = hBspecievsPtD.ProjectionX(f'hFD{iVar}', 0, hBspecievsPtD.GetYaxis().GetNbins()+1, 'e')
-        ### use the pt weights from prompt for non-prompt
-        elif ptWeights: # if pt weights for prompt are present apply them
-            for iBin in range(1, hVarFD.GetNbinsX()+1):
-                    if hVarFD.GetBinContent(iBin) > 0.:
-                        relStatUnc = hVarFD.GetBinError(iBin) / hVarFD.GetBinContent(iBin)
-                        ptCent = hVarFD.GetBinCenter(iBin)
-                        hVarFD.SetBinContent(iBin, hVarFD.GetBinContent(iBin) * sPtWeights(ptCent))
-                        hVarFD.SetBinError(iBin, hVarFD.GetBinContent(iBin) * relStatUnc)
+                    hPtBvsBspecievsPtD.SetBinContent(iPtD, iBspecie, iPtB, content)
+                    hPtBvsBspecievsPtD.SetBinError(iPtD, iBspecie, iPtB, error)
+        hPtFD = hPtBvsBspecievsPtD.ProjectionX(f'hFDPt', 0, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1,
+                                                0, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1, 'e')
+    ### only B species weights
+    elif Bspeciesweights:
+        hBspecievsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['flag_bhad'])
+        for iPtD in range(1, hBspecievsPtD.GetXaxis().GetNbins()+1):
+            for iBspecie in range(1, hBspecievsPtD.GetYaxis().GetNbins()+1):
+                origContent = hBspecievsPtD.GetBinContent(iPtD, iBspecie)
+                origError = hBspecievsPtD.GetBinError(iPtD, iBspecie)
+                weight = Bspeciesweights[iBspecie-1]
+                content = origContent * weight
+                error = 0
+                if origContent > 0:
+                    error = origError / origContent * content
+                hBspecievsPtD.SetBinContent(iPtD, iBspecie, content)
+                hBspecievsPtD.SetBinError(iPtD, iBspecie, error)
+        hPtFD = hBspecievsPtD.ProjectionX(f'hFDPt', 0, hBspecievsPtD.GetYaxis().GetNbins()+1, 'e')
 
-        ## write the output           
-        hVarPrompt.Write(f'hPrompt{iVar}')
-        hVarFD.Write(f'hFD{iVar}')
-        if config.get('enableRef'):
-            hVarRefl = sparsesReco['RecoRefl'].Projection(axes['RecoRefl'][iVar])
-            hVarRefl.Write(f'hVarRefl{iVar}')
-            hVarReflPrompt = sparsesReco['RecoReflPrompt'].Projection(axes['RecoReflPrompt'][iVar])
-            hVarReflPrompt.Write(f'hVarReflPrompt{iVar}')
-            hVarReflFD = sparsesReco['RecoReflFD'].Projection(axes['RecoReflFD'][iVar])
-            hVarReflFD.Write(f'hVarReflFD{iVar}')
-        if config.get('enableSecPeak'):
-            hVarPromptSecPeak = sparsesReco['RecoSecPeakPrompt'].Projection(axes['RecoSecPeakPrompt'][iVar])
-            hVarPromptSecPeak.Write(f'hPromptSecPeak{iVar}')
-            hVarFDSecPeak = sparsesReco['RecoSecPeakFD'].Projection(axes['RecoSecPeakFD'][iVar])
-            hVarFDSecPeak.Write(f'hFDSecPeak{iVar}')
+    ## write the output      
+    hMassPrompt.Write(f'hPromptMass')
+    hMassFD.Write(f'hFDMass')
+    hPtPrompt.Write(f'hPromptPt')
+    hPtFD.Write(f'hFDPt')
+
+    if 'RecoAll' in sparsesReco:
+        hMass.Write(f'hRecoAllMass')
+        hPt.Write(f'RecoAllPt')
+    if config.get('enableRef'):
+        hMassRefl = sparsesReco['RecoRefl'].Projection(axes['RecoRefl']['Mass'])
+        hMassRefl.Write(f'hReflMass')
+        hMassReflPrompt = sparsesReco['RecoReflPrompt'].Projection(axes['RecoReflPrompt']['Mass'])
+        hMassReflPrompt.Write(f'hReflPromptMass')
+        hMassReflFD = sparsesReco['RecoReflFD'].Projection(axes['RecoReflFD']['Mass'])
+        hMassReflFD.Write(f'hReflFDMass')
+        hPtRefl = sparsesReco['RecoRefl'].Projection(axes['RecoRefl']['Pt'])
+        hPtRefl.Write(f'hReflPt')
+        hPtReflPrompt = sparsesReco['RecoReflPrompt'].Projection(axes['RecoReflPrompt']['Pt'])
+        hPtReflPrompt.Write(f'hReflPromptPt')
+        hPtReflFD = sparsesReco['RecoReflFD'].Projection(axes['RecoReflFD']['Pt'])
+        hPtReflFD.Write(f'hReflFDPt')
+    if config.get('enableSecPeak'):
+        hMassPromptSecPeak = sparsesReco['RecoSecPeakPrompt'].Projection(axes['RecoSecPeakPrompt']['Mass'])
+        hMassPromptSecPeak.Write(f'hPromptSecPeakMass')
+        hMassFDSecPeak = sparsesReco['RecoSecPeakFD'].Projection(axes['RecoSecPeakFD']['Mass'])
+        hMassFDSecPeak.Write(f'hFDSecPeakMass')
+        hPtPromptSecPeak = sparsesReco['RecoSecPeakPrompt'].Projection(axes['RecoSecPeakPrompt']['Pt'])
+        hPtPromptSecPeak.Write(f'hPromptSecPeakPt')
+        hPtFDSecPeak = sparsesReco['RecoSecPeakFD'].Projection(axes['RecoSecPeakFD']['Pt'])
+        hPtFDSecPeak.Write(f'hFDSecPeakPt')
 
 def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB):
 
+    if config.get('enableSecPeak'):
+        hGenPtPromptSecPeak = sparsesGen['GenSecPeakPrompt'].Projection(axes['GenSecPeakPrompt']['Pt'])
+        hGenPtPromptSecPeak.Write(f'hPromptSecPeakGenPt')
+        hGenPtFDSecPeak = sparsesGen['GenSecPeakFD'].Projection(axes['GenSecPeakFD']['Pt'])
+        hGenPtFDSecPeak.Write(f'hFDSecPeakGenPt')
+
     ## no pt weights
-    if not ptWeights and not ptWeightsB:
-        hGenPtPrompt = sparsesGen['GenPrompt'].Projection(axes['GenPrompt']['Pt'])
-        hGenPtFD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'])
+    # if not ptWeights and not ptWeightsB:
+    #     print('NO PT WEIGHTS FOR GENERATED')
+    #     hGenPtPrompt = sparsesGen['GenPrompt'].Projection(axes['GenPrompt']['Pt'])
+    #     # hGenPtFD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'])
 
     ## apply pt weights for prompt
     if ptWeights:
@@ -170,11 +193,13 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
                 ptCent = hGenPtPrompt.GetBinCenter(iBin)
                 hGenPtPrompt.SetBinContent(iBin, hGenPtPrompt.GetBinContent(iBin) * sPtWeights(ptCent))
                 hGenPtPrompt.SetBinError(iBin, hGenPtPrompt.GetBinContent(iBin) * relStatUnc)
+    else:
+        hGenPtPrompt = sparsesGen['GenPrompt'].Projection(axes['GenPrompt']['Pt'])
 
     ## apply pt weights for non-prompt
     ### pt weights from B for non-prompt, but no B species weights
     if ptWeightsB and not Bspeciesweights:
-        hPtBvsPtGenD = sparsesGen['GenFD'].Projection(2, 0)
+        hPtBvsPtGenD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['pt_bmoth'])
         for iPtD in range(1, hPtBvsPtGenD.GetXaxis().GetNbins()+1):
             for iPtB in range(1, hPtBvsPtGenD.GetYaxis().GetNbins()+1):
                 ptCentB = hPtBvsPtGenD.GetYaxis().GetBinCenter(iPtB)
@@ -192,7 +217,7 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
         hGenPtFD = hPtBvsPtGenD.ProjectionX(f'hFDGenPt', 0, hPtBvsPtGenD.GetYaxis().GetNbins()+1, 'e')
     ### pt weights from B for non-prompt and B species weights
     elif ptWeightsB and Bspeciesweights:
-        hPtBvsBspecievsPtGenD = sparsesGen['GenFD'].Projection(0, 3, 2)
+        hPtBvsBspecievsPtGenD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['flag_bhad'], axes['GenFD']['pt_bmoth'])
         for iPtD in range(1, hPtBvsBspecievsPtGenD.GetXaxis().GetNbins()+1):
             for iBspecie in range(1, hPtBvsBspecievsPtGenD.GetYaxis().GetNbins()+1):
                 for iPtB in range(1, hPtBvsBspecievsPtGenD.GetZaxis().GetNbins()+1):
@@ -212,7 +237,7 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
                                                      0, hPtBvsBspecievsPtGenD.GetZaxis().GetNbins()+1, 'e')
     ### only B species weights
     elif Bspeciesweights:
-        hBspecievsPtGenD = sparsesGen['GenFD'].Projection(3, 0)
+        hBspecievsPtGenD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['flag_bhad'])
         for iPtD in range(1, hBspecievsPtGenD.GetXaxis().GetNbins()+1):
             for iBspecie in range(1, hBspecievsPtGenD.GetYaxis().GetNbins()+1):
                 origContent = hBspecievsPtGenD.GetBinContent(iPtD, iBspecie)
@@ -225,23 +250,18 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
                 hBspecievsPtGenD.SetBinContent(iPtD, iBspecie, content)
                 hBspecievsPtGenD.SetBinError(iPtD, iBspecie, error)
         hGenPtFD = hBspecievsPtGenD.ProjectionX(f'hFDGenPt', 0, hBspecievsPtGenD.GetYaxis().GetNbins()+1, 'e')
-    ### use the pt weights from prompt for non-prompt
-    elif ptWeights: # if pt weights for prompt are present apply them
+    ### no pt weights for generated FD
+    else:
         hGenPtFD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'])
                             
-    ## print the output
+    ## write the output
     hGenPtPrompt.Write(f'hPromptGenPt')
     hGenPtFD.Write(f'hFDGenPt')
-    if config.get('enableSecPeak'):
-        hGenPtPromptSecPeak = sparsesGen['GenSecPeakPrompt'].Projection(axes['GenSecPeakPrompt']['Pt'])
-        hGenPtPromptSecPeak.Write(f'hPromptSecPeakGenPt')
-        hGenPtFDSecPeak = sparsesGen['GenSecPeakFD'].Projection(axes['GenSecPeakFD']['Pt'])
-        hGenPtFDSecPeak.Write(f'hFDSecPeakGenPt')
 
-def pt_weights_info(config):
+def pt_weights_info(ptweights, ptweightsB):
     # compute info for pt weights
-    if config.get('ptWeights'): # and ptweights != []:
-        ptWeights = uproot.open(config['ptweightPath'])[config['ptweightName']]
+    if ptweights != []:
+        ptWeights = uproot.open(ptweights[0])[ptweights[1]]
         bins = ptWeights.axis(0).edges()
         ptCentW = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
         sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values())
@@ -250,8 +270,8 @@ def pt_weights_info(config):
         ptWeights = None
         sPtWeights = None
 
-    if config.get('ptWeightsB'): # and ptweightsB != []:
-        ptWeightsB = uproot.open(config['ptweightBPath'])[config['ptweightBName']]
+    if ptweightsB != []:
+        ptWeightsB = uproot.open(ptweightsB[0])[ptweightsB[1]]
         bins = ptWeightsB.axis(0).edges()
         ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
         sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
@@ -296,21 +316,23 @@ if __name__ == "__main__":
     os.makedirs(f'{args.outputdir}/proj', exist_ok=True)
     outfile = ROOT.TFile(f'{args.outputdir}/proj/proj_{args.suffix}.root', 'RECREATE')
     
+    cent, (cent_min, cent_max) = get_centrality_bins(args.centrality)
     outfile_dir = 'hf-candidate-creator-2prong' if config['Dmeson'] == 'Dzero' else 'hf-candidate-creator-3prong'
     infilemc = TFile.Open(config['MC_filename'], 'r')
     histo_cent = infilemc.Get(f'{outfile_dir}/hSelCollisionsCent')
+    histo_cent.GetXaxis().SetRangeUser(cent_min, cent_max)
     resofile = TFile.Open(args.resolution, 'r')
     try:
         det_A = config['detA']
         det_B = config['detB']
         det_C = config['detC']
-        histo_reso = resofile.Get(f'{det_A}_{det_B}_{det_C}/histo_reso')
-        histo_reso.SetName('hist_reso')
+        histo_reso = resofile.Get(f'{det_A}_{det_B}_{det_C}/histo_reso_delta_cent')
+        histo_reso.SetName('histo_reso_delta_cent')
         histo_reso.SetDirectory(0)
         reso = histo_reso.GetBinContent(1)
     except:
         histo_reso = resofile.Get(f'hf-task-flow-charm-hadrons/spReso/hSpReso{det_B}{det_C}')
-        histo_reso.SetName('hist_reso')
+        histo_reso.SetName('histo_reso_delta_cent')
         histo_reso.SetDirectory(0)
         reso = histo_reso.GetBinContent(1)
     
@@ -323,10 +345,7 @@ if __name__ == "__main__":
     infilemc.Close()
 
     # load thnsparse
-    print(f"args.preprocessed: {args.preprocessed}")
-    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, args.preprocessed, f'{args.outputdir}/pre/AnRes')
-
-    cent, (cent_min, cent_max) = get_centrality_bins(args.centrality)
+    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.preprocessed, f'{config["skimDir"]}')
     if not args.preprocessed:
         for key, iSparse in sparsesFlow.items():
             iSparse.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
@@ -338,10 +357,9 @@ if __name__ == "__main__":
     with open(args.cutsetConfig, 'r') as ymlCutSetFile:
         cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
     cutVars = cutSetCfg['cutvars']
-    print(f"cutVars: {cutVars}")
 
     # compute info for pt weights
-    ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB = pt_weights_info(config)
+    ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB = pt_weights_info(args.ptweights, args.ptweightsB)
 
     with alive_bar(len(cutVars['Pt']['min']), title='Processing pT bins') as bar:
         for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['max'])):
@@ -355,7 +373,13 @@ if __name__ == "__main__":
             if args.preprocessed:
                 print('PREPROCESSED')
                 sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetAxis(axes['Flow']['score_FD']).SetRangeUser(cutVars['score_FD']['min'][iPt], cutVars['score_FD']['max'][iPt])
-                proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], axes, config['inv_mass_bins'][iPt], reso)
+                proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], ptMin, ptMax, axes, config['inv_mass_bins'][iPt], reso)
+                file_proj = TFile(f'{args.outputdir}/proj/ProjFlow_{args.suffix}.root', 'recreate')
+                for idim in range(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetNdimensions()):
+                    histo = sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].Projection(idim)
+                    histo.Write()
+                file_proj.Close()
+                outfile.cd(f'cent_bins{cent}/pt_bins{int(ptLowLabel)}_{int(ptHighLabel)}')
                 print(f"Projected data!")
             
             if not args.preprocessed:
@@ -363,13 +387,13 @@ if __name__ == "__main__":
                 for iSparse, (key, sparse) in enumerate(sparsesFlow.items()):
                     for iVar in cutVars:
                         sparse.GetAxis(axes['Flow'][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
-                proj_data(sparsesFlow, axes, config['inv_mass_bins'][iPt], reso)
+                proj_data(sparsesFlow, ptMin, ptMax, axes, config['inv_mass_bins'][iPt], reso)
                 print(f"Projected data!")
             
             for iVar in cutVars:
                 for key, iSparse in sparsesReco.items():
                     iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
-                if iVar == 'pt':
+                if iVar == 'Pt':
                     for key, iSparse in sparsesGen.items():
                         iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
                 if iVar == 'score_FD' or iVar == 'score_bkg':

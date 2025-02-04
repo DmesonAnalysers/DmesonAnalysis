@@ -9,7 +9,7 @@ class TH1F;
 class InvMassFitter : public TNamed {
  public:
 
-  enum ETypeOfBkg{ kExpo=0, kLin=1, kPol2=2, kNoBk=3, kPow=4, kPowEx=5};
+  enum ETypeOfBkg{ kExpo=0, kLin=1, kPol2=2, kNoBk=3, kPow=4, kPowEx=5, kPol3=6};
   enum ETypeOfSgn{ kGaus=0, k2Gaus=1, k2GausSigmaRatioPar=2 };
   InvMassFitter();
   InvMassFitter(const TH1F* histoToFit, Double_t minvalue, Double_t maxvalue, Int_t fittypeb=kExpo, Int_t fittypes=kGaus);

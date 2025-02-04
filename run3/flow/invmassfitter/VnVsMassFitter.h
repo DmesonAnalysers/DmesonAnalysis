@@ -62,7 +62,7 @@ public:
     fMaxRefl=maxRange;
     fReflections=kTRUE;
   }
-  void SetKDETemplates(std::vector<TF1> templs, std::vector<std::string> templsnames,
+  void SetKDETemplates(std::vector<TF1> templs, std::vector<int> templsnames,
                        std::vector<Double_t> initweights, std::vector<Double_t> minweights, std::vector<Double_t> maxweights, 
                        std::vector<Double_t> vninitweights, std::vector<Double_t> vnminweights, std::vector<Double_t> vnmaxweights, 
                        Bool_t samevnofsignal) {
@@ -74,12 +74,15 @@ public:
     fVnWeightsLowerLims=vnminweights;
     fVnWeightsUpperLims=vnmaxweights;
     for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
-      fKDETemplates[iFunc].SetName(templsnames[iFunc].data());
-      fKDETemplates[iFunc].SetTitle(templsnames[iFunc].data());
+      fKDETemplates[iFunc].SetName(Form("TemplFlag_%i", templsnames[iFunc]));
+      fKDETemplates[iFunc].SetTitle(Form("TemplFlag_%i", templsnames[iFunc]));
     }
     if(samevnofsignal) {printf("WARNING: Vn parameter of templates will be the same as the one of the signal! \n");}
     fTemplSameVnOfSignal=samevnofsignal;
     fTemplates=kTRUE;
+  }
+  void SetBkgPars(std::vector<Double_t> initpars) {
+    fMassBkgInitPars = initpars;
   }
   void SetInitialReflOverS(Double_t rovers){fRflOverSig=rovers;}
   void SetFixReflOverS(Double_t rovers){
@@ -92,10 +95,11 @@ public:
     fVnRflMin=min;
     fVnRflMax=max;
   }
-  void IncludeSecondGausPeak(Double_t mass, Bool_t fixm, Double_t width, Bool_t fixw, Bool_t doVn){
+  void IncludeSecondGausPeak(Double_t mass, Bool_t fixm, Double_t width, Bool_t fixw, Bool_t doVn, Bool_t fixtosgn){
     fSecondPeak=kTRUE; fSecMass=mass; fSecWidth=width;
     fFixSecMass=fixm;  fFixSecWidth=fixw;
     fDoSecondPeakVn=doVn;
+    fFixVnSecPeakToSgn=fixtosgn;
   }
   void SetHarmonic(Int_t harmonic=2) {fHarmonic=harmonic;}
 
@@ -136,6 +140,32 @@ public:
     if(fMassTotFunc) return fMassTotFunc;
     else return nullptr;
   }
+  Int_t GetNMassBkgPars() const {
+    return fNParsMassBkg;
+  }
+  Int_t GetNMassSgnPars() const {
+    return fNParsMassSgn;
+  }
+  Int_t GetNMassSecPeakPars() const {
+    // only for gaussian case
+    return 3;
+  }
+  Int_t GetNMassReflPars() const {
+    // only for gaussian case
+    return fNParsRfl;
+  }
+  Int_t GetNVnBkgPars() const {
+    return fNParsVnBkg;
+  }
+  Int_t GetNVnSgnPars() const {
+    return fNParsVnSgn;
+  }
+  Int_t GetNVnSecPeakPars() const {
+    return fNParsVnSecPeak;
+  }
+  Int_t GetNVnReflPars() const {
+    return fNParsVnRfl;
+  }
   TF1* GetMassSignalFitFunc() const {
     if(fMassSgnFunc) return fMassSgnFunc;
     else return nullptr;
@@ -174,6 +204,10 @@ public:
   }
   std::vector<TF1*> GetVnCompsFuncts() const {
     return fVnCompsDraw;
+  }
+  std::vector<TF1> GetKDEs() const {
+    if(fTemplates) return fKDETemplates;
+    else return {};
   }
   std::vector<double> GetVnTemplates() const {
     std::vector<double> vnPars;

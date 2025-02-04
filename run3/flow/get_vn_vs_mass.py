@@ -10,8 +10,9 @@ import ctypes
 import numpy as np
 import yaml
 import os
+import itertools
 from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors # pylint: disable=import-error,no-name-in-module
-from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kGray, kOrange, kGreen, kMagenta, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
+from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kCyan, kGray, kOrange, kGreen, kMagenta, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, getD0ReflHistos, get_particle_info # pylint: disable=import-error,no-name-in-module
 sys.path.append('../../..')
 sys.path.append('../..')
@@ -60,6 +61,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         massMaxs = [massMaxs] * len(ptMins)
     useRefl = fitConfig.get('InclRefl')
     reflFile = fitConfig.get('ReflFile', None)
+    useTemplates = fitConfig.get('IncludeKDETempls')
 
     # read fit configuration
     if not isinstance(fixSigma, list):
@@ -90,9 +92,6 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         elif bkgStr == 'kPol3':
             BkgFunc.append(6)
             degPol[-1] = 3
-            if len(ptMins) > 1 and inclSecPeak[iPt] == 1:
-                print('ERROR: Pol3 and Pol4 fits work only with one bin if you have the secondary peak! Exit!')
-                sys.exit()
         elif bkgStr == 'kPol4':
             BkgFunc.append(6)
             degPol[-1] = 4
@@ -126,27 +125,48 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             sys.exit()
 
     KDEtemplatesFuncts = []
-    if fitConfig.get('IncludeKDETempls'):
-        KDEtemplates = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+    KDEtemplates = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+    if useTemplates:
+        cTemplOverlap = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+        hRebinnedHistos = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+        templatesFile = TFile(f'{outputdir}/Templates.root', 'recreate')
         for iPt in range(len(ptMins)):
             for iFlag, flag in enumerate(fitConfig['TemplsFlags']):
-                if fitConfig.get('FromGrid'):
-                    KDEtemplates[iPt][iFlag] = kde_producer(fitConfig['TemplsInputs'][iFlag],
-                                                     'fM', ptMins[iPt], ptMaxs[iPt], flag, '',
-                                                     fitConfig['TemplsTreeNames'][iFlag])
-                elif fitConfig.get('FromFile'):
+                if not fitConfig['IncludeKDETempls'][iPt]:
+                    KDEtemplates[iPt][iFlag], kde_func, hRebinnedHistos[iPt][iFlag], cTemplOverlap[iPt][iFlag] = None, None, None, None
+                    continue
+                elif fitConfig['IncludeKDETempls'][iPt] and fitConfig.get('FromGrid'):
+                    KDEtemplates[iPt][iFlag], kde_func, hRebinnedHistos[iPt][iFlag] = kde_producer(fitConfig['TemplsInputs'][iFlag], 'fM', ptMins[iPt], ptMaxs[iPt], flag,
+                                                                      templatesFile, fitConfig['TemplsTreeNames'][iFlag])
+                    templatesFile.cd()
+                    hRebinnedHistos[iPt][iFlag].Write(f"hBinned_pt_{iPt}")
+                    cTemplOverlap[iPt][iFlag] = TCanvas(f'cOverlap_{iPt}_{flag}', f'cOverlap_{iPt}_{flag}', 600, 600)
+                    cTemplOverlap[iPt][iFlag].cd()
+                    hRebinnedHistos[iPt][iFlag].Draw()
+                    kde_func.Draw('same')
+                    cTemplOverlap[iPt][iFlag].Write()
+                elif fitConfig['IncludeKDETempls'][iPt] and fitConfig.get('FromFile'):
                     templFile = TFile.Open(f'{fitConfig["FromFile"]}', 'r')
-                    KDEtemplates[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}')
+                    KDEtemplates[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}/KDEFunc_')
+                    hRebinnedHistos[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}/hBinned')
                     templFile.Close()
+                    cTemplOverlap[iPt][iFlag] = TCanvas(f'cOverlap_{iPt}_{flag}', f'cOverlap_{iPt}_{flag}', 600, 600)
+                    cTemplOverlap[iPt][iFlag].cd()
+                    hRebinnedHistos[iPt][iFlag].Draw()
+                    kde_func.Draw('same')
                 else:
                     print(f'ERROR: incorrect setting for including KDEs in fit! Exit!')
                     sys.exit()
-        KDEtemplatesFuncts = [[KDE.GetFunction() for KDE in KDEtemplatesPt] for KDEtemplatesPt in KDEtemplates]
+        templatesFile.Close()
+        KDEtemplatesFuncts = [[KDE.GetFunction() if KDE is not None else None for KDE in KDEtemplatesPt] for KDEtemplatesPt in KDEtemplates]
     
     # set particle configuration
     if particleName == 'Ds':
         _, massAxisTit, decay, massForFit = get_particle_info(particleName)
         massDplus = TDatabasePDG.Instance().GetParticle(411).Mass()
+    if particleName == 'Dplus':
+        _, massAxisTit, decay, massForFit = get_particle_info(particleName)
+        massDstar = TDatabasePDG.Instance().GetParticle(413).Mass()
     else:
         _, massAxisTit, decay, massForFit = get_particle_info(particleName)
 
@@ -158,25 +178,25 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     hRel, hSig, hMassForRel, hMassForSig  = [], [], [], []
     hMass, hMassForFit, hVn, hVnForFit = [], [], [], []
     hMassIns, hMassOuts, hMassInsForFit, hMassOutsForFit = [], [], [], []
-    fTotFuncMass, fTotFuncVn, fSgnFuncMass, fBkgFuncMass, fMassBkgRflFunc,fBkgFuncVn = [], [], [], [], [], []
+    fTotFuncMass, fTotFuncVn, fSgnFuncMass, fBkgFuncMass, fMassBkgRflFunc, fMassSecPeakFunc, fBkgFuncVn, fVnSecPeakFunc = [], [], [], [], [], [], [], []
     hMCSgn, hMCRefl = [], []
-    fMassTemplFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if fitConfig.get('IncludeKDETempls') else [] 
-    fVnTemplFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if fitConfig.get('IncludeKDETempls') else []
-    hist_reso = infile.Get('hist_reso')
+    fMassTemplFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if useTemplates else [] 
+    fVnCompFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if fitConfig.get('DrawVnComps') else []
+    hist_reso = infile.Get('histo_reso_delta_cent')
     hist_reso.SetDirectory(0)
     reso = hist_reso.GetBinContent(1)
     inclSecPeak = [inclSecPeak] * len(ptMins) if not isinstance(inclSecPeak, list) else inclSecPeak
-    for iPt, (ptMin, ptMax, secPeak) in enumerate(zip(ptMins, ptMaxs, inclSecPeak)):
+    for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         if not vn_method == 'sp' and not vn_method == 'ep':
-            print(f'loading: cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_cent{cent}_pt{ptMin}_{ptMax}')
-            hMassIns.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_inplane_cent{cent}_pt{ptMin}_{ptMax}'))
-            hMassOuts.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_outplane_cent{cent}_pt{ptMin}_{ptMax}'))
+            print(f'loading: cent_bins{cent}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hist_mass_cent{cent}_pt{int(ptMin*10)}_{int(ptMax*10)}')
+            hMassIns.append(infile.Get(f'cent_bins{cent}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hist_mass_inplane_cent{cent}_pt{int(ptMin*10)}_{int(ptMax*10)}'))
+            hMassOuts.append(infile.Get(f'cent_bins{cent}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hist_mass_outplane_cent{cent}_pt{int(ptMin*10)}_{int(ptMax*10)}'))
             hMassIns[iPt].SetDirectory(0)
             hMassOuts[iPt].SetDirectory(0)
         else:
-            print(f'loading: cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_vn_{vn_method}_pt{ptMin}_{ptMax}')
-            hMass.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_cent{cent}_pt{ptMin}_{ptMax}'))
-            hVn.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_vn_{vn_method}_pt{ptMin}_{ptMax}'))
+            print(f'cent_bins{cent}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hist_vn_{vn_method}_proj_pt{int(ptMin*10)}_{int(ptMax*10)}')
+            hMass.append(infile.Get(f'cent_bins{cent}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hist_mass_proj_pt{int(ptMin*10)}_{int(ptMax*10)}'))
+            hVn.append(infile.Get(f'cent_bins{cent}/pt_bins{int(ptMin*10)}_{int(ptMax*10)}/hist_vn_{vn_method}_proj_pt{int(ptMin*10)}_{int(ptMax*10)}'))
             hVn[iPt].SetDirectory(0)
             hMass[iPt].SetDirectory(0)
             SetObjectStyle(hMass[iPt], color=kBlack, markerstyle=kFullCircle)
@@ -303,6 +323,16 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     gvnUnc.SetName('gvnUnc')
     gvnUncSecPeak = TGraphAsymmErrors(1)
     gvnUncSecPeak.SetName('gvnUncSecPeak')
+    gvnTempls = []
+    gvnTemplsUncs = []
+    if useTemplates:
+        for iTempl in fitConfig['TemplsFlags']:
+            gvnTempl = TGraphAsymmErrors(1)
+            gvnTempl.SetName('gvnTemplUnc')
+            gvnTempls.append(gvnTempl)
+            gvnTemplUnc = TGraphAsymmErrors(1)
+            gvnTemplUnc.SetName('gvnUncSecPeak')
+            gvnTemplsUncs.append(gvnTemplUnc)
     SetObjectStyle(gvnSimFit, color=kBlack, markerstyle=kFullCircle)
     SetObjectStyle(gvnSimFitSecPeak, color=kRed, markerstyle=kOpenCircle)
     SetObjectStyle(gvnUnc, color=kBlack, markerstyle=kFullCircle)
@@ -383,7 +413,12 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 print(f'NSigma4SB = {fitConfig["NSigma4SB"][iPt]}')
             # Second peak (Ds specific)
             if secPeak and particleName == 'Ds':
-                vnFitter[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], False, 1)
+                vnFitter[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], False, 1, fitConfig.get('FixVnSecPeakToSgn', False))
+                if fixSigma[iPt]:
+                    vnFitter[iPt].FixSigma2GausFromMassFit()
+            # Second peak (Dplus specific)
+            if secPeak and particleName == 'Dplus':
+                vnFitter[iPt].IncludeSecondGausPeak(massDstar, False, fitConfig['SigmaSecPeak'][iPt], False, 1, fitConfig.get('FixVnSecPeakToSgn', False))
                 if fixSigma[iPt]:
                     vnFitter[iPt].FixSigma2GausFromMassFit()
             vnFitter[iPt].FixFrac2GausFromMassFit()
@@ -395,22 +430,33 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 vnFitter[iPt].SetTemplateReflections(hMCRefl[iPt],reflFuncStr,massMin,massMax)
                 vnFitter[iPt].SetFixReflOverS(SoverR)
                 vnFitter[iPt].SetReflVnOption(0) # kSameVnSignal
-            if fitConfig.get('IncludeKDETempls'):
-                vnFitter[iPt].SetKDETemplates(KDEtemplatesFuncts[iPt], fitConfig['TemplsTreeNames'],
-                                              fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], 
-                                              fitConfig['MaxWeights'][iPt])
+            if useTemplates:
+                if fitConfig['IncludeKDETempls'][iPt]:
+                    vnFitter[iPt].SetKDETemplates(KDEtemplatesFuncts[iPt], fitConfig['TemplsFlags'],
+                                                fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
+                                                fitConfig['VnInitWeights'][iPt], fitConfig['VnMinWeights'][iPt], fitConfig['VnMaxWeights'][iPt], 
+                                                fitConfig['FixVnTemplToSgn'][iPt])
+
+            if fitConfig.get('InitBkg'):
+                if fitConfig['InitBkg'][iPt] != []:
+                    vnFitter[iPt].SetBkgPars(list(itertools.chain(*fitConfig['InitBkg'][iPt])))
 
             # collect fit results
             vnFitter[iPt].SimultaneousFit(False)
-            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl)
+            vnComps = vnFitter[iPt].GetVnCompsFuncts()
+            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, fitConfig['IncludeKDETempls'][iPt])
             fTotFuncMass.append(vnResults['fTotFuncMass'])
             fTotFuncVn.append(vnResults['fTotFuncVn'])
             fSgnFuncMass.append(vnResults['fSgnFuncMass'])
             fBkgFuncMass.append(vnResults['fBkgFuncMass'])
             fBkgFuncVn.append(vnResults['fBkgFuncVn'])
-            if fitConfig.get('IncludeKDETempls'):
+            if secPeak:
+                fMassSecPeakFunc.append(vnResults['fMassSecPeakFunc'])
+                fVnSecPeakFunc.append(vnResults['fVnSecPeakFunct'])
+            if fitConfig['IncludeKDETempls'][iPt]:
                 fMassTemplFuncts[iPt] = vnResults['fMassTemplFuncts']
-                fVnTemplFuncts[iPt] = vnResults['fVnTemplFuncts']
+            if fitConfig.get('DrawVnComps'):
+                fVnCompFuncts[iPt] = vnResults['fVnCompsFuncts']
 
             if useRefl:
                 fMassBkgRflFunc.append(vnResults['fMassBkgRflFunc'])
@@ -452,6 +498,12 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                                                vnResults['vnSecPeakUnc'])
                 gvnUncSecPeak.SetPoint(iPt, (ptMin+ptMax)/2, vnResults['vnSecPeakUnc'])
                 gvnUncSecPeak.SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, 1.e-20, 1.e-20)
+            if fitConfig['IncludeKDETempls'][iPt]:
+                for iTempl, (templVn, templVnUnc) in enumerate(zip(vnResults["vnTemplates"], vnResults["vnTemplatesUncs"])):
+                    gvnTempls[iTempl].SetPoint(iPt, (ptMin+ptMax)/2, templVn)
+                    gvnTempls[iTempl].SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, 1.e-20, 1.e-20)
+                    gvnTemplsUncs[iTempl].SetPoint(iPt, (ptMin+ptMax)/2, templVnUnc)
+                    gvnTemplsUncs[iTempl].SetPointError(iPt, (ptMax-ptMin)/2, (ptMax-ptMin)/2, 1.e-20, 1.e-20)
 
             if vnResults['vn'] != 0:
                 cSimFit[iPt].cd(1)
@@ -472,6 +524,9 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 if useRefl:
                     fMassBkgRflFunc[iPt].Draw('same')
                     hRel[iPt].Draw('same')
+                if secPeak:
+                    SetObjectStyle(fMassSecPeakFunc[-1], fillcolor=kGreen+1, fillstyle=3254, linewidth=0)
+                    fMassSecPeakFunc[-1].Draw('same')
                 latex.DrawLatex(0.18, 0.80, f'#mu = {vnResults["mean"]:.3f} #pm {vnResults["meanUnc"]:.3f} GeV/c^{2}')
                 latex.DrawLatex(0.18, 0.75, f'#sigma = {vnResults["sigma"]:.3f} #pm {vnResults["sigmaUnc"]:.3f} GeV/c^{2}')
                 latex.DrawLatex(0.18, 0.70, f'S = {vnResults["ry"]:.0f} #pm {vnResults["ryUnc"]:.0f}')
@@ -479,15 +534,19 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 latex.DrawLatex(0.18, 0.60, f'Signif. (3#sigma) = {round(vnResults["signif"], 2)}')
                 if useRefl:
                     latex.DrawLatex(0.18, 0.20, f'RoverS = {SoverR:.2f}')
-                if fitConfig.get('IncludeKDETempls'):
+                if fitConfig['IncludeKDETempls'][iPt]:
                     for iMassTemplFunct, massTemplFunct in enumerate(fMassTemplFuncts[iPt]):
-                        SetObjectStyle(massTemplFunct, color=kMagenta+iMassTemplFunct*2, linewidth=3)
-                        massTemplFunct.SetLineColor(1)
+                        SetObjectStyle(massTemplFunct, color=kMagenta+2+iMassTemplFunct*2, linewidth=3)
                         massTemplFunct.Draw('same')
                         cSimFit[iCanv].Modified()
                         cSimFit[iCanv].Update()
                 cSimFit[iPt].cd(2)
-                hVnForFit[iPt].GetYaxis().SetRangeUser(-0.2, 0.4)
+                if fitConfig.get('DrawVnComps'):
+                    hVnForFit[iPt].GetYaxis().SetRangeUser(-0.2, 0.4)
+                else:
+                    minCounts = hVnForFit[iPt].GetMinimum()
+                    maxCounts = hVnForFit[iPt].GetMaximum()
+                    hVnForFit[iPt].GetYaxis().SetRangeUser(minCounts-(0.2*minCounts), maxCounts+(0.2*maxCounts))
                 hVnForFit[iPt].GetYaxis().SetTitle(f'#it{{v}}_{{{harmonic}}} ({vn_method})')
                 hVnForFit[iPt].GetXaxis().SetRangeUser(massMin, massMax)
                 hVnForFit[iPt].Draw('E')
@@ -499,16 +558,31 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 latex.DrawLatex(0.18, 0.18, f'#chi^{{2}}/ndf = {vnResults["chi2"]:.2f}')
                 latex.DrawLatex(0.18, 0.80,
                                 f'#it{{v}}{harmonic}({particleName}) = {vnResults["vn"]:.3f} #pm {vnResults["vnUnc"]:.3f}')
-                if secPeak:
+                if secPeak and particleName == "Ds":
                     latex.DrawLatex(0.18, 0.75,
                                     f'#it{{v}}{harmonic}(D^{{+}}) = {vnResults["vnSecPeak"]:.3f} #pm {vnResults["vnSecPeakUnc"]:.3f}')
-                if fitConfig.get('IncludeKDETempls'):
-                    if fitConfig.get('drawvncomps'):
-                        for iVnTemplFunct, vnTemplFunct in enumerate(fVnTemplFuncts[iPt]):
-                            vnTemplFunct.SetLineColor(iVnTemplFunct+1)
-                            vnTemplFunct.Draw('same')
-                            cSimFit[iCanv].Modified()
-                            cSimFit[iCanv].Update()
+                if secPeak and particleName == "Dplus":
+                    latex.DrawLatex(0.18, 0.75,
+                                    f'#it{{v}}{harmonic}(D^{{*}}) = {vnResults["vnSecPeak"]:.3f} #pm {vnResults["vnSecPeakUnc"]:.3f}')
+                if fitConfig['IncludeKDETempls'][iPt]:
+                    for iVnTempl, (vnCoeff, vnCoeffUnc) in enumerate(zip(vnResults["vnTemplates"], vnResults["vnTemplatesUncs"])):
+                        latex.DrawLatex(0.18, 0.70-iVnTempl*0.05,
+                                    f'#it{{v}}{harmonic}(Templ{iVnTempl}) = {vnCoeff:.3f} #pm {vnCoeffUnc:.3f}')
+                        cSimFit[iCanv].Modified()
+                        cSimFit[iCanv].Update()
+                if fitConfig.get('DrawVnComps'):
+                    SetObjectStyle(fVnCompFuncts[iPt]['vnSgn'], fillcolor=kAzure+4, fillstyle=3245, linewidth=0)
+                    SetObjectStyle(fVnCompFuncts[iPt]['vnBkg'], color=kOrange+1, linestyle=1, linewidth=2)
+                    if secPeak:
+                        SetObjectStyle(fVnCompFuncts[iPt]['vnSecPeak'], fillcolor=kGreen+1, fillstyle=3254, linewidth=0)
+                    if fitConfig['IncludeKDETempls'][iPt]:
+                        for iTempl in range(len(fVnCompFuncts[iPt])-2-secPeak):
+                            SetObjectStyle(fVnCompFuncts[iPt][f'vnTempl{iTempl}'], color=kMagenta+2+iTempl*2, linewidth=3)
+                    for vnCompKey, vnCompFunct in fVnCompFuncts[iPt].items():
+                        vnCompFunct.Draw('same')
+                        cSimFit[iCanv].Modified()
+                        cSimFit[iCanv].Update()
+
                 cSimFit[iCanv].Modified()
                 cSimFit[iCanv].Update()
 
@@ -595,8 +669,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                         massFitterOuts[iPt].SetInitialGaussianSigma(0.008)
 
             if secPeak and particleName == 'Ds':
-                massFitterIns[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], True)
-                massFitterOuts[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], True)
+                massFitterIns[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], True, fitConfig.get('FixVnSecPeakToSgn', False))
+                massFitterOuts[iPt].IncludeSecondGausPeak(massDplus, False, fitConfig['SigmaSecPeak'][iPt], True, fitConfig.get('FixVnSecPeakToSgn', False))
             # TODO: Add reflections for D0
             # Reflections for D0
             if useRefl:
@@ -762,18 +836,22 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         for canv in cSimFit:
             canv.Write()
         for hist in hMass:
-            hist.Write()
+            hist.Write('hist_mass')
         for hist in hVn:
-            hist.Write()
+            hist.Write('hist_vn')
         for ipt, (ptmin, ptmax) in enumerate(zip(ptMins, ptMaxs)):
-            fTotFuncMass[ipt].Write(f'fTotFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
-            fTotFuncVn[ipt].Write(f'fTotFuncVn_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
-            fSgnFuncMass[ipt].Write(f'fSgnFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
-            fBkgFuncMass[ipt].Write(f'fBkgFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
-            fBkgFuncVn[ipt].Write(f'fBkgFuncVn_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
-            if fitConfig.get('IncludeKDETempls'):
-                for iFlag in range(len(KDEtemplatesFuncts[ipt])):
-                    KDEtemplatesFuncts[ipt][iFlag].Write(f'{fitConfig["TemplsTreeNames"][iFlag]}_pt{ptmin*10:.0f}_{ptmax*10:.0f}_flag{fitConfig["TemplsFlags"][iFlag]}')
+            if fitConfig['IncludeKDETempls'][ipt]:
+                for iFlag in range(len(cTemplOverlap[ipt])):
+                    cTemplOverlap[ipt][iFlag].Write(f'cOverlap_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+            try:
+                fTotFuncMass[ipt].Write(f'fTotFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+                fTotFuncVn[ipt].Write(f'fTotFuncVn_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+                fSgnFuncMass[ipt].Write(f'fSgnFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+                fBkgFuncMass[ipt].Write(f'fBkgFuncMass_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+                fBkgFuncVn[ipt].Write(f'fBkgFuncVn_pt{ptmin*10:.0f}_{ptmax*10:.0f}')
+            except:
+                print(f'WARNING: Fit failed for pt {ptmin*10:.0f}-{ptmax*10:.0f}')
+                
                 
         hSigmaSimFit.Write()
         hMeanSimFit.Write()
@@ -825,6 +903,10 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     if secPeak:
         gvnSimFitSecPeak.Write()
         gvnUncSecPeak.Write()
+    if useTemplates:
+        for iTempl in range(len(fitConfig['TemplsFlags'])):
+            gvnTempls[iTempl].Write()
+            gvnTemplsUncs[iTempl].Write()
     hist_reso.Write()
 
     outFile.Close()

@@ -49,9 +49,9 @@ def cook_thnsparse(thnsparse_list, ptmins, ptmaxs, axestokeep):
 def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir):
     
     # Load the ThnSparse
-    thnsparse_list, _, _, sparse_axes = get_sparses(config, True, False)
+    thnsparse_list, _, _, sparse_axes = get_sparses(config, True, False, False)
 
-    out_file = TFile('Projections.root', 'recreate')
+    out_file = TFile(f'Projections_{centmin}_{centmax}_{ptmins}_{ptmaxs}.root', 'recreate')
     for isparse, (key, sparse) in enumerate(thnsparse_list.items()):
         if 'Flow' in key:
             out_file.mkdir(f'Flow_{isparse}')
@@ -63,14 +63,15 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
                 histo.Write()
         
     def process_pt_bin(iPt, ptmin, ptmax, centmin, centmax, bkg_max_cut, thnsparse_list, axestokeep, outputDir):
-        
+        print(f'Processing pT bin {ptmin} - {ptmax}, cent {centmin}-{centmax}')
         # add possibility to apply cuts for different variables
         for iThn, (sparse_key, sparse) in enumerate(thnsparse_list.items()):
-            sparse.GetAxis(sparse_axes['Flow']['Pt']).SetRangeUser(ptmin, ptmax)
-            sparse.GetAxis(sparse_axes['Flow']['cent']).SetRangeUser(centmin, centmax)
-            sparse.GetAxis(sparse_axes['Flow']['score_bkg']).SetRangeUser(0, bkg_max_cut)
-            thn_proj = sparse.Projection(len(axestokeep), array.array('i', [sparse_axes['Flow'][axtokeep] for axtokeep in axestokeep]), 'O')
-            thn_proj.SetName(sparse.GetName())
+            cloned_sparse = sparse.Clone()
+            cloned_sparse.GetAxis(sparse_axes['Flow']['Pt']).SetRangeUser(ptmin, ptmax)
+            cloned_sparse.GetAxis(sparse_axes['Flow']['cent']).SetRangeUser(centmin, centmax)
+            cloned_sparse.GetAxis(sparse_axes['Flow']['score_bkg']).SetRangeUser(0, bkg_max_cut)
+            thn_proj = cloned_sparse.Projection(len(axestokeep), array.array('i', [sparse_axes['Flow'][axtokeep] for axtokeep in axestokeep]), 'O')
+            thn_proj.SetName(cloned_sparse.GetName())
             
             if iThn == 0:
                 processed_sparse = thn_proj.Clone()
@@ -79,13 +80,13 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
         
         if config.get('RebinSparse'):
             rebin_factors = [config['RebinSparse'][axtokeep] for axtokeep in axestokeep]
-            sparse = sparse.Rebin(array.array('i', rebin_factors))
-            
+            processed_sparse = processed_sparse.Rebin(array.array('i', rebin_factors))
+        
         os.makedirs(f'{outputDir}/pre/AnRes', exist_ok=True)
-        outFile = ROOT.TFile(f'{outputDir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root', 'RECREATE')
+        outFile = ROOT.TFile(f'{outputDir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root', 'recreate')
         outFile.mkdir('hf-task-flow-charm-hadrons')
         outFile.cd('hf-task-flow-charm-hadrons')
-        processed_sparse.Write()
+        processed_sparse.Write('hSparseFlowCharm')
         outFile.Close()
         
         out_file.mkdir(f'Flow_{iPt}_ipt_{ptmin}_{ptmax}')
@@ -100,7 +101,7 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
         
         print(f'Finished processing pT bin {ptmin} - {ptmax}')
 
-    bkg_maxs = config['cut_variation']['corr_bdt_cut']['bkg_max']
+    bkg_maxs = config['bkg_cuts']
     # Loop over each pt bin in parallel
     max_workers = 6
     with concurrent.futures.ThreadPoolExecutor(max_workers) as executor:
@@ -136,11 +137,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument('config_pre', metavar='text', 
                         default='config_pre.yml', help='configuration file')
-    parser.add_argument('an_res_file', metavar='text', 
-                        nargs='+', help='input ROOT files with anres')
+    parser.add_argument('--out_dir', metavar='text', default="", 
+                        help='output directory for projected .root files')
     parser.add_argument('--pre', action='store_true', help='pre-process the AnRes.root')
     parser.add_argument('--sigma', action='store_true', help='get the sigma')
     parser.add_argument('--skip_projection', '-sp', action='store_true', help='skip the projection')
+    parser.add_argument("--suffix", "-s", metavar="text", default="", help="suffix for output files")
     args = parser.parse_args()
 
     if not args.pre and not args.sigma:
@@ -154,7 +156,7 @@ if __name__ == "__main__":
     ptmins = config['ptmins']
     ptmaxs = config['ptmaxs']
     axestokeep = config['axestokeep']
-    outputDir = config['outputDir']
+    outputDir = args.out_dir if args.out_dir != "" else config['skim_out_dir'] 
     
     centMin, centMax = get_centrality_bins(config['centrality'])[1]
     
