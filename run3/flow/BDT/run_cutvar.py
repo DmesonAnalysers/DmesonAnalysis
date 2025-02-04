@@ -55,20 +55,17 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		config_suffix = config_suffix + 1
 	os.system(f'cp {config_flow} {output_dir}/config_flow_{suffix}_{config_suffix}.yml')
 
-	print('CIAOOOOO')
 #___________________________________________________________________________________________________________________________
 	# preprocess the AnalysisResults.root files
-	print(f"skip_preprocess: {skip_preprocess}")
 	if not skip_preprocess:
 		use_preprocessed = True
 		check_dir(f"{output_dir}/proj")
 		PreProcessPath = "../../tool/pre_process.py"
 
-		print(f"\033[32mpython3 {PreProcessPath} {config_flow} --pre -s {suffix}\033[0m")
-		os.system(f"python3 {PreProcessPath} {config_flow} --pre -s {suffix}")
+		print(f"\033[32mpython3 {PreProcessPath} {config_flow} {output} --pre -s {suffix}\033[0m")
+		os.system(f"python3 {PreProcessPath} {config_flow} {output} --pre -s {suffix}")
 	else:
 		print("\033[33mWARNING: Pre-process will not be performed\033[0m")
-	print('CIAOOOOO2')
 
 #___________________________________________________________________________________________________________________________
 	# calculate the pT weights
@@ -208,8 +205,6 @@ if __name__ == "__main__":
 	parser.add_argument("--skip_v2_vs_frac", "-sv2fd", action="store_true", help="skip v2 vs FD fraction")
 	args = parser.parse_args()
 
-	print(f"args.skip_pre_process: {args.skip_pre_process}")
-	print(f"args.skip_pre_process: {args.skip_calc_weights}")
 	run_full_cut_variation(args.flow_config, args.anres_dir, args.centrality, args.resolution, args.outputdir, args.suffix, args.vn_method, args.preprocessed, 
 						args.skip_pre_process,
 						args.skip_calc_weights,

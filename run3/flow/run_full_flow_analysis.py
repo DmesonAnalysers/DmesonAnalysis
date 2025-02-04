@@ -17,6 +17,8 @@ def run_full_analysis(config,
                       skip_projection,
                       skip_vn,
                       skip_efficiency,
+                      skip_preprocess,
+                      inputspreprocessed,
                       batch
                       ):
     """
@@ -37,6 +39,8 @@ def run_full_analysis(config,
     - skip_projection (bool): skip projection extraction
     - skip_vn (bool): skip raw yield extraction
     - skip_efficiency (bool): skip efficiency estimation
+    - preprocess (bool): preprocess inputs
+    - inputspreprocessed (bool): take preprocessed files as inputs
     - batch (bool): suppress video output
     """
 
@@ -56,7 +60,7 @@ def run_full_analysis(config,
     cent_withopt = f" -c {centrality}"
     wagon_id_withopt = f" -w {wagon_id}"
 
-    if skip_resolution and skip_projection and skip_vn:
+    if skip_resolution and skip_projection and skip_vn and skip_preprocess:
         print("\033[91m Nothing to do, all steps are skipped\033[0m")
         return
 
@@ -82,6 +86,13 @@ def run_full_analysis(config,
         print(f"\033[92m {command_reso}\033[0m")
         os.system(command_reso)
 
+    # preprocess the AnalysisResults.root files
+    if not skip_preprocess:
+        inputspreprocessed = True
+        os.system(f"python3 {os.path.join(script_dir, '../tool/pre_process.py')} {config} {outputdir} --pre -s {suffix}")
+    else:
+        print("\033[33mWARNING: Pre-process will not be performed\033[0m")
+
     if not skip_projection:
         # projection
         if not os.path.exists(f"{outputdir}/proj"):
@@ -96,7 +107,8 @@ def run_full_analysis(config,
         reso_file_withopt = f" -r {reso_file}"
         outputdir_proj = f"-o {outputdir}/proj"
         an_res_files = " ".join(an_res_file)
-        command_proj = f"python3 {os.path.join(script_dir, 'project_thnsparse.py')} {config} {an_res_files} {cent_withopt} {reso_file_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt}"
+        pre_process = "--preprocessed" if inputspreprocessed else ""
+        command_proj = f"python3 {os.path.join(script_dir, 'project_thnsparse.py')} {config} {an_res_files} {cent_withopt} {reso_file_withopt} {suffix_withopt} {outputdir_proj} {vn_method_withopt} {pre_process}"
         if wagon_id != "":
             command_proj += f" {wagon_id_withopt}"
         print("\n\033[92m Starting projection\033[0m")
@@ -161,6 +173,10 @@ if __name__ == "__main__":
                         help="skip vn estimation")
     parser.add_argument("--skip_efficiency", action="store_true", default=False,
                         help="skip efficiency estimation")
+    parser.add_argument("--skip_preprocess", "-prep", action="store_true", default=False,
+                        help="preprocess inputs")
+    parser.add_argument("--inputspreprocessed", "-inputsprep", action="store_true", 
+                        help="use preprocessed input")
     parser.add_argument("--batch", action="store_true", default=False,
                         help="suppress video output")
     args = parser.parse_args()
@@ -178,5 +194,7 @@ if __name__ == "__main__":
         args.skip_projection,
         args.skip_vn,
         args.skip_efficiency,
+        args.skip_preprocess,
+        args.inputspreprocessed,
         args.batch
     )
