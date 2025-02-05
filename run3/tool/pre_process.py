@@ -14,8 +14,6 @@ from ROOT import TFile
 import argparse
 import itertools
 import concurrent.futures
-sys.path.append("/Users/mcosti/Analysis/DmesonAnalysis/run3/flow/BDT/")
-sys.path.append("/Users/mcosti/Analysis/DmesonAnalysis/run3/flow/")
 from flow_analysis_utils import get_centrality_bins
 from sparse_dicts import get_sparses
 
