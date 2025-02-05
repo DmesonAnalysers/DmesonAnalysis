@@ -203,10 +203,10 @@ def compute_eff_thns(config_file, centclass, inputFile, outputdir, suffix, batch
     for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
         ## get inpput histograms
         ## whether need to minus reflection from prompt or FD?
-        hRecoPrompt.append(infile.Get('hPromptPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
-        hRecoFD.append(infile.Get('hFDPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
-        hGenPrompt.append(infile.Get('hPromptGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
-        hGenFD.append(infile.Get('hFDGenPt_%0.f_%0.f' % (ptMin*10, ptMax*10)))
+        hRecoPrompt.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{ptMin}_{ptMax}/hPromptPt'))
+        hRecoFD.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{ptMin}_{ptMax}/hFDPt'))
+        hGenPrompt.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{ptMin}_{ptMax}/hPromptGenPt'))
+        hGenFD.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{ptMin}_{ptMax}/hFDGenPt'))
 
         ## load the values
         nRecoPromptUnc, nGenPromptUnc, nRecoFDUnc, nGenFDUnc = (ctypes.c_double() for _ in range(4))

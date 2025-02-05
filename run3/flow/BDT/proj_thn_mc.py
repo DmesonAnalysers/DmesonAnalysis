@@ -20,16 +20,16 @@ from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins
 ### please fill your path of DmesonAnalysis
 sys.path.append('../../..')
 
-def proj_data(sparse_flow, ptMin, ptMax, axes, inv_mass_bins, reso):
+def proj_data(sparse_flow, ptMin, ptMax, centMin, centMax, axes, inv_mass_bins, reso):
 
     if isinstance(sparse_flow, dict):
         for isparse, (key, sparse) in enumerate(sparse_flow.items()):
             hist_mass_temp = sparse.Projection(axes['Flow']['Mass'])
-            hist_mass_temp.SetName(f'hist_mass_proj_{isparse}')
+            hist_mass_temp.SetName(f'hist_mass_{isparse}')
             hist_mass_temp.SetDirectory(0)
 
             if isparse == 0:
-                hist_mass = hist_mass_temp.Clone('hist_mass_proj')
+                hist_mass = hist_mass_temp.Clone('hist_mass')
                 hist_mass.SetDirectory(0)
                 hist_mass.Reset()
 
@@ -46,8 +46,8 @@ def proj_data(sparse_flow, ptMin, ptMax, axes, inv_mass_bins, reso):
         if reso > 0:
             hist_vn_sp.Scale(1./reso)
 
-    hist_mass.Write(f'hist_mass_proj_pt{int(ptMin*10)}_{int(ptMax*10)}')
-    hist_vn_sp.Write(f'hist_vn_sp_proj_pt{int(ptMin*10)}_{int(ptMax*10)}')
+    hist_mass.Write(f'hist_mass_cent{centMin}_{centMax}_pt{ptMin}_{ptMax}')
+    hist_vn_sp.Write(f'hist_vn_sp_pt{ptMin}_{ptMax}')
 
 def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB):
     
@@ -327,7 +327,7 @@ if __name__ == "__main__":
         det_B = config['detB']
         det_C = config['detC']
         histo_reso = resofile.Get(f'{det_A}_{det_B}_{det_C}/histo_reso_delta_cent')
-        histo_reso.SetName('histo_reso_delta_cent')
+        histo_reso.SetName('hist_reso')
         histo_reso.SetDirectory(0)
         reso = histo_reso.GetBinContent(1)
     except:
@@ -366,20 +366,15 @@ if __name__ == "__main__":
             print(f'Projecting distributions for {ptMin:.1f} < pT < {ptMax:.1f} GeV/c')
             ptLowLabel = ptMin * 10
             ptHighLabel = ptMax * 10
-            outfile.mkdir(f'cent_bins{cent}/pt_bins{int(ptLowLabel)}_{int(ptHighLabel)}')
-            outfile.cd(f'cent_bins{cent}/pt_bins{int(ptLowLabel)}_{int(ptHighLabel)}')
+            outfile.mkdir(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
+            outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
     
             print(f"sparsesFlow: {sparsesFlow}")
             if args.preprocessed:
                 print('PREPROCESSED')
                 sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetAxis(axes['Flow']['score_FD']).SetRangeUser(cutVars['score_FD']['min'][iPt], cutVars['score_FD']['max'][iPt])
-                proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], ptMin, ptMax, axes, config['inv_mass_bins'][iPt], reso)
-                file_proj = TFile(f'{args.outputdir}/proj/ProjFlow_{args.suffix}.root', 'recreate')
-                for idim in range(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetNdimensions()):
-                    histo = sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].Projection(idim)
-                    histo.Write()
-                file_proj.Close()
-                outfile.cd(f'cent_bins{cent}/pt_bins{int(ptLowLabel)}_{int(ptHighLabel)}')
+                proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], ptMin, ptMax, cent_min, cent_max, axes, config['inv_mass_bins'][iPt], reso)
+                outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
                 print(f"Projected data!")
             
             if not args.preprocessed:

@@ -1,7 +1,7 @@
 import ROOT
 from ROOT import TFile
 
-def get_sparses(config, get_data, get_mc_reco, get_mc_gen, preprocessed=False, preprocess_dir=''):
+def get_sparses(config, get_data, get_mc_reco, get_mc_gen, preprocessed=False, preprocess_dir='', debug=False):
     
     sparsesFlow, sparsesReco, sparsesGen, axes_dict = {}, {}, {}, {}    
     
@@ -185,4 +185,14 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, preprocessed=False, p
         infiletask.Close()
 
     print(f"Loaded sparses!")
+    if debug:
+        print('\n')
+        print('###############################################################')
+        for key, value in axes_dict.items():
+            print(f"{key}:")
+            for sub_key, sub_value in value.items():
+                print(f"    {sub_key}: {sub_value}")
+        print('###############################################################')
+        print('\n')
+
     return sparsesFlow, sparsesReco, sparsesGen, axes_dict

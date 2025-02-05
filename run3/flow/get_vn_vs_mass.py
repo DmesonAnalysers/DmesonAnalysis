@@ -182,7 +182,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     hMCSgn, hMCRefl = [], []
     fMassTemplFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if useTemplates else [] 
     fVnCompFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if fitConfig.get('DrawVnComps') else []
-    hist_reso = infile.Get('histo_reso_delta_cent')
+    print(f"infile: {infile}")
+    hist_reso = infile.Get('hist_reso')
     hist_reso.SetDirectory(0)
     reso = hist_reso.GetBinContent(1)
     inclSecPeak = [inclSecPeak] * len(ptMins) if not isinstance(inclSecPeak, list) else inclSecPeak

@@ -803,7 +803,6 @@ def get_cut_sets(npt_bins, sig_cut, bkg_cut_maxs, correlated_cuts=True):
             list of lists of floats, list of upper edge for background cuts
     '''
     nCutSets = []
-    print(f"Number of pt bins: {npt_bins}")
     sig_cuts_lower, sig_cuts_upper, bkg_cuts_lower, bkg_cuts_upper = {}, {}, {}, {}
     if correlated_cuts:
         sig_cut_mins = sig_cut['min']

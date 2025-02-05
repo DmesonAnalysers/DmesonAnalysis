@@ -104,7 +104,7 @@ def check_anres(config, an_res_file, centrality, resolution, wagon_id,
     with alive_bar(len(pt_mins), title='Processing pt bins') as bar:
         # loop over pt bins
         for ipt, (pt_min, pt_max) in enumerate(zip(pt_mins, pt_maxs)):
-            outfile.mkdir(f'cent_bins{cent_min}_{cent_max}/pt_bins{int(pt_min*10)}_{int(pt_max*10)}')
+            outfile.mkdir(f'cent_bins{cent_min}_{cent_max}/pt_bins{pt_min}_{pt_max}')
             if use_preprocessed:
                 if config['apply_btd_cuts']:
                     thnsparse_selcent_list[ipt].GetAxis(axis_bdt_sig).SetRangeUser(sig_ml_cuts[ipt], 1)
