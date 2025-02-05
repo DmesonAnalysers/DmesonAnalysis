@@ -14,6 +14,9 @@ from ROOT import TFile
 import argparse
 import itertools
 import concurrent.futures
+script_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(f"{script_dir}/../flow/")
+sys.path.append(f"{script_dir}/../flow/BDT")
 from flow_analysis_utils import get_centrality_bins
 from sparse_dicts import get_sparses
 
@@ -88,8 +91,8 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
         processed_sparse.Write('hSparseFlowCharm')
         outFile.Close()
         
-        out_file.mkdir(f'Flow_{iPt}_ipt_{ptmin}_{ptmax}')
-        out_file.cd(f'Flow_{iPt}_ipt_{ptmin}_{ptmax}')
+        out_file.mkdir(f'Flow_pt_{ptmin}_{ptmax}')
+        out_file.cd(f'Flow_pt_{ptmin}_{ptmax}')
         for idim in range(processed_sparse.GetNdimensions()):
             histo = processed_sparse.Projection(idim)
             histo.SetName(processed_sparse.GetAxis(idim).GetName())
