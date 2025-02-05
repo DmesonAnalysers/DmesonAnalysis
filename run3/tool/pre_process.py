@@ -7,10 +7,18 @@ python3 pre_process.py config_pre.yml AnRes_1.root AnRes_2.root --pre --sigma
 import os
 import sys
 import yaml
+import numpy as np
 import array
 import ROOT
+from ROOT import TFile
 import argparse
+import itertools
 import concurrent.futures
+script_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(f"{script_dir}/../flow/")
+sys.path.append(f"{script_dir}/../flow/BDT")
+from flow_analysis_utils import get_centrality_bins
+from sparse_dicts import get_sparses
 
 def cook_thnsparse(thnsparse_list, ptmins, ptmaxs, axestokeep):
     '''
@@ -40,46 +48,66 @@ def cook_thnsparse(thnsparse_list, ptmins, ptmaxs, axestokeep):
                 thnsparses[iPt].Add(thn_proj)
     return thnsparses
 
-def pre_process(an_res_file, ptmins, ptmaxs, axestokeep, outputDir):
+def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir):
     
     # Load the ThnSparse
-    thnsparse_list = []
-    for file in an_res_file:
-        infile = ROOT.TFile(file, 'READ')
-        thnsparse_list.append(infile.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm'))
-        print(infile.GetName())
+    thnsparse_list, _, _, sparse_axes = get_sparses(config, True, False, False)
 
-    def process_pt_bin(iPt, ptmin, ptmax, thnsparse_list, axestokeep, outputDir):
-        pre_thnsparse = None
-        # add posibility to apply cuts for different variables
-        for iThn, thnsparse in enumerate(thnsparse_list):
-            binMin = thnsparse.GetAxis(1).FindBin(ptmin * 1.00001)
-            binMax = thnsparse.GetAxis(1).FindBin(ptmax * 0.99999)
-            thnsparse.GetAxis(1).SetRange(binMin, binMax)
-            
-            thn_proj = thnsparse.Projection(len(axestokeep), array.array('i', axestokeep), 'O')
-            thn_proj.SetName(thnsparse.GetName())
+    os.makedirs(f'{outputDir}/pre/AnRes', exist_ok=True)
+    out_file = TFile(f'{outputDir}/pre/AnRes/Projections_{centmin}_{centmax}_{ptmins}_{ptmaxs}.root', 'recreate')
+    for isparse, (key, sparse) in enumerate(thnsparse_list.items()):
+        if 'Flow' in key:
+            out_file.mkdir(f'Flow_{isparse}')
+            out_file.cd(f'Flow_{isparse}')
+            for idim in range(sparse.GetNdimensions()):
+                histo = sparse.Projection(idim)
+                histo.SetName(sparse.GetAxis(idim).GetName())
+                histo.SetTitle(sparse.GetAxis(idim).GetTitle())
+                histo.Write()
+        
+    def process_pt_bin(iPt, ptmin, ptmax, centmin, centmax, bkg_max_cut, thnsparse_list, axestokeep, outputDir):
+        print(f'Processing pT bin {ptmin} - {ptmax}, cent {centmin}-{centmax}')
+        # add possibility to apply cuts for different variables
+        for iThn, (sparse_key, sparse) in enumerate(thnsparse_list.items()):
+            cloned_sparse = sparse.Clone()
+            cloned_sparse.GetAxis(sparse_axes['Flow']['Pt']).SetRangeUser(ptmin, ptmax)
+            cloned_sparse.GetAxis(sparse_axes['Flow']['cent']).SetRangeUser(centmin, centmax)
+            cloned_sparse.GetAxis(sparse_axes['Flow']['score_bkg']).SetRangeUser(0, bkg_max_cut)
+            thn_proj = cloned_sparse.Projection(len(axestokeep), array.array('i', [sparse_axes['Flow'][axtokeep] for axtokeep in axestokeep]), 'O')
+            thn_proj.SetName(cloned_sparse.GetName())
             
             if iThn == 0:
-                pre_thnsparse = thn_proj.Clone()
+                processed_sparse = thn_proj.Clone()
             else:
-                pre_thnsparse.Add(thn_proj)
+                processed_sparse.Add(thn_proj)
         
-        os.makedirs(f'{outputDir}/pre/AnRes', exist_ok=True)
-        outFile = ROOT.TFile(f'{outputDir}/pre/AnRes/AnalysisResults_pt{iPt}.root', 'RECREATE')
+        if config.get('RebinSparse'):
+            rebin_factors = [config['RebinSparse'][axtokeep] for axtokeep in axestokeep]
+            processed_sparse = processed_sparse.Rebin(array.array('i', rebin_factors))
+        
+        outFile = ROOT.TFile(f'{outputDir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root', 'recreate')
         outFile.mkdir('hf-task-flow-charm-hadrons')
         outFile.cd('hf-task-flow-charm-hadrons')
-        pre_thnsparse.Write()
+        processed_sparse.Write('hSparseFlowCharm')
         outFile.Close()
         
-        del pre_thnsparse
+        out_file.mkdir(f'Flow_pt_{ptmin}_{ptmax}')
+        out_file.cd(f'Flow_pt_{ptmin}_{ptmax}')
+        for idim in range(processed_sparse.GetNdimensions()):
+            histo = processed_sparse.Projection(idim)
+            histo.SetName(processed_sparse.GetAxis(idim).GetName())
+            histo.SetTitle(processed_sparse.GetAxis(idim).GetTitle())
+            histo.Write()
+        
+        del processed_sparse
         
         print(f'Finished processing pT bin {ptmin} - {ptmax}')
 
+    bkg_maxs = config['bkg_cuts']
     # Loop over each pt bin in parallel
     max_workers = 6
     with concurrent.futures.ThreadPoolExecutor(max_workers) as executor:
-        tasks = [executor.submit(process_pt_bin, iPt, ptmin, ptmax, thnsparse_list, axestokeep, outputDir) for iPt, (ptmin, ptmax) in enumerate(zip(ptmins, ptmaxs))]
+        tasks = [executor.submit(process_pt_bin, iPt, ptmin, ptmax, centmin, centmax, bkg_maxs[iPt], thnsparse_list, axestokeep, outputDir) for iPt, (ptmin, ptmax) in enumerate(zip(ptmins, ptmaxs))]
         for task in concurrent.futures.as_completed(tasks):
             task.result()
         
@@ -111,11 +139,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Arguments")
     parser.add_argument('config_pre', metavar='text', 
                         default='config_pre.yml', help='configuration file')
-    parser.add_argument('an_res_file', metavar='text', 
-                        nargs='+', help='input ROOT files with anres')
+    parser.add_argument('--out_dir', metavar='text', default="", 
+                        help='output directory for projected .root files')
     parser.add_argument('--pre', action='store_true', help='pre-process the AnRes.root')
     parser.add_argument('--sigma', action='store_true', help='get the sigma')
     parser.add_argument('--skip_projection', '-sp', action='store_true', help='skip the projection')
+    parser.add_argument("--suffix", "-s", metavar="text", default="", help="suffix for output files")
     args = parser.parse_args()
 
     if not args.pre and not args.sigma:
@@ -129,10 +158,12 @@ if __name__ == "__main__":
     ptmins = config['ptmins']
     ptmaxs = config['ptmaxs']
     axestokeep = config['axestokeep']
-    outputDir = config['outputDir']
+    outputDir = args.out_dir if args.out_dir != "" else config['skim_out_dir'] 
+    
+    centMin, centMax = get_centrality_bins(config['centrality'])[1]
     
     if args.pre:
-        pre_process(args.an_res_file, ptmins, ptmaxs, axestokeep, outputDir)
+        pre_process(config, ptmins, ptmaxs, centMin, centMax, axestokeep, outputDir)
     
     if args.sigma:
         
@@ -142,7 +173,7 @@ if __name__ == "__main__":
         if os.path.exists(f'{outputDir}/pre'):
             preFiles = [f'{outputDir}/pre/AnRes/AnalysisResults_pt{iFile}.root' for iFile in range(len(ptmins))]
         else:
-            raise ValueError(f'No eff fodel found in {outputDir}')
+            raise ValueError(f'No eff folder found in {outputDir}')
         preFiles.sort()
         
         # you have to know the sigma from the differet prompt enhance samples is stable first
