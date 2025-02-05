@@ -33,15 +33,29 @@ export vn_method="sp"
 export res_file="/media/wuct/wulby/ALICE/AnRes/resolution/output_reso/resospk3050_inte.root"
 export suffix="pt2_3"
 
+export use_prep=True # True or False (use pre-processed inputs for projections)
+export sprep=True # True or False (perform pre-processing of grid output files)
 export spw=True # True or False (skip calculation of weights)
 export smy=False # True or False (skip make yaml)
-export scv=True # True or False (skip cut variation)
+export scv=True # True or False (skip cut variation), not used anymore
 export spm=True # True or False (skip projection for MC)
 export seff=True # True or False (skip efficiency)
 export svn=True # True or False (skip vn extraction)
 export sfcv=True # True or False (skip fraction by cut variation)
 export sddf=True # True or False (skip fraction by data-driven method)
 export sv2vf=True # True or False (skip v2 vs fraction)
+
+if [ $use_prep = False ]; then
+	export use_preprocessed=""
+else
+	export use_preprocessed="--preprocessed"
+fi
+
+if [ $sprep = False ]; then
+    export skip_pre_process=""
+else
+    export skip_pre_process="--skip_pre_process"
+fi
 
 if [ $spw = False ]; then
 	export skip_calc_weights=""
@@ -97,13 +111,14 @@ else
 	export skip_v2_vs_frac="--skip_v2_vs_frac"
 fi
 
-python3 run_cutvar.py $config_flow $anres_dir -c $cent -r $res_file -o $output_dir -s $suffix -vn $vn_method \
-						$skip_calc_weights \
-						$skip_make_yaml \
-						$skip_cut_variation \
-						$skip_proj_mc \
-						$skip_efficiency \
-						$skip_vn \
-						$skip_frac_cut_var \
-						$skip_data_driven_frac \
-						$skip_v2_vs_frac
+python3 run_cutvar.py $config_flow $anres_dir -c $cent -r $res_file -o $output_dir -s $suffix -vn $vn_method $use_preprocessed \
+					  $skip_pre_process \
+					  $skip_calc_weights \
+					  $skip_make_yaml \
+					  $skip_cut_variation \
+					  $skip_proj_mc \
+					  $skip_efficiency \
+					  $skip_vn \
+					  $skip_frac_cut_var \
+					  $skip_data_driven_frac \
+					  $skip_v2_vs_frac
