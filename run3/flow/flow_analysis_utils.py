@@ -450,7 +450,7 @@ def get_invmass_vs_deltaphi(thnSparses, deltaphiaxis, invmassaxis):
     
     return hist_invMass_in, hist_invMass_out
 
-def get_vnfitter_results(vnFitter, secPeak, useRefl):
+def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
     '''
     Get vn fitter results:
     0: BkgInt
@@ -523,8 +523,18 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl):
     vn_results['fBkgFuncMass'] = vnFitter.GetMassBkgFitFunc()
     vn_results['fBkgFuncVn'] = vnFitter.GetVnVsMassBkgFitFunc()
     vn_results['fSgnFuncMass'] = vnFitter.GetMassSignalFitFunc()
+    
+    vn_results['fVnCompsFuncts'] = {}
+    vnComps = vnFitter.GetVnCompsFuncts()
+    vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
+    vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
+    if secPeak:
+        vn_results['fVnCompsFuncts']['vnSecPeak'] = vnComps[2]
     vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
-    vn_results['fVnTemplFuncts'] = vnFitter.GetVnTemplFuncts()
+    if useTempl:
+        for iTempl in range(len(vn_results['fMassTemplFuncts'])):
+            vn_results['fVnCompsFuncts'][f'vnTempl{iTempl}'] = vnComps[2+secPeak+iTempl]
+    
     bkg, bkgUnc = ctypes.c_double(), ctypes.c_double()
     vnFitter.Background(3, bkg, bkgUnc)
     vn_results['bkg'] = bkg.value
@@ -538,21 +548,36 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl):
     vn_results['signif'] = signif.value
     vn_results['signifUnc'] = signifUnc.value
 
+    massSgnPars = vnFitter.GetNMassSgnPars()
+    massBkgPars = vnFitter.GetNMassBkgPars()
+    massSecPeakPars = vnFitter.GetNMassSecPeakPars()
+    massReflPars = vnFitter.GetNMassReflPars()
+    massTemplPars = len(vn_results['fMassTemplFuncts'])
+    totMassPars = massSgnPars + massBkgPars + massSecPeakPars +  massReflPars + massTemplPars
+    vnSgnPars = vnFitter.GetNVnSgnPars()
+    vnBkgPars = vnFitter.GetNVnBkgPars()
+
     if secPeak:
-        vn_results['secPeakMeanMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(6))
-        vn_results['secPeakMeanMassUnc'] = vn_results['fTotFuncMass'].GetParError(6)
-        vn_results['secPeakSigmaMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(7))
-        vn_results['secPeakSigmaMassUnc'] = vn_results['fTotFuncMass'].GetParError(7)
-        vn_results['secPeakMeanVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(6))
-        vn_results['secPeakMeanVnUnc'] = vn_results['fTotFuncVn'].GetParError(6)
-        vn_results['secPeakSigmaVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(7))
-        vn_results['secPeakSigmaVnUnc'] = vn_results['fTotFuncVn'].GetParError(7)
-        vn_results['vnSecPeak'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(11))
-        vn_results['vnSecPeakUnc'] = vn_results['fTotFuncVn'].GetParError(11)
+        vn_results['fMassSecPeakFunc'] = vnFitter.GetMassSecPeakFunc()
+        vn_results['fVnSecPeakFunct'] = vnFitter.GetVnSecPeakFunc()
+        vn_results['secPeakMeanMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(massSgnPars + massBkgPars + 1))
+        vn_results['secPeakMeanMassUnc'] = vn_results['fTotFuncMass'].GetParError(massSgnPars + massBkgPars + 1)
+        vn_results['secPeakSigmaMass'] = vn_results['fTotFuncMass'].GetParameter(vn_results['fTotFuncMass'].GetParName(massSgnPars + massBkgPars + 2))
+        vn_results['secPeakSigmaMassUnc'] = vn_results['fTotFuncMass'].GetParError(massSgnPars + massBkgPars + 2)
+        vn_results['secPeakMeanVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(totMassPars + vnSgnPars + vnBkgPars + 1))
+        vn_results['secPeakMeanVnUnc'] = vn_results['fTotFuncVn'].GetParError(vnSgnPars + vnBkgPars + 1)
+        vn_results['secPeakSigmaVn'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(totMassPars + vnSgnPars + vnBkgPars + 2))
+        vn_results['secPeakSigmaVnUnc'] = vn_results['fTotFuncVn'].GetParError(vnSgnPars + vnBkgPars + 2)
+        vn_results['vnSecPeak'] = vn_results['fTotFuncVn'].GetParameter(vn_results['fTotFuncVn'].GetParName(totMassPars + vnSgnPars + vnBkgPars))
+        vn_results['vnSecPeakUnc'] = vn_results['fTotFuncVn'].GetParError(totMassPars + vnSgnPars + vnBkgPars)
 
     if useRefl:
         vn_results['fMassRflFunc'] = vnFitter.GetMassRflFunc()
         vn_results['fMassBkgRflFunc'] = vnFitter.GetMassBkgRflFunc()
+    
+    if useTempl:
+        vn_results['vnTemplates'] = list(vnFitter.GetVnTemplates())
+        vn_results['vnTemplatesUncs'] = list(vnFitter.GetVnTemplatesUncertainties())
 
     return vn_results
 
@@ -749,7 +774,7 @@ def get_particle_info(particleName):
 
     return particleTit, massAxisTit, decay, massForFit
 
-def get_cut_sets(pt_mins, pt_maxs, sig_cut, bkg_cut_maxs, correlated_cuts=True):
+def get_cut_sets(npt_bins, sig_cut, bkg_cut_maxs, correlated_cuts=True):
     '''
     Get cut sets
 
@@ -778,6 +803,7 @@ def get_cut_sets(pt_mins, pt_maxs, sig_cut, bkg_cut_maxs, correlated_cuts=True):
             list of lists of floats, list of upper edge for background cuts
     '''
     nCutSets = []
+    print(f"Number of pt bins: {npt_bins}")
     sig_cuts_lower, sig_cuts_upper, bkg_cuts_lower, bkg_cuts_upper = {}, {}, {}, {}
     if correlated_cuts:
         sig_cut_mins = sig_cut['min']
@@ -785,31 +811,31 @@ def get_cut_sets(pt_mins, pt_maxs, sig_cut, bkg_cut_maxs, correlated_cuts=True):
         sig_cut_steps = sig_cut['step']
 
         # compute the signal cutsets for each pt bin
-        sig_cuts_lower = [list(np.arange(sig_cut_mins[iPt], sig_cut_maxs[iPt], sig_cut_steps[iPt])) for iPt in range(len(pt_mins))]
-        sig_cuts_upper = [[1.0 for _ in range(len(sig_cuts_lower[iPt]))] for iPt in range(len(pt_mins))]
+        sig_cuts_lower = [list(np.arange(sig_cut_mins[iPt], sig_cut_maxs[iPt], sig_cut_steps[iPt])) for iPt in range(npt_bins)]
+        sig_cuts_upper = [[1.0 for _ in range(len(sig_cuts_lower[iPt]))] for iPt in range(npt_bins)]
 
         # compute the ncutsets by signal cut for each pt bin
-        nCutSets = [len(sig_cuts_lower[iPt]) for iPt in range(len(pt_mins))]
+        nCutSets = [len(sig_cuts_lower[iPt]) for iPt in range(npt_bins)]
 
         # bkg cuts lower edge should always be 0
-        bkg_cuts_lower = [[0. for _ in range(nCutSets[iPt])] for iPt in range(len(pt_mins))]
-        bkg_cuts_upper = [[bkg_cut_maxs[iPt] for _ in range(nCutSets[iPt])] for iPt in range(len(pt_mins))]
+        bkg_cuts_lower = [[0. for _ in range(nCutSets[iPt])] for iPt in range(npt_bins)]
+        bkg_cuts_upper = [[bkg_cut_maxs[iPt] for _ in range(nCutSets[iPt])] for iPt in range(npt_bins)]
 
     else:
         # load the signal cut
-        sig_cuts_lower = [sig_cut[iPt]['min'] for iPt in range(len(pt_mins))]
-        sig_cuts_upper = [sig_cut[iPt]['max'] for iPt in range(len(pt_mins))]
+        sig_cuts_lower = [sig_cut[iPt]['min'] for iPt in range(npt_bins)]
+        sig_cuts_upper = [sig_cut[iPt]['max'] for iPt in range(npt_bins)]
         
         # compute the ncutsets by the signal cut for each pt bin
-        nCutSets = [len(sig_cuts_lower[iPt]) for iPt in range(len(pt_mins))]
+        nCutSets = [len(sig_cuts_lower[iPt]) for iPt in range(npt_bins)]
         
         # load the background cut
-        bkg_cuts_lower = [[0. for _ in range(nCutSets[iPt])] for iPt in range(len(pt_mins))]
-        bkg_cuts_upper = [[bkg_cut_maxs[iPt] for _ in range(nCutSets[iPt])] for iPt in range(len(pt_mins))]
+        bkg_cuts_lower = [[0. for _ in range(nCutSets[iPt])] for iPt in range(npt_bins)]
+        bkg_cuts_upper = [[bkg_cut_maxs[iPt] for _ in range(nCutSets[iPt])] for iPt in range(npt_bins)]
         
     # safety check
 
-    for iPt in range(len(pt_mins)):
+    for iPt in range(npt_bins):
         assert len(sig_cuts_lower[iPt]) == len(sig_cuts_upper[iPt]) == len(bkg_cuts_lower[iPt]) == len(bkg_cuts_upper[iPt]) == nCutSets[iPt], \
             f"Mismatch in lengths for pt bin {iPt}: {len(sig_cuts_lower[iPt])}, {len(sig_cuts_upper[iPt])}, \
             {len(bkg_cuts_lower[iPt])}, {len(bkg_cuts_upper[iPt])}, \
@@ -848,4 +874,4 @@ def get_cut_sets_config(config):
         sig_cut = config['cut_variation']['uncorr_bdt_cut']['sig']
         bkg_cut_maxs = config['cut_variation']['uncorr_bdt_cut']['bkg_max']
 
-    return get_cut_sets(ptmins, ptmaxs, sig_cut, bkg_cut_maxs, correlated_cuts)
+    return get_cut_sets(len(ptmins), sig_cut, bkg_cut_maxs, correlated_cuts)

@@ -495,11 +495,11 @@ TF1* InvMassFitter::CreateTemplatesFunction(TString fname){
   TF1* functempl =  new TF1(fname.Data(),this,&InvMassFitter::FitFunction4Templ,fMinMass,fMaxMass,this->fTemplatesFuncts.size(),"InvMassFitter","FitFunction4Templ");
   for(int iPar=0; iPar<functempl->GetNpar(); iPar++) {
     functempl->SetParName(iPar, Form("w_%s",this->fTemplatesFuncts[iPar].GetName()));
-    if(this->fWeightsLowerLims[iPar] >= this->fWeightsUpperLims[iPar]) {
-      functempl->FixParameter(iPar,this->fInitWeights[iPar]);
+    if(this->fMassWeightsLowerLims[iPar] >= this->fMassWeightsUpperLims[iPar]) {
+      functempl->FixParameter(iPar,this->fMassInitWeights[iPar]);
     } else {
-      functempl->SetParameter(iPar,this->fInitWeights[iPar]);
-      functempl->SetParLimits(iPar,this->fWeightsLowerLims[iPar],this->fWeightsUpperLims[iPar]);
+      functempl->SetParameter(iPar,this->fMassInitWeights[iPar]);
+      functempl->SetParLimits(iPar,this->fMassWeightsLowerLims[iPar],this->fMassWeightsUpperLims[iPar]);
     }
   }
   return functempl;
