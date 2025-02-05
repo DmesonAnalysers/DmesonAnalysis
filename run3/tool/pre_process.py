@@ -30,19 +30,20 @@ def cook_thnsparse(thnsparse_list, ptmins, ptmaxs, axestokeep):
     Returns:
         - dict: Dictionary of projected THnSparse objects for each pT bin.
     '''
-    sparses = {}
-    for iThn, (sparse_key, sparse) in enumerate(thnsparse_list.items()):
+    thnsparses = {}
+    for iThn, thnsparse in enumerate(thnsparse_list):
+        #TODO: add possibility to apply cuts for different variables
         for iPt in range(0, len(ptmins)):
-            binMin = sparse.GetAxis(1).FindBin(ptmins[iPt]*1.00001)
-            binMax = sparse.GetAxis(1).FindBin(ptmaxs[iPt]*0.99999)
-            sparse.GetAxis(1).SetRange(binMin, binMax)
-            thn_proj = sparse.Projection(len(axestokeep), array.array('i', axestokeep), 'O')
+            binMin = thnsparse.GetAxis(1).FindBin(ptmins[iPt]*1.00001)
+            binMax = thnsparse.GetAxis(1).FindBin(ptmaxs[iPt]*0.99999)
+            thnsparse.GetAxis(1).SetRange(binMin, binMax)
+            thn_proj = thnsparse.Projection(len(axestokeep), array.array('i', axestokeep), 'O')
             
             if iThn == 0:
-                sparses[iPt] = thn_proj
+                thnsparses[iPt] = thn_proj
             else:
-                sparses[iPt].Add(thn_proj)
-    return sparses
+                thnsparses[iPt].Add(thn_proj)
+    return thnsparses
 
 def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir):
     
