@@ -80,6 +80,7 @@ FixVnTemplToSgn: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 VnInitWeights: [[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]]
 VnMinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]]
 VnMaxWeights: [[0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2]]
+InitBkg: [ [[initval_par0_ptbin0, lowlim_par0_ptbin0, upplim_par0_ptbin0], [initval_par1_ptbin0, lowlim_par1_ptbin0, upplim_par1_ptbin0]],[empty if no initialization],[],[],[],[],[],[],[],[],[],[],[],[],[]]
 
 # efficiency
 eff_filename: 'task_output.root'
