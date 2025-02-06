@@ -11,7 +11,7 @@ from ROOT import kBlack, kRed, kAzure, kGray, kOrange, kFullCircle, kFullSquare,
 sys.path.append('../../..')
 from utils.ReadModel import ReadFONLL, ReadTAMU, ReadPHSD, ReadCatania, ReadMCatsHQ, ReadLIDO, ReadLGR  #pylint: disable=wrong-import-position,import-error
 from utils.StyleFormatter import SetObjectStyle #pylint: disable=wrong-import-position,import-error
-
+from sparse_dicts import get_sparses
 
 
 def computePtWeights(config, outputDir, suffix):
@@ -22,8 +22,10 @@ def computePtWeights(config, outputDir, suffix):
 
     Dspecie = config['Dmeson']
     Bspecie = config['Bspecie']
-
-    inputMC = config['MC_filename']
+    # 'Ds', 'Dplus', 'Dzero', 'Lc'
+    if Dspecie not in ['Ds', 'Dplus', 'Dzero', 'Lc']:
+        print(f'ERROR: D specie {Dspecie} not supported! Only Ds, Dplus, Dzero, Lc is supported! Exit')
+        sys.exit()
 
     rebin = config['rebin']
     smooth = config['smooth']
@@ -31,52 +33,14 @@ def computePtWeights(config, outputDir, suffix):
     shapesD = config['shapes']['D']
     shapesB = config['shapes']['B']
 
-    sparseNameD = config['sparsenameGenPrompt']
-    sparseNameB = config['sparsenameGenFD']
-
-    # 'Ds', 'Dplus', 'Dzero', 'Lc', 'Dstar'
-    if Dspecie not in ['Ds', 'Dplus', 'Dzero', 'Lc']:
-        print(f'ERROR: D specie {Dspecie} not supported! Only Ds, Dplus, Dzero, Lc is supported! Exit')
-        sys.exit()
-
-    # load MC input
-    #___________________________________________________________________________________________________________________________
-    infileMC = TFile.Open(inputMC[0])
-    if Dspecie == 'Dzero':
-        dirGenPtShape = infileMC.Get('hf-task-d0') # for run3
-        print(type(dirGenPtShape))
-    elif Dspecie == 'Dplus':
-        dirGenPtShape = infileMC.Get('hf-task-dplus')
-    elif Dspecie == 'Ds':
-        dirGenPtShape = infileMC.Get('hf-task-ds')
-    elif Dspecie == 'Lc':
-        dirGenPtShape = infileMC.Get('hf-task-lc')
-
-    # safe check
-    if not dirGenPtShape:
-        print(f'ERROR: Directory {dirGenPtShape} not found in {inputMC}! Exit')
-        sys.exit()
-
+    _, _, sparsesGen, axes = get_sparses(config, False, False, True)
     # load thnSparse
-    sparseGenD = dirGenPtShape.Get(sparseNameD)
+    sparseGenD = sparsesGen['GenPrompt']
     sparseGenD.SetName('sparseGenD')
-    sparseGenB = dirGenPtShape.Get(sparseNameB)
+    sparseGenB = sparsesGen['GenFD']
     sparseGenB.SetName('sparseGenB')
 
-    if Dspecie == 'Dzero':
-        sparseGenD.GetAxis(3).SetRange(2, 2)
-        hPtGenD = sparseGenD.Projection(0)
-    elif Dspecie == 'Dplus':
-        sparseGenD.GetAxis('axis of origin type').SetRange('the bin number of prompt flag, the bin number of prompt flag')
-        hPtGenD = sparseGenD.Projection('the axis number of pT of D')
-    elif Dspecie == 'Ds':
-        sparseGenD.GetAxis('axis of origin type').SetRange('the bin number of prompt flag, the bin number of prompt flag')
-        hPtGenD = sparseGenD.Projection('the axis number of pT of D')
-    elif Dspecie == 'Lc':
-        sparseGenD.GetAxis('axis of origin type').SetRange('the bin number of prompt flag, the bin number of prompt flag')
-        hPtGenD = sparseGenD.Projection('the axis number of pT of D')
-    #TODO: modify for other D mesons
-
+    hPtGenD = sparseGenD.Projection(axes['GenPrompt']['Pt'])
     hPtGenD.SetDirectory(0)
     hPtGenD.SetName('hPtGenD')
     hPtGenD.Sumw2()
@@ -84,24 +48,16 @@ def computePtWeights(config, outputDir, suffix):
     hPtGenD.Scale(1./hPtGenD.Integral())
 
     if Bspecie:
-        if Dspecie == 'Dzero':
-            sparseGenB.GetAxis(3).SetRange(3, 3)
-            hPtGenB = sparseGenB.Projection(1)
-        elif Dspecie == 'Dplus':
-            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of FD flag')
-            hPtGenB = sparseGenB.Projection('the axis number of pT of B')
-        elif Dspecie == 'Ds':
-            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of FD flag')
+        hPtGenB = sparseGenB.Projection(axes['GenFD']['Pt'])
+        if Dspecie == 'Ds':
             sparseGenBPlusBZero = sparseGenB.Clone('sparseGenBPlusBZero')
-            sparseGenBPlusBZero.GetAxis('axis of B meson species').SetRange(1, 2)
+            sparseGenBPlusBZero.GetAxis(axes['GenFD']['origin']).SetRange(1, 2)
             sparseGenLambdaBZero = sparseGenB.Clone('sparseGenLambdaBZero')
-            sparseGenLambdaBZero.GetAxis('axis of B meson species').SetRange(4, 4)
-            hPtGenB = sparseGenLambdaBZero.Projection('the axis number of pT of B')
-            hPtGenB.Add(sparseGenBPlusBZero.Projection('the axis number of pT of B'))
-        elif Dspecie == 'Lc':
-            sparseGenB.GetAxis('axis of origin type').SetRange('the bin number of FD flag, the bin number of FD flag')
-            hPtGenB = sparseGenB.Projection('the axis number of pT of B')
-        #TODO: modificatoin for other B mesons
+            sparseGenLambdaBZero.GetAxis(axes['GenFD']['origin']).SetRange(4, 4)
+            hPtGenB = sparseGenLambdaBZero.Projection(axes['GenFD']['Pt'])
+            hPtGenB.Add(sparseGenBPlusBZero.Projection(axes['GenFD']['Pt']))
+        
+        #TODO: modifications for other B mesons
         hPtGenB.SetDirectory(0)
         hPtGenB.SetName('hPtGenB')
         hPtGenB.Sumw2()
@@ -109,19 +65,14 @@ def computePtWeights(config, outputDir, suffix):
         hPtGenB.Scale(1./hPtGenB.Integral())
     
     if Bspecie == 'BsBmix':
-        sparseGenB.GetAxis('axis of B meson species').SetRange('the bin number of Bs flag, the bin number of Bs flag')
-        # based on what I saw in the taskDs, there is a axis of B meson pt, and the axis of B meson species
-        # that is recroded by flag
-        hPtGenBs = sparseGenB.Projection('the axis number of pT of Bs')
+        sparseGenB.GetAxis(axes['GenFD']['origin']).SetRange('the bin number of Bs flag, the bin number of Bs flag')
+        hPtGenBs = sparseGenB.Projection(axes['GenFD']['Pt'])
         hPtGenBs.SetDirectory(0)
         hPtGenBs.SetName('hPtGenBs')
         hPtGenBs.Rebin(rebin)
         hPtGenBs.Scale(1./2 * hPtGenBs.Integral())
         hPtGenB.Scale(1./2)
         hPtGenB.Add(hPtGenBs) # assuming 50% Bs and 50% B, reasonable for non-prompt Ds
-        
-
-    infileMC.Close()
 
     print('INFO: MC input loaded')
     # load models predictions
@@ -421,7 +372,7 @@ def computePtWeights(config, outputDir, suffix):
     canvPtshape.Divide(2, 1)
     ptD = [0, 36]
     canvPtshape.cd(1).DrawFrame(ptD[0], 0.0000001, ptD[1], 1,
-                        f';#it{{p}}_{{T}} (GeV/c);Prompt D0')
+                        f';#it{{p}}_{{T}} (GeV/c);Prompt {config["Dmeson"]}')
     canvPtshape.cd(1)
     canvPtshape.cd(1).SetLogy()
 

@@ -60,7 +60,6 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         massMaxs = [massMaxs] * len(ptMins)
     useRefl = fitConfig.get('InclRefl')
     reflFile = fitConfig.get('ReflFile', None)
-    useTemplates = fitConfig.get('IncludeKDETempls')
 
     # read fit configuration
     if not isinstance(fixSigma, list):
@@ -124,40 +123,42 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             sys.exit()
 
     KDEtemplatesFuncts = []
-    KDEtemplates = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
-    if useTemplates:
-        cTemplOverlap = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
-        hRebinnedHistos = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
-        templatesFile = TFile(f'{outputdir}/Templates.root', 'recreate')
-        for iPt in range(len(ptMins)):
-            for iFlag, flag in enumerate(fitConfig['TemplsFlags']):
-                if not fitConfig['IncludeKDETempls'][iPt]:
-                    KDEtemplates[iPt][iFlag], kde_func, hRebinnedHistos[iPt][iFlag], cTemplOverlap[iPt][iFlag] = None, None, None, None
-                    continue
-                elif fitConfig['IncludeKDETempls'][iPt] and fitConfig.get('FromGrid'):
-                    KDEtemplates[iPt][iFlag], kde_func, hRebinnedHistos[iPt][iFlag] = kde_producer(fitConfig['TemplsInputs'][iFlag], 'fM', ptMins[iPt], ptMaxs[iPt], flag,
-                                                                      templatesFile, fitConfig['TemplsTreeNames'][iFlag])
-                    templatesFile.cd()
-                    hRebinnedHistos[iPt][iFlag].Write(f"hBinned_pt_{iPt}")
-                    cTemplOverlap[iPt][iFlag] = TCanvas(f'cOverlap_{iPt}_{flag}', f'cOverlap_{iPt}_{flag}', 600, 600)
-                    cTemplOverlap[iPt][iFlag].cd()
-                    hRebinnedHistos[iPt][iFlag].Draw()
-                    kde_func.Draw('same')
-                    cTemplOverlap[iPt][iFlag].Write()
-                elif fitConfig['IncludeKDETempls'][iPt] and fitConfig.get('FromFile'):
-                    templFile = TFile.Open(f'{fitConfig["FromFile"]}', 'r')
-                    KDEtemplates[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}/KDEFunc_')
-                    hRebinnedHistos[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}/hBinned')
-                    templFile.Close()
-                    cTemplOverlap[iPt][iFlag] = TCanvas(f'cOverlap_{iPt}_{flag}', f'cOverlap_{iPt}_{flag}', 600, 600)
-                    cTemplOverlap[iPt][iFlag].cd()
-                    hRebinnedHistos[iPt][iFlag].Draw()
-                    kde_func.Draw('same')
-                else:
-                    print(f'ERROR: incorrect setting for including KDEs in fit! Exit!')
-                    sys.exit()
-        templatesFile.Close()
-        KDEtemplatesFuncts = [[KDE.GetFunction() if KDE is not None else None for KDE in KDEtemplatesPt] for KDEtemplatesPt in KDEtemplates]
+    for iPt, (bkgStr, sgnStr, bkgVnStr) in enumerate(zip(BkgFuncStr, SgnFuncStr, BkgFuncVnStr)):
+        useTemplates = fitConfig['IncludeKDETempls'][iPt] 
+        if useTemplates:
+            cTemplOverlap = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+            hRebinnedHistos = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+            KDEtemplates = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))]
+            templatesFile = TFile(f'{outputdir}/Templates.root', 'recreate')
+            for iPt in range(len(ptMins)):
+                for iFlag, flag in enumerate(fitConfig['TemplsFlags']):
+                    if not fitConfig['IncludeKDETempls'][iPt]:
+                        KDEtemplates[iPt][iFlag], kde_func, hRebinnedHistos[iPt][iFlag], cTemplOverlap[iPt][iFlag] = None, None, None, None
+                        continue
+                    elif fitConfig['IncludeKDETempls'][iPt] and fitConfig.get('FromGrid'):
+                        KDEtemplates[iPt][iFlag], kde_func, hRebinnedHistos[iPt][iFlag] = kde_producer(fitConfig['TemplsInputs'][iFlag], 'fM', ptMins[iPt], ptMaxs[iPt], flag,
+                                                                            templatesFile, fitConfig['TemplsTreeNames'][iFlag])
+                        templatesFile.cd()
+                        hRebinnedHistos[iPt][iFlag].Write(f"hBinned_pt_{iPt}")
+                        cTemplOverlap[iPt][iFlag] = TCanvas(f'cOverlap_{iPt}_{flag}', f'cOverlap_{iPt}_{flag}', 600, 600)
+                        cTemplOverlap[iPt][iFlag].cd()
+                        hRebinnedHistos[iPt][iFlag].Draw()
+                        kde_func.Draw('same')
+                        cTemplOverlap[iPt][iFlag].Write()
+                    elif fitConfig['IncludeKDETempls'][iPt] and fitConfig.get('FromFile'):
+                        templFile = TFile.Open(f'{fitConfig["FromFile"]}', 'r')
+                        KDEtemplates[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}/KDEFunc_')
+                        hRebinnedHistos[iPt][iFlag] = templFile.Get(f'KDE_pt_{ptMins[iPt]}_{ptMaxs[iPt]}_flag{flag}/hBinned')
+                        templFile.Close()
+                        cTemplOverlap[iPt][iFlag] = TCanvas(f'cOverlap_{iPt}_{flag}', f'cOverlap_{iPt}_{flag}', 600, 600)
+                        cTemplOverlap[iPt][iFlag].cd()
+                        hRebinnedHistos[iPt][iFlag].Draw()
+                        kde_func.Draw('same')
+                    else:
+                        print(f'ERROR: incorrect setting for including KDEs in fit! Exit!')
+                        sys.exit()
+            templatesFile.Close()
+            KDEtemplatesFuncts = [[KDE.GetFunction() if KDE is not None else None for KDE in KDEtemplatesPt] for KDEtemplatesPt in KDEtemplates]
     
     # set particle configuration
     if particleName == 'Ds':
@@ -181,7 +182,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     hMCSgn, hMCRefl = [], []
     fMassTemplFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if useTemplates else [] 
     fVnCompFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if fitConfig.get('DrawVnComps') else []
-    hist_reso = infile.Get('histo_reso_delta_cent')
+    hist_reso = infile.Get('hist_reso')
     hist_reso.SetDirectory(0)
     reso = hist_reso.GetBinContent(1)
     inclSecPeak = [inclSecPeak] * len(ptMins) if not isinstance(inclSecPeak, list) else inclSecPeak

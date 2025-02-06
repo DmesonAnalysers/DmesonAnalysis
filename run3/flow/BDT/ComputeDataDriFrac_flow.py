@@ -7,7 +7,7 @@ import argparse
 import os
 import sys
 sys.path.append('../../../')
-from ROOT import TFile, TCanvas, TLegend, gROOT  # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TLegend, gROOT, kRed, kBlue  # pylint: disable=import-error,no-name-in-module
 from utils.AnalysisUtils import GetPromptFDFractionCutSet
 from utils.StyleFormatter import SetGlobalStyle
 
@@ -101,14 +101,18 @@ def data_driven_frac(inputdir, outputdir, suffix, batch=False):
         ptMin = hPromptFrac.GetBinLowEdge(1)
         cFrac = TCanvas('cFrac', '', 800, 800)
         cFrac.DrawFrame(ptMin, 0., ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); fraction')
+        hPromptFrac.SetLineColor(kRed)
         hPromptFrac.Draw('same')
+        hFDFrac.SetLineColor(kBlue)
         hFDFrac.Draw('same')
         legFrac.Draw()
         cFrac.Update()
 
         cFracCorrFrac = TCanvas('cFracCorrFrac', '', 800, 800)
         cFracCorrFrac.DrawFrame(ptMin, 0., ptMax, 1.2, ';#it{p}_{T} (GeV/#it{c}); corrected fraction')
+        hPromptFracCorr.SetLineColor(kRed)
         hPromptFracCorr.Draw('same')
+        hFDFracCorr.SetLineColor(kBlue)
         hFDFracCorr.Draw('same')
         legFrac.Draw()
         cFracCorrFrac.Update()
@@ -116,7 +120,9 @@ def data_driven_frac(inputdir, outputdir, suffix, batch=False):
         cEff = TCanvas('cEff', '', 800, 800)
         cEff.DrawFrame(ptMin, 1.e-4, ptMax, 1., ';#it{p}_{T} (GeV/#it{c}); (Acc#times#font[152]{e})')
         cEff.SetLogy()
+        hEffPrompt.SetLineColor(kRed)
         hEffPrompt.Draw('same')
+        hEffFD.SetLineColor(kBlue)
         hEffFD.Draw('same')
         legEff.Draw()
         cEff.Update()
