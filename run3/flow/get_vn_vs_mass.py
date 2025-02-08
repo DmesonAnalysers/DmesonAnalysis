@@ -406,7 +406,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             # Sigma
             vnFitter[iPt].SetInitialGaussianSigma(fitConfig['Sigma'][iPt], 1)
             if fixSigma[iPt]:
-                vnFitter[iPt].FixSigmaFromMassFit()
+                vnFitter[iPt].SetInitialGaussianSigma(fitConfig['Sigma'][iPt], 2)
             # nSigma4SB
             if 'NSigma4SB' in fitConfig:
                 vnFitter[iPt].SetNSigmaForVnSB(fitConfig['NSigma4SB'][iPt])
@@ -420,9 +420,9 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             if secPeak and particleName == 'Dplus':
                 vnFitter[iPt].IncludeSecondGausPeak(massDstar, False, fitConfig['SigmaSecPeak'][iPt], False, 1, fitConfig.get('FixVnSecPeakToSgn', False))
                 if fixSigma[iPt]:
-                    vnFitter[iPt].FixSigma2GausFromMassFit()
+                    vnFitter[iPt].SetFixSecondGaussianSigma(fitConfig['SigmaSecPeak'][iPt], 2)
             vnFitter[iPt].FixFrac2GausFromMassFit()
-            # TODO: Add reflections for D0
+
             # Reflections for D0
             if useRefl:
                 SoverR = (hMCRefl[iPt].Integral(hMCRefl[iPt].FindBin(massMin*1.0001),hMCRefl[iPt].FindBin(massMax*0.9999)))/(
