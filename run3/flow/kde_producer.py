@@ -7,7 +7,7 @@ import ROOT
 import ctypes
 from ROOT import TFile, TKDE, TCanvas, TH1D
 
-def kde_producer(tree_file, var, pt_min, pt_max, flag, outfile='', tree_name='O2hfcanddplite'):
+def kde_producer(tree_file, var, pt_min, pt_max, flag, outfile='', tree_name='O2hfcanddplite', query=''):
     
     print(f"Producing KDE from {tree_file} for var {var}, {pt_min} <= pt < {pt_max}, flag {flag}")
     # convert the tree_file to a pandas dataframe
@@ -18,8 +18,11 @@ def kde_producer(tree_file, var, pt_min, pt_max, flag, outfile='', tree_name='O2
                 dfData = f[key].arrays(library='pd')
                 dfsData.append(dfData)      
     full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
-    pt_filtered_df = full_dataset.query(f"{pt_min} <= fPt < {pt_max}")
-    filtered_df = pt_filtered_df.query(f"fFlagMcDecayChanRec == {flag} or fFlagMcDecayChanRec == {-flag}")
+    if query != '':
+        filtered_df = full_dataset.query(f"{pt_min} <= ptD < {pt_max} and {query}")
+    else:
+        filtered_df = full_dataset.query(f"{pt_min} <= fPt < {pt_max} and abs(fFlagMcDecayChanRec) == {flag}")
+    
     var_values = filtered_df[f'{var}'].tolist()  # Or use `.tolist()` to get a list
 
     kde = TKDE(len(var_values), np.asarray(var_values, 'd'), min(var_values), max(var_values))
@@ -41,6 +44,7 @@ def kde_producer(tree_file, var, pt_min, pt_max, flag, outfile='', tree_name='O2
         outfile.mkdir(f'KDE_pT_{pt_min}_{pt_max}_flag{flag}')
         outfile.cd(f'KDE_pT_{pt_min}_{pt_max}_flag{flag}')
         kde_func.Write()
+        kde.Write('kde')
         binned_var_values.Write()
     
     return kde, kde_func, binned_var_values

@@ -10,7 +10,7 @@ import yaml
 import argparse
 import sys
 import os
-from ROOT import gROOT, TFile
+from ROOT import gROOT, TFile, TH1D
 from alive_progress import alive_bar
 from scipy.interpolate import InterpolatedUnivariateSpline
 from sparse_dicts import get_sparses 
@@ -355,6 +355,10 @@ if __name__ == "__main__":
                         default='cutsetConfig.yaml', help='cutset configuration file')
     parser.add_argument('anres_dir', metavar='text', 
                         nargs='*', help='input ROOT files with anres')
+    parser.add_argument("--proj_data", action="store_true", 
+                        help="Flag to project data")
+    parser.add_argument("--proj_mc", action="store_true", 
+                        help="Flag to project MC")
     parser.add_argument('--preprocessed', action='store_true', 
                         help='Determines whether the sparses are pre-processed')
     parser.add_argument("--ptweights", "-w", metavar="text", nargs=2, required=False,
@@ -375,7 +379,13 @@ if __name__ == "__main__":
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
     os.makedirs(f'{args.outputdir}/proj', exist_ok=True)
-    outfile = ROOT.TFile(f'{args.outputdir}/proj/proj_{args.suffix}.root', 'RECREATE')
+    outfilename = f'{args.outputdir}/proj/proj_{args.suffix}'
+    if not args.proj_data or not args.proj_mc:
+        print(f"creating new file")
+        outfile = ROOT.TFile(outfilename + '_new.root', 'RECREATE')
+        outfile_old = TFile.Open(outfilename + '.root', 'r')  
+    else:
+        outfile = ROOT.TFile(outfilename + '.root', 'RECREATE')
     
     cent, (cent_min, cent_max) = get_centrality_bins(args.centrality)
     outfile_dir = 'hf-candidate-creator-2prong' if config['Dmeson'] == 'Dzero' else 'hf-candidate-creator-3prong'
@@ -434,36 +444,64 @@ if __name__ == "__main__":
             outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
     
             print(f"sparsesFlow: {sparsesFlow}")
-            if args.preprocessed:
-                print('PREPROCESSED')
-                sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetAxis(axes['Flow']['score_FD']).SetRangeUser(cutVars['score_FD']['min'][iPt], cutVars['score_FD']['max'][iPt])
-                proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], ptMin, ptMax, cent_min, cent_max, axes, config['inv_mass_bins'][iPt], reso)
+            if args.proj_data:
+                if args.preprocessed:
+                    print('PREPROCESSED')
+                    sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetAxis(axes['Flow']['score_FD']).SetRangeUser(cutVars['score_FD']['min'][iPt], cutVars['score_FD']['max'][iPt])
+                    proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], ptMin, ptMax, cent_min, cent_max, axes, config['inv_mass_bins'][iPt], reso)
+                    outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
+                    print(f"Projected data!")
+                
+                if not args.preprocessed:
+                    print('NOT PREPROCESSED')
+                    for iSparse, (key, sparse) in enumerate(sparsesFlow.items()):
+                        for iVar in cutVars:
+                            sparse.GetAxis(axes['Flow'][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
+                    proj_data(sparsesFlow, ptMin, ptMax, axes, config['inv_mass_bins'][iPt], reso)
+                    print(f"Projected data!")
+            else:
+                histo_mass = outfile_old.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_cent{cent}_pt{ptMin}_{ptMax}').Clone()
+                histo_vn_sp = outfile_old.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_vn_sp_pt{ptMin}_{ptMax}').Clone()
                 outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
-                print(f"Projected data!")
+                histo_mass.Write(f'hist_mass_cent{cent}_pt{ptMin}_{ptMax}')
+                histo_vn_sp.Write(f'hist_vn_sp_pt{ptMin}_{ptMax}')
+                print(f"Loaded data from previous projections!")
             
-            if not args.preprocessed:
-                print('NOT PREPROCESSED')
-                for iSparse, (key, sparse) in enumerate(sparsesFlow.items()):
-                    for iVar in cutVars:
-                        sparse.GetAxis(axes['Flow'][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
-                proj_data(sparsesFlow, ptMin, ptMax, cent_min, cent_max, axes, config['inv_mass_bins'][iPt], reso)
-                print(f"Projected data!")
-            
-            for iVar in cutVars:
-                for key, iSparse in sparsesReco.items():
-                    iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
-                if iVar == 'Pt':
-                    for key, iSparse in sparsesGen.items():
+            outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
+            if args.proj_mc:
+                for iVar in cutVars:
+                    for key, iSparse in sparsesReco.items():
                         iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
-                if iVar == 'score_FD' or iVar == 'score_bkg':
-                    print(f'{iVar}: {cutVars[iVar]["min"][iPt]} < {iVar} < {cutVars[iVar]["max"][iPt]}')
+                    if iVar == 'Pt':
+                        for key, iSparse in sparsesGen.items():
+                            iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
+                    if iVar == 'score_FD' or iVar == 'score_bkg':
+                        print(f'{iVar}: {cutVars[iVar]["min"][iPt]} < {iVar} < {cutVars[iVar]["max"][iPt]}')
 
-            proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
-            print(f"Projected mc reco!")
-            proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
-            print(f"Projected mc gen!")
+                proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
+                print(f"Projected mc reco!")
+                proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
+                print(f"Projected mc gen!")
+            else:
+                histo_pt_gen_prompt = outfile_old.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hPromptGenPt').Clone()
+                histo_pt_gen_fd = outfile_old.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hFDGenPt').Clone()
+                histo_pt_reco_prompt = outfile_old.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hPromptPt').Clone()
+                histo_pt_reco_fd = outfile_old.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hFDPt').Clone()
+                histo_prompt_mass = outfile_old.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hPromptMass').Clone()
+                histo_fd_mass = outfile_old.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hFDMass').Clone()
+                outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
+                histo_prompt_mass.Write('hPromptMass')
+                histo_pt_gen_prompt.Write('hPromptGenPt')
+                histo_pt_gen_fd.Write('hFDGenPt')
+                histo_pt_reco_fd.Write('hFDPt')
+                histo_pt_reco_prompt.Write('hPromptPt')
+                histo_fd_mass.Write('hFDMass')
+                print(f"Loaded mc from previous projections!")
             
             bar()
     
     outfile.Close()
-    outfile.Close()
+    if not args.proj_data or not args.proj_mc:
+        outfile_old.Close()
+        os.remove(outfilename + '.root')
+        os.rename(outfilename + '_new.root', outfilename + '.root')

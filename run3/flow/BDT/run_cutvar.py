@@ -115,29 +115,28 @@ def run_full_cut_variation(config_flow,
 		check_dir(f"{output_dir}/proj")
 		ProjPath = "./proj_thn.py"
 		pre_process = "--preprocessed" if use_preprocessed else ""
-		anres_files = ' '.join(anres_dir)
-
+		proj_data = "--proj_data" if not skip_proj_data else ""
+		proj_mc = "--proj_mc" if not skip_proj_mc else ""
 		def run_projections(i):
 			"""Run sparse projection for a given cutset index."""
 			iCutSets = f"{i:02d}"
 			print(f"\033[32mProcessing cutset {iCutSets}...\033[0m")
-
-			if not os.path.exists(f"{output_dir}/ptweights/pTweight_{suffix}.root") and not given_ptweights:
-				# REVIEW: add the list of anres files
-				cmd = (
-					f"python3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} "
-					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} >> {log_file} 2>&1"
-				)
+			if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root'):
+					print(f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
+					# REVIEW: add the list of anres files
+					cmd = (
+						f"python3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} "
+						f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} >> {log_file} 2>&1"
+					)
 			else:
 				ptweightsPath = given_ptWeightsPath if given_ptweights else f"{output_dir}/ptweights/pTweight_{suffix}.root"
-
 				cmd = (
 					f"python3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} "
 					f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
 					f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
 					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} >> {log_file} 2>&1"
 				)
-			
+
 			print(f"\033[32m{cmd}\033[0m")
 			os.system(cmd)
 
@@ -313,4 +312,3 @@ if __name__ == "__main__":
 	sys.stdout = sys.__stdout__
 	sys.stderr = sys.__stderr__
 	print(f"\033[34mTotal execution time: {execution_time:.2f} seconds\033[0m")
- 
