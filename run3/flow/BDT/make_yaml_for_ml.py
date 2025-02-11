@@ -11,14 +11,12 @@ import sys
 sys.path.append('..')
 from flow_analysis_utils import get_cut_sets_config
 
-def make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, nCutSets,
-                     sig_cut_lower_file, sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file):
+def make_combination(ptmins, ptmaxs, nCutSets, sig_cut_lower_file, 
+                     sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file):
     '''
     Create a dictionary with the combination of cuts for each cutset
 
     Parameters:
-    mass_axis: int
-        axis number for the invariant mass
     pt_axis: int
         axis number for the pt
     bkg_axis: int
@@ -43,27 +41,20 @@ def make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, nCu
         combinations[iFile] = {
             'icutset': iFile,
             'cutvars': {
-                'InvMass': {
-                    'axisnum': mass_axis,
-                    'name': 'inv_mass'
-                },
                 'Pt': {
-                    'axisnum': pt_axis,
                     'min': [i for i in ptmins],
                     'max': [j for j in ptmaxs],
                     'name': 'pt_cand'
                 },
-                'ML_output_Bkg': {
-                    'axisnum': bkg_axis,
+                'score_bkg': {
                     'min': [float(i) for i in bkg_cut_lower_file[iFile]],
                     'max': [float(j) for j in bkg_cut_upper_file[iFile]],
-                    'name': 'ML_output_Bkg'
+                    'name': 'score_bkg'
                 },
-                'ML_output_FD': {
-                    'axisnum': sig_axis,
+                'score_FD': {
                     'min': [float(i) for i in sig_cut_lower_file[iFile]],
                     'max': [float(j) for j in sig_cut_upper_file[iFile]],
-                    'name': 'ML_output_FD'
+                    'name': 'score_FD'
                 }
             }
         }
@@ -76,18 +67,12 @@ def make_yaml(flow_config, outputdir, suffix):
     os.makedirs(outputdir, exist_ok=True)
 
     # load the variable from the input config
-    # axis
-    axis = input['axes_mc']
-    mass_axis = axis['mass']
-    pt_axis = axis['pt']
-    bkg_axis = axis['bdt_bkg']
-    sig_axis = axis['bdt_sig']
 
     # pt
     ptmins = input['ptmins']
     ptmaxs = input['ptmaxs']
 
-    ## safely check
+    ## safety check
     if len(ptmins) != len(ptmaxs):
         raise ValueError(f'''The number of pt bins({len(ptmins)}, {len(ptmaxs)} are not the same''')
 
@@ -110,15 +95,9 @@ def make_yaml(flow_config, outputdir, suffix):
                 bkg_cut_lower_file[iCut].append(bkg_cut_lower[iPt][nCutSets[iPt]-1])
                 bkg_cut_upper_file[iCut].append(bkg_cut_upper[iPt][nCutSets[iPt]-1])
 
-    combinations = make_combination(mass_axis, pt_axis, bkg_axis, sig_axis, ptmins, ptmaxs, maxCutSets,
-                                    sig_cut_lower_file, sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file)
+    combinations = make_combination(ptmins, ptmaxs, maxCutSets, sig_cut_lower_file, 
+                                    sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file)
 
-    print(f'''
-The axis number for the invariant mass is {mass_axis}
-The axis number for the pt is {pt_axis}
-The axis number for the bkg output is {bkg_axis}
-The axis number for the signal output is {sig_axis}
-''')
     for iFile in range(maxCutSets):
         print(f'''For cutset {iFile}:
         ptmin: {ptmins}
@@ -138,10 +117,9 @@ The axis number for the signal output is {sig_axis}
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
     parser.add_argument('flow_config', metavar='text', default='config_flow.yml')
+    parser.add_argument('--preprocessed', action='store_true', help='Flag to indicate preprocessing of the sparses')
     parser.add_argument("--outputdir", "-o", metavar="text", default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text", default="", help="suffix for output files")
     args = parser.parse_args()
 
-    make_yaml(args.flow_config,
-                args.outputdir,
-                args.suffix)
+    make_yaml(args.flow_config, args.outputdir, args.suffix)

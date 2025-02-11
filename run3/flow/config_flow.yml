@@ -64,6 +64,26 @@ FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
 SigmaRatioFile: ""
 BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
 
+### config to use pre-processed AnalysisResults files 
+skim_out_dir: '/Users/mcosti/Analysis/Datasets/3050/skim3040bkgstrict'
+
+DrawVnComps: true  # draw single terms of vn function
+IncludeKDETempls: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]  # boolean flag to include templates or not
+FromGrid: true # compute templates from TemplsInputs, else take them from file with FromFile flag
+# To add more templates, use [part1, ... ,partN]
+TemplsFlags: [2]  # flag of flagMcDecayRec to query the dataframe from which the KDE is obtained
+TemplsInputs: ['/Users/mcosti/Analysis/Datasets/Templates/AO2D_325626.root']  # input AODs for templates
+TemplsTreeNames: ['O2hfcanddplite'] # name of tree in the AO2D file
+### init weights for mass templates and vn of templates
+InitWeights: [[500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500]]
+MinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0],]
+MaxWeights: [[1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000]]
+FixVnTemplToSgn: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+VnInitWeights: [[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]]
+VnMinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]]
+VnMaxWeights: [[0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2]]
+InitBkg: [ [[initval_par0_ptbin0, lowlim_par0_ptbin0, upplim_par0_ptbin0], [initval_par1_ptbin0, lowlim_par1_ptbin0, upplim_par1_ptbin0]],[empty if no initialization],[],[],[],[],[],[],[],[],[],[],[],[],[]]
+
 # efficiency
 eff_filename: 'task_output.root'
 
@@ -130,6 +150,7 @@ shapes:
             file: 
                 B: /home/wuct/ALICE/local/DmesonAnalysis/models/tamu/B_TAMU_RAA_5TeV_3050.txt
                 Bs: ''
+
 ptWeights_path: ''
 
 #_______________________________________________________________________________________________________________________
@@ -176,6 +197,11 @@ linearplot:
     enable: true #enable linear plots NpromptVsNFD
     uncbands: false #enable upper/lower linear plots limits
     outfileformat: ['png', 'pdf', 'jpg'] # linear plot saved in different output formats (e.g. png, pdf, etc.). Plots are already saved in the ouput TFile
+
+## used for ComputeDataDriFrac_flow.py
+combined: False
+# `output_dir` in run_cutvar.sh
+correlatedPath: 'path/to/correlated'
 
 ## used for ComputeV2vsFDFrac.py
 histoNameV2: hvnSimFit

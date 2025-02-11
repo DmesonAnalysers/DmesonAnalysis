@@ -65,6 +65,9 @@ doRatio = inputCfg['options']['ratio']['enable']
 drawRatioUnc = inputCfg['options']['ratio']['uncertainties']['enable']
 ratioUncCorr = inputCfg['options']['ratio']['uncertainties']['corr']
 displayRMS = inputCfg['options']['ratio']['displayRMS']
+multiRatio = inputCfg['options']['ratio']['multiRatio']
+indexNumerator = inputCfg['options']['ratio']['indexNumerator']
+indexDenominator = inputCfg['options']['ratio']['indexDenominator']
 
 doCompareUnc = inputCfg['options']['errcomp']['enable']
 compareRelUnc = inputCfg['options']['errcomp']['relative']
@@ -93,6 +96,13 @@ legOpt = inputCfg['options']['legend']['options']
 legTextSize = inputCfg['options']['legend']['textsize']
 ncolumns = inputCfg['options']['legend']['ncolumns']
 
+xText = inputCfg['options']['text']['x']
+yText = inputCfg['options']['text']['y']
+text = inputCfg['options']['text']['text']
+textsize = inputCfg['options']['text']['textsize']
+textfont = inputCfg['options']['text']['textfont']
+textalign = inputCfg['options']['text']['textalign']
+
 # set global style
 SetGlobalStyle(padleftmargin=0.18, padbottommargin=0.14, titleoffsety=1.5)
 
@@ -102,8 +112,24 @@ leg.SetTextSize(legTextSize)
 leg.SetNColumns(ncolumns)
 if legHeader is not None:
     leg.SetHeader(legHeader, 'C')
+    
+legMulRatio = TLegend(xLegLimits[0], yLegLimits[0], xLegLimits[1], yLegLimits[1])
+legMulRatio.SetFillStyle(0)
+legMulRatio.SetTextSize(legTextSize)
+legMulRatio.SetNColumns(1)
+if legHeader is not None:
+    legMulRatio.SetHeader(legHeader, 'C')
+
+tText = TLegend(xText[0], yText[0], xText[1], yText[1])
+tText.SetFillStyle(0)
+tText.SetTextSize(textsize)
+tText.SetTextFont(textfont)
+tText.SetTextAlign(textalign)
+
+tText.AddEntry(0, text, '')
 
 hToCompare, hRatioToCompare, hUncToCompare = [], [], []
+hNumerator, hDenominator = [], []
 for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, marker, fillstyle, fillalpha) in \
     enumerate(
         zip(inFileNames, objNames, objTypes, scales, lambdaParams, normalizes, colors, markers, fillstyles, fillalphas)
@@ -158,39 +184,95 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
                 hToCompare[iFile].GetErrorYlow(iBin) * lambdaParam,
                 hToCompare[iFile].GetErrorYhigh(iBin) * lambdaParam)
     if doRatio:
-        if 'TH' in objType:
-            if drawRatioUnc:
-                if ratioUncCorr:
-                    hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0], 'B'))
+        if multiRatio:
+            if iFile in indexNumerator:
+                if 'TH' in objType:
+                    hNumerator.append(hToCompare[iFile].Clone(f'hNumerator{iFile}'))
+                    hNumerator[-1].SetDirectory(0)
+                else:
+                    if drawRatioUnc:
+                        if ratioUncCorr:
+                            print('WARNING: correlated uncertainty in ratio for TGraphs not implemented. Switching off')
+                            ratioUncCorr = False
+                        else:
+                            hNumerator.append(hToCompare[iFile].Clone(f'gNumerator{iFile}'))
+                    else:
+                        hNumerator.append(hToCompare[iFile].Clone(f'gNumerator{iFile}'))
+            elif iFile in indexDenominator:
+                if 'TH' in objType:
+                    if drawRatioUnc:
+                        if ratioUncCorr:
+                            hDenominator.append(hToCompare[iFile].Clone(f'hDenominator{iFile}'))
+                            hDenominator[-1].SetDirectory(0)
+                            hRatioToCompare.append(ComputeRatioDiffBins(hNumerator[len(hDenominator)-1], hDenominator[-1], 'B'))
+                        else:
+                            hDenominator.append(hToCompare[iFile].Clone(f'hDenominator{iFile}'))
+                            hDenominator[-1].SetDirectory(0)
+                            hRatioToCompare.append(ComputeRatioDiffBins(hNumerator[len(hDenominator)-1], hDenominator[-1]))
+                    else:
+                        hDenominator.append(hToCompare[iFile].Clone(f'hDenominator{iFile}'))
+                        hDenominator[-1].SetDirectory(0)
+                        hRatioToCompare.append(ComputeRatioDiffBins(hNumerator[len(hDenominator)-1], hDenominator[-1]))
+                        for iBin in range(1, hRatioToCompare[-1].GetNbinsX()+1):
+                            hRatioToCompare[-1].SetBinError(iBin, 1.e-20)
+                    hRatioToCompare[-1].SetDirectory(0)
+                else:
+                    if drawRatioUnc:
+                        if ratioUncCorr:
+                            print('WARNING: correlated uncertainty in ratio for TGraphs not implemented. Switching off')
+                            ratioUncCorr = False
+                        else:
+                            hDenominator.append(hToCompare[iFile].Clone(f'gDenominator{iFile}'))
+                            hRatioToCompare.append(ComputeRatioDiffBins(hNumerator[len(hDenominator)-1], hDenominator[-1]))
+                    else:
+                        hDenominator.append(hToCompare[iFile].Clone(f'gDenominator{iFile}'))
+                        hRatioToCompare.append(ComputeRatioDiffBins(hNumerator[len(hDenominator)-1], hDenominator[-1]))
+                        for iBin in range(hRatioToCompare[-1].GetN()):
+                            hRatioToCompare[-1].SetPointEYlow(iBin, 1.e-20)
+                            hRatioToCompare[-1].SetPointEYhigh(iBin, 1.e-20)
+                hRatioToCompare[-1].SetName(f'hRatio{iFile}')
+                SetObjectStyle(hRatioToCompare[-1],
+                            color=GetROOTColor(colors[indexNumerator[len(hDenominator)-1]]),
+                            markerstyle=GetROOTMarker(markers[indexNumerator[len(hDenominator)-1]]),
+                            markersize=markersize,
+                            linewidth=linewidth,
+                            fillstyle=fillstyles[indexNumerator[len(hDenominator)-1]],
+                            fillalpha=fillalphas[indexNumerator[len(hDenominator)-1]])
+        
+        else:
+            if 'TH' in objType:
+                if drawRatioUnc:
+                    if ratioUncCorr:
+                        hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0], 'B'))
+                    else:
+                        hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
                 else:
                     hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
+                    for iBin in range(1, hRatioToCompare[iFile].GetNbinsX()+1):
+                        hRatioToCompare[iFile].SetBinError(iBin, 1.e-20)
+                hRatioToCompare[iFile].SetDirectory(0)
             else:
-                hRatioToCompare.append(ComputeRatioDiffBins(hToCompare[iFile], hToCompare[0]))
-                for iBin in range(1, hRatioToCompare[iFile].GetNbinsX()+1):
-                    hRatioToCompare[iFile].SetBinError(iBin, 1.e-20)
-            hRatioToCompare[iFile].SetDirectory(0)
-        else:
-            if drawRatioUnc:
-                if ratioUncCorr:
-                    print('WARNING: correlated uncertainty in ratio for TGraphs not implemented. Switching off')
-                    ratioUncCorr = False
-                     #TODO: extend ComputeRatioGraph to account for correlated uncertainties
+                if drawRatioUnc:
+                    if ratioUncCorr:
+                        print('WARNING: correlated uncertainty in ratio for TGraphs not implemented. Switching off')
+                        ratioUncCorr = False
+                        #TODO: extend ComputeRatioGraph to account for correlated uncertainties
+                    else:
+                        hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))
                 else:
                     hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))
-            else:
-                hRatioToCompare.append(ComputeRatioGraph(hToCompare[iFile], hToCompare[0]))
-                for iBin in range(hRatioToCompare[iFile].GetN()):
-                    hRatioToCompare[iFile].SetPointEYlow(iBin, 1.e-20)
-                    hRatioToCompare[iFile].SetPointEYhigh(iBin, 1.e-20)
-        #TODO: add case to manage ratio between graph and histo (utility function already available in AnalysisUtils)
-        hRatioToCompare[iFile].SetName(f'hRatio{iFile}')
-        SetObjectStyle(hRatioToCompare[iFile],
-                       color=GetROOTColor(color),
-                       markerstyle=GetROOTMarker(marker),
-                       markersize=markersize,
-                       linewidth=linewidth,
-                       fillstyle=fillstyle,
-                       fillalpha=fillalpha)
+                    for iBin in range(hRatioToCompare[iFile].GetN()):
+                        hRatioToCompare[iFile].SetPointEYlow(iBin, 1.e-20)
+                        hRatioToCompare[iFile].SetPointEYhigh(iBin, 1.e-20)
+            #TODO: add case to manage ratio between graph and histo (utility function already available in AnalysisUtils)
+            hRatioToCompare[iFile].SetName(f'hRatio{iFile}')
+            SetObjectStyle(hRatioToCompare[iFile],
+                        color=GetROOTColor(color),
+                        markerstyle=GetROOTMarker(marker),
+                        markersize=markersize,
+                        linewidth=linewidth,
+                        fillstyle=fillstyle,
+                        fillalpha=fillalpha)
     if doCompareUnc:
         if 'TH' in objType:
             hUncToCompare.append(hToCompare[iFile].Clone(f'hUncToCompare{iFile}'))
@@ -226,13 +308,22 @@ if doRatio and displayRMS:
         nPoints = hRatioToCompare[1].GetN()
     for iBin in range(nPoints):
         ratios.append([])
-        for iFile, _ in enumerate(inFileNames):
-            if iFile == 0:
-                continue
-            if 'TH' in objType:
-                ratios[iBin].append(hRatioToCompare[iFile].GetBinContent(iBin+1))
-            else:
-                ratios[iBin].append(hRatioToCompare[iFile].GetPointY(iBin))
+        if multiRatio:
+            for iFile, _ in enumerate(indexNumerator):
+                if iFile == 0:
+                    continue
+                if 'TH' in objType:
+                    ratios[iBin].append(hRatioToCompare[iFile].GetBinContent(iBin+1))
+                else:
+                    ratios[iBin].append(hRatioToCompare[iFile].GetPointY(iBin))
+        else:
+            for iFile, _ in enumerate(inFileNames):
+                if iFile == 0:
+                    continue
+                if 'TH' in objType:
+                    ratios[iBin].append(hRatioToCompare[iFile].GetBinContent(iBin+1))
+                else:
+                    ratios[iBin].append(hRatioToCompare[iFile].GetPointY(iBin))
 
         aRatios = np.array(ratios[iBin])
         RMS.append(np.std(aRatios))
@@ -255,12 +346,14 @@ if doRatio or doCompareUnc:
             uncPad = 2
 
     hFrame = cOut.cd(1).DrawFrame(xLimits[0], yLimits[0], xLimits[1], yLimits[1], f';{xTitle};{yTitle}')
+    tText.Draw()
     if logX:
         cOut.cd(1).SetLogx()
     if logY:
         cOut.cd(1).SetLogy()
 else:
     hFrame = cOut.cd().DrawFrame(xLimits[0], yLimits[0], xLimits[1], yLimits[1], f';{xTitle};{yTitle}')
+    tText.Draw()
     if logX:
         cOut.cd().SetLogx()
     if logY:
@@ -278,6 +371,7 @@ if  not avoidLeg:
 if doRatio:
     hFrameRatio = cOut.cd(ratioPad).DrawFrame(xLimits[0], yLimitsRatio[0], xLimits[1], yLimitsRatio[1],
                                               f';{xTitle};Ratio')
+    tText.Draw()
     hFrameRatio.GetYaxis().SetDecimals()
     if ratioLogX:
         cOut.cd(ratioPad).SetLogx()
@@ -288,12 +382,22 @@ if doRatio:
     lineAtOne.SetLineWidth(2)
     lineAtOne.SetLineStyle(9)
     lineAtOne.Draw()
-    for iHisto, (histo, objType, drawOpt) in enumerate(zip(hRatioToCompare, objTypes, drawOptions)):
-        if iHisto > 0:
-            if 'TH' in objType:
-                histo.DrawCopy(f'{drawOpt}same')
+    if multiRatio:
+        for iHisto, (iNum, iDen) in enumerate(zip(indexNumerator, indexDenominator)):
+            legMulRatio.AddEntry(hRatioToCompare[iHisto], f'{legNames[iNum]} / {legNames[iDen]}', legOpt[iNum])
+            if 'TH' in objTypes[iNum] or objTypes[iDen]:
+                hRatioToCompare[iHisto].DrawCopy(f'{drawOptions[iNum]}same')
             else:
-                histo.Draw(drawOpt)
+                hRatioToCompare[iHisto].Draw(drawOptions[iNum])
+        if not avoidLeg:
+            legMulRatio.Draw()
+    else:
+        for iHisto, (histo, objType, drawOpt) in enumerate(zip(hRatioToCompare, objTypes, drawOptions)):
+            if iHisto > 0:
+                if 'TH' in objType:
+                    histo.DrawCopy(f'{drawOpt}same')
+                else:
+                    histo.Draw(drawOpt)
 
 if doCompareUnc:
     if compareRelUnc:

@@ -31,16 +31,16 @@ export vn_method="sp"
 export res_file="path/to/resolution.root"
 export suffix="pt2_3" # _ will be added automatically
 
-export spw=False # True or False (skip calculation of weights)
-export smy=False # True or False (skip make yaml)
-export scv=False # True or False (skip cut variation)
-export spm=False # True or False (skip projection for MC)
-export seff=False # True or False (skip efficiency)
-export svn=False # True or False (skip vn extraction)
-export sfcv=False # True or False (skip fraction by cut variation)
-export sddf=False # True or False (skip fraction by data-driven method)
-export sv2vf=False # True or False (skip v2 vs fraction)
-
+export use_prep=True # True or False (use pre-processed inputs for projections)
+export spw=True # True or False (skip calculation of weights)
+export smy=False # True or False (skip make yaml), not used anymore
+export scv=True # True or False (skip cut variation)
+export spm=True # True or False (skip projection for MC)
+export seff=True # True or False (skip efficiency)
+export svn=True # True or False (skip vn extraction)
+export sfcv=True # True or False (skip fraction by cut variation)
+export sddf=True # True or False (skip fraction by data-driven method)
+export sv2vf=True # True or False (skip v2 vs fraction)
 
 # Setup logging
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -51,6 +51,11 @@ exec > >(tee -a "${LOG_FILE}") 2>&1
 echo "Starting run_cutvar.sh at $(date)"
 echo "Logging to: ${LOG_FILE}"
 
+if [ $use_prep = False ]; then
+	export use_preprocessed=""
+else
+	export use_preprocessed="--preprocessed"
+fi
 
 if [ $spw = False ]; then
 	export skip_calc_weights=""
@@ -106,16 +111,16 @@ else
 	export skip_v2_vs_frac="--skip_v2_vs_frac"
 fi
 
-python3 run_cutvar.py $config_flow $anres_dir -c $cent -r $res_file -o $output_dir -s $suffix -vn $vn_method \
-						$skip_calc_weights \
-						$skip_make_yaml \
-						$skip_cut_variation \
-						$skip_proj_mc \
-						$skip_efficiency \
-						$skip_vn \
-						$skip_frac_cut_var \
-						$skip_data_driven_frac \
-						$skip_v2_vs_frac
+python3 run_cutvar.py $config_flow $anres_dir -c $cent -r $res_file -o $output_dir -s $suffix -vn $vn_method $use_preprocessed \
+					  $skip_calc_weights \
+					  $skip_make_yaml \
+					  $skip_cut_variation \
+					  $skip_proj_mc \
+					  $skip_efficiency \
+					  $skip_vn \
+					  $skip_frac_cut_var \
+					  $skip_data_driven_frac \
+					  $skip_v2_vs_frac
 
 echo "Completed run_cutvar.sh at $(date)"
 echo "Log saved to: ${LOG_FILE}"
