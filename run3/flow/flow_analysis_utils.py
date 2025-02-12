@@ -898,49 +898,35 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         """Extract high-quality images from a PDF."""
         doc = fitz.open(pdf_path)
         images = []
-
+        
         for page in doc:
-            pix = page.get_pixmap()
+            pix = page.get_pixmap(dpi=dpi)  # Higher DPI for better quality
             img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
             images.append(img)
-
+        
         return images
 
     def create_multipanel(images, iImage, rows=None, cols=None, bg_color="white"):
-        """Combine multiple images into a grid layout with customizable rows and columns.
-        
-        Args:
-            images (list): List of PIL Image objects.
-            rows (int, optional): Number of rows in the grid. If None, it is auto-calculated.
-            cols (int, optional): Number of columns in the grid. If None, it is auto-calculated.
-            bg_color (str, optional): Background color for empty spaces. Default is white.
-        
-        Returns:
-            PIL.Image: Combined image in a grid layout.
-        """
+        """Combine multiple images into a grid layout with improved image scaling."""
         if not images:
             raise ValueError("At least one image is required.")
-        
-        # Determine grid size if not specified
+
         num_images = len(images)
         if rows is None and cols is None:
-            cols = math.ceil(math.sqrt(num_images))  # Approximate square grid
+            cols = math.ceil(math.sqrt(num_images))
         if rows is None:
             rows = math.ceil(num_images / cols)
         if cols is None:
             cols = math.ceil(num_images / rows)
-        
-        # Resize images to match the smallest width and height
+
         min_width = min(img[iImage].width for img in images)
         min_height = min(img[iImage].height for img in images)
-        resized_images = [img[iImage].resize((min_width, min_height)) for img in images]
-        
-        # Create a blank canvas
+        resized_images = [img[iImage].resize((min_width, min_height), Image.LANCZOS) for img in images]
+
         combined_width = min_width * cols
         combined_height = min_height * rows
         combined = Image.new("RGB", (combined_width, combined_height), bg_color)
-        
-        # Paste images into the grid
+
         for index, img in enumerate(resized_images):
             row, col = divmod(index, cols)
             x_offset = col * min_width
@@ -950,27 +936,29 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         return combined
 
     def process_pdfs(pdf_list, output_folder):
-        """Processes a custom number of pdfs and saves multipanel images."""
+        """Processes PDFs and saves multipanel images with high-quality settings."""
         if len(pdf_list) == 0:
             raise ValueError("No PDF provided!")
 
         images = [pdf_to_images(pdf, dpi=100) for pdf in pdf_list]
         num_pages = min(len(imgs) for imgs in images)
 
-        os.makedirs(f"{output_folder}", exist_ok=True)
+        os.makedirs(output_folder, exist_ok=True)
 
         for i in range(num_pages):
             panel = create_multipanel(images, i)
-            panel.save(os.path.join(f"{output_folder}", f"panel_{i+1}_{suffix}.png"))
+            output_path = os.path.join(output_folder, f"panel_{i+1}_{suffix}.png")  # Use PNG for lossless quality
+            panel.save(output_path, format="PNG", compression_level=1)  # High quality, low compression
 
-        print(f"Saved {num_pages} multipanel images in '{output_folder}'.")
-    
+        print(f"Saved {num_pages} high-quality multipanel images in '{output_folder}'.")
 
-    cutvar_files = [f"{cut_var_dir}/CutVarFrac/CutVarFrac_{suffix}_CorrMatrix.pdf", 
-                    f"{cut_var_dir}/CutVarFrac/CutVarFrac_{suffix}_Distr.pdf", 
-                    f"{cut_var_dir}/CutVarFrac/CutVarFrac_{suffix}_Eff.pdf", 
-                    f"{cut_var_dir}/CutVarFrac/CutVarFrac_{suffix}_Frac.pdf",
-                    f"{cut_var_dir}/V2VsFrac/FracV2_{suffix}.pdf"]
+    cutvar_files = [
+        f"{cut_var_dir}/CutVarFrac/CutVarFrac_{suffix}_CorrMatrix.pdf", 
+        f"{cut_var_dir}/CutVarFrac/CutVarFrac_{suffix}_Distr.pdf", 
+        f"{cut_var_dir}/CutVarFrac/CutVarFrac_{suffix}_Eff.pdf", 
+        f"{cut_var_dir}/CutVarFrac/CutVarFrac_{suffix}_Frac.pdf",
+        f"{cut_var_dir}/V2VsFrac/FracV2_{suffix}.pdf"
+    ]
     
     try:
         process_pdfs(config, cutvar_files, f"{cut_var_dir}/merged_images/cutvar", 'cutvar_summary')

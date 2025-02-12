@@ -287,7 +287,6 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
     outFile.Close()
 
     for iPt in range(len(ptmins)):
-        print(f"len(ptmins): {len(ptmins)}")
         if iPt == 0:
             cFinalResPt[iPt].SaveAs(f'{outputdir}/CutVarFrac/FinalResPt_{suffix}.pdf[')
         cFinalResPt[iPt].SaveAs(f'{outputdir}/CutVarFrac/FinalResPt_{suffix}.pdf')

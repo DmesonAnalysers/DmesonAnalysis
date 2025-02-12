@@ -87,6 +87,7 @@ def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPt
 
     ### pt weights for prompt
     if ptWeights:
+        print(f'ptWeights: {ptWeights}')
         hPtPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt']['Pt'])
         hPtPrompt.SetName(f'hPromptPt_{ptMin}_{ptMax}')
         for iBin in range(1, hPtPrompt.GetNbinsX()+1):
@@ -126,6 +127,7 @@ def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPt
         hPtFD = hPtBvsPtD.ProjectionX(f'hFDPt', 0, hPtBvsPtD.GetYaxis().GetNbins()+1, 'e')
     ### pt weights from B for non-prompt and B species weights
     elif ptWeightsB and Bspeciesweights:
+        print('elif ptWeightsB and Bspeciesweights')
         hPtBvsBspecievsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['flag_bhad'], axes['RecoFD']['pt_bmoth'])
         hPtBvsBspecievsPtD.SetName(f'hPtBvsBspecievsPtD_{ptMin}_{ptMax}')
         for iPtD in range(1, hPtBvsBspecievsPtD.GetXaxis().GetNbins()+1):
@@ -255,6 +257,7 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
         hGenPtFD = hPtBvsPtGenD.ProjectionX(f'hFDGenPt', 0, hPtBvsPtGenD.GetYaxis().GetNbins()+1, 'e')
     ### pt weights from B for non-prompt and B species weights
     elif ptWeightsB and Bspeciesweights:
+        print('elif ptWeightsB and Bspeciesweights')
         hPtBvsBspecievsPtGenD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['flag_bhad'], axes['GenFD']['pt_bmoth'])
         for iPtD in range(1, hPtBvsBspecievsPtGenD.GetXaxis().GetNbins()+1):
             for iBspecie in range(1, hPtBvsBspecievsPtGenD.GetYaxis().GetNbins()+1):
@@ -374,7 +377,8 @@ if __name__ == "__main__":
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
     args = parser.parse_args()
-
+    
+    print(f"args.pre_processed: {args.preprocessed}")
     with open(args.config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
@@ -452,7 +456,7 @@ if __name__ == "__main__":
                     outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
                     print(f"Projected data!")
                 
-                if not args.preprocessed:
+                else:
                     print('NOT PREPROCESSED')
                     for iSparse, (key, sparse) in enumerate(sparsesFlow.items()):
                         for iVar in cutVars:

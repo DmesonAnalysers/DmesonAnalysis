@@ -2,6 +2,128 @@ import ROOT
 import yaml
 from ROOT import TFile
 
+def get_sparses_dicts(config, preprocessed):
+    axes_dict = {}
+    if preprocessed:
+        axes_dict['Flow'] = {ax: iax for iax, ax in enumerate(config['axestokeep'])}
+    else:
+        axes_dict['Flow'] = {
+            'Mass': 0,
+            'Pt': 1,
+            'cent': 2,
+            'sp': 3,
+            'score_bkg': 4,
+            'score_FD': 5,
+            'occ': 6
+        }
+    
+    if config['Dmeson'] == 'Dzero':
+        axes_reco = {
+            'score_bkg': 0,
+            'score_FD': 1,
+            'score_prompt': 2,
+            'Mass': 3,
+            'Pt': 4,
+            'y': 5,
+            'cand_type': 6,
+            'pt_bmoth': 7,
+            'origin': 8,
+            'npvcontr': 9,
+            'cent': 10,
+            'occ': 11,
+        }
+        axes_dict['RecoPrompt'] = axes_reco
+        axes_dict['RecoFD'] = axes_reco
+        axes_dict['RecoRefl'] = axes_reco
+        axes_dict['RecoReflPrompt'] = axes_reco
+        axes_dict['RecoReflFD'] = axes_reco
+        axes_gen = {
+            'Pt': 0,
+            'pt_bmoth': 1,
+            'y': 2,
+            'origin': 3,
+            'cent': 4,
+            'occ': 5
+        }
+        axes_dict['GenPrompt'] = axes_gen 
+        axes_dict['GenFD'] = axes_gen
+           
+    elif config['Dmeson'] == 'Dplus':
+        axes_dict['RecoPrompt'] = {
+            'Mass': 0,
+            'Pt': 1,
+            'score_bkg': 2,
+            'score_prompt': 3,
+            'score_FD': 4,
+            'cent': 5,
+            'occ': 6,
+        }
+        axes_dict['RecoFD'] = {
+            'Mass': 0,
+            'Pt': 1,
+            'pt_bmoth': 2,
+            'flag_bhad': 3,
+            'score_bkg': 4,
+            'score_prompt': 5,
+            'score_FD': 6,
+            'cent': 7,
+            'occ': 8
+        }
+        axes_dict['GenPrompt'] = {
+                'Pt': 0,
+                'y': 1,
+                'cent': 2,
+                'occ': 3
+            }   
+        axes_dict['GenFD'] = {
+            'Pt': 0,
+            'y': 1,
+            'pt_bmoth': 2,
+            'flag_bhad': 3,
+            'cent': 4,
+            'occ': 5
+        }
+
+    elif config['Dmeson'] == 'Ds':
+        axes_dict['RecoPrompt'] = {
+            'Mass': 0,
+            'Pt': 1,
+            'cent': 3,
+            'npvcontr': 4,
+            'score_bkg': 5,
+            'score_prompt': 6,
+            'score_FD': 7,
+            'occ': 8,
+        }
+        axes_dict['RecoFD'] = {
+            'Mass': 0,
+            'Pt': 1,
+            'cent': 2,
+            'score_bkg': 3,
+            'score_prompt': 4,
+            'score_FD': 5,
+            'pt_bmoth': 6,
+            'flag_bhad': 7,
+            'occ': 8
+        }
+        axes_dict['GenPrompt'] = {
+            'Pt': 0,
+            'y': 1,
+            'npvcontr': 2,
+            'cent': 3,
+            'occ': 4
+        }   
+        axes_dict['GenFD'] = {
+            'Pt': 0,
+            'y': 1,
+            'cent': 2,
+            'pt_bmoth': 3,
+            'flag_bhad': 4,
+            'occ': 5
+        }
+
+    return axes_dict
+
 def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], preprocessed=False, preprocess_dir='', debug=False):
     """Load the sparses and axes infos
 
@@ -21,10 +143,9 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
         sparsesGen: thnSparse of gen level from the D meson task
         axes_dict (dict): dictionary of the axes for each sparse
     """
-    
-    
-    sparsesFlow, sparsesReco, sparsesGen, axes_dict = {}, {}, {}, {}
 
+    sparsesFlow, sparsesReco, sparsesGen, axes_dict = {}, {}, {}, {}    
+    
     if get_data:
         if preprocessed:
             # REVIEW: sperate the config_pre and config_flow
@@ -76,7 +197,6 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
                 'cent': 10,
                 'occ': 11,
             }
-            print(f"infiletask: {infiletask}")
             sparsesReco['RecoPrompt'] = infiletask.Get('hf-task-d0/hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type')
             print(f"sparsesReco['RecoPrompt']: {sparsesReco['RecoPrompt']}")
             print('\n')
@@ -162,12 +282,10 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
             }
             sparsesGen['GenPrompt'] = infiletask.Get('hf-task-d0/hSparseAcc')
             sparsesGen['GenPrompt'].GetAxis(axes_gen['origin']).SetRange(2, 2)  # make sure it is prompt
-            axes_dict['GenPrompt'] = axes_gen 
-            print(f"sparseGenPrompt: {sparsesGen['GenPrompt']}")
+            axes_dict['GenPrompt'] = axes_gen
             sparsesGen['GenFD'] = infiletask.Get('hf-task-d0/hSparseAcc')
             sparsesGen['GenFD'].GetAxis(axes_gen['origin']).SetRange(3, 3)  # make sure it is non-prompt
             axes_dict['GenFD'] = axes_gen
-            print(f"sparseGenFD: {sparsesGen['GenFD']}")
             #TODO: safety checks for Dmeson reflecton and secondary peak
         elif config['Dmeson'] == 'Dplus':
             sparsesGen['GenPrompt'] = infiletask.Get('hf-task-dplus/hSparseMassGenPrompt')
@@ -176,8 +294,7 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
                 'y': 1,
                 'cent': 2,
                 'occ': 3
-            }   
-            print(f"sparseGenPrompt: {sparsesGen['GenPrompt']}")
+            }
             sparsesGen['GenFD'] = infiletask.Get('hf-task-dplus/hSparseMassGenFD')
             axes_dict['GenFD'] = {
                 'Pt': 0,
@@ -187,7 +304,6 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
                 'cent': 4,
                 'occ': 5
             }
-            print(f"sparseGenFD: {sparsesGen['GenFD']}")
         elif config['Dmeson'] == 'Ds':
             sparsesGen['GenPrompt'] = infiletask.Get('hf-task-ds/MC/Ds/Prompt/hSparseGen')
             axes_dict['GenPrompt'] = {
@@ -196,8 +312,7 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
                 'npvcontr': 2,
                 'cent': 3,
                 'occ': 4
-            }   
-            print(f"sparseGenPrompt: {sparsesGen['GenPrompt']}")
+            }
             sparsesGen['GenFD'] = infiletask.Get('hf-task-ds/MC/Ds/NonPrompt/hSparseGen')
             axes_dict['GenFD'] = {
                 'Pt': 0,
@@ -207,7 +322,6 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
                 'flag_bhad': 4,
                 'occ': 5
             }
-            print(f"sparseGenFD: {sparsesGen['GenFD']}")
 
     if get_mc_gen or get_mc_reco:
         infiletask.Close()
