@@ -12,6 +12,7 @@ from flow_analysis_utils import get_cut_sets_config, cut_var_image_merger
 from ComputeDataDriFrac_flow import main_data_driven_frac
 from ComputeV2vsFDFrac import main_v2_vs_frac
 from concurrent.futures import ProcessPoolExecutor
+from flow_analysis_utils import get_cut_sets_config, cut_var_image_merger
 
 def check_dir(dir):
 
@@ -277,6 +278,11 @@ def run_full_cut_variation(config_flow,
 
 	return
 
+#___________________________________________________________________________________________________________________________
+	# Merge cut var figures in multipanel images
+	print(f"\033[32mCut_var_image_merger({output_dir}, {suffix})\033[0m")
+	cut_var_image_merger(output_dir, suffix)
+	return
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Arguments')

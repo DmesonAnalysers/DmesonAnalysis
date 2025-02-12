@@ -11,6 +11,7 @@ import numpy as np
 import yaml
 import os
 import itertools
+import re
 from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors, TKDE # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kCyan, kGray, kOrange, kGreen, kMagenta, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, get_refl_histo, get_particle_info # pylint: disable=import-error,no-name-in-module
@@ -31,6 +32,9 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
 
     with open(fitConfigFileName, 'r', encoding='utf8') as ymlfitConfigFile:
         fitConfig = yaml.load(ymlfitConfigFile, yaml.FullLoader)
+
+    cut_var_suffix = re.search(r"_(\d+)", suffix)
+    cut_var_suffix = cut_var_suffix.group(1) if cut_var_suffix else None
 
     gROOT.SetBatch(batch)
     SetGlobalStyle(padleftmargin=0.14, padbottommargin=0.12, padtopmargin=0.12, opttitle=1)
@@ -428,8 +432,12 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             hVnForFit[iPt].GetXaxis().SetTitle(massAxisTit)
             hVnForFit[iPt].GetYaxis().SetTitle(f'#it{{v}}{harmonic}')
             binWidth = hMassForFit[iPt].GetBinWidth(1)
-            hMassForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};'
-                                       f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
+            if cut_var_suffix is not None:
+                hMassForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}}, cutset {cut_var_suffix};{massAxisTit};'
+                                        f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
+            else:
+                hMassForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};'
+                                        f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
             hMassForFit[iPt].SetName(f'MassForFit{iPt}')
             SetObjectStyle(hMassForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=1)
             SetObjectStyle(hVnForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=0.8)
