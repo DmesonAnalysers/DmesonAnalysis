@@ -44,11 +44,11 @@ def set_frame_style(canv, Title, particleTit):
     hFrame.GetYaxis().SetNoExponent()
     hFrame.GetXaxis().SetMoreLogLabels()
     hFrame.GetYaxis().SetTitleSize(0.04)
-    hFrame.GetYaxis().SetTitleOffset(1.4)
+    hFrame.GetYaxis().SetTitleOffset(1.2)
     hFrame.GetYaxis().SetLabelSize(0.04)
     hFrame.GetXaxis().SetTitleSize(0.04)
     hFrame.GetXaxis().SetLabelSize(0.04)
-    hFrame.GetXaxis().SetTitleOffset(1.4)
+    hFrame.GetXaxis().SetTitleOffset(1.2)
     hFrame.GetYaxis().SetNdivisions(505)
 
 def set_frame_margin(canv):
@@ -195,7 +195,7 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
 
     outFile.cd()
     PtTit = "#it{p}_{T} GeV/#it{c}"
-    leg = TLegend(0.55, 0.75, 0.88, 0.89)
+    leg = TLegend(0.40, 0.75, 0.60, 0.89)
     leg.SetTextSize(0.045)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
@@ -208,7 +208,8 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
     hV2VsPtFD.Draw("")
     hV2VsPtFD.GetXaxis().SetTitle(PtTit)
     hV2VsPtFD.GetYaxis().SetTitle("Non-prompt #it{v_{2}}")
-    hV2VsPtFD.GetYaxis().SetRangeUser(-0.05, 0.35)
+    hV2VsPtFD.GetYaxis().SetTitleOffset(1.5)
+    hV2VsPtFD.GetYaxis().SetRangeUser(-0.10, 0.25)
     hV2VsPtFD.SetMarkerStyle(20)
     hV2VsPtFD.SetMarkerSize(2)
     hV2VsPtFD.GetYaxis().SetNoExponent()
@@ -219,7 +220,8 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
     hV2VsPtPrompt.Draw("")
     hV2VsPtPrompt.GetXaxis().SetTitle(PtTit)
     hV2VsPtPrompt.GetYaxis().SetTitle("Prompt #it{v_{2}}")
-    hV2VsPtPrompt.GetYaxis().SetRangeUser(-0.05, 0.35)
+    hV2VsPtPrompt.GetYaxis().SetTitleOffset(1.5)
+    hV2VsPtPrompt.GetYaxis().SetRangeUser(0.0, 0.22)
     hV2VsPtPrompt.SetMarkerStyle(20)
     hV2VsPtPrompt.SetMarkerSize(2)
     hV2VsPtPrompt.GetYaxis().SetNoExponent()

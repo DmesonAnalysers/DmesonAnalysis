@@ -395,8 +395,12 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             hVnForFit[iPt].GetXaxis().SetTitle(massAxisTit)
             hVnForFit[iPt].GetYaxis().SetTitle(f'#it{{v}}{harmonic}')
             binWidth = hMassForFit[iPt].GetBinWidth(1)
-            hMassForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};'
-                                       f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
+            if cut_var_suffix is not None:
+                hMassForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}}, cutset {cut_var_suffix};{massAxisTit};'
+                                        f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
+            else:
+                hMassForFit[iPt].SetTitle((f'{ptMin:0.1f} < #it{{p}}_{{T}} < {ptMax:0.1f} GeV/#it{{c}};{massAxisTit};'
+                                        f'Counts per {binWidth*1000:.0f} MeV/#it{{c}}^{{2}}'))
             hMassForFit[iPt].SetName(f'MassForFit{iPt}')
             SetObjectStyle(hMassForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=1)
             SetObjectStyle(hVnForFit[iPt], color=kBlack, markerstyle=kFullCircle, markersize=0.8)
