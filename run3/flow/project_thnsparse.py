@@ -5,6 +5,10 @@ import argparse
 import sys
 import numpy as np
 from alive_progress import alive_bar
+import os
+script_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(f'{script_dir}/BDT/')
+from sparse_dicts import get_sparses_dicts
 from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, compute_r2, get_invmass_vs_deltaphi, get_occupancy, get_evselbits
 
 def check_anres(config, an_res_file, centrality, resolution, wagon_id, 
@@ -18,11 +22,15 @@ def check_anres(config, an_res_file, centrality, resolution, wagon_id,
     det_A = config['detA']
     det_B = config['detB']
     det_C = config['detC']
-    axis_cent = config['axes']['cent']
-    axis_pt = config['axes']['pt']
-    axis_mass = config['axes']['mass']
-    axis_sp = config['axes']['sp']
-    axis_deltaphi = config['axes']['deltaphi']
+    axes = get_sparses_dicts(config, use_preprocessed)
+    axis_cent = axes['Flow'].get('cent')
+    axis_pt = axes['Flow'].get('Pt')
+    axis_mass = axes['Flow'].get('Mass')
+    axis_sp = axes['Flow'].get('sp')
+    axis_deltaphi = axes['Flow'].get('deltaphi')
+    print(f"axis_cent: {axis_cent}")
+    print(f"axis_pt: {axis_pt}")
+    print(f"axis_delta_phi: {axis_deltaphi}")
     inv_mass_bins = config['inv_mass_bins']
     use_inv_mass_bins = config['use_inv_mass_bins']
     if use_inv_mass_bins:
@@ -54,8 +62,8 @@ def check_anres(config, an_res_file, centrality, resolution, wagon_id,
         reso = float(resolution)
 
     # BDT cuts
-    axis_bdt_bkg = config['axes']['bdt_bkg']
-    axis_bdt_sig = config['axes']['bdt_sig']
+    axis_bdt_bkg = axes['Flow']['score_bkg']
+    axis_bdt_sig = axes['Flow']['score_FD']
     apply_btd_cuts = config['apply_btd_cuts']
     if apply_btd_cuts:
         bkg_ml_cuts = config['bkg_ml_cuts']
@@ -78,10 +86,10 @@ def check_anres(config, an_res_file, centrality, resolution, wagon_id,
             infile = TFile.Open(f"{config['skimDir']}/AnalysisResults_pt_{int(pt_min*10)}_{int(pt_max*10)}.root", 'r')
             thnsparse_selcent_list.append(infile.Get(f'hf-task-flow-charm-hadrons/hSparseFlowCharm'))
             infile.Close()
-        axis_bdt_sig = config['axestokeep'].index('score_FD')
-        axis_sp = config['axestokeep'].index('sp')
-        axis_mass = config['axestokeep'].index('Mass')
-        vn_axis = axis_sp if vn_method == 'sp' else vn_axis
+        # axis_bdt_sig = config['axestokeep'].index('score_FD')
+        # axis_sp = config['axestokeep'].index('sp')
+        # axis_mass = config['axestokeep'].index('Mass')
+        # vn_axis = axis_sp if vn_method == 'sp' else vn_axis
     else:
         for file in an_res_file:
             infile = ROOT.TFile(file, 'READ')
@@ -175,14 +183,14 @@ def check_anres(config, an_res_file, centrality, resolution, wagon_id,
                     hist_mass.Add(hist_mass_temp)
                 hist_mass.Write()
             
-            if config['axes'].get('occupancy'):
-                hist_occ = get_occupancy(thnsparse_selcents, config['axes']['occupancy'], False)
+            if axes['Flow'].get('occupancy'):
+                hist_occ = get_occupancy(thnsparse_selcents, axes['Flow']['occupancy'], False)
                 hist_occ.SetName(f'hist_occ_pt{pt_min}_{pt_max}')
                 hist_occ.SetDirectory(0)
                 hist_occ.Write()
 
-            if config['axes'].get('evselbits'):
-                hist_evselbits = get_evselbits(thnsparse_selcents, config['axes']['evselbits'], False)
+            if axes['Flow'].get('evselbits'):
+                hist_evselbits = get_evselbits(thnsparse_selcents, axes['Flow']['evselbits'], False)
                 hist_evselbits.SetName(f'hist_evselbits_pt{pt_min}_{pt_max}')
                 hist_evselbits.SetDirectory(0)
                 hist_evselbits.Write()

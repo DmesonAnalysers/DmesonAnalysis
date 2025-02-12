@@ -66,7 +66,6 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
         
     ptmins = config['ptmins']
     ptmaxs = config['ptmaxs']
-
     particleName = config['Dmeson']
 
     particleTit, _, decay, _ = get_particle_info(particleName)
