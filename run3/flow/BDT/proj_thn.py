@@ -87,11 +87,11 @@ def proj_mc_reco(sparsesReco, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights
             hPtFD = reweight_histo(sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['pt_bmoth'], axes['RecoFD']['flag_bhad']), 
                                    sPtWeightsB, 'hFDPt', Bspeciesweights)
         else:
-            hPtFD = reweight_histo(sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['pt_bmoth']), sPtWeightsB, 'hFDPt')
+            hPtFD = reweight_histo(sparsesReco['RecoFD'].Projection(axes['RecoFD']['pt_bmoth'], axes['RecoFD']['Pt']), sPtWeightsB, 'hFDPt') # 2D projection: Projection(ydim, xdim)
     elif ptWeights:
         hPtFD = reweight_histo(sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt']), sPtWeights, 'hFDPt')
     elif Bspeciesweights:
-        hPtFD = reweight_histo(sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['flag_bhad']), [], 'hFDPt', Bspeciesweights)
+        hPtFD = reweight_histo(sparsesReco['RecoFD'].Projection(axes['RecoFD']['flag_bhad'], axes['RecoFD']['Pt']), [], 'hFDPt', Bspeciesweights) # 2D projection: Projection(ydim, xdim)
     else:
         hPtFD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'])
 
@@ -201,11 +201,11 @@ def proj_mc_gen(sparsesGen, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, 
             hGenPtFD = reweight_histo(sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['pt_bmoth'], axes['GenFD']['flag_bhad']), 
                                       sPtWeightsB, 'hFDGenPt', Bspeciesweights)
         else:
-            hGenPtFD = reweight_histo(sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['pt_bmoth']), sPtWeightsB, 'hFDGenPt')
+            hGenPtFD = reweight_histo(sparsesGen['GenFD'].Projection(axes['GenFD']['pt_bmoth'], axes['GenFD']['Pt']), sPtWeightsB, 'hFDGenPt') # 2D projection: Projection(ydim, xdim)
     elif ptWeights:
         hGenPtFD = reweight_histo(sparsesGen['GenFD'].Projection(axes['GenFD']['Pt']), sPtWeights, 'hFDGenPt')
     elif Bspeciesweights:
-        hGenPtFD = reweight_histo(sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['flag_bhad']), [], 'hFDPt', Bspeciesweights)
+        hGenPtFD = reweight_histo(sparsesGen['GenFD'].Projection(axes['GenFD']['flag_bhad'], axes['GenFD']['Pt']), [], 'hFDPt', Bspeciesweights) # 2D projection: Projection(ydim, xdim)
     else:
         hGenPtFD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'])
 
@@ -343,11 +343,11 @@ if __name__ == "__main__":
         reso = histo_reso.GetBinContent(1)
     
     outfile.cd()
-    histo_reso.Write('hist_reso', write_opt_cent_reso)
+    histo_reso.Write('histo_reso_delta_cent', write_opt_cent_reso)
     if create_new_file:
         outfile.mkdir(outfile_dir)
     outfile.cd(outfile_dir)
-    histo_cent.Write('histo_reso_delta_cent', write_opt_cent_reso)
+    histo_cent.Write('hSelCollisionsCent', write_opt_cent_reso)
     resofile.Close()
     infilemc.Close()
 
