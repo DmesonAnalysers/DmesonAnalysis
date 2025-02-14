@@ -282,13 +282,6 @@ def run_full_cut_variation(config_flow,
 
 	return
 
-#___________________________________________________________________________________________________________________________
-	# Merge cut var figures in multipanel images
-	if merge_images:
-		print(f"\033[32m\nCut_var_image_merger({config_flow}, {output_dir}, {suffix})\033[0m")
-		cut_var_image_merger(config, output_dir, suffix)
-	return
-
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Arguments')
 	parser.add_argument('flow_config', metavar='text', default='config_flow_d0.yml', help='configuration file')

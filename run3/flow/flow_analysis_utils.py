@@ -964,7 +964,7 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         process_pdfs(config, cutvar_files, f"{cut_var_dir}/merged_images/cutvar", 'cutvar_summary')
     except:
         print("Error in merging cut variation files")
-    
+
     try:
         fit_files = glob.glob(f"{cut_var_dir}/ry/*.pdf")
         fit_files_sorted = sorted(fit_files, key=lambda x: int(re.search(r"_(\d+)_D\w*.pdf$", x).group(1)))
@@ -1104,3 +1104,56 @@ def extract_template_weights(config):
             hist_weights_firsttempl_templ.Write(f"hWeights{templName}_wrt_firsttempl")
 
     weights_file.Close()
+
+def reweight_histo(histo, weights, histoname, specieweights=[]):
+    if specieweights != []:
+        if isinstance(histo, ROOT.TH2) and not isinstance(histo, ROOT.TH3):
+            for iBinX in range(1, histo.GetXaxis().GetNbins()+1):
+                for iBinY in range(1, histo.GetYaxis().GetNbins()+1):
+                    origContent = histo.GetBinContent(iBinX, iBinY)
+                    origError = histo.GetBinError(iBinX, iBinY)
+                    weight = specieweights[iBinY-1]
+                    content = origContent * weight
+                    error = origError * weight if weight > 0 else 0
+                    histo.SetBinContent(iBinX, iBinY, content)
+                    histo.SetBinError(iBinX, iBinY, error)
+            proj_hist = histo.ProjectionX(histoname, 0, histo.GetYaxis().GetNbins()+1, 'e')
+
+        if isinstance(histo, ROOT.TH3):
+            for iBinX in range(1, histo.GetXaxis().GetNbins()+1):
+                for iBinY in range(1, histo.GetYaxis().GetNbins()+1):
+                    for iBinZ in range(1, histo.GetZaxis().GetNbins()+1):
+                        binCentVal = histo.GetYaxis().GetBinCenter(iBinY)
+                        origContent = histo.GetBinContent(iBinX, iBinY, iBinZ)
+                        origError = histo.GetBinError(iBinX, iBinY, iBinZ)
+                        weight = specieweights[iBinZ-1]*weights(binCentVal) if weights(binCentVal) > 0 else specieweights[iBinZ-1] 
+                        content = origContent * weight
+                        error = origError * weight if weight > 0 else 0
+                        histo.SetBinContent(iBinX, iBinY, iBinZ, content)
+                        histo.SetBinError(iBinX, iBinY, iBinZ, error)
+            proj_hist = histo.ProjectionX(histoname, 0, histo.GetYaxis().GetNbins()+1,
+                                          0, histo.GetZaxis().GetNbins()+1, 'e')
+
+    else:
+        if isinstance(histo, ROOT.TH1) and not isinstance(histo, ROOT.TH2):
+            for iBin in range(1, histo.GetNbinsX()+1):
+                if histo.GetBinContent(iBin) > 0.:
+                    relStatUnc = histo.GetBinError(iBin) / histo.GetBinContent(iBin)
+                    ptCent = histo.GetBinCenter(iBin)
+                    histo.SetBinContent(iBin, histo.GetBinContent(iBin) * weights(ptCent))
+                    histo.SetBinError(iBin, histo.GetBinContent(iBin) * relStatUnc)
+            proj_hist = histo.Clone(histoname)
+        if isinstance(histo, ROOT.TH2) and not isinstance(histo, ROOT.TH3):
+            for iBinX in range(1, histo.GetXaxis().GetNbins()+1):
+                for iBinY in range(1, histo.GetYaxis().GetNbins()+1):
+                    binCentVal = histo.GetYaxis().GetBinCenter(iBinY)
+                    origContent = histo.GetBinContent(iBinX, iBinY)
+                    origError = histo.GetBinError(iBinX, iBinY)
+                    weight = weights(binCentVal) if weights(binCentVal) > 0 else 0
+                    content = origContent * weight
+                    error = origError * weight if weight > 0 else 0
+                    histo.SetBinContent(iBinX, iBinY, content)
+                    histo.SetBinError(iBinX, iBinY, error)
+            proj_hist = histo.ProjectionX(histoname, 0, histo.GetYaxis().GetNbins()+1, 'e')
+        
+    return proj_hist

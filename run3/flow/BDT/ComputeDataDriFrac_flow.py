@@ -1,6 +1,6 @@
 '''
 python script for the computation of the fractions of prompt and feed-down D for all cutset
-run: python ComputeDataDrivenFraction.py --inputdir path/to/input --outputdir path/to/output --suffix text
+run: python ComputeDataDrivenFraction.py --cutvardir path/to/input --suffix text
 '''
 
 import argparse
@@ -212,10 +212,8 @@ def main_data_driven_frac(inputdir, outputdir, suffix, batch, combined=False, co
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
-    parser.add_argument('--inputdir', '-i', metavar='text',
-                        default='.', help='input directory containing eff and frac files')
-    parser.add_argument("--outputdir", "-o", metavar="text",
-                        default=".", help="output directory")
+    parser.add_argument('--cutvardir', '-dir', metavar='text',
+                        default='.', help='directory of the cut variation output')
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
     parser.add_argument("--batch", '-b',action='store_true', help="run in batch mode")
