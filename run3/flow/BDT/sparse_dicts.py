@@ -269,7 +269,7 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
 
     if get_mc_gen: 
         print(f"Loading mc gen sparse from: {config['eff_filename']}")
-        infiletask = ROOT.TFile(config['eff_filename'])
+        infiletask = TFile(config['eff_filename'])
         if config['Dmeson'] == 'Dzero':
             axes_gen = {
                 'Pt': 0,

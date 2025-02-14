@@ -1,6 +1,5 @@
 import os
 import sys
-import numpy as np
 import argparse
 import yaml
 import shutil
@@ -37,7 +36,8 @@ def run_full_cut_variation(config_flow,
 						   frac_cut_var=False,
 						   data_driven_frac=False,
 						   v2_vs_frac=False,
-						   merge_images=False):    
+         				   merge_images=False):
+
 #___________________________________________________________________________________________________________________________
 	# Load and copy the configuration file
 	with open(config_flow, 'r') as cfgFlow:
@@ -60,15 +60,13 @@ def run_full_cut_variation(config_flow,
 	output_dir = f"{output}/cutvar_{suffix}"
  
 	os.system(f"mkdir -p {output_dir}")
-  
 
 	cent = config['centrality']
 	res_file = config['res_file']
 	output = config['out_dir']
 	suffix = config['suffix']
 	vn_method = config['vn_method']
- 
-	print(f"calc_weights: {calc_weights}")
+
 	# copy the configuration file
 	config_suffix = 0
 	os.makedirs(f'{output_dir}/config_flow', exist_ok=True)
@@ -194,7 +192,7 @@ def run_full_cut_variation(config_flow,
 		def run_simfit(i):
 			"""Run simultaneous fit for a given cutset index."""
 			iCutSets = f"{i:02d}"
-			print(f"\033[32mpython3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method}\033[0m")
+			print(f"\033[32mpython3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method}\033[0m")
 			print(f"\033[32mProcessing cutset {iCutSets}\033[0m")
 			os.system(f"python3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method} --batch >> {log_file} 2>&1")
 		
@@ -300,33 +298,36 @@ def run_full_cut_variation(config_flow,
 
 #___________________________________________________________________________________________________________________________
 	# Merge cut var figures in multipanel images
-	print(f"\033[32mCut_var_image_merger({output_dir}, {suffix})\033[0m")
-	cut_var_image_merger(output_dir, suffix)
+	if merge_images:
+		print(f"\033[32m\nCut_var_image_merger({output_dir}, {suffix})\033[0m")
+		cut_var_image_merger(output_dir, suffix)
 	return
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Arguments')
 	parser.add_argument('flow_config', metavar='text', default='config_flow_d0.yml', help='configuration file')
 	parser.add_argument("--preprocessed", "-prep", action="store_true", help="use preprocessed input")
-	parser.add_argument("--calc_weights", "-scw", action="store_true", help="skip calculation of weights")
-	parser.add_argument("--make_yaml", "-smy", action="store_true", help="skip make yaml")
-	parser.add_argument("--proj_data", "-spd", action="store_true", help="skip projection for data")
-	parser.add_argument("--proj_mc", "-spm", action="store_true", help="skip projection for MC")
-	parser.add_argument("--efficiency", "-se", action="store_true", help="skip efficiency")
-	parser.add_argument("--vn", "-svn", action="store_true", help="skip vn extraction")
-	parser.add_argument("--frac_cut_var", "-sf", action="store_true", help="skip fraction by cut variation")
-	parser.add_argument("--data_driven_frac", "-sddf", action="store_true", help="skip fraction by data-driven method")
-	parser.add_argument("--v2_vs_frac", "-sv2fd", action="store_true", help="skip v2 vs FD fraction")
+	parser.add_argument("--do_calc_weights", "-cw", action="store_true", help="skip calculation of weights")
+	parser.add_argument("--do_make_yaml", "-my", action="store_true", help="skip make yaml")
+	parser.add_argument("--do_proj_data", "-pd", action="store_true", help="skip projection for data")
+	parser.add_argument("--do_proj_mc", "-pm", action="store_true", help="skip projection for MC")
+	parser.add_argument("--do_efficiency", "-e", action="store_true", help="skip efficiency")
+	parser.add_argument("--do_vn", "-vn", action="store_true", help="skip vn extraction")
+	parser.add_argument("--do_frac_cut_var", "-f", action="store_true", help="skip fraction by cut variation")
+	parser.add_argument("--do_data_driven_frac", "-ddf", action="store_true", help="skip fraction by data-driven method")
+	parser.add_argument("--do_v2_vs_frac", "-v2fd", action="store_true", help="skip v2 vs FD fraction")
+	parser.add_argument("--do_merge_images", "-mergeim", action="store_true", help="skip v2 vs FD fraction")
 	args = parser.parse_args()
 
 	run_full_cut_variation(args.flow_config, 
                            args.preprocessed,
-						   args.calc_weights,
-						   args.make_yaml, 
-						   args.proj_data, 
-						   args.proj_mc, 
-						   args.efficiency, 
-						   args.vn,
-						   args.frac_cut_var, 
-						   args.data_driven_frac, 
-						   args.v2_vs_frac)
+						   args.do_calc_weights,
+						   args.do_make_yaml, 
+						   args.do_proj_data, 
+						   args.do_proj_mc, 
+						   args.do_efficiency, 
+						   args.do_vn,
+						   args.do_frac_cut_var, 
+						   args.do_data_driven_frac, 
+						   args.do_v2_vs_frac,
+						   args.do_merge_images)
