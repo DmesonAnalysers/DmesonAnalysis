@@ -59,9 +59,9 @@ def set_frame_margin(canv):
 
 def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
 
-    CutSets, _, _, _, _ = get_cut_sets_config(config)
+    CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
     nCutSets = max(CutSets)
-    with open(config, 'r') as ymlCfgFile:
+    with open(config_flow, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
         
     ptmins = config['ptmins']

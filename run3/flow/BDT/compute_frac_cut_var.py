@@ -16,13 +16,13 @@ from flow_analysis_utils import get_cut_sets_config
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
 from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, ApplyVariationToList
 
-def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
+def compute_frac_cut_var(config_flow, inputdir, outputdir, suffix, batch=False):
 
     gROOT.SetBatch(batch)
 
-    CutSets, _, _, _, _ = get_cut_sets_config(config)
+    CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
     nCutSets = max(CutSets)
-    with open(config, 'r') as ymlCfgFile:
+    with open(config_flow, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
     if os.path.exists(f'{inputdir}/eff'):
@@ -312,8 +312,8 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
-    parser.add_argument("config", metavar="text",
-                        default="config.yaml", help="flow configuration file")
+    parser.add_argument("config_flow", metavar="text",
+                        default="config_flow.yaml", help="flow configuration file")
     parser.add_argument('inputdir', metavar='text',
                         default='path/to/eff/proj_mc', help='input path')
     parser.add_argument("--outputdir", "-o", metavar="text",
