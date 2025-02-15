@@ -23,6 +23,8 @@ def check_cent_sel(charm_hadron, centmin, centmax, infile):
         sys.exit(1)
 
     nprongs = 2 if charm_hadron == 'Dzero' else 3
+    # REVIEW:  I didn't really understand the purpose of this check
+    # and if we saved the centrality in 50-90, there is aways a WARNING
     cent_hist = infile.Get(f'hf-candidate-creator-{nprongs}prong/hSelCollisionsCent')
     if cent_hist.GetBinContent(centmin + 1) == 0:
         print(f'\033[93mWARNING: No entries in the first bin for centrality class: [{centmin}-{centmax}]!\033[0m')

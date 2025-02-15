@@ -1,3 +1,9 @@
+# Description: Configuration file for the flow analysis of D mesons, ordered as follows:
+# 1. Global info
+# 2. Fit options
+# 3. BDT cut
+# 4. Optional settings
+# 5. Used for computing pT weights
 # global info (do not change)
 axes: {mass: 0,
        pt: 1,
@@ -26,21 +32,17 @@ inv_mass_bins: [[1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.9
                 [1.74, 1.78, 1.82, 1.84, 1.85, 1.86, 1.87, 1.88, 1.89, 1.90, 1.92, 1.96, 2.00],]
 use_inv_mass_bins: false # use binning in invariant mass distribution, neglects inv_mass_bins (default: false)
 
-
-# bdt cut
-apply_btd_cuts: false # apply bdt cuts
-bkg_ml_cuts: [0.08, 0.08, 0.08, 0.08, 0.08, 0.08] # max probability for bkg, one for each pt bin
-sig_ml_cuts: [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]       # min probability for sig, one for each pt bin
-
-
 # ep/sp subevents
 detA: 'FT0c'
 detB: 'FT0a'
 detC: 'TPCpos'
 
+#________________________________________________________________________________________________________________________
 # fit options
 Dmeson: 'Dplus'
 FixSigma: 0
+Sigma: [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]
+FixSigmaFromFile: ''
 SigmaFile: ''
 SigmaMultFactor: 1.
 FixMean: 0
@@ -62,28 +64,11 @@ FixSigmaRatio: 0 # used only if SgnFunc = k2GausSigmaRatioPar
 SigmaRatioFile: ""
 BoundMean: 0 # 0: Do not set limits on mean range, 1: the mean is set to be between MassMin[i] and MassMax[i]
 
-### config to use pre-processed AnalysisResults files 
-skim_out_dir: '/Users/mcosti/Analysis/Datasets/3050/skim3040bkgstrict'
-
-DrawVnComps: true  # draw single terms of vn function
-IncludeKDETempls: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]  # boolean flag to include templates or not
-FromGrid: true # compute templates from TemplsInputs, else take them from file with FromFile flag
-# To add more templates, use [part1, ... ,partN]
-TemplsFlags: [2]  # flag of flagMcDecayRec to query the dataframe from which the KDE is obtained
-TemplsInputs: ['/Users/mcosti/Analysis/Datasets/Templates/AO2D_325626.root']  # input AODs for templates
-TemplsTreeNames: ['O2hfcanddplite'] # name of tree in the AO2D file
-### init weights for mass templates and vn of templates
-InitWeights: [[500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500]]
-MinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0],]
-MaxWeights: [[1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000]]
-FixVnTemplToSgn: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-VnInitWeights: [[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]]
-VnMinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]]
-VnMaxWeights: [[0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2]]
-InitBkg: [ [[initval_par0_ptbin0, lowlim_par0_ptbin0, upplim_par0_ptbin0], [initval_par1_ptbin0, lowlim_par1_ptbin0, upplim_par1_ptbin0]],[empty if no initialization],[],[],[],[],[],[],[],[],[],[],[],[],[]]
-
-# efficiency
-eff_filename: 'task_output.root'
+#________________________________________________________________________________________________________________________
+# bdt cut
+apply_btd_cuts: false # apply bdt cuts
+bkg_ml_cuts: [0.08, 0.08, 0.08, 0.08, 0.08, 0.08] # max probability for bkg, one for each pt bin
+sig_ml_cuts: [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]       # min probability for sig, one for each pt bin
 
 # cut variation
 cut_variation:
@@ -114,19 +99,50 @@ cut_variation:
                   max: [0.30, 0.45, 0.70, 0.97, 1.00] # max pt 5
                 - min: [0.00, 0.30, 0.45, 0.70, 0.97] # min pt 6
                   max: [0.30, 0.45, 0.70, 0.97, 1.00] # max pt 6
-       
 
-# these configurations are available only for the MC
-#_______________________________________________________________________________________________________________________
-## axes for the MC from Dtask
-### for D0: mass-2 pt-3 bdt_bkg-0 bdt_prompt-6 bdt_nonprompt-1
-axes_mc: {mass: 3,
-              pt: 4,
-              bdt_bkg: 0,
-              bdt_sig: 2}
+minimisation:
+    correlated: true # true --> fully correlated, false --> fully uncorrelated
+    combined: False
+    # `output_dir` in run_cutvar.sh
+    correlatedPath: 'path/to/correlated'
+
+# efficiency
+eff_filename: 'task_output.root'
+
+#________________________________________________________________________________________________________________________
+# optional settings
+### path of pre-processed AnalysisResults files 
+skim_out_dir: '/Users/mcosti/Analysis/Datasets/3050/skim3040bkgstrict'
+
+### components distribution of v2
+DrawVnComps: false  # draw single terms of vn function
+
+### D0
+enableRef: false #reflection for D0. 
+# if `enableRef` is set to `true`,  and `ReflFile` is empty, then `ReflFile` will be aotumatically filled.
+# if `ReflFile` is filled, then it will use the filled one
+reflFile: ''
+
+### Dplus correlated bkg template
+IncludeKDETempls: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]  # boolean flag to include templates or not
+FromGrid: false # compute templates from TemplsInputs, else take them from file with FromFile flag
+# To add more templates, use [part1, ... ,partN]
+TemplsFlags: [2]  # flag of flagMcDecayRec to query the dataframe from which the KDE is obtained
+TemplsInputs: ['/Users/mcosti/Analysis/Datasets/Templates/AO2D_325626.root']  # input AODs for templates
+TemplsTreeNames: ['O2hfcanddplite'] # name of tree in the AO2D file
+# init weights for mass templates and vn of templates
+InitWeights: [[500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500]]
+MinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0],]
+MaxWeights: [[1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000]]
+FixVnTemplToSgn: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+VnInitWeights: [[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]]
+VnMinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]]
+VnMaxWeights: [[0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2]]
+# InitBkg: [[initval_par0_ptbin0, lowlim_par0_ptbin0, upplim_par0_ptbin0], [initval_par1_ptbin0, lowlim_par1_ptbin0, upplim_par1_ptbin0]],[empty if no initialization]]
+InitBkg: [[],[],[],[],[],[],[],[],[],[],[],[],[]]
 
 #_______________________________________________________________________________________________________________________
-## used for computting pT weights
+# used for computting pT weights
 Bspecie: Ball # only surport for Ball and BsBmix, empty means no B pt weights
 
 rebin: 1
@@ -135,67 +151,19 @@ smooth: 100
 shapes:
     D:
         # fonll is mandatory
-        fonll: /media/wuct/wulby/ALICE/AnRes/fonll_pythia_beautyFFee_charmhadrons_5dot5tev_y0dot5.root
+        fonll: /path/to/fonll_pythia_beautyFFee_charmhadrons_5dot5tev_y0dot5.root
         tamu:
               enabled: true
-              file: /home/wuct/ALICE/local/DmesonAnalysis/models/tamu/PromptD0_TAMU_RAA_5TeV_3050.txt
+              file: /path/to/DmesonAnalysis/models/tamu/PromptD0_TAMU_RAA_5TeV_3050.txt
         #TODO: data shape for Ds?
     B:
         # fonll is mandatory
-        fonll: /media/wuct/wulby/ALICE/AnRes/fonll_pythia_beautyFFee_charmhadrons_5dot5tev_y0dot5.root
+        fonll: /path/to/fonll_pythia_beautyFFee_charmhadrons_5dot5tev_y0dot5.root
         tamu:
             enabled: true
             file: 
-                B: /home/wuct/ALICE/local/DmesonAnalysis/models/tamu/B_TAMU_RAA_5TeV_3050.txt
+                B: /path/to/DmesonAnalysis/models/tamu/B_TAMU_RAA_5TeV_3050.txt
                 Bs: ''
 
-#_______________________________________________________________________________________________________________________
-## used for the MC in projection_thnsparse.py
-### for D0, D+, Ds
-MC_filename: [path/to/MCfile.root]
-dirname: hf-task-d0
-sparsenameAll: null
-sparsenamePrompt: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
-sparsenameFD: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
-sparsenameGenPrompt: hSparseAcc # also used in computting pT weights
-sparsenameGenFD: hSparseAcc # also used in computting pT weights
-### only for D0
-enableRef: false #reflection for D0. 
-# if `enableRef` is set to `true`,  and `ReflFile` is empty, then `ReflFile` will be aotumatically filled.
-sparsenameRefl: hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type
-# if `ReflFile` is filled, then it will use the filled one
-reflFile: ''
-### only for Ds
-enableSecPeak: no #no second peak for D+
-sparsenamePromptSecPeak: null
-sparsenameFDSecPeak: null
-sparsenameGenPromptSecPeak: null
-sparsenameGenFDSecPeak: null
-
-#_______________________________________________________________________________________________________________________
-## used for compute_frac_cut_var.py 
-histoNameRaw: hRawYieldsSimFit # also ComputeV2vsFDFrac.py
-histoNameEffPrompt: hEffPrompt
-histoNameEffFD: hEffFD
-
-minimisation:
-    correlated: true # true --> fully correlated, false --> fully uncorrelated
-    doRawYieldSmearing: false # whether to smear the yields with a poissonian error
-    setseed: false # set the seed for Poissonian smearing
-    applyEffVariation:
-        enable: false
-        relvariation: 0.05
-        option: decreasing # available options: [upshift, downshift, decreasing, increasing]
-        prompt: true
-        feeddown: true
-
-linearplot: 
-    enable: true #enable linear plots NpromptVsNFD
-    uncbands: false #enable upper/lower linear plots limits
-    outfileformat: ['png', 'pdf', 'jpg'] # linear plot saved in different output formats (e.g. png, pdf, etc.). Plots are already saved in the ouput TFile
-
-## used for ComputeV2vsFDFrac.py
-histoNameV2: hvnSimFit
-graphNameV2: gvnSimFit
-histoNameFracFD: hFDFrac
-histoNameFracPrompt: hPromptFrac
+# a given path to the weights, used for finer centrality binning
+ptWeights_path: ''

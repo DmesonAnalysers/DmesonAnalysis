@@ -48,7 +48,7 @@ def computePtWeights(config, outputDir, suffix):
     hPtGenD.Scale(1./hPtGenD.Integral())
 
     if Bspecie:
-        hPtGenB = sparseGenB.Projection(axes['GenFD']['Pt'])
+        hPtGenB = sparseGenB.Projection(axes['GenFD']['pt_bmoth'])
         if Dspecie == 'Ds':
             sparseGenBPlusBZero = sparseGenB.Clone('sparseGenBPlusBZero')
             sparseGenBPlusBZero.GetAxis(axes['GenFD']['origin']).SetRange(1, 2)
@@ -65,8 +65,9 @@ def computePtWeights(config, outputDir, suffix):
         hPtGenB.Scale(1./hPtGenB.Integral())
     
     if Bspecie == 'BsBmix':
-        sparseGenB.GetAxis(axes['GenFD']['origin']).SetRange('the bin number of Bs flag, the bin number of Bs flag')
-        hPtGenBs = sparseGenB.Projection(axes['GenFD']['Pt'])
+        #REVISE: check if this is the correct flag to add the Bs
+        sparseGenB.GetAxis(axes['GenFD']['origin']).SetRange(3, 3)
+        hPtGenBs = sparseGenB.Projection(axes['GenFD']['pt_bmoth'])
         hPtGenBs.SetDirectory(0)
         hPtGenBs.SetName('hPtGenBs')
         hPtGenBs.Rebin(rebin)

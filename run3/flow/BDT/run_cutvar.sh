@@ -19,30 +19,36 @@
 #- skip_data_driven_frac (bool): skip fraction by data-driven method
 #- skip_v2_vs_frac (bool): skip v2 vs FD fraction
 #----------
-
-# export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow.yml"
-export config_flow="/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/config_flow.yml"
-export anres_dir="/media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_0.root \
-    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_1.root \
-    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_2.root \
-    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_3.root \
-    /media/wuct/wulby/ALICE/AnRes/D0_flow/pass4/ML/Results/324130/temp_merged_s2_4.root"
-export output_dir="/home/wuct/ALICE/local/Results/BDT/full/uncorrelated"
+export config_flow="path/to/config_flow.yml"
+export anres_dir="path/to/AnRes1.root \
+path/to/AnRes2.root \
+path/to/AnRes3.root \
+path/to/AnRes4.root \
+path/to/AnRes5.root"
+export output_dir="path/to/output" # full/corrected full/uncorrected
 export cent="k3050"
 export vn_method="sp"
-export res_file="/media/wuct/wulby/ALICE/AnRes/resolution/output_reso/resospk3050_inte.root"
-export suffix="pt2_3"
+export res_file="path/to/resolution.root"
+export suffix="pt2_3" # _ will be added automatically
 
-export use_prep=True # True or False (use pre-processed inputs for projections)
+export use_prep=False # True or False (use pre-processed inputs for projections)
 export spw=True # True or False (skip calculation of weights)
-export smy=False # True or False (skip make yaml)
-export scv=True # True or False (skip cut variation), not used anymore
+export smy=True # True or False (skip make yaml)
 export spm=True # True or False (skip projection for MC)
 export seff=True # True or False (skip efficiency)
 export svn=True # True or False (skip vn extraction)
 export sfcv=True # True or False (skip fraction by cut variation)
 export sddf=True # True or False (skip fraction by data-driven method)
 export sv2vf=True # True or False (skip v2 vs fraction)
+
+# Setup logging
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+mkdir -p "${output_dir}/cutvar_${suffix}/logs"
+LOG_FILE="${output_dir}/cutvar_${suffix}/logs/log_${TIMESTAMP}.log"
+exec > >(tee -a "${LOG_FILE}") 2>&1
+
+echo "Starting run_cutvar.sh at $(date)"
+echo "Logging to: ${LOG_FILE}"
 
 if [ $use_prep = False ]; then
 	export use_preprocessed=""
@@ -60,12 +66,6 @@ if [ $smy = False ]; then
 	export skip_make_yaml=""
 else
 	export skip_make_yaml="--skip_make_yaml"
-fi
-
-if [ $scv = False ]; then
-	export skip_cut_variation=""
-else
-	export skip_cut_variation="--skip_cut_variation"
 fi
 
 if [ $spm = False ]; then
@@ -105,12 +105,16 @@ else
 fi
 
 python3 run_cutvar.py $config_flow $anres_dir -c $cent -r $res_file -o $output_dir -s $suffix -vn $vn_method $use_preprocessed \
-					  $skip_calc_weights \
-					  $skip_make_yaml \
-					  $skip_cut_variation \
-					  $skip_proj_mc \
-					  $skip_efficiency \
-					  $skip_vn \
-					  $skip_frac_cut_var \
-					  $skip_data_driven_frac \
-					  $skip_v2_vs_frac
+						$skip_calc_weights \
+						$skip_make_yaml \
+						$skip_proj_mc \
+						$skip_efficiency \
+						$skip_vn \
+						$skip_frac_cut_var \
+						$skip_data_driven_frac \
+						$skip_v2_vs_frac
+
+echo "Completed run_cutvar.sh at $(date)"
+echo "Log saved to: ${LOG_FILE}"
+
+python3 /home/wuct/ALICE/local/DmesonAnalysis/run3/tool/clean_logs.py $LOG_FILE

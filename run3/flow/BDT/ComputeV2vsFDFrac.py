@@ -16,8 +16,30 @@ sys.path.append('../')
 from flow_analysis_utils import get_particle_info, get_cut_sets_config
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor
 
+def load_v2_files(inputdir, suffix):
+    if os.path.exists(f'{inputdir}/ry'):
+        v2Files = [f'{inputdir}/ry/{file}'
+                    for file in os.listdir(f'{inputdir}/ry') if file.endswith('.root') and suffix in file]
+        v2Files.sort()
+    else:
+        raise ValueError(f'No ry folder found in {inputdir}')
+    return v2Files
+
+def load_frac_files(inputdir, suffix):
+    if os.path.exists(f'{inputdir}/DataDrivenFrac'):
+        fracFiles = [f'{inputdir}/DataDrivenFrac/{file}'
+                        for file in os.listdir(f'{inputdir}/DataDrivenFrac') if file.endswith('.root') and suffix in file]
+        fracFiles.sort()
+    else:
+        raise ValueError(f'No DataDrivenFrac folder found in {inputdir}')
+    return fracFiles
+
 def set_frame_style(canv, Title, particleTit):
-    hFrame = canv.DrawFrame(0.0, -0.2, 1, 0.35, f"{Title};Non-prompt {particleTit} fraction; #it{{v}}_{{2}}^{{#it{{obs}}}}")
+    canv.SetLeftMargin(0.15)
+    canv.SetRightMargin(0.05)
+    canv.SetBottomMargin(0.15)
+    canv.SetTopMargin(0.05)
+    hFrame = canv.DrawFrame(0.0, -0.2, 1, 0.35, f";Non-prompt {particleTit} fraction; #it{{v}}_{{2}}^{{#it{{obs}}}}")
     hFrame.GetYaxis().SetDecimals()
     hFrame.GetYaxis().SetNoExponent()
     hFrame.GetXaxis().SetMoreLogLabels()
@@ -29,7 +51,13 @@ def set_frame_style(canv, Title, particleTit):
     hFrame.GetXaxis().SetTitleOffset(1.4)
     hFrame.GetYaxis().SetNdivisions(505)
 
-def v2_vs_frac(config, inputdir, outputdir, suffix):
+def set_frame_margin(canv):
+    canv.SetLeftMargin(0.15)
+    canv.SetRightMargin(0.05)
+    canv.SetBottomMargin(0.15)
+    canv.SetTopMargin(0.05)
+
+def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
 
     CutSets, _, _, _, _ = get_cut_sets_config(config)
     nCutSets = max(CutSets)
@@ -39,29 +67,11 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     ptmins = config['ptmins']
     ptmaxs = config['ptmaxs']
 
-    histoNameV2 = config['histoNameV2']
-    graphNameV2 = config['graphNameV2']
-    histoNameEffFD = config['histoNameFracFD']
-    histoNameEffPrompt = config['histoNameFracPrompt']
     particleName = config['Dmeson']
 
     particleTit, _, decay, _ = get_particle_info(particleName)
     
-
-    if os.path.exists(f'{inputdir}/DataDrivenFrac'):
-        fracFiles = [f'{inputdir}/DataDrivenFrac/{file}'
-                        for file in os.listdir(f'{inputdir}/DataDrivenFrac') if file.endswith('.root') and suffix in file]
-    else:
-        raise ValueError(f'No DataDrivenFrac folder found in {inputdir}')
-
-    if os.path.exists(f'{inputdir}/ry'):
-        v2Files = [f'{inputdir}/ry/{file}'
-                    for file in os.listdir(f'{inputdir}/ry') if file.endswith('.root') and suffix in file]
-    else:
-        raise ValueError(f'No ry folder found in {inputdir}')
-
-    fracFiles.sort()
-    v2Files.sort()
+    CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
 
     if len(fracFiles) != len(v2Files):
         raise ValueError('Number of eff and frac files do not match')
@@ -71,13 +81,13 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
 
     for fracFile, v2File in zip(fracFiles, v2Files):
         inV2File = TFile.Open(v2File)
-        hV2.append(inV2File.Get(histoNameV2))
-        gV2.append(inV2File.Get(graphNameV2))
+        hV2.append(inV2File.Get('hvnSimFit'))
+        gV2.append(inV2File.Get('gvnSimFit'))
         hV2[-1].SetDirectory(0)
 
         inFracFile = TFile.Open(fracFile)
-        hFracFD.append(inFracFile.Get(histoNameEffFD))
-        hFracPrompt.append(inFracFile.Get(histoNameEffPrompt))
+        hFracFD.append(inFracFile.Get('hEffFD'))
+        hFracPrompt.append(inFracFile.Get('hEffPrompt'))
         hFracFD[-1].SetDirectory(0)
         hFracPrompt[-1].SetDirectory(0)
 
@@ -138,8 +148,8 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         
         #TODO: plot the v2 vs pt, and the center of the pt bin is calculate by the average of pT
 
-        ptStrings.append(f"{ptMin:.0f} < #it{{p}}_{{T}} < {ptMax:.0f} GeV/#it{{c}}")
-        chi2Strings.append(f"#chi^{{2}}/n.d.f = {chi2/ndf:.2f}")
+        ptStrings.append(f"{ptMin:.1f} < #it{{p}}_{{T}} < {ptMax:.1f} GeV/#it{{c}}")
+        chi2Strings.append(f"#chi^{{2}}/n.d.f = {chi2:.2f}/{ndf:.2f}")
 
 
     # save the results
@@ -161,12 +171,12 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         if nPtBins == 1:
             suffix_pdf = ''
 
-        cFrac.append(TCanvas(f"cFrac_{ptStrings[iPt]}", "", 1200, 1200))
+        cFrac.append(TCanvas(f"cFrac_{ptMin}_{ptMax}", "", 1200, 1200))
         set_frame_style(cFrac[-1], ptStrings[iPt], particleTit)
 
         t.SetTextSize(0.04)
-        t.DrawLatex(0.18, 0.74, decay)
-        t.DrawLatex(0.18, 0.67, f"{ptStrings[iPt]}")
+        t.DrawLatex(0.25, 0.85, decay)
+        t.DrawLatex(0.25, 0.78, f"{ptStrings[iPt]}")
         t.SetTextSize(0.035)
         t.DrawLatex(0.250, 0.23, f'{chi2Strings[iPt]}')
 
@@ -174,6 +184,7 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
         gFracVsV2[iPt].Draw("same pZ")
 
         cFrac[-1].Update()
+        cFrac[-1].Write()
 
         cFrac[iPt].SaveAs(f"{outputdir}/V2VsFrac/FracV2_{suffix}.pdf{suffix_pdf}")
 
@@ -191,8 +202,8 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     SetObjectStyle(hV2VsPtFD, color=GetROOTColor("kAzure+4"), fillstyle=1)
     SetObjectStyle(hV2VsPtPrompt, color=GetROOTColor("kRed+1"), fillstyle=1)
 
-    cV2VsPtFD = TCanvas("cV2VsPtFD", "non-prompt v2 versus pt")
-    cV2VsPtFD.SetCanvasSize(800, 800)
+    cV2VsPtFD = TCanvas("cV2VsPtFD", "non-prompt v2 versus pt", 800, 800)
+    set_frame_margin(cV2VsPtFD)    
     cV2VsPtFD.cd()
     hV2VsPtFD.Draw("")
     hV2VsPtFD.GetXaxis().SetTitle(PtTit)
@@ -202,8 +213,8 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     hV2VsPtFD.SetMarkerSize(2)
     hV2VsPtFD.GetYaxis().SetNoExponent()
 
-    cV2VsPtPrompt = TCanvas("cV2VsPtPrompt", "prompt v2 versus pt")
-    cV2VsPtPrompt.SetCanvasSize(800, 800)
+    cV2VsPtPrompt = TCanvas("cV2VsPtPrompt", "prompt v2 versus pt", 800, 800)
+    set_frame_margin(cV2VsPtPrompt)
     cV2VsPtPrompt.cd()
     hV2VsPtPrompt.Draw("")
     hV2VsPtPrompt.GetXaxis().SetTitle(PtTit)
@@ -213,8 +224,8 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     hV2VsPtPrompt.SetMarkerSize(2)
     hV2VsPtPrompt.GetYaxis().SetNoExponent()
 
-    cPromptAndFDV2 = TCanvas("cPromptAndFDV2", "prompt and non-prompt v2 versus pt")
-    cPromptAndFDV2.SetCanvasSize(800, 800)
+    cPromptAndFDV2 = TCanvas("cPromptAndFDV2", "prompt and non-prompt v2 versus pt", 800, 800)
+    set_frame_margin(cPromptAndFDV2)
     cPromptAndFDV2.cd()
     hV2VsPtFD.GetYaxis().SetTitle("#it{v_{2}}")
     hV2VsPtFD.Draw("")
@@ -230,6 +241,25 @@ def v2_vs_frac(config, inputdir, outputdir, suffix):
     cV2VsPtPrompt.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPrompt_{suffix}.pdf")
     cPromptAndFDV2.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPromptAndFD_{suffix}.pdf")
 
+def main_v2_vs_frac(config, inputdir, outputdir, suffix, combined=False, inputdir_combined='', outputdir_combined=''):
+
+    v2_vs_frac(
+        config,
+        inputdir,
+        outputdir,
+        suffix,
+        load_frac_files(inputdir, suffix),
+        load_v2_files(inputdir, suffix)
+    )
+    if combined:
+        v2_vs_frac(
+            config,
+            inputdir_combined,
+            outputdir_combined,
+            suffix,
+            load_frac_files(inputdir_combined, suffix),
+            load_v2_files(inputdir, suffix)
+        )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
@@ -241,11 +271,20 @@ if __name__ == "__main__":
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
+    parser.add_argument("--combined", '-comb', metavar='bool', required=False,
+                        action='store_true', help="combined method")
+    parser.add_argument("--inputdir_combined", "-ic", metavar="text", required=False,
+                        default="", help="input directory containing the frac files for the combined method")
+    parser.add_argument("--output_combined", "-oc", metavar="text", required=False,
+                        default="", help="output directory for the combined method")
     args = parser.parse_args()
 
-    v2_vs_frac(
+    main_v2_vs_frac(
         args.config,
         args.inputdir,
         args.outputdir,
-        args.suffix
+        args.suffix,
+        combined=args.combined if args.combined else False,
+        inputdir_combined=args.inputdir_combined if args.combined else '',
+        outputdir_combined=args.output_combined if args.combined else ''
     )

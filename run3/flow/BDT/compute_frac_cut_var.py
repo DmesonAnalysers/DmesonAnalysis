@@ -43,20 +43,8 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     # load configuration
     ptmins = config['ptmins']
     ptmaxs = config['ptmaxs']
-    
-    #TODO: apply smearing
-
-
-    # nSets = len(rawYieldFiles)
 
     #TODO: apply smearing
-    doRawYieldsSmearing = config['minimisation']['doRawYieldSmearing']
-
-    applyEffVariation = config['minimisation']['applyEffVariation']['enable']
-    relEffVariation = config['minimisation']['applyEffVariation']['relvariation']
-    effVariationOpt = config['minimisation']['applyEffVariation']['option']
-    applyEffVarToPrompt = config['minimisation']['applyEffVariation']['prompt']
-    applyEffVarToFD = config['minimisation']['applyEffVariation']['feeddown']
 
     hRawYields, hEffPrompt, hEffFD = [], [], []
 
@@ -130,14 +118,6 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
     gFDFracNbVsCut, cFrac = [], [], [], [], [], [], []
     hCorrMatrixCutSets, cCorrMatrix = [], []
 
-    if config['linearplot']['enable']:
-        fNfdNprompt = []
-        cLinearPlot = []
-        legendLinearPlot = []
-        if config['linearplot']['uncbands']:
-            fNfdNpromptUpper = []
-            fNfdNpromptLower = []
-
     for iPt, (ptMin, ptMax) in enumerate(zip(ptmins, ptmaxs)):
         nSets = CutSets[iPt]
 
@@ -147,23 +127,6 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
         listEffPromptUnc = [hEffP.GetBinError(iPt+1) for hEffP in hEffPrompt[:nSets]]
         listEffFD = [hEffF.GetBinContent(iPt+1) for hEffF in hEffFD[:nSets]]
         listEffFDUnc = [hEffF.GetBinError(iPt+1) for hEffF in hEffFD[:nSets]]
-
-        if config['linearplot']['enable']:
-            fNfdNprompt.append([])
-            cLinearPlot.append(TCanvas(f'LinearPlot_Pt{iPt+1}-{iPt+2}', '', 800, 800))
-            cLinearPlot[iPt].SetTitle(f'LinearPlot_Pt{iPt+1}-{iPt+2}')
-            legendLinearPlot.append(TLegend(0.6, 0.6, 0.9, 0.9))
-            legendLinearPlot[iPt].SetNColumns(3)
-            if config['linearplot']['uncbands']:
-                fNfdNpromptUpper.append([])
-                fNfdNpromptLower.append([])
-
-        # apply variation to efficiency
-        if applyEffVariation:
-            if applyEffVarToPrompt:
-                listEffPrompt = ApplyVariationToList(listEffPrompt, relEffVariation, effVariationOpt)
-            if applyEffVarToFD:
-                listEffFD = ApplyVariationToList(listEffFD, relEffVariation, effVariationOpt)
 
         print(f'Pt: {ptMin:.1f}-{ptMax:.1f}')
         for i in range(len(listEffPrompt)):
@@ -227,46 +190,6 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
             hRawYieldFDVsCut[iPt].SetBinError(iCutSet+1, np.sqrt(covMatrixCorrYields.item(1, 1)) * effF)
             hRawYieldsVsCutReSum[iPt].SetBinContent(iCutSet+1, hRawYieldPromptVsCut[iPt].GetBinContent(iCutSet+1) +
                                                     hRawYieldFDVsCut[iPt].GetBinContent(iCutSet+1))
-
-            if config['linearplot']['enable']:
-                max_corr_yields = max(corrYields)
-                fNfdNprompt[iPt].append(TF1(f'cutset{iCutSet+1}', '[1]*x + [0]', 0., max_corr_yields.item()/2.))
-                fNfdNprompt[iPt][iCutSet].SetParameter(0, rawY/effP)
-                fNfdNprompt[iPt][iCutSet].SetParameter(1, -effF/effP)
-                if config['linearplot']['uncbands']:
-                    fNfdNpromptUpper[iPt].append(TF1(f'fNfdNpromptUpper{iPt}{iCutSet+1}',
-                                                    '[1]*x + [0]', 0., max_corr_yields.item()/2.))
-                    fNfdNpromptLower[iPt].append(TF1(f'fNfdNpromptLower{iPt}{iCutSet+1}',
-                                                    '[1]*x + [0]', 0., max_corr_yields.item()/2.))
-                    fNfdNpromptUpper[iPt][iCutSet].SetTitle(f'Lower Limit cutset{iCutSet+1}')
-                    fNfdNpromptLower[iPt][iCutSet].SetTitle(f'Upper Limit cutset{iCutSet+1}')
-                    fNfdNpromptUpper[iPt][iCutSet].SetParameter(0, (rawY+rawYunc)/(effP+effPunc))
-                    fNfdNpromptUpper[iPt][iCutSet].SetParameter(1, -(effF+effFunc)/(effP+effPunc))
-                    fNfdNpromptLower[iPt][iCutSet].SetParameter(0, (rawY-rawYunc)/(effP-effPunc))
-                    fNfdNpromptLower[iPt][iCutSet].SetParameter(1, -(effF-effFunc)/(effP-effPunc))
-                fNfdNprompt[iPt][iCutSet].GetYaxis().SetTitle('#it{N}_{prompt}')
-                fNfdNprompt[iPt][iCutSet].GetXaxis().SetTitle('#it{N}_{feed-down}')
-                fNfdNprompt[iPt][iCutSet].GetYaxis().SetRangeUser(0., 1.5*max_corr_yields.item())
-                fNfdNprompt[iPt][iCutSet].SetTitle('')
-                fNfdNprompt[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
-                cLinearPlot[iPt].cd()
-                if iCutSet != 0:
-                    fNfdNprompt[iPt][iCutSet].Draw('same')
-                    legendLinearPlot[iPt].AddEntry(fNfdNprompt[iPt][iCutSet], f'cutset{iCutSet+1}', 'l')
-                else:
-                    fNfdNprompt[iPt][iCutSet].Draw()
-                    legendLinearPlot[iPt].AddEntry(fNfdNprompt[iPt][iCutSet], f'cutset{iCutSet+1}', 'l')
-                if config['linearplot']['uncbands']:
-                    fNfdNpromptUpper[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
-                    fNfdNpromptLower[iPt][iCutSet].SetLineColor(kRainBow+2*iCutSet)
-                    fNfdNpromptUpper[iPt][iCutSet].SetLineStyle(7)
-                    fNfdNpromptLower[iPt][iCutSet].SetLineStyle(7)
-                    fNfdNpromptUpper[iPt][iCutSet].Draw('same')
-                    legendLinearPlot[iPt].AddEntry(fNfdNpromptUpper[iPt][iCutSet], f'lowerlimit cutset{iCutSet+1}')
-                    fNfdNpromptLower[iPt][iCutSet].Draw('same')
-                    legendLinearPlot[iPt].AddEntry(fNfdNpromptUpper[iPt][iCutSet], f'upperlimit cutset{iCutSet+1}')
-                legendLinearPlot[iPt].Draw()
-                cLinearPlot[iPt].Update()
 
             # prompt fraction
             fPrompt = effP * corrYields.item(0) / (effP * corrYields.item(0) + effF * corrYields.item(1))
@@ -363,8 +286,6 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
         hPromptFracVsCut[iPt].Write()
         hFDFracVsCut[iPt].Write()
         hCorrMatrixCutSets[iPt].Write()
-        if config['linearplot']['enable']:
-            cLinearPlot[iPt].Write()
     outFile.Close()
 
     outFileNameEffPDF = outFileName.replace('.root', '_Eff.pdf')
@@ -386,10 +307,6 @@ def compute_frac_cut_var(config, inputdir, outputdir, suffix, batch=False):
             cDistr[iPt].SaveAs(f'{outFileNameDistrPDF}]')
             cFrac[iPt].SaveAs(f'{outFileNameFracPDF}]')
             cCorrMatrix[iPt].SaveAs(f'{outFileNameCorrMatrixPDF}]')
-        if config['linearplot']['enable']:
-            for iformat in config['linearplot']['outfileformat']:
-                outFileNameLinPlot = outFileName.replace('.root', f'_LinearPlot{iPt+1}_{iPt+2}.{iformat}')
-                cLinearPlot[iPt].SaveAs(f'{outFileNameLinPlot}')
     
     
 

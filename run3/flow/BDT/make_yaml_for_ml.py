@@ -76,24 +76,24 @@ def make_yaml(flow_config, outputdir, suffix):
     if len(ptmins) != len(ptmaxs):
         raise ValueError(f'''The number of pt bins({len(ptmins)}, {len(ptmaxs)} are not the same''')
 
-    nCutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(flow_config)
+    CutSets, sig_cut_lower, sig_cut_upper, bkg_cut_lower, bkg_cut_upper = get_cut_sets_config(flow_config)
     
-    maxCutSets = max(nCutSets)
+    maxCutSets = max(CutSets)
     sig_cut_lower_file, sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file = {}, {}, {}, {}
     for iCut in range(maxCutSets):
         sig_cut_lower_file[iCut], sig_cut_upper_file[iCut], bkg_cut_lower_file[iCut], bkg_cut_upper_file[iCut] = [], [], [], []
         for iPt in range(len(ptmins)):
             # consider the different number of cutsets for each pt bin
-            if iCut < nCutSets[iPt]:
+            if iCut < CutSets[iPt]:
                 sig_cut_lower_file[iCut].append(sig_cut_lower[iPt][iCut])
                 sig_cut_upper_file[iCut].append(sig_cut_upper[iPt][iCut])
                 bkg_cut_lower_file[iCut].append(bkg_cut_lower[iPt][iCut])
                 bkg_cut_upper_file[iCut].append(bkg_cut_upper[iPt][iCut])
             else:
-                sig_cut_lower_file[iCut].append(sig_cut_lower[iPt][nCutSets[iPt]-1])
-                sig_cut_upper_file[iCut].append(sig_cut_upper[iPt][nCutSets[iPt]-1])
-                bkg_cut_lower_file[iCut].append(bkg_cut_lower[iPt][nCutSets[iPt]-1])
-                bkg_cut_upper_file[iCut].append(bkg_cut_upper[iPt][nCutSets[iPt]-1])
+                sig_cut_lower_file[iCut].append(sig_cut_lower[iPt][CutSets[iPt]-1])
+                sig_cut_upper_file[iCut].append(sig_cut_upper[iPt][CutSets[iPt]-1])
+                bkg_cut_lower_file[iCut].append(bkg_cut_lower[iPt][CutSets[iPt]-1])
+                bkg_cut_upper_file[iCut].append(bkg_cut_upper[iPt][CutSets[iPt]-1])
 
     combinations = make_combination(ptmins, ptmaxs, maxCutSets, sig_cut_lower_file, 
                                     sig_cut_upper_file, bkg_cut_lower_file, bkg_cut_upper_file)
@@ -102,10 +102,10 @@ def make_yaml(flow_config, outputdir, suffix):
         print(f'''For cutset {iFile}:
         ptmin: {ptmins}
         ptmax: {ptmaxs}
-        sig cut: {["{:.3f}".format(x) for x in sig_cut_lower_file[iFile]]}
-                 {["{:.3f}".format(x) for x in sig_cut_upper_file[iFile]]}
-        bkg cut: {["{:.3f}".format(x) for x in bkg_cut_lower_file[iFile]]}
-                 {["{:.3f}".format(x) for x in bkg_cut_upper_file[iFile]]}
+        sig cut: {[f"{x:.3f}" for x in sig_cut_lower_file[iFile]]}
+                 {[f"{x:.3f}" for x in sig_cut_upper_file[iFile]]}
+        bkg cut: {[f"{x:.3f}" for x in bkg_cut_lower_file[iFile]]}
+                 {[f"{x:.3f}" for x in bkg_cut_upper_file[iFile]]}
 ''')
 
     os.makedirs(f'{outputdir}/config', exist_ok=True)

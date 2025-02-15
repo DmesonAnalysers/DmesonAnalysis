@@ -666,13 +666,15 @@ def check_histo_exists(file, histo_name):
         histo_exists = True
     return histo_exists
 
-def getD0ReflHistos(reflFile, ptMins, ptMaxs):
+def get_refl_histo(reflFile, centMinMax, ptMins, ptMaxs):
     '''
     Method that loads MC histograms for the reflections of D0
 
     Input:
         - reflFile:
            TFile, ROOT file, include reflections of D0
+        - centMinMax:
+            list, min and max centrality
         - ptMins:
             list, min pt bins
         - ptMaxs:
@@ -694,21 +696,18 @@ def getD0ReflHistos(reflFile, ptMins, ptMaxs):
     reflFile = ROOT.TFile(reflFile, 'READ')
 
     for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
-        ptLowLabel = ptMin * 10
-        ptHighLabel = ptMax * 10
-
-        hMCSgn.append(reflFile.Get(f'hFDMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}'))
-        print(f'hFDMass_{ptLowLabel}_{ptHighLabel}')
-        hMCSgn[iPt].Add(reflFile.Get(f'hPromptMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}'))
+        dirName = f'cent_bins{centMinMax[0]}_{centMinMax[1]}/pt_bins{ptMin}_{ptMax}'
+        hMCSgn.append(reflFile.Get(f'{dirName}/hFDMass'))
+        hMCSgn[iPt].Add(reflFile.Get(f'{dirName}/hPromptMass'), 1)
         if hMCSgn[iPt] == None:
-            print(f'hFDMass_{ptLowLabel:.0f}_{ptHighLabel:.0f} or hPromptMass_{ptLowLabel:.0f}_{ptHighLabel:.0f} not found! Turning off reflections usage')
+            print(f'In directory {dirName}, hFDMass not found! Turning off reflections usage')
             return False
         hMCSgn[iPt].SetName(f'histSgn_{iPt}')
         hMCSgn[iPt].SetDirectory(0)
 
-        hMCRefl.append(reflFile.Get(f'hVarReflMass_{ptLowLabel:.0f}_{ptHighLabel:.0f}'))
+        hMCRefl.append(reflFile.Get(f'{dirName}/hReflMass'))
         if hMCRefl[iPt] == None:
-            print(f'hVarReflMass_{ptLowLabel:.0f}0_{ptHighLabel:.0f}0 not found! Turning off reflections usage')
+            print(f'In directory {dirName}, hReflMass_{ptMin}_{ptMax} not found! Turning off reflections usage')
             return False
         hMCRefl[iPt].SetName(f'histRfl_{iPt}')
         hMCRefl[iPt].SetDirectory(0)
@@ -830,15 +829,20 @@ def get_cut_sets(npt_bins, sig_cut, bkg_cut_maxs, correlated_cuts=True):
         
         # load the background cut
         bkg_cuts_lower = [[0. for _ in range(nCutSets[iPt])] for iPt in range(npt_bins)]
-        bkg_cuts_upper = [[bkg_cut_maxs[iPt] for _ in range(nCutSets[iPt])] for iPt in range(npt_bins)]
+        # different max bkg cuts for different cutsets, list of the max bkg cuts given
+        bkg_cuts_upper = [bkg_cut_maxs[iPt] for iPt in range(npt_bins)]
         
     # safety check
 
     for iPt in range(npt_bins):
-        assert len(sig_cuts_lower[iPt]) == len(sig_cuts_upper[iPt]) == len(bkg_cuts_lower[iPt]) == len(bkg_cuts_upper[iPt]) == nCutSets[iPt], \
-            f"Mismatch in lengths for pt bin {iPt}: {len(sig_cuts_lower[iPt])}, {len(sig_cuts_upper[iPt])}, \
-            {len(bkg_cuts_lower[iPt])}, {len(bkg_cuts_upper[iPt])}, \
-            {nCutSets[iPt]}"
+        assert len(sig_cuts_lower[iPt]) == len(sig_cuts_upper[iPt]) == len(bkg_cuts_lower[iPt]) == len(bkg_cuts_upper[iPt]) == nCutSets[iPt], (
+            f"Mismatch in lengths for pt bin {iPt}: \n"
+            f"sig_low:{len(sig_cuts_lower[iPt])}, \n"
+            f"sig_up: {len(sig_cuts_upper[iPt])}, \n"
+            f"bkg_low: {len(bkg_cuts_lower[iPt])}, \n"
+            f"bkg_up: {len(bkg_cuts_upper[iPt])}, \n"
+            f"nCutSets: {nCutSets[iPt]}"
+        )
 
     return nCutSets, sig_cuts_lower, sig_cuts_upper, bkg_cuts_lower, bkg_cuts_upper
 
