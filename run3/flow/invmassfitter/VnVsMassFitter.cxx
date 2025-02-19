@@ -608,9 +608,6 @@ Bool_t VnVsMassFitter::MassPrefit() {
     if(fRflOverSig>0) {fMassFitter->SetInitialReflOverS(fRflOverSig);}
     if(fFixRflOverSig) {fMassFitter->SetFixReflOverS(fRflOverSig);}
   }
-  for(int iTempl=0; iTempl<fKDETemplates.size(); iTempl++) {
-    cout << "fKDETemplates[iTempl].Eval(2.0): " << fKDETemplates[iTempl].Eval(2.0) << endl;
-  }
   if(fTemplates) {fMassFitter->SetTemplates(fKDETemplates, fMassInitWeights, fMassWeightsLowerLims, fMassWeightsUpperLims, static_cast<int>(fAnchorTemplsMode), fRelWeights);}
   Bool_t status = fMassFitter->MassFitter(kFALSE);
 

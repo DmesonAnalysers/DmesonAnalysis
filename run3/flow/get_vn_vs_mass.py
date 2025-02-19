@@ -160,13 +160,6 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 continue
         templatesFile.Close()
 
-    print(f"TemplatesFuncts: {TemplatesFuncts}")
-    for iPt, bkgStr in enumerate(BkgFuncStr):
-        debug_functs = TFile(f"/home/mdicosta/FlowDplus/FinalResults/templs_from_histo_parallel/Functs{iPt}.root", 'recreate')
-        for iTempl in TemplatesFuncts[iPt]:
-            iTempl.Write()
-        debug_functs.Close()
-
     # set particle configuration
     if particleName == 'Dzero':
         _, massAxisTit, decay, massForFit = get_particle_info(particleName)
@@ -198,7 +191,13 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     reso = hist_reso.GetBinContent(1)
     inclSecPeak = [inclSecPeak] * len(ptMins) if not isinstance(inclSecPeak, list) else inclSecPeak
     for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
-        if not vn_method == 'sp' and not vn_method == 'ep':
+        if vn_method == 'mass':
+            print(f'loading: cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_cent{cent}_pt{ptMin}_{ptMax}')
+            hMassIns.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_cent{cent}_pt{ptMin}_{ptMax}'))
+            hMassOuts.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_cent{cent}_pt{ptMin}_{ptMax}'))
+            hMassIns[iPt].SetDirectory(0)
+            hMassOuts[iPt].SetDirectory(0)
+        elif not vn_method == 'sp' and not vn_method == 'ep':
             print(f'loading: cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_cent{cent}_pt{ptMin}_{ptMax}')
             hMassIns.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_inplane_cent{cent}_pt{ptMin}_{ptMax}'))
             hMassOuts.append(infile.Get(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}/hist_mass_outplane_cent{cent}_pt{ptMin}_{ptMax}'))

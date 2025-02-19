@@ -563,6 +563,7 @@ TF1* InvMassFitter::CreateSignalFitFunction(TString fname, Double_t integsig){
     if(fFixedMean) funcsig->FixParameter(1,fMass);
     if(fBoundMean) funcsig->SetParLimits(1,fMassLowerLim, fMassUpperLim);
     funcsig->SetParameter(2,fSigmaSgn);
+    funcsig->SetParLimits(2,0,1);
     if(fFixedSigma) funcsig->FixParameter(2,fSigmaSgn);
     if(fBoundSigma) funcsig->SetParLimits(2,fSigmaVar*(1-fParSig), fSigmaVar*(1+fParSig));
     funcsig->SetParNames("SgnInt","Mean","Sigma");

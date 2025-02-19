@@ -545,8 +545,6 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
         vn_results['fVnCompsFuncts']['vnSecPeak'] = vnComps[2]
     vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
     if useTempl:
-        vn_results['fVnCompsFuncts']['vnSgn'] = vnFitter.GetMassBkgFitFunc()
-        vn_results['fVnCompsFuncts']['vnBkg'] = vnFitter.GetMassBkgFitFunc()
         for iTempl in range(len(vn_results['fMassTemplFuncts'])):
             vn_results['fVnCompsFuncts'][f'vnTempl{iTempl}'] = vnComps[2+secPeak+iTempl]
     
@@ -906,36 +904,40 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         
         return images
 
-    def create_multipanel(images, iImage, rows=None, cols=None, bg_color="white"):
-        """Combine multiple images into a grid layout with improved image scaling."""
+    def create_multipanel(images, iImage, images_per_row=None, images_per_col=None, bg_color="white"):
+        """Combine multiple images into a grid layout with customizable rows and columns."""
         if not images:
             raise ValueError("At least one image is required.")
 
         num_images = len(images)
-        if rows is None and cols is None:
-            cols = math.ceil(math.sqrt(num_images))
-        if rows is None:
-            rows = math.ceil(num_images / cols)
-        if cols is None:
-            cols = math.ceil(num_images / rows)
+        # Auto-calculate rows and columns if not specified
+        if images_per_row is None and images_per_col is None:
+            images_per_row = math.ceil(math.sqrt(num_images))  # Approximate square grid
+        if images_per_row is None:
+            images_per_row = math.ceil(num_images / images_per_col)
+        if images_per_col is None:
+            images_per_col = math.ceil(num_images / images_per_row)
 
+        # Resize images to match the smallest width and height
         min_width = min(img[iImage].width for img in images)
         min_height = min(img[iImage].height for img in images)
         resized_images = [img[iImage].resize((min_width, min_height), Image.LANCZOS) for img in images]
 
-        combined_width = min_width * cols
-        combined_height = min_height * rows
+        # Create a blank canvas
+        combined_width = min_width * images_per_row
+        combined_height = min_height * images_per_col
         combined = Image.new("RGB", (combined_width, combined_height), bg_color)
 
+        # Paste images into the grid
         for index, img in enumerate(resized_images):
-            row, col = divmod(index, cols)
+            row, col = divmod(index, images_per_row)
             x_offset = col * min_width
             y_offset = row * min_height
             combined.paste(img, (x_offset, y_offset))
-        
+
         return combined
 
-    def process_pdfs(pdf_list, output_folder):
+    def process_pdfs(config, pdf_list, output_folder, images_names, images_per_row=None, images_per_col=None):
         """Processes PDFs and saves multipanel images with high-quality settings."""
         if len(pdf_list) == 0:
             raise ValueError("No PDF provided!")
@@ -946,8 +948,8 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         os.makedirs(output_folder, exist_ok=True)
 
         for i in range(num_pages):
-            panel = create_multipanel(images, i)
-            output_path = os.path.join(output_folder, f"panel_{i+1}_{suffix}.png")  # Use PNG for lossless quality
+            panel = create_multipanel(images, i, images_per_row, images_per_col)
+            output_path = os.path.join(output_folder, f"{images_names}_pt_{int(config['ptmins'][i]*10)}_{int(config['ptmaxs'][i]*10)}.png")  # Use PNG for lossless quality
             panel.save(output_path, format="PNG", compression_level=1)  # High quality, low compression
 
         print(f"Saved {num_pages} high-quality multipanel images in '{output_folder}'.")
@@ -964,7 +966,7 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         process_pdfs(config, cutvar_files, f"{cut_var_dir}/merged_images/cutvar", 'cutvar_summary')
     except:
         print("Error in merging cut variation files")
-
+    
     try:
         fit_files = glob.glob(f"{cut_var_dir}/ry/*.pdf")
         fit_files_sorted = sorted(fit_files, key=lambda x: int(re.search(r"_(\d+)_D\w*.pdf$", x).group(1)))

@@ -177,46 +177,9 @@ if __name__ == "__main__":
         
     if args.config != parser.get_default("config"):
         for pt_low, pt_max in zip(config['pt_mins'], config['pt_maxs']):
-            KDE, histo = kde_producer(config['input'], config['variable'], pt_low, 
+            KDE, _, histo = templ_producer_kde(config['input'], config['variable'], pt_low, 
                                            pt_max, config['chn_flag'], outfile)
     else:
-        KDE, histo = kde_producer(args.input, args.var, args.ptmin,
+        KDE, _, histo = templ_producer_kde(args.input, args.var, args.ptmin,
                                        args.ptmax, args.flag, outfile)
     outfile.Close()    
-    
-    
-        # for iPt, (bkgStr, sgnStr, bkgVnStr) in enumerate(zip(BkgFuncStr, SgnFuncStr, BkgFuncVnStr)):
-    #     if 'IncludeTempls' in fitConfig and fitConfig['IncludeTempls'][iPt]:
-    #         for iFlag, flag in enumerate(fitConfig['TemplsFlags']):
-    #             if fitConfig['TemplInputType'][iFlag] == 'Grid':
-    #                 KDEtemplates[iPt][iFlag], kde_func, hRebinnedHistos[iPt][iFlag] = kde_producer(fitConfig['TemplsInputs'][iFlag], 'fM', ptMins[iPt], ptMaxs[iPt], flag,
-    #                                                                     templatesFile, fitConfig['TemplsTreeNames'][iFlag])
-    #             elif fitConfig['TemplInputType'][iFlag] == 'File':
-    #                 print('GETTING TEMPLATE FROM FILE')
-    #                 KDEtemplates[iPt][iFlag], kde_func, hRebinnedHistos[iPt][iFlag] = kde_producer(fitConfig['TemplsInputs'][iFlag], 'massPiKaPi', 
-    #                                                                                                ptMins[iPt], ptMaxs[iPt], 633,
-    #                                                                                                templatesFile, 'treeD', "sumPdgDaus == 211+211+211")
-    #             else:
-    #                 print(f'ERROR: incorrect setting for including KDEs in fit! Exit!')
-    #                 sys.exit()
-
-    #             templatesFile.cd()
-    #             hRebinnedHistos[iPt][iFlag].Write(f"hBinned_pt_{iPt}")
-    #             cTemplOverlap[iPt][iFlag] = TCanvas(f'cOverlap_{iPt}_{flag}', f'cOverlap_{iPt}_{flag}', 600, 600)
-    #             cTemplOverlap[iPt][iFlag].cd()
-    #             hRebinnedHistos[iPt][iFlag].Draw()
-    #             kde_func.Draw('same')
-    #             cTemplOverlap[iPt][iFlag].Write()
-    #     else:
-    #         KDEtemplates[iPt], kde_func, hRebinnedHistos[iPt], cTemplOverlap[iPt] = None, None, None, None
-    #         continue
-        
-    # templatesFile.Close()
-    # KDEtemplatesFuncts = []
-    # print(f"KDEtemplates: {KDEtemplates}")
-    # if KDEtemplates is not None:
-    #     for KDEtemplatesPt in KDEtemplates:
-    #         if KDEtemplatesPt is not None:
-    #             KDEtemplatesFuncts.append([KDE.GetFunction() for KDE in KDEtemplatesPt])
-    #         else:
-    #             KDEtemplatesFuncts.append(None)
