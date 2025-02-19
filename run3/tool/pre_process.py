@@ -105,7 +105,7 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
 
     bkg_maxs = config['bkg_cuts']
     # Loop over each pt bin in parallel
-    max_workers = 6
+    max_workers = 12 # hyperparameter
     with concurrent.futures.ThreadPoolExecutor(max_workers) as executor:
         tasks = [executor.submit(process_pt_bin, iPt, ptmin, ptmax, centmin, centmax, bkg_maxs[iPt], thnsparse_list, axestokeep, outputDir) for iPt, (ptmin, ptmax) in enumerate(zip(ptmins, ptmaxs))]
         for task in concurrent.futures.as_completed(tasks):

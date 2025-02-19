@@ -20,20 +20,29 @@ from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins
 ### please fill your path of DmesonAnalysis
 sys.path.append('../../..')
 
-def proj_data(sparse_flow, ptMin, ptMax, centMin, centMax, axes, inv_mass_bins, reso):
+def proj_data(sparse_flow, ptMin, ptMax, cent_min, cent_max, axes, inv_mass_bins, reso):
 
     if isinstance(sparse_flow, dict):
         for isparse, (key, sparse) in enumerate(sparse_flow.items()):
             hist_mass_temp = sparse.Projection(axes['Flow']['Mass'])
+            # REVIEW: in case the Potential memory leak
             hist_mass_temp.SetName(f'hist_mass_{isparse}')
             hist_mass_temp.SetDirectory(0)
+            # REVIEW: I would suggest to keep th fd score distribution of a dedicated pt bin,
+            # from my experience, it could help us to choose a proper cutset
+            hist_fd_temp = sparse.Projection(axes['Flow']['score_FD'])
+            hist_fd_temp.SetName(f'hist_fd_cent{cent_min}_{cent_max}_pt{ptMin}_{ptMax}_{isparse}')
 
             if isparse == 0:
                 hist_mass = hist_mass_temp.Clone('hist_mass')
                 hist_mass.SetDirectory(0)
                 hist_mass.Reset()
+                hist_fd = hist_fd_temp.Clone('hist_fd')
+                hist_fd.SetDirectory(0)
+                hist_fd.Reset()
 
             hist_mass.Add(hist_mass_temp)
+            hist_fd.Add(hist_fd_temp)
 
         hist_vn_sp = get_vn_versus_mass(list(sparse_flow.values()), inv_mass_bins, axes['Flow']['Mass'], axes['Flow']['sp'])
         hist_vn_sp.SetDirectory(0)
@@ -46,18 +55,24 @@ def proj_data(sparse_flow, ptMin, ptMax, centMin, centMax, axes, inv_mass_bins, 
         if reso > 0:
             hist_vn_sp.Scale(1./reso)
 
-    hist_mass.Write(f'hist_mass_cent{centMin}_{centMax}_pt{ptMin}_{ptMax}')
+    hist_mass.Write(f'hist_mass_cent{cent_min}_{cent_max}_pt{ptMin}_{ptMax}')
     hist_vn_sp.Write(f'hist_vn_sp_pt{ptMin}_{ptMax}')
+    hist_fd.Write(f'hist_fd_cent{cent_min}_{cent_max}_pt{ptMin}_{ptMax}')
 
 def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB):
     
+#REVIEW: add the unique name for each projection, to avoid Potential memory leak
     ### project mass
     if 'RecoAll' in sparsesReco:
         hMass = sparsesReco['RecoAll'].Projection(axes['RecoAll']['Mass'])
+        hMass.SetName(f'hRecoAllMass_{ptMin}_{ptMax}')
         hPt = sparsesReco['RecoAll'].Projection(axes['RecoAll']['Pt'])
+        hPt.SetName(f'hRecoAllPt_{ptMin}_{ptMax}')
 
     hMassPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt']['Mass'])
+    hMassPrompt.SetName(f'hPromptMass_{ptMin}_{ptMax}')
     hMassFD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Mass'])    
+    hMassFD.SetName(f'hFDMass_{ptMin}_{ptMax}')
 
     ### project pt
     hPtRefl, hPtReflPrompt, hPtReflFD, hPtPrompt, hPtFD = None, None, None, None, None
@@ -65,11 +80,14 @@ def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPt
     ### no pt weights
     if not ptWeights and not ptWeightsB:
         hPtPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt']['Pt'])
+        hPtPrompt.SetName(f'hPromptPt_{ptMin}_{ptMax}')
         hPtFD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'])
+        hPtFD.SetName(f'hFDPt_{ptMin}_{ptMax}')
 
     ### pt weights for prompt
     if ptWeights:
         hPtPrompt = sparsesReco['RecoPrompt'].Projection(axes['RecoPrompt']['Pt'])
+        hPtPrompt.SetName(f'hPromptPt_{ptMin}_{ptMax}')
         for iBin in range(1, hPtPrompt.GetNbinsX()+1):
             if hPtPrompt.GetBinContent(iBin) > 0.:
                 relStatUnc = hPtPrompt.GetBinError(iBin) / hPtPrompt.GetBinContent(iBin)
@@ -78,6 +96,7 @@ def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPt
                 hPtPrompt.SetBinError(iBin, hPtPrompt.GetBinContent(iBin) * relStatUnc)
         ### initially use prompt weights for FD, eventually overwrite
         hPtFD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'])
+        hPtFD.SetName(f'hFDPt_{ptMin}_{ptMax}')
         for iBin in range(1, hPtFD.GetNbinsX()+1):
             if hPtFD.GetBinContent(iBin) > 0.:
                 relStatUnc = hPtFD.GetBinError(iBin) / hPtFD.GetBinContent(iBin)
@@ -86,7 +105,9 @@ def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPt
                 hPtFD.SetBinError(iBin, hPtFD.GetBinContent(iBin) * relStatUnc)
     ### pt weights for non-prompt, but no B species weights
     if ptWeightsB and not Bspeciesweights:
-        hPtBvsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['pt_bmoth'])
+        # REVIEW: the hPtBvsPtD is a TH2D object, and the order of axis is y, x
+        hPtBvsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['pt_bmoth'], axes['RecoFD']['Pt'])
+        hPtBvsPtD.SetName(f'hPtBvsPtD_{ptMin}_{ptMax}')
         for iPtD in range(1, hPtBvsPtD.GetXaxis().GetNbins()+1):
             for iPtB in range(1, hPtBvsPtD.GetYaxis().GetNbins()+1):
                 ptCentB = hPtBvsPtD.GetYaxis().GetBinCenter(iPtB)
@@ -105,6 +126,7 @@ def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPt
     ### pt weights from B for non-prompt and B species weights
     elif ptWeightsB and Bspeciesweights:
         hPtBvsBspecievsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['flag_bhad'], axes['RecoFD']['pt_bmoth'])
+        hPtBvsBspecievsPtD.SetName(f'hPtBvsBspecievsPtD_{ptMin}_{ptMax}')
         for iPtD in range(1, hPtBvsBspecievsPtD.GetXaxis().GetNbins()+1):
             for iBspecie in range(1, hPtBvsBspecievsPtD.GetYaxis().GetNbins()+1):
                 for iPtB in range(1, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1):
@@ -124,7 +146,9 @@ def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPt
                                                 0, hPtBvsBspecievsPtD.GetZaxis().GetNbins()+1, 'e')
     ### only B species weights
     elif Bspeciesweights:
-        hBspecievsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['Pt'], axes['RecoFD']['flag_bhad'])
+        # REVIEW: the hBspecievsPtD is a TH2D object, and the order of axis is y, x
+        hBspecievsPtD = sparsesReco['RecoFD'].Projection(axes['RecoFD']['flag_bhad'], axes['RecoFD']['Pt'])
+        hBspecievsPtD.SetName(f'hBspecievsPtD_{ptMin}_{ptMax}')
         for iPtD in range(1, hBspecievsPtD.GetXaxis().GetNbins()+1):
             for iBspecie in range(1, hBspecievsPtD.GetYaxis().GetNbins()+1):
                 origContent = hBspecievsPtD.GetBinContent(iPtD, iBspecie)
@@ -149,35 +173,47 @@ def proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPt
         hPt.Write(f'RecoAllPt')
     if config.get('enableRef'):
         hMassRefl = sparsesReco['RecoRefl'].Projection(axes['RecoRefl']['Mass'])
+        hMassRefl.SetName(f'hReflMass_{ptMin}_{ptMax}')
         hMassRefl.Write(f'hReflMass')
         hMassReflPrompt = sparsesReco['RecoReflPrompt'].Projection(axes['RecoReflPrompt']['Mass'])
+        hMassReflPrompt.SetName(f'hReflPromptMass_{ptMin}_{ptMax}')
         hMassReflPrompt.Write(f'hReflPromptMass')
         hMassReflFD = sparsesReco['RecoReflFD'].Projection(axes['RecoReflFD']['Mass'])
+        hMassReflFD.SetName(f'hReflFDMass_{ptMin}_{ptMax}')
         hMassReflFD.Write(f'hReflFDMass')
         hPtRefl = sparsesReco['RecoRefl'].Projection(axes['RecoRefl']['Pt'])
+        hPtRefl.SetName(f'hReflPt_{ptMin}_{ptMax}')
         hPtRefl.Write(f'hReflPt')
         hPtReflPrompt = sparsesReco['RecoReflPrompt'].Projection(axes['RecoReflPrompt']['Pt'])
+        hPtReflPrompt.SetName(f'hReflPromptPt_{ptMin}_{ptMax}')
         hPtReflPrompt.Write(f'hReflPromptPt')
         hPtReflFD = sparsesReco['RecoReflFD'].Projection(axes['RecoReflFD']['Pt'])
+        hPtReflFD.SetName(f'hReflFDPt_{ptMin}_{ptMax}')
         hPtReflFD.Write(f'hReflFDPt')
     if config.get('enableSecPeak'):
         hMassPromptSecPeak = sparsesReco['RecoSecPeakPrompt'].Projection(axes['RecoSecPeakPrompt']['Mass'])
+        hMassPromptSecPeak.SetName(f'hPromptSecPeakMass_{ptMin}_{ptMax}')
         hMassPromptSecPeak.Write(f'hPromptSecPeakMass')
         hMassFDSecPeak = sparsesReco['RecoSecPeakFD'].Projection(axes['RecoSecPeakFD']['Mass'])
+        hMassFDSecPeak.SetName(f'hFDSecPeakMass_{ptMin}_{ptMax}')
         hMassFDSecPeak.Write(f'hFDSecPeakMass')
         hPtPromptSecPeak = sparsesReco['RecoSecPeakPrompt'].Projection(axes['RecoSecPeakPrompt']['Pt'])
+        hPtPromptSecPeak.SetName(f'hPromptSecPeakPt_{ptMin}_{ptMax}')
         hPtPromptSecPeak.Write(f'hPromptSecPeakPt')
         hPtFDSecPeak = sparsesReco['RecoSecPeakFD'].Projection(axes['RecoSecPeakFD']['Pt'])
+        hPtFDSecPeak.SetName(f'hFDSecPeakPt_{ptMin}_{ptMax}')
         hPtFDSecPeak.Write(f'hFDSecPeakPt')
 
 def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB):
 
+# REVIEW: add the unique name for each projection, to avoid Potential memory leak
     if config.get('enableSecPeak'):
         hGenPtPromptSecPeak = sparsesGen['GenSecPeakPrompt'].Projection(axes['GenSecPeakPrompt']['Pt'])
         hGenPtPromptSecPeak.Write(f'hPromptSecPeakGenPt')
         hGenPtFDSecPeak = sparsesGen['GenSecPeakFD'].Projection(axes['GenSecPeakFD']['Pt'])
         hGenPtFDSecPeak.Write(f'hFDSecPeakGenPt')
 
+    # REVIEW: why the no pt weights was commented?
     ## no pt weights
     # if not ptWeights and not ptWeightsB:
     #     print('NO PT WEIGHTS FOR GENERATED')
@@ -199,7 +235,8 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
     ## apply pt weights for non-prompt
     ### pt weights from B for non-prompt, but no B species weights
     if ptWeightsB and not Bspeciesweights:
-        hPtBvsPtGenD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['pt_bmoth'])
+        # REVIEW: the hPtBvsPtGenD is a TH2D object, and the order of axis is y, x
+        hPtBvsPtGenD = sparsesGen['GenFD'].Projection(axes['GenFD']['pt_bmoth'], axes['GenFD']['Pt'])
         for iPtD in range(1, hPtBvsPtGenD.GetXaxis().GetNbins()+1):
             for iPtB in range(1, hPtBvsPtGenD.GetYaxis().GetNbins()+1):
                 ptCentB = hPtBvsPtGenD.GetYaxis().GetBinCenter(iPtB)
@@ -237,7 +274,8 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
                                                      0, hPtBvsBspecievsPtGenD.GetZaxis().GetNbins()+1, 'e')
     ### only B species weights
     elif Bspeciesweights:
-        hBspecievsPtGenD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'], axes['GenFD']['flag_bhad'])
+        # REVIEW: the hBspecievsPtGenD is a TH2D object, and the order of axis is y, x
+        hBspecievsPtGenD = sparsesGen['GenFD'].Projection(axes['GenFD']['flag_bhad'], axes['GenFD']['Pt'])
         for iPtD in range(1, hBspecievsPtGenD.GetXaxis().GetNbins()+1):
             for iBspecie in range(1, hBspecievsPtGenD.GetYaxis().GetNbins()+1):
                 origContent = hBspecievsPtGenD.GetBinContent(iPtD, iBspecie)
@@ -253,31 +291,51 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
     ### no pt weights for generated FD
     else:
         hGenPtFD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'])
-                            
+
     ## write the output
     hGenPtPrompt.Write(f'hPromptGenPt')
     hGenPtFD.Write(f'hFDGenPt')
 
 def pt_weights_info(ptweights, ptweightsB):
+    """Get pt weights and return weights flags with spline
+
+    Args:
+        ptweights (list): [file path, histogram name] for pt weights
+        ptweightsB (list): [file path, histogram name] for B pt weights
+
+    Outputs:
+        ptWeights (bool): ptWeights flag
+        ptWeightsB (bool): ptWeightsB flag
+        Bspeciesweights (str): B species weights #TODO
+        sPtWeights (spline): Spline for ptWeights interpolation
+        sPtWeightsB (spline): Spline for ptWeightsB weights interpolation
+    """
+
+# REVIEW: the ptWeights inputed is a list, but the ptWeights outputed is a TH1D object
+# and actually ptweights is used as a flag
     # compute info for pt weights
     if ptweights != []:
-        ptWeights = uproot.open(ptweights[0])[ptweights[1]]
-        bins = ptWeights.axis(0).edges()
-        ptCentW = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
-        sPtWeights = InterpolatedUnivariateSpline(ptCentW, ptWeights.values())
+        with uproot.open(ptweights[0]) as f:
+            hPtWeights = f[ptweights[1]]
+            bins = hPtWeights.axis(0).edges()
+            ptCentW = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
+            sPtWeights = InterpolatedUnivariateSpline(ptCentW, hPtWeights.values())
+        ptWeights = True
     else:
         print('\033[91m WARNING: pt weights will not be provided! \033[0m')
-        ptWeights = None
+        ptWeights = False
         sPtWeights = None
 
     if ptweightsB != []:
-        ptWeightsB = uproot.open(ptweightsB[0])[ptweightsB[1]]
-        bins = ptWeightsB.axis(0).edges()
-        ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
-        sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, ptWeightsB.values())
+        with uproot.open(ptweightsB[0]) as f:
+            hPtWeightsB = f[ptweightsB[1]]
+            bins = hPtWeightsB.axis(0).edges()
+            ptCentWB = [(bins[iBin]+bins[iBin+1])/2 for iBin in range(len(bins)-1)]
+            sPtWeightsB = InterpolatedUnivariateSpline(ptCentWB, hPtWeightsB.values())
+        ptWeightsB = True
     else:
         print('\033[91m WARNING: B weights will not not be provided! \033[0m')
-        ptWeightsB = None
+        ptWeightsB = False
         sPtWeightsB = None
 
     if config.get('Bspeciesweights'):
@@ -294,6 +352,8 @@ if __name__ == "__main__":
                         default="config.yaml", help="flow configuration file")
     parser.add_argument('cutsetConfig', metavar='text',
                         default='cutsetConfig.yaml', help='cutset configuration file')
+    parser.add_argument('anres_dir', metavar='text', 
+                        nargs='+', help='input ROOT files with anres')
     parser.add_argument('--preprocessed', action='store_true', 
                         help='Determines whether the sparses are pre-processed')
     parser.add_argument("--ptweights", "-w", metavar="text", nargs=2, required=False,
@@ -318,7 +378,8 @@ if __name__ == "__main__":
     
     cent, (cent_min, cent_max) = get_centrality_bins(args.centrality)
     outfile_dir = 'hf-candidate-creator-2prong' if config['Dmeson'] == 'Dzero' else 'hf-candidate-creator-3prong'
-    infilemc = TFile.Open(config['MC_filename'], 'r')
+    # REVIEW the mc_filename is the same as the eff_filename so no need to use mc_filename.
+    infilemc = TFile.Open(config['eff_filename'], 'r')
     histo_cent = infilemc.Get(f'{outfile_dir}/hSelCollisionsCent')
     histo_cent.GetXaxis().SetRangeUser(cent_min, cent_max)
     resofile = TFile.Open(args.resolution, 'r')
@@ -345,7 +406,9 @@ if __name__ == "__main__":
     infilemc.Close()
 
     # load thnsparse
-    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.preprocessed, f'{config["skimDir"]}')
+    # REVIEW: 
+    # for the main workflow, only the config_flow
+    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.anres_dir, args.preprocessed, f'{config["skim_out_dir"]}')
     if not args.preprocessed:
         for key, iSparse in sparsesFlow.items():
             iSparse.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
@@ -382,7 +445,7 @@ if __name__ == "__main__":
                 for iSparse, (key, sparse) in enumerate(sparsesFlow.items()):
                     for iVar in cutVars:
                         sparse.GetAxis(axes['Flow'][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
-                proj_data(sparsesFlow, ptMin, ptMax, axes, config['inv_mass_bins'][iPt], reso)
+                proj_data(sparsesFlow, ptMin, ptMax, cent_min, cent_max, axes, config['inv_mass_bins'][iPt], reso)
                 print(f"Projected data!")
             
             for iVar in cutVars:

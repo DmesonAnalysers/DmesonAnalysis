@@ -1,16 +1,41 @@
 import ROOT
+import yaml
 from ROOT import TFile
 
-def get_sparses(config, get_data, get_mc_reco, get_mc_gen, preprocessed=False, preprocess_dir='', debug=False):
+def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], preprocessed=False, preprocess_dir='', debug=False):
+    """Load the sparses and axes infos
+
+    Args:
+        config (dict): the flow config dictionary
+        get_data (bool): whether to get the data
+        get_mc_reco (bool): whether to get the mc reco level
+        get_mc_gen (bool): whether to get the mc gen level
+        anres_files (list, optional): a list of AnRes.root. Defaults to [].
+        preprocessed (bool, optional): whether to use the pre-selected AnRes.root. Defaults to False.
+        preprocess_dir (str, optional): path of the pre-selected AnRes.root. Defaults to ''.
+        debug (bool, optional): print debug info. Defaults to False.
+
+    Outputs:
+        sparsesFlow: thnSparse in the flow task
+        sparsesReco: thnSparse of reco level from the D meson task
+        sparsesGen: thnSparse of gen level from the D meson task
+        axes_dict (dict): dictionary of the axes for each sparse
+    """
+    
     
     sparsesFlow, sparsesReco, sparsesGen, axes_dict = {}, {}, {}, {}    
     
     if get_data:
         if preprocessed:
-            axes_dict['Flow'] = {ax: iax for iax, ax in enumerate(config['axestokeep'])}
-            for ptmin, ptmax in zip(config['ptmins'], config['ptmaxs']):
+            # REVIEW: sperate the config_pre and config_flow
+            with open(f"{config['skim_out_dir']}/config_pre.yaml", 'r') as CfgPre:
+                config_pre = yaml.safe_load(CfgPre)
+            if config_pre['ptmins'] != config['ptmins'] or config_pre['ptmaxs'] != config['ptmaxs']:
+                raise ValueError("Error: ptmins and ptmaxs in config_pre.yaml do not match the ones in the config.yaml")
+            axes_dict['Flow'] = {ax: iax for iax, ax in enumerate(config_pre['axestokeep'])}
+            for ptmin, ptmax in zip(config_pre['ptmins'], config_pre['ptmaxs']):
                 print(f"Loading flow sparse from file: {preprocess_dir}/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
-                infileflow = ROOT.TFile(f"{preprocess_dir}/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
+                infileflow = TFile(f"{preprocess_dir}/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
                 sparsesFlow[f'Flow_{ptmin*10}_{ptmax*10}'] = infileflow.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm')
                 infileflow.Close()
         else:
@@ -23,22 +48,24 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, preprocessed=False, p
                 'score_FD': 5,
                 'occ': 6
             }
-            for ifile, file in enumerate(config['flow_files']):
+            # REVIEW: I would suggest to separete the config_flow and config_pre
+            # and load the flow files from the arguments
+            for ifile, file in enumerate(anres_files):
                 print(f"Loading flow sparse from file: {file}")
-                infileflow = ROOT.TFile(file)
+                infileflow = TFile(file)
                 sparsesFlow[f'Flow_{ifile}'] = infileflow.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm')
                 infileflow.Close()
        
     if get_mc_gen or get_mc_reco:
         print(f"Loading mc sparse from: {config['eff_filename']}")
-        infiletask = ROOT.TFile(config['eff_filename'])
+        infiletask = TFile(config['eff_filename'])
     
     if get_mc_reco: 
         if config['Dmeson'] == 'Dzero':
             axes_reco = {
                 'score_bkg': 0,
-                'score_FD': 1,
-                'score_prompt': 2,
+                'score_prompt': 1,
+                'score_FD': 2,
                 'Mass': 3,
                 'Pt': 4,
                 'y': 5,
@@ -53,23 +80,23 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, preprocessed=False, p
             sparsesReco['RecoPrompt'] = infiletask.Get('hf-task-d0/hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type')
             print(f"sparsesReco['RecoPrompt']: {sparsesReco['RecoPrompt']}")
             print('\n')
-            sparsesReco['RecoPrompt'].GetAxis(axes_reco['origin']).SetRange(1, 2)  # make sure it is signal
-            sparsesReco['RecoPrompt'].GetAxis(axes_reco['cand_type']).SetRange(2, 2) # make sure it is prompt
+            sparsesReco['RecoPrompt'].GetAxis(axes_reco['origin']).SetRange(2, 2)  # make sure it is prompt
+            sparsesReco['RecoPrompt'].GetAxis(axes_reco['cand_type']).SetRange(1, 2) # make sure it is signal
             axes_dict['RecoPrompt'] = axes_reco
             sparsesReco['RecoFD'] = infiletask.Get('hf-task-d0/hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type')
-            sparsesReco['RecoFD'].GetAxis(axes_reco['cand_type']).SetRange(3, 3)  # make sure it is non-prompt
-            sparsesReco['RecoFD'].GetAxis(axes_reco['origin']).SetRange(1, 2)  # make sure it is signal
+            sparsesReco['RecoFD'].GetAxis(axes_reco['origin']).SetRange(3, 3)  # make sure it is non-prompt
+            sparsesReco['RecoFD'].GetAxis(axes_reco['cand_type']).SetRange(1, 2)  # make sure it is signal
             axes_dict['RecoFD'] = axes_reco
             sparsesReco['RecoRefl'] = infiletask.Get('hf-task-d0/hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type')
-            sparsesReco['RecoRefl'].GetAxis(axes_reco['origin']).SetRange(3, 4)  # make sure it is reflection
+            sparsesReco['RecoRefl'].GetAxis(axes_reco['cand_type']).SetRange(3, 4)  # make sure it is reflection
             axes_dict['RecoRefl'] = axes_reco
             sparsesReco['RecoReflPrompt'] = infiletask.Get('hf-task-d0/hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type')
-            sparsesReco['RecoReflPrompt'].GetAxis(axes_reco['origin']).SetRange(3, 4)  # make sure it is reflection
-            sparsesReco['RecoReflPrompt'].GetAxis(axes_reco['cand_type']).SetRange(2, 2) # make sure it is prompt
+            sparsesReco['RecoReflPrompt'].GetAxis(axes_reco['cand_type']).SetRange(3, 4)  # make sure it is reflection
+            sparsesReco['RecoReflPrompt'].GetAxis(axes_reco['origin']).SetRange(2, 2) # make sure it is prompt
             axes_dict['RecoReflPrompt'] = axes_reco
             sparsesReco['RecoReflFD'] = infiletask.Get('hf-task-d0/hBdtScoreVsMassVsPtVsPtBVsYVsOriginVsD0Type')
-            sparsesReco['RecoReflFD'].GetAxis(axes_reco['origin']).SetRange(3, 4)  # make sure it is reflection
-            sparsesReco['RecoReflFD'].GetAxis(axes_reco['cand_type']).SetRange(3, 3) # make sure it is FD
+            sparsesReco['RecoReflFD'].GetAxis(axes_reco['cand_type']).SetRange(3, 4)  # make sure it is reflection
+            sparsesReco['RecoReflFD'].GetAxis(axes_reco['origin']).SetRange(3, 3) # make sure it is FD
             axes_dict['RecoReflFD'] = axes_reco
             #TODO: safety checks for Dmeson reflecton and secondary peak
         elif config['Dmeson'] == 'Dplus':
@@ -129,8 +156,9 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, preprocessed=False, p
                 'pt_bmoth': 1,
                 'y': 2,
                 'origin': 3,
-                'cent': 4,
-                'occ': 5
+                'npvcontr': 4,
+                'cent': 5,
+                'occ': 6
             }
             sparsesGen['GenPrompt'] = infiletask.Get('hf-task-d0/hSparseAcc')
             sparsesGen['GenPrompt'].GetAxis(axes_gen['origin']).SetRange(2, 2)  # make sure it is prompt
