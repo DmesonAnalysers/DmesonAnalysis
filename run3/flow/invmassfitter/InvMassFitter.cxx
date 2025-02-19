@@ -246,7 +246,15 @@ void InvMassFitter::SetNumberOfParams(){
   if(fReflections) fNParsRfl=1;
   else fNParsRfl=0;
 
-  if(fTemplates) fNParsTempls=this->fTemplatesFuncts.size();
+  if(fTemplates) {
+    if(fRelWeights.size()>0) {
+      // in this case, all templates are reweighted with respect to the
+      // first and only the scaling parameter of the first one is left free in the fit
+      fNParsTempls=1;
+    } else {
+      fNParsTempls=fTemplatesFuncts.size();
+    }
+  }
   else fNParsTempls=0;
 
   if(fSecondPeak) fNParsSec=3;
@@ -492,14 +500,19 @@ TF1* InvMassFitter::CreateReflectionFunction(TString fname){
 //______________________________________________________________________________
 TF1* InvMassFitter::CreateTemplatesFunction(TString fname){
   /// Creates a function for templates in the D+ inv. mass distribution
-  TF1* functempl =  new TF1(fname.Data(),this,&InvMassFitter::FitFunction4Templ,fMinMass,fMaxMass,this->fTemplatesFuncts.size(),"InvMassFitter","FitFunction4Templ");
-  for(int iPar=0; iPar<functempl->GetNpar(); iPar++) {
-    functempl->SetParName(iPar, Form("w_%s",this->fTemplatesFuncts[iPar].GetName()));
-    if(this->fMassWeightsLowerLims[iPar] >= this->fMassWeightsUpperLims[iPar]) {
-      functempl->FixParameter(iPar,this->fMassInitWeights[iPar]);
-    } else {
-      functempl->SetParameter(iPar,this->fMassInitWeights[iPar]);
-      functempl->SetParLimits(iPar,this->fMassWeightsLowerLims[iPar],this->fMassWeightsUpperLims[iPar]);
+  TF1* functempl =  new TF1(fname.Data(),this,&InvMassFitter::FitFunction4Templ,fMinMass,fMaxMass,fNParsTempls,"InvMassFitter","FitFunction4Templ");
+  if(fNParsTempls == 1 && fTemplatesFuncts.size()>1) {
+    functempl->SetParName(0, "w_templates");
+  }
+  else {
+    for(int iPar=0; iPar<functempl->GetNpar(); iPar++) {
+      functempl->SetParName(iPar, Form("w_%s",this->fTemplatesFuncts[iPar].GetName()));
+      if(this->fMassWeightsLowerLims[iPar] >= this->fMassWeightsUpperLims[iPar]) {
+        functempl->FixParameter(iPar,this->fMassInitWeights[iPar]);
+      } else {
+        functempl->SetParameter(iPar,this->fMassInitWeights[iPar]);
+        functempl->SetParLimits(iPar,this->fMassWeightsLowerLims[iPar],this->fMassWeightsUpperLims[iPar]);
+      }
     }
   }
   return functempl;
@@ -536,6 +549,7 @@ TF1* InvMassFitter::CreateSignalFitFunction(TString fname, Double_t integsig){
     if(fFixedMean) funcsig->FixParameter(1,fMass);
     if(fBoundMean) funcsig->SetParLimits(1,fMassLowerLim, fMassUpperLim);
     funcsig->SetParameter(2,fSigmaSgn);
+    funcsig->SetParLimits(2,0,1);
     if(fFixedSigma) funcsig->FixParameter(2,fSigmaSgn);
     if(fBoundSigma) funcsig->SetParLimits(2,fSigmaVar*(1-fParSig), fSigmaVar*(1+fParSig));
     funcsig->SetParNames("SgnInt","Mean","Sigma");
@@ -743,7 +757,7 @@ Double_t InvMassFitter::FitFunction4Sgn (Double_t *x, Double_t *par){
     // * [1] = mean
     // * [2] = sigma
   //gaussian = [0]/TMath::Sqrt(2.*TMath::Pi())/[2]*exp[-(x-[1])*(x-[1])/(2*[2]*[2])]
-    sigval=par[0]/TMath::Sqrt(2.*TMath::Pi())/par[2]*TMath::Exp(-(x[0]-par[1])*(x[0]-par[1])/2./par[2]/par[2]);
+    sigval=par[0]/TMath::Sqrt(2.*TMath::Pi()*par[2]*par[2])*TMath::Exp(-(x[0]-par[1])*(x[0]-par[1])/2./par[2]/par[2]);
     break;
   case 1:
     //double gaussian = A/(sigma*sqrt(2*pi))*exp(-(x-mean)^2/2/sigma^2)
@@ -816,8 +830,14 @@ Double_t InvMassFitter::FitFunction4SecPeak (Double_t *x, Double_t *par){
 //_________________________________________________________________________
 Double_t InvMassFitter::FitFunction4Templ(Double_t *x, Double_t *par){
   Double_t totalTempl=0;
-  for(int iFunc=0; iFunc<this->fTemplatesFuncts.size(); iFunc++) {
-    totalTempl += par[iFunc] * this->fTemplatesFuncts[iFunc].Eval(x[0]);
+  if(fRelWeights.size()>0) {
+    for(int iTempl=0; iTempl<fNParsTempls; iTempl++) {
+      totalTempl += par[0]*fRelWeights[iTempl]*fTemplatesFuncts[iTempl].Eval(x[0]);
+    }    
+  } else {
+    for(int iFunc=0; iFunc<this->fTemplatesFuncts.size(); iFunc++) {
+      totalTempl += par[iFunc] * this->fTemplatesFuncts[iFunc].Eval(x[0]);
+    }
   }
   return totalTempl;
 }

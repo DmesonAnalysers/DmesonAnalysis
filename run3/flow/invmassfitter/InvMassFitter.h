@@ -100,12 +100,14 @@ class InvMassFitter : public TNamed {
   }
   void SetSmoothReflectionTemplate(Bool_t opt){fSmoothRfl=opt;}
   void SetTemplates(std::vector<TF1> templates, std::vector<Double_t> initweights,
-                    std::vector<Double_t> minweights, std::vector<Double_t> maxweights) {
+                    std::vector<Double_t> minweights, std::vector<Double_t> maxweights,
+                    std::vector<Double_t> relcombweights) {
     fTemplatesFuncts=templates;
     fMassInitWeights=initweights;
     fMassWeightsLowerLims=minweights;
     fMassWeightsUpperLims=maxweights;
     fTemplates=kTRUE;
+    fRelWeights=relcombweights;
   }
 
   void IncludeSecondGausPeak(Double_t mass, Bool_t fixm, Double_t width, Bool_t fixw){
@@ -258,6 +260,7 @@ class InvMassFitter : public TNamed {
   TF1*                  fTemplFunc;            /// fit function for templates
   Bool_t                fTemplates;            /// flag use/not use templates fit functions
   Int_t                 fNParsTempls;          /// fit parameters in templates fit function
+  std::vector<Double_t> fRelWeights;           /// relative weights of templates
   std::vector<Double_t> fMassWeightsUpperLims;     /// upper limit of the templates' weights
   std::vector<Double_t> fMassWeightsLowerLims;     /// lower limit of the templates' weights
   std::vector<Double_t> fMassInitWeights;          /// init value of the templates' weights

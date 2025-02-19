@@ -299,8 +299,8 @@ def run_full_cut_variation(config_flow,
 #___________________________________________________________________________________________________________________________
 	# Merge cut var figures in multipanel images
 	if merge_images:
-		print(f"\033[32m\nCut_var_image_merger({output_dir}, {suffix})\033[0m")
-		cut_var_image_merger(output_dir, suffix)
+		print(f"\033[32m\nCut_var_image_merger({config_flow}, {output_dir}, {suffix})\033[0m")
+		cut_var_image_merger(config, output_dir, suffix)
 	return
 
 if __name__ == "__main__":
@@ -319,6 +319,7 @@ if __name__ == "__main__":
 	parser.add_argument("--do_merge_images", "-mergeim", action="store_true", help="skip v2 vs FD fraction")
 	args = parser.parse_args()
 
+	start_time = time.time()
 	run_full_cut_variation(args.flow_config, 
                            args.preprocessed,
 						   args.do_calc_weights,
@@ -331,3 +332,7 @@ if __name__ == "__main__":
 						   args.do_data_driven_frac, 
 						   args.do_v2_vs_frac,
 						   args.do_merge_images)
+
+	end_time = time.time()
+	execution_time = end_time - start_time
+	print(f"\033[34mTotal execution time: {execution_time:.2f} seconds\033[0m")

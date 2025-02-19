@@ -62,10 +62,10 @@ public:
     fMaxRefl=maxRange;
     fReflections=kTRUE;
   }
-  void SetKDETemplates(std::vector<TF1> templs, std::vector<int> templsnames,
+  void SetKDETemplates(std::vector<TF1> templs, std::vector<std::string> templsnames,
                        std::vector<Double_t> initweights, std::vector<Double_t> minweights, std::vector<Double_t> maxweights, 
                        std::vector<Double_t> vninitweights, std::vector<Double_t> vnminweights, std::vector<Double_t> vnmaxweights, 
-                       Bool_t samevnofsignal) {
+                       Bool_t samevnofsignal, std::vector<Double_t> relcombweights, Bool_t anchortemplstosgn) {
     fKDETemplates=templs;
     fMassInitWeights=initweights;
     fMassWeightsLowerLims=minweights;
@@ -74,12 +74,14 @@ public:
     fVnWeightsLowerLims=vnminweights;
     fVnWeightsUpperLims=vnmaxweights;
     for(int iFunc=0; iFunc<fKDETemplates.size(); iFunc++) {
-      fKDETemplates[iFunc].SetName(Form("TemplFlag_%i", templsnames[iFunc]));
-      fKDETemplates[iFunc].SetTitle(Form("TemplFlag_%i", templsnames[iFunc]));
+      fKDETemplates[iFunc].SetName(Form("TemplFlag_%s", templsnames[iFunc].c_str()));
+      fKDETemplates[iFunc].SetTitle(Form("TemplFlag_%s", templsnames[iFunc].c_str()));
     }
     if(samevnofsignal) {printf("WARNING: Vn parameter of templates will be the same as the one of the signal! \n");}
     fTemplSameVnOfSignal=samevnofsignal;
     fTemplates=kTRUE;
+    fRelWeights=relcombweights;
+    fAnchorTemplsToSgn=anchortemplstosgn;
   }
   void SetBkgPars(std::vector<Double_t> initpars) {
     fMassBkgInitPars = initpars;
@@ -364,6 +366,7 @@ private:
   std::vector<TF1>      fKDETemplates;                  /// vector to store TKDE to be added as templates to the fit function 
   std::vector<TF1 *>    fVnCompsDraw;                   /// vector to store TKDE to be added as templates to the fit function 
   std::vector<TF1 *>    fKDEMassTemplatesDraw;          /// vector to store TKDE to be added as templates to the fit function 
+  std::vector<Double_t> fRelWeights;                    /// relative weights of templates 
   std::vector<Double_t> fMassWeightsUpperLims;          /// upper limit of the templates' weights
   std::vector<Double_t> fMassWeightsLowerLims;          /// lower limit of the templates' weights
   std::vector<Double_t> fVnWeightsUpperLims;            /// upper limit of the templates' weights
@@ -371,6 +374,7 @@ private:
   std::vector<Double_t> fMassInitWeights;               /// init values of the templates' weights
   std::vector<Double_t> fVnInitWeights;                 /// init values of the templates' weights
   Bool_t                fTemplSameVnOfSignal;           /// init values of the templates' weights
+  Bool_t                fAnchorTemplsToSgn;             /// init values of the templates' weights
 
     /// \cond CLASSDEF
   ClassDef(VnVsMassFitter,5);
