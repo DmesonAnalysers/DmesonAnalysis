@@ -86,8 +86,8 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
         hV2[-1].SetDirectory(0)
 
         inFracFile = TFile.Open(fracFile)
-        hFracFD.append(inFracFile.Get('hEffFD'))
-        hFracPrompt.append(inFracFile.Get('hEffPrompt'))
+        hFracFD.append(inFracFile.Get('hFDFrac'))
+        hFracPrompt.append(inFracFile.Get('hPromptFrac'))
         hFracFD[-1].SetDirectory(0)
         hFracPrompt[-1].SetDirectory(0)
 
