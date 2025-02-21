@@ -51,7 +51,7 @@ def cook_thnsparse(thnsparse_list, ptmins, ptmaxs, axestokeep):
 def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir):
     
     # Load the ThnSparse
-    thnsparse_list, _, _, sparse_axes = get_sparses(config, True, False, False)
+    thnsparse_list, _, _, sparse_axes = get_sparses(config, True, False, False, config['flow_files'])
 
     os.makedirs(f'{outputDir}/pre/AnRes', exist_ok=True)
     out_file = TFile(f'{outputDir}/pre/AnRes/Projections_{centmin}_{centmax}_{ptmins}_{ptmaxs}.root', 'recreate')
@@ -68,6 +68,7 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
     def process_pt_bin(iPt, ptmin, ptmax, centmin, centmax, bkg_max_cut, thnsparse_list, axestokeep, outputDir):
         print(f'Processing pT bin {ptmin} - {ptmax}, cent {centmin}-{centmax}')
         # add possibility to apply cuts for different variables
+        print(thnsparse_list)
         for iThn, (sparse_key, sparse) in enumerate(thnsparse_list.items()):
             cloned_sparse = sparse.Clone()
             cloned_sparse.GetAxis(sparse_axes['Flow']['Pt']).SetRangeUser(ptmin, ptmax)
