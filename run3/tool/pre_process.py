@@ -68,7 +68,6 @@ def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir)
     def process_pt_bin(iPt, ptmin, ptmax, centmin, centmax, bkg_max_cut, thnsparse_list, axestokeep, outputDir):
         print(f'Processing pT bin {ptmin} - {ptmax}, cent {centmin}-{centmax}')
         # add possibility to apply cuts for different variables
-        print(thnsparse_list)
         for iThn, (sparse_key, sparse) in enumerate(thnsparse_list.items()):
             cloned_sparse = sparse.Clone()
             cloned_sparse.GetAxis(sparse_axes['Flow']['Pt']).SetRangeUser(ptmin, ptmax)
