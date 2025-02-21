@@ -50,6 +50,7 @@ def proj_data(sparse_flow, ptMin, ptMax, cent_min, cent_max, axes, inv_mass_bins
             hist_vn_sp.Scale(1./reso)
     else:
         hist_mass = sparse_flow.Projection(axes['Flow']['Mass'])
+        hist_fd = sparse_flow.Projection(axes['Flow']['score_FD'])
         hist_vn_sp = get_vn_versus_mass(sparse_flow, inv_mass_bins, axes['Flow']['Mass'], axes['Flow']['sp'])
         hist_vn_sp.SetDirectory(0)
         if reso > 0:
@@ -353,7 +354,7 @@ if __name__ == "__main__":
     parser.add_argument('cutsetConfig', metavar='text',
                         default='cutsetConfig.yaml', help='cutset configuration file')
     parser.add_argument('anres_dir', metavar='text', 
-                        nargs='+', help='input ROOT files with anres')
+                        nargs='*', help='input ROOT files with anres')
     parser.add_argument('--preprocessed', action='store_true', 
                         help='Determines whether the sparses are pre-processed')
     parser.add_argument("--ptweights", "-w", metavar="text", nargs=2, required=False,
@@ -379,6 +380,7 @@ if __name__ == "__main__":
     cent, (cent_min, cent_max) = get_centrality_bins(args.centrality)
     outfile_dir = 'hf-candidate-creator-2prong' if config['Dmeson'] == 'Dzero' else 'hf-candidate-creator-3prong'
     # REVIEW the mc_filename is the same as the eff_filename so no need to use mc_filename.
+    print('infilemc')
     infilemc = TFile.Open(config['eff_filename'], 'r')
     histo_cent = infilemc.Get(f'{outfile_dir}/hSelCollisionsCent')
     histo_cent.GetXaxis().SetRangeUser(cent_min, cent_max)
@@ -404,10 +406,12 @@ if __name__ == "__main__":
     histo_cent.Write()
     resofile.Close()
     infilemc.Close()
+    print('infilemc.Close()')
 
     # load thnsparse
     # REVIEW: 
     # for the main workflow, only the config_flow
+    print('LOADING')
     sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.anres_dir, args.preprocessed, f'{config["skim_out_dir"]}')
     if not args.preprocessed:
         for key, iSparse in sparsesFlow.items():

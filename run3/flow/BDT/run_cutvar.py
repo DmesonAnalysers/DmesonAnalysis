@@ -4,8 +4,10 @@ import numpy as np
 import argparse
 import yaml
 import shutil
+import concurrent.futures
+import time
 sys.path.append('..')
-from flow_analysis_utils import get_cut_sets_config
+from flow_analysis_utils import get_cut_sets_config, cut_var_image_merger
 from ComputeDataDriFrac_flow import main_data_driven_frac
 from ComputeV2vsFDFrac import main_v2_vs_frac
 from concurrent.futures import ProcessPoolExecutor
@@ -16,26 +18,35 @@ def check_dir(dir):
 		print(f"\033[32m{dir} does not exist, it will be created\033[0m")
 		os.makedirs(dir)
 	else:
-		print(f"\033[33m{dir} already exists, it will be removed and recreat\033[0m")
+		print(f"\033[33m{dir} already exists, it will be removed and recreated\033[0m")
 		shutil.rmtree(dir)
 		os.makedirs(dir)
 
 	return
 
-def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffix, vn_method, use_preprocessed, 
-						   skip_calc_weights=False,
-						   skip_make_yaml=False, 
-						   skip_proj_mc=False,
-						   skip_efficiency=False,
-						   skip_vn = False,
-						   skip_frac_cut_var=False,
-						   skip_data_driven_frac=False,
-						   skip_v2_vs_frac=False):
-
+def run_full_cut_variation(config_flow,
+                           use_preprocessed, 
+						   calc_weights=False,
+						   make_yaml=False, 
+						   proj=False,
+						   efficiency=False,
+						   vn = False,
+						   frac_cut_var=False,
+						   data_driven_frac=False,
+						   v2_vs_frac=False,
+         				   merge_images=False):    
 #___________________________________________________________________________________________________________________________
 	# Load and copy the configuration file
 	with open(config_flow, 'r') as cfgFlow:
 		config = yaml.safe_load(cfgFlow)
+
+	anres_dir = config['anresdir'] 
+	cent = config['centrality'] 
+	res_file = config['res_file'] 
+	output = config['out_dir'] 
+	suffix = config['suffix'] 
+	vn_method = config['vn_method']
+	n_workers = config['nworkers']
 	
 	CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
 	# REVIEW: uniformize the max cutsets variable
@@ -52,7 +63,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	os.makedirs(f'{output_dir}/config_flow', exist_ok=True)
 	while os.path.exists(f'{output_dir}/config_flow/config_flow_{suffix}_{config_suffix}.yml'):
 		config_suffix = config_suffix + 1
-	os.system(f'cp {config_flow} {output_dir}/config_flow/config_flow_{suffix}_{config_suffix}.yml')
+	os.system(f'cp {config_flow} {output_dir}/{os.path.splitext(os.path.basename(config_flow))[0]}_{suffix}_{config_suffix}.yml')
 
 	# backup the results into history
 	file_to_check = f"{output_dir}/V2VsFrac/V2VsFrac_{suffix}.root"
@@ -60,11 +71,11 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 		for sub_path in ['ry', 'CutVarFrac', 'V2VsFrac']:
 			os.system(f"mkdir -p {output_dir}/history/{config_suffix}/{sub_path}")
 			os.system(f"cp {output_dir}/{sub_path}/* {output_dir}/history/{config_suffix}/{sub_path}")
-		os.system(f"cp {output_dir}/config_flow/config_flow_{suffix}_{config_suffix-1}.yml {output_dir}/history/{config_suffix}")
+		os.system(f"cp {output_dir}/config_flow/{os.path.splitext(os.path.basename(config_flow))[0]}_{suffix}_{config_suffix-1}.yml {output_dir}/history/{config_suffix}")
 
 #___________________________________________________________________________________________________________________________
 	# calculate the pT weights
-	if not skip_calc_weights:
+	if calc_weights:
 		check_dir(f"{output_dir}/ptweights")
 		CalcWeiPath = "./ComputePtWeights.py"
 
@@ -82,7 +93,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 
 #___________________________________________________________________________________________________________________________
 	# make yaml file
-	if not skip_make_yaml:
+	if make_yaml:
 		check_dir(f"{output_dir}/config")
 		MakeyamlPath = './make_yaml_for_ml.py'
 		pre_process = "--preprocessed" if use_preprocessed else ""
@@ -94,74 +105,86 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 
 #___________________________________________________________________________________________________________________________
 	# Projection for MC and apply the ptweights
-	if not skip_proj_mc:
-		check_dir(f"{output_dir}/proj")
-		ProjMcPath = "./proj_thn_mc.py"
+	if proj:
+		ProjPath = "./proj_thn.py"
 		if use_preprocessed:
 			pre_process = "--preprocessed"
 		else:
 			pre_process = ""
-			anres_fles = ' '.join(anres_dir)
-		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root') and not given_ptweights:
-			for i in range(mCutSets):
-				iCutSets = f"{i:02d}"
+			anres_files = ' '.join(anres_dir)
+     	check_dir(f"{output_dir}/proj")
+		print('Projecting histograms')
+    	
+     	def run_projections(i):
+			"""Run simulation fit for a given cutset index."""
+			iCutSets = f"{i:02d}"
+			print(f"\033[32mProcessing cutset {iCutSets}...\033[0m")
+			if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root')  and not given_ptweights:
 				# REVIEW: add the list of anres files
-				print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
-				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
-		else:
-			for i in range(mCutSets):
-				iCutSets = f"{i:02d}"
-
+				print(f"\033[32mpython3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
+				os.system(f"python3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+			else:
 				if given_ptweights:
 					ptweightsPath = given_ptWeightsPath
 				else:
 					ptweightsPath = f'{output_dir}/ptweights/pTweight_{suffix}.root'
 
 				print(
-					f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} "
+					f"\033[32mpython3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} "
 					f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
 					f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
 					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} \033[0m"
 				)
     			# REVIEW: add the list of anres files
-				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} "
+				os.system(f"python3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} "
 						f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
 						f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
 						f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+
+		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
+			results_proj = list(executor.map(run_projections, range(mCutSets)))
 	else:
 		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")							
 
 #___________________________________________________________________________________________________________________________
 	# Compute the efficiency
-	if not skip_efficiency:
+	if efficiency:
 		check_dir(f"{output_dir}/eff")
 		EffPath = "./../compute_efficiency.py"
 
-		for i in range(mCutSets):
+		def run_efficiency(i):
+			"""Run efficiency computation for a given cutset index."""
 			iCutSets = f"{i:02d}"
 			print(f"\033[32mpython3 {EffPath} {config_flow} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -c {cent} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
 			print(f"\033[32mProcessing cutset {iCutSets}\033[0m")
 			os.system(f"python3 {EffPath} {config_flow} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -c {cent} -o {output_dir} -s {suffix}_{iCutSets} --batch")
+		
+  		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
+			results_eff = list(executor.map(run_efficiency, range(mCutSets)))
 	else:
 		print("\033[33mWARNING: Efficiency will not be performed\033[0m")
 
 #___________________________________________________________________________________________________________________________
 	# do the simulation fit to get the raw yields
-	if not skip_vn:
+	if vn:
 		check_dir(f"{output_dir}/ry")
 		SimFitPath = "./../get_vn_vs_mass.py"
 
-		for i in range(mCutSets):
+		def run_simfit(i):
+			"""Run simulation fit for a given cutset index."""
 			iCutSets = f"{i:02d}"
 			print(f"\033[32mpython3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method}\033[0m")
 			print(f"\033[32mProcessing cutset {iCutSets}\033[0m")
 			os.system(f"python3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method} --batch")
+		
+  		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
+			executor.map(run_simfit, range(mCutSets))
 	else:
 		print("\033[33mWARNING: vn extraction will not be performed\033[0m")
 
 #___________________________________________________________________________________________________________________________
 	# Compute the fraction by cut variation method
-	if not skip_frac_cut_var:
+	if frac_cut_var:
 		check_dir(f"{output_dir}/CutVarFrac")
 		CurVarFracPath = "./compute_frac_cut_var.py"
 
@@ -172,7 +195,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 
 #___________________________________________________________________________________________________________________________
 	# Compute fraction by Data-driven method
-	if not skip_data_driven_frac:
+	if data_driven_frac:
 		check_dir(f"{output_dir}/DataDrivenFrac")
 		DataDrivenFracPath = "./ComputeDataDriFrac_flow.py"
 
@@ -216,7 +239,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 
 #___________________________________________________________________________________________________________________________
 	# Compute v2 vs fraction
-	if not skip_v2_vs_frac:
+	if v2_vs_frac:
 		check_dir(f"{output_dir}/V2VsFrac")
 		v2vsFDFracPath = "./ComputeV2vsFDFrac.py"
 		
@@ -239,37 +262,44 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 			main_v2_vs_frac(config=config_flow, inputdir=output_dir, outputdir=output_dir, suffix=suffix, combined=False)
 	else:
 		print("\033[33mWARNING: v2 vs fraction will not be performed\033[0m")
-	
+
+#___________________________________________________________________________________________________________________________
+	# Merge cut var figures in multipanel images
+	if merge_images:
+		print(f"\033[32m\nCut_var_image_merger({config_flow}, {output_dir}, {suffix})\033[0m")
+		cut_var_image_merger(config, output_dir, suffix)
 	return
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Arguments')
 	parser.add_argument('flow_config', metavar='text', default='config_flow_d0.yml', help='configuration file')
-	parser.add_argument('anres_dir', metavar='text', nargs='+', help='input ROOT files with anres')
-	parser.add_argument("--centrality", "-c", metavar="text",default="k3050", help="centrality class")
-	parser.add_argument("--resolution", "-r",  default="", help="resolution file/value")
-	parser.add_argument("--outputdir", "-o", metavar="text", default=".", help="output directory")
-	parser.add_argument("--suffix", "-s", metavar="text", default="", help="suffix for output files")
-	parser.add_argument("--vn_method", "-vn", metavar="text", default="sp", help="vn technique (sp, ep, deltaphi)")
 	parser.add_argument("--preprocessed", "-prep", action="store_true", help="use preprocessed input")
-	parser.add_argument("--skip_pre_process", "-sprep", action="store_true", help="skip preprocessing of AnalysisResults files")
-	parser.add_argument("--skip_calc_weights", "-scw", action="store_true", help="skip calculation of weights")
-	parser.add_argument("--skip_make_yaml", "-smy", action="store_true", help="skip make yaml")
-	parser.add_argument("--skip_proj_mc", "-spm", action="store_true", help="skip projection for MC")
-	parser.add_argument("--skip_efficiency", "-se", action="store_true", help="skip efficiency")
-	parser.add_argument("--skip_vn", "-svn", action="store_true", help="skip vn extraction")
-	parser.add_argument("--skip_frac_cut_var", "-sf", action="store_true", help="skip fraction by cut variation")
-	parser.add_argument("--skip_data_driven_frac", "-sddf", action="store_true", help="skip fraction by data-driven method")
-	parser.add_argument("--skip_v2_vs_frac", "-sv2fd", action="store_true", help="skip v2 vs FD fraction")
+	parser.add_argument("--do_calc_weights", "-cw", action="store_true", help="perform calculation of weights")
+	parser.add_argument("--do_make_yaml", "-my", action="store_true", help="perform make yaml")
+	parser.add_argument("--do_projections", "-pd", action="store_true", help="perform projections")
+	parser.add_argument("--do_efficiency", "-e", action="store_true", help="perform efficiency")
+	parser.add_argument("--do_vn", "-vn", action="store_true", help="perform vn extraction")
+	parser.add_argument("--do_frac_cut_var", "-f", action="store_true", help="perform fraction by cut variation")
+	parser.add_argument("--do_data_driven_frac", "-ddf", action="store_true", help="perform fraction by data-driven method")
+	parser.add_argument("--do_v2_vs_frac", "-v2fd", action="store_true", help="perform v2 vs FD fraction")
+	parser.add_argument("--do_merge_images", "-mergeim", action="store_true", help="perform v2 vs FD fraction")
 	args = parser.parse_args()
 
-	run_full_cut_variation(args.flow_config, args.anres_dir, args.centrality, args.resolution, args.outputdir, args.suffix, args.vn_method, args.preprocessed,
-						args.skip_calc_weights,
-						args.skip_make_yaml, 
-						args.skip_proj_mc, 
-						args.skip_efficiency, 
-						args.skip_vn,
-						args.skip_frac_cut_var, 
-						args.skip_data_driven_frac, 
-						args.skip_v2_vs_frac)
+	start_time = time.time()
+	run_full_cut_variation(args.flow_config,
+                           args.preprocessed,
+						   args.do_calc_weights,
+						   args.do_make_yaml, 
+						   args.do_projections,
+						   args.do_efficiency, 
+						   args.do_vn,
+						   args.do_frac_cut_var, 
+						   args.do_data_driven_frac, 
+						   args.do_v2_vs_frac,
+						   args.do_merge_images)
+
+	end_time = time.time()
+	execution_time = end_time - start_time
+	print(f"\033[34mTotal execution time: {execution_time:.2f} seconds\033[0m")
+ 
