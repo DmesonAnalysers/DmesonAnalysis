@@ -146,7 +146,7 @@ def run_full_cut_variation(config_flow,
 		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
 			results_proj = list(executor.map(run_projections, range(mCutSets)))
 	else:
-		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")
+		print("\033[33mWARNING: Projections will not be performed\033[0m")
 
 #___________________________________________________________________________________________________________________________
 	# Compute the efficiency

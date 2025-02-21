@@ -44,7 +44,7 @@ def run_full_cut_variation(config_flow,
 	output = config['out_dir']
 	suffix = config['suffix']
 	vn_method = config['vn_method']
-	n_workers = 6
+	n_workers = config.get('nworkers', 1)
 
 	CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
 	nCutSets = max(CutSets)
@@ -142,15 +142,15 @@ def run_full_cut_variation(config_flow,
 	else:
 		print("\033[33mWARNING: Efficiency will not be performed\033[0m")
 
-	SimFitPath = "./../get_vn_vs_mass.py"
-	def run_simfit(i):
-		"""Run simulation fit for a given cutset index."""
-		iCutSets = f"{i:02d}"
-		command = f"python3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method} --batch"
-		print(f"\033[32mProcessing cutset {iCutSets}...\033[0m")
-		os.system(command)
-
 	if vn:
+		check_dir(f"{output_dir}/ry")
+		SimFitPath = "./../get_vn_vs_mass.py"
+		def run_simfit(i):
+			"""Run simulation fit for a given cutset index."""
+			iCutSets = f"{i:02d}"
+			command = f"python3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method} --batch"
+			print(f"\033[32mProcessing cutset {iCutSets}...\033[0m")
+			os.system(command)
 		# Ensure the output directory exists
 		check_dir(f"{output_dir}/ry")
 		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:

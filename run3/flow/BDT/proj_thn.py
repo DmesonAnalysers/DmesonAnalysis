@@ -20,7 +20,6 @@ from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins, reweigh
 ### please fill your path of DmesonAnalysis
 sys.path.append('../../..')
 
-def proj_data(sparse_flow, ptMin, ptMax, cent_min, cent_max, axes, inv_mass_bins, reso):
 def proj_data(sparse_flow, ptMin, ptMax, centMin, centMax, axes, inv_mass_bins, reso, writeopt):
 
     if isinstance(sparse_flow, dict):
@@ -58,12 +57,12 @@ def proj_data(sparse_flow, ptMin, ptMax, centMin, centMax, axes, inv_mass_bins, 
         hist_vn_sp.SetDirectory(0)
         if reso > 0:
             hist_vn_sp.Scale(1./reso)
+        hist_fd = sparse_flow.Projection(axes['Flow']['score_FD'])
+        hist_fd.SetDirectory(0)
 
-    hist_mass.Write(f'hist_mass_cent{cent_min}_{cent_max}_pt{ptMin}_{ptMax}')
-    hist_vn_sp.Write(f'hist_vn_sp_pt{ptMin}_{ptMax}')
-    hist_fd.Write(f'hist_fd_cent{cent_min}_{cent_max}_pt{ptMin}_{ptMax}')
     hist_mass.Write(f'hist_mass_cent{centMin}_{centMax}_pt{ptMin}_{ptMax}', writeopt)
     hist_vn_sp.Write(f'hist_vn_sp_pt{ptMin}_{ptMax}', writeopt)
+    hist_fd.Write(f'hist_fd_cent{cent_min}_{cent_max}_pt{ptMin}_{ptMax}', writeopt)
 
 def proj_mc_reco(sparsesReco, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB, writeopt):
     
@@ -325,7 +324,6 @@ if __name__ == "__main__":
                 write_opt_cent_reso = TObject.kOverwrite
 
     outfile_dir = 'hf-candidate-creator-2prong' if config['Dmeson'] == 'Dzero' else 'hf-candidate-creator-3prong'
-    # REVIEW the mc_filename is the same as the eff_filename so no need to use mc_filename.
     infilemc = TFile.Open(config['eff_filename'], 'r')
     histo_cent = infilemc.Get(f'{outfile_dir}/hSelCollisionsCent')
     histo_cent.GetXaxis().SetRangeUser(cent_min, cent_max)
