@@ -57,9 +57,6 @@ def run_full_cut_variation(config_flow,
 
 	print(f"\033[32mINFO: Number of cutsets: {mCutSets}\033[0m")
 
-	output_dir = f"{output}/cutvar_{suffix}"
- 
-	os.system(f"mkdir -p {output_dir}")
 
 	cent = config['centrality']
 	res_file = config['res_file']
@@ -67,6 +64,9 @@ def run_full_cut_variation(config_flow,
 	suffix = config['suffix']
 	vn_method = config['vn_method']
 
+	output_dir = f"{output}/cutvar_{suffix}"
+	os.system(f"mkdir -p {output_dir}")
+  
 	# copy the configuration file
 	config_suffix = 0
 	os.makedirs(f'{output_dir}/config_flow', exist_ok=True)
@@ -131,15 +131,12 @@ def run_full_cut_variation(config_flow,
 				iCutSets = f"{i:02d}"
 				print(f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
 				os.system(f"python3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
-		else:
-			pre_process = ""
-			anres_fles = ' '.join(anres_dir)
 		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root') and not given_ptweights:
 			for i in range(mCutSets):
 				iCutSets = f"{i:02d}"
-				# REVIEW: add the list of anres files
-				print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
-				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+				# REVIEW: add the list of anres files --> by now removed here, to be added in projections
+				print(f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
+				os.system(f"python3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
 		else:
 			for i in range(mCutSets):
 				iCutSets = f"{i:02d}"
@@ -150,7 +147,7 @@ def run_full_cut_variation(config_flow,
 					ptweightsPath = f'{output_dir}/ptweights/pTweight_{suffix}.root'
 
 				print(
-					f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} "
+					f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} "
 					f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
 					f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
 					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} >> {log_file} 2>&1"
@@ -162,7 +159,7 @@ def run_full_cut_variation(config_flow,
 		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
 			results_proj = list(executor.map(run_projections, range(mCutSets)))
 	else:
-		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")
+		print("\033[33mWARNING: Projections will not be performed\033[0m")
 
 
 #___________________________________________________________________________________________________________________________

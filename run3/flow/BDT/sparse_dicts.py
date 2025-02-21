@@ -154,6 +154,7 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
             if config_pre['ptmins'] != config['ptmins'] or config_pre['ptmaxs'] != config['ptmaxs']:
                 raise ValueError("Error: ptmins and ptmaxs in config_pre.yaml do not match the ones in the config.yaml")
             axes_dict['Flow'] = {ax: iax for iax, ax in enumerate(config_pre['axestokeep'])}
+            # print(f"preprocess_dir: {preprocess_dir}")
             for ptmin, ptmax in zip(config_pre['ptmins'], config_pre['ptmaxs']):
                 print(f"Loading flow sparse from file: {preprocess_dir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
                 infileflow = TFile(f"{preprocess_dir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
