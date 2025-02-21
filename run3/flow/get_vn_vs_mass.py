@@ -178,8 +178,8 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     fTotFuncMass, fTotFuncVn, fSgnFuncMass, fBkgFuncMass, fMassBkgRflFunc, fMassSecPeakFunc, fBkgFuncVn, fVnSecPeakFunc, fVnCompFuncts = [], [], [], [], [], [], [], [], []
     hMCSgn, hMCRefl = [], []
     
-    fMassTemplFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if useTemplates and (particleName == 'Dplus' or particleName == 'Ds') else []
-    fVnCompFuncts = [[None]*len(fitConfig['TemplsFlags']) for _ in range(len(ptMins))] if fitConfig.get('DrawVnComps') else []
+    fMassTemplFuncts = [[None]*len(fitConfig['TemplsQueries']) for _ in range(len(ptMins))] if fitConfig.get('IncludeTempls') and (particleName == 'Dplus' or particleName == 'Ds') else []
+    fVnCompFuncts = [[None]*len(fitConfig['TemplsQueries']) for _ in range(len(ptMins))] if fitConfig.get('DrawVnComps') else []
 
     hist_reso = infile.Get('hist_reso')
     hist_reso.SetDirectory(0)
@@ -479,10 +479,10 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 #     # quit()
                 # else:
                 
-                if fitConfig.get['TemplsRelWeights']:
+                if fitConfig.get('TemplsRelWeights'):
                     TemplsRelWeights = [eval(expr) if isinstance(expr, str) else expr for expr in fitConfig["TemplsRelWeights"]] 
                     anchorTemplsToSgn = True
-                elif fitConfig.get['TemplsRelWeightsToSgn']:
+                elif fitConfig.get('TemplsRelWeightsToSgn'):
                     TemplsRelWeights = [eval(expr) if isinstance(expr, str) else expr for expr in fitConfig["TemplsRelWeightsToSgn"]] 
                     anchorTemplsToSgn = False
                 else:
@@ -508,9 +508,9 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
             # collect fit results
             vnFitter[iPt].SimultaneousFit(False)
             # REVIEW: delete this vnComps = vnFitter[iPt].GetVnCompsFuncts()
-            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, fitConfig['IncludeKDETempls'][iPt])
-            vnComps = vnFitter[iPt].GetVnCompsFuncts()
-            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, True)
+            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, useTemplates)
+            # vnComps = vnFitter[iPt].GetVnCompsFuncts()
+            # vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, True)
             fTotFuncMass.append(vnResults['fTotFuncMass'])
             fTotFuncVn.append(vnResults['fTotFuncVn'])
             fSgnFuncMass.append(vnResults['fSgnFuncMass'])

@@ -1197,7 +1197,7 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
   for(Int_t iPar=0; iPar<fNParsTempls; iPar++) {templpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl];}
   if (fAnchorTemplsToSgn) {
     // templates are scaled with sgnInt * relWeight
-    templpars[0] = pars[iPar+fNParsMassBkg]; 
+    templpars[0] = pars[fNParsMassBkg]; 
   }
 
   //bkg vn parameters

@@ -158,7 +158,7 @@ def get_templates_weights(tree_file, pt_min, pt_max, sgn_weight, templ_weights, 
     hist_frac_bkg_to_signal.SetBinContent(ipt+1,
                                           hist_templ_comb.Integral() / hist_signal.Integral())
 
-    if outfile != ''
+    if outfile != '':
         hist_frac_bkg_to_signal.Write()
         hist_signal.Write()
         for hist in hist_templs:
