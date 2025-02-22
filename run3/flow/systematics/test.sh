@@ -15,21 +15,21 @@ mkdir -p $output_dir
 rm -rf $output_dir/config_sys
 python3 ./make_yaml_for_syst.py $config_default -m $config_modifies -o $output_dir -mb
 
-# produce the pre-processed files, 
+# produce the pre-processed files
 # --preselected is optional, it means the pre-selection is applied, and flow/systematics/modifications_config_fit.yml should contain the AnRes file with single pt bin
-# python3 /home/wuct/ALICE/local/DmesonAnalysis/run3/tool/pre_process.py $output_dir/config_sys/config_pre.yml --out_dir $output_dir --pre --preselected
+python3 /home/wuct/ALICE/local/DmesonAnalysis/run3/tool/pre_process.py $output_dir/config_sys/config_pre.yml --out_dir $output_dir --pre --preselected
 
 export anres_dir=$(ls $output_dir/pre/AnRes/AnalysisResults*.root)
 
 # Uncorelated: provide the projection of MC, and the efficiency
-# python3 /home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/run_cutvar.py ${output_dir}/config_sys/config_default.yml \
-#         $anres_dir -c $cent -r $res_file -o $output_dir/pre -s central -vn sp \
-#         --preprocessed --skip_frac_cut_var --skip_data_driven_frac --skip_v2_vs_frac
+python3 /home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/run_cutvar.py ${output_dir}/config_sys/config_default.yml \
+        $anres_dir -c $cent -r $res_file -o $output_dir/pre -s central -vn sp \
+        --preprocessed --skip_frac_cut_var --skip_data_driven_frac --skip_v2_vs_frac
 
 # # Correlated: provide the fraction
-# python3 /home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/run_cutvar.py ${output_dir}/config_sys/config_default_corelated.yml \
-#         $anres_dir -c $cent -r $res_file -o $output_dir/pre -s correlated -vn sp \
-#         --preprocessed --skip_calc_weights --skip_make_yaml --skip_proj_mc --skip_efficiency --skip_vn
+python3 /home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT/run_cutvar.py ${output_dir}/config_sys/config_default_corelated.yml \
+        $anres_dir -c $cent -r $res_file -o $output_dir/pre -s correlated -vn sp \
+        --preprocessed --skip_calc_weights --skip_make_yaml --skip_proj_mc --skip_efficiency --skip_vn
 
 parallel_func() {
     config_file=$1
