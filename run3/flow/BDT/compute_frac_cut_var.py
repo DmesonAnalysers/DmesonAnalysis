@@ -2,19 +2,19 @@ import argparse
 import yaml
 import sys
 import os
-import numpy as np
+import numpy as np # type: ignore
 from itertools import product
 import ROOT
-from ROOT import TFile, TCanvas, TLegend, TLatex, gROOT
-from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, gRandom, TF1  # pylint: disable=import-error,no-name-in-module
-from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow # pylint: disable=import-error,no-name-in-module
-from ROOT import kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross, kOpenDiamond # pylint: disable=import-error,no-name-in-module
+from ROOT import TFile, TCanvas, TLegend, TLatex, gROOT # type: ignore
+from ROOT import TFile, TH1F, TH2F, TCanvas, TLegend, TGraphAsymmErrors, TLatex, gRandom, TF1  # pylint: disable=import-error,no-name-in-module # type: ignore
+from ROOT import kBlack, kRed, kAzure, kGreen, kRainBow # pylint: disable=import-error,no-name-in-module # type: ignore
+from ROOT import kFullCircle, kFullSquare, kOpenSquare, kOpenCircle, kOpenCross, kOpenDiamond # pylint: disable=import-error,no-name-in-module # type: ignore
 from os.path import exists
 sys.path.append('../../../')
 sys.path.append('..')
 from flow_analysis_utils import get_cut_sets_config
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle
-from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, ApplyVariationToList
+from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle # type: ignore
+from utils.AnalysisUtils import GetPromptFDYieldsAnalyticMinimisation, ApplyVariationToList # type: ignore
 
 def compute_frac_cut_var(config_flow, inputdir, outputdir, suffix, batch=False):
 
@@ -53,7 +53,7 @@ def compute_frac_cut_var(config_flow, inputdir, outputdir, suffix, batch=False):
 
     for inFileNameRawYield, inFileNameEff in zip(rawYieldFiles, effFiles):
 
-        inFileRawYield = ROOT.TFile.Open(inFileNameRawYield)
+        inFileRawYield = TFile.Open(inFileNameRawYield)
         hRawYields.append(inFileRawYield.Get('hRawYieldsSimFit'))
         hRawYields[-1].SetDirectory(0)
         
@@ -324,4 +324,4 @@ if __name__ == "__main__":
                         help="run in batch mode")
     args = parser.parse_args()
 
-    compute_frac_cut_var(args.config, args.inputdir, args.outputdir, args.suffix, args.batch)
+    compute_frac_cut_var(args.config_flow, args.inputdir, args.outputdir, args.suffix, args.batch)

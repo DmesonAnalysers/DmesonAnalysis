@@ -117,7 +117,6 @@ def make_yaml(flow_config, outputdir, suffix):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Arguments')
     parser.add_argument('flow_config', metavar='text', default='config_flow.yml')
-    parser.add_argument('--preprocessed', action='store_true', help='Flag to indicate preprocessing of the sparses')
     parser.add_argument("--outputdir", "-o", metavar="text", default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text", default="", help="suffix for output files")
     args = parser.parse_args()

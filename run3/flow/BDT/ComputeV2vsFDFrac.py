@@ -73,21 +73,30 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
     
     CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
 
-    if len(fracFiles) != len(v2Files):
-        raise ValueError('Number of eff and frac files do not match')
+    #================= Load the files =================
+    # consider the different number of cutsets
+    if len(fracFiles) < len(v2Files):
+        raise ValueError('Number of frac files is less than the number of v2 files')
 
     hV2, gV2, hFracFD, hFracPrompt = [], [], [], []
     avrV2XErrL, avrV2XErrH = [], []
 
-    for fracFile, v2File in zip(fracFiles, v2Files):
+    # for fracFile, v2File in zip(fracFiles, v2Files):
+    #     inV2File = TFile.Open(v2File)
+    #     hV2.append(inV2File.Get('hvnSimFit'))
+    #     gV2.append(inV2File.Get('gvnSimFit'))
+    #     hV2[-1].SetDirectory(0)
+
+    for iFile, v2File in enumerate(v2Files):
         inV2File = TFile.Open(v2File)
         hV2.append(inV2File.Get('hvnSimFit'))
         gV2.append(inV2File.Get('gvnSimFit'))
         hV2[-1].SetDirectory(0)
-
+        
+        fracFile = fracFiles[iFile]
         inFracFile = TFile.Open(fracFile)
-        hFracFD.append(inFracFile.Get('hEffFD'))
-        hFracPrompt.append(inFracFile.Get('hEffPrompt'))
+        hFracFD.append(inFracFile.Get('hFDFrac'))
+        hFracPrompt.append(inFracFile.Get('hPromptFrac'))
         hFracFD[-1].SetDirectory(0)
         hFracPrompt[-1].SetDirectory(0)
 
@@ -114,8 +123,9 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
 
         v2Values = [hV2[i].GetBinContent(iPt + 1) for i in range(nSets)]
         v2Unc = [hV2[i].GetBinError(iPt + 1) for i in range(nSets)]
-        fracFDValues = [hFracFD[i].GetBinContent(iPt + 1) for i in range(nSets)]
-        fracFDUnc = [hFracFD[i].GetBinError(iPt + 1) for i in range(nSets)]
+        fracBins = [hFracFD[i].GetXaxis().FindBin(ptCent) for i in range(nSets)]
+        fracFDValues = [hFracFD[i].GetBinContent(fracBins[i]) for i in range(nSets)]
+        fracFDUnc = [hFracFD[i].GetBinError(fracBins[i]) for i in range(nSets)]
 
         for iSet, (v2, fracFD, v2Unc, fracFDUnc) in enumerate(zip(v2Values, fracFDValues, v2Unc, fracFDUnc)):
             print(f"pt: {ptCent:.4f}, v2: {v2:.4f}, fracFD: {fracFD:.4f}")

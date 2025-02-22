@@ -5,14 +5,14 @@ python3 proj_thn_mc.py config_flow.yml config_cutset.yml -o path/to/output -s te
                                                         --ptWeightsB path/to/file histName
 '''
 import ROOT
-import uproot
+import uproot # type: ignore
 import yaml
 import argparse
 import sys
 import os
-from ROOT import gROOT, TFile
-from alive_progress import alive_bar
-from scipy.interpolate import InterpolatedUnivariateSpline
+from ROOT import gROOT, TFile # type: ignore
+from alive_progress import alive_bar # type: ignore
+from scipy.interpolate import InterpolatedUnivariateSpline # type: ignore
 from sparse_dicts import get_sparses 
 sys.path.append('..')
 from flow_analysis_utils import get_vn_versus_mass, get_centrality_bins
@@ -50,6 +50,9 @@ def proj_data(sparse_flow, ptMin, ptMax, cent_min, cent_max, axes, inv_mass_bins
             hist_vn_sp.Scale(1./reso)
     else:
         hist_mass = sparse_flow.Projection(axes['Flow']['Mass'])
+        hist_fd = sparse_flow.Projection(axes['Flow']['score_FD'])
+        hist_fd.SetDirectory(0)
+        hist_mass.SetDirectory(0)
         hist_vn_sp = get_vn_versus_mass(sparse_flow, inv_mass_bins, axes['Flow']['Mass'], axes['Flow']['sp'])
         hist_vn_sp.SetDirectory(0)
         if reso > 0:
@@ -293,6 +296,7 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
         hGenPtFD = sparsesGen['GenFD'].Projection(axes['GenFD']['Pt'])
 
     ## write the output
+    # TODO: add the pt suffix
     hGenPtPrompt.Write(f'hPromptGenPt')
     hGenPtFD.Write(f'hFDGenPt')
 
@@ -368,13 +372,15 @@ if __name__ == "__main__":
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
+    parser.add_argument("--systematics", "-sys", action='store_true',
+                        required=False, help="enable systematics")
     args = parser.parse_args()
 
     with open(args.config, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
 
     os.makedirs(f'{args.outputdir}/proj', exist_ok=True)
-    outfile = ROOT.TFile(f'{args.outputdir}/proj/proj_{args.suffix}.root', 'RECREATE')
+    outfile = TFile(f'{args.outputdir}/proj/proj_{args.suffix}.root', 'RECREATE')
     
     cent, (cent_min, cent_max) = get_centrality_bins(args.centrality)
     outfile_dir = 'hf-candidate-creator-2prong' if config['Dmeson'] == 'Dzero' else 'hf-candidate-creator-3prong'
@@ -408,14 +414,19 @@ if __name__ == "__main__":
     # load thnsparse
     # REVIEW: 
     # for the main workflow, only the config_flow
-    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.anres_dir, args.preprocessed, f'{config["skim_out_dir"]}')
+    #================================================================================================
+    if args.systematics:
+        sparsesFlow, _, _, axes = get_sparses(config, True, False, False, args.anres_dir, args.preprocessed, f'{config["skim_out_dir"]}')
+    else:
+        sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.anres_dir, args.preprocessed, f'{config["skim_out_dir"]}')
+    
     if not args.preprocessed:
         for key, iSparse in sparsesFlow.items():
             iSparse.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
-    for key, iSparse in sparsesGen.items():
-        iSparse.GetAxis(axes[key]['cent']).SetRangeUser(cent_min, cent_max)
-    for key, iSparse in sparsesReco.items():
-        iSparse.GetAxis(axes[key]['cent']).SetRangeUser(cent_min, cent_max)
+    # for key, iSparse in sparsesGen.items():
+    #     iSparse.GetAxis(axes[key]['cent']).SetRangeUser(cent_min, cent_max)
+    # for key, iSparse in sparsesReco.items():
+    #     iSparse.GetAxis(axes[key]['cent']).SetRangeUser(cent_min, cent_max)
 
     with open(args.cutsetConfig, 'r') as ymlCutSetFile:
         cutSetCfg = yaml.load(ymlCutSetFile, yaml.FullLoader)
@@ -426,6 +437,13 @@ if __name__ == "__main__":
 
     with alive_bar(len(cutVars['Pt']['min']), title='Processing pT bins') as bar:
         for iPt, (ptMin, ptMax) in enumerate(zip(cutVars['Pt']['min'], cutVars['Pt']['max'])):
+            if args.systematics: # TODO len(config['ptmins']) == len(ptMin) is process all pt bins at the same time
+                if config['ptmins'][0] != ptMin or config['ptmaxs'][0] != ptMax:
+                    continue
+                else:
+                    inv_mass_bin = config['inv_mass_bins'][0]
+            else:
+                inv_mass_bin = config['inv_mass_bins'][iPt]
             print(f'Projecting distributions for {ptMin:.1f} < pT < {ptMax:.1f} GeV/c')
             ptLowLabel = ptMin * 10
             ptHighLabel = ptMax * 10
@@ -436,7 +454,8 @@ if __name__ == "__main__":
             if args.preprocessed:
                 print('PREPROCESSED')
                 sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetAxis(axes['Flow']['score_FD']).SetRangeUser(cutVars['score_FD']['min'][iPt], cutVars['score_FD']['max'][iPt])
-                proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], ptMin, ptMax, cent_min, cent_max, axes, config['inv_mass_bins'][iPt], reso)
+                sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"].GetAxis(axes['Flow']['score_bkg']).SetRangeUser(cutVars['score_bkg']['min'][iPt], cutVars['score_bkg']['max'][iPt])
+                proj_data(sparsesFlow[f"Flow_{ptLowLabel}_{ptHighLabel}"], ptMin, ptMax, cent_min, cent_max, axes, inv_mass_bin, reso)
                 outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
                 print(f"Projected data!")
             
@@ -448,19 +467,42 @@ if __name__ == "__main__":
                 proj_data(sparsesFlow, ptMin, ptMax, cent_min, cent_max, axes, config['inv_mass_bins'][iPt], reso)
                 print(f"Projected data!")
             
-            for iVar in cutVars:
-                for key, iSparse in sparsesReco.items():
-                    iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
-                if iVar == 'Pt':
-                    for key, iSparse in sparsesGen.items():
-                        iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
-                if iVar == 'score_FD' or iVar == 'score_bkg':
-                    print(f'{iVar}: {cutVars[iVar]["min"][iPt]} < {iVar} < {cutVars[iVar]["max"][iPt]}')
+            if args.systematics:
+                mc_histos, mc_histos_names = [], []
+                cutsetConfig = args.cutsetConfig
+                icutset = f"{cutSetCfg['icutset']:02d}"
 
-            proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
-            print(f"Projected mc reco!")
-            proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
-            print(f"Projected mc gen!")
+                proj_file = cutsetConfig.replace('config', 'proj').replace(f'cutset_central_{icutset}.yml', f'proj_central_{icutset}.root')
+                
+                proj = TFile.Open(proj_file, 'read')
+                # proj.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
+                histos = proj.GetDirectory(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}').GetListOfKeys()
+                for histo in histos:
+                    print(f"histo: {histo.GetName()}")
+                    if 'hist' not in histo.GetName():
+                        mc_histos_names.append(histo.GetName())
+                        histo = histo.ReadObj() 
+                        mc_histos.append(histo)
+                        mc_histos[-1].SetDirectory(0)
+                proj.Close()
+                outfile.cd(f'cent_bins{cent}/pt_bins{ptMin}_{ptMax}')
+                for histo, name in zip(mc_histos, mc_histos_names):
+                    histo.Write(name)
+                print(f"Projected systematics!")
+            else:
+                for iVar in cutVars:
+                    for key, iSparse in sparsesReco.items():
+                        iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
+                    if iVar == 'Pt':
+                        for key, iSparse in sparsesGen.items():
+                            iSparse.GetAxis(axes[key][iVar]).SetRangeUser(cutVars[iVar]['min'][iPt], cutVars[iVar]['max'][iPt])
+                    if iVar == 'score_FD' or iVar == 'score_bkg':
+                        print(f'{iVar}: {cutVars[iVar]["min"][iPt]} < {iVar} < {cutVars[iVar]["max"][iPt]}')
+
+                proj_mc_reco(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
+                print(f"Projected mc reco!")
+                proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtWeightsB)
+                print(f"Projected mc gen!")
             
             bar()
     

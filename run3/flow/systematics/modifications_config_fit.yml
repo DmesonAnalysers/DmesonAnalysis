@@ -1,0 +1,62 @@
+Dmeson: 'Dzero'
+
+flow_files: [
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_5_10.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_10_15.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_15_20.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_20_25.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_25_30.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_30_35.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_35_40.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_40_50.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_50_60.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_60_70.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_70_80.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_80_100.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_100_120.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_120_160.root,
+  /home/wuct/ALICE/local/Results/pre/pre_k3050/AnRes/AnalysisResults_pt_160_240.root
+]
+
+centrality: 'k3050'
+
+# using sample with a given bdt cut set below
+fit_options:
+  BkgFuncVn: ["kPol2", "kLin"]
+  BkgFunc: ["kPol2", "kExpo", "kPol3"]
+  Rebin: [1, 2, 4, 6, 8, 10] # depends on the value of a given pt bin
+  inv_mass_bins: # automatically get the MassMin and MassMax values
+    steps: [0.01, 0.02, 0.03]
+    MassMin: [1.65, 1.66, 1.68, 1.70, 1.72, 1.73] # depends on the value of a given pt bin
+    MassMax: [2.00, 2.02, 2.04, 2.06, 2.08, 2.10] # depends on the value of a given pt bin
+  use_inv_mass_bins: [true, false]
+
+  # FixSigma: -1: use the uncertainty from the sigma
+  # FixSigma: 0: do not fix the sigma
+  # FixSigma: 0.5: vary 50% the sigma
+  Sigma:
+    FixSigma: -1
+    FixSigmaFromFile: '/home/wuct/ALICE/local/Results/test/flow/systematics/pre/cutvar_central/ry/raw_yields_central_00.root'
+
+
+
+# fit options for special D meson
+# Dzero
+Dzero:
+  RoverS: 0.5
+
+# Dplus
+Dplus:
+  IncludeKDETempls: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  FromGrid: false 
+  TemplsFlags: [2]  
+  TemplsInputs: ['/Users/mcosti/Analysis/Datasets/Templates/AO2D_325626.root']
+  TemplsTreeNames: ['O2hfcanddplite'] 
+  InitWeights: [[500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500]]
+  MinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0],]
+  MaxWeights: [[1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000], [1000]]
+  FixVnTemplToSgn: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  VnInitWeights: [[0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1], [0.1]]
+  VnMinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]]
+  VnMaxWeights: [[0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2], [0.2]]
+  InitBkg: [[],[],[],[],[],[],[],[],[],[],[],[],[]]

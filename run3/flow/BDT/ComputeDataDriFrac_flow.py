@@ -7,9 +7,9 @@ import argparse
 import os
 import sys
 sys.path.append('../../../')
-from ROOT import TFile, TCanvas, TLegend, gROOT, kRed, kBlue  # pylint: disable=import-error,no-name-in-module
-from utils.AnalysisUtils import GetPromptFDFractionCutSet
-from utils.StyleFormatter import SetGlobalStyle
+from ROOT import TFile, TCanvas, TLegend, gROOT, kRed, kBlue  # pylint: disable=import-error,no-name-in-module # pyignore # type: ignore
+from utils.AnalysisUtils import GetPromptFDFractionCutSet # pylint: disable=import-error,no-name-in-module # pyignore # type: ignore
+from utils.StyleFormatter import SetGlobalStyle # pylint: disable=import-error,no-name-in-module # pyignore # type: ignore
 
 def data_driven_frac(outputdir, suffix, iFile, hEffPrompt, hEffFD, \
                         hPromptFrac, hFDFrac, hPromptFracCorr, hFDFracCorr, \
@@ -159,42 +159,67 @@ def load_cutVarFrac_files(inputdir, suffix):
         raise ValueError(f'No CutVarFrac folder found in {inputdir}')
     return cutVarFracFiles
 
-def main_data_driven_frac(inputdir, outputdir, suffix, batch, combined=False, correlatedCutVarPath="", outputdir_combined=""):
+def main_data_driven_frac(inputdir, outputdir, suffix, batch, combined=False, correlatedCutVarPath="", outputdir_combined="", systematics=False):
     
     if batch:
         gROOT.SetBatch()
-        
-    effFiles = load_eff_files(inputdir, suffix)
-    hEffPrompts, hEffFDs, hPromptFracs, hFDFracs, hPromptFracCorrs, hFDFracCorrs = load_eff_histos(effFiles)
     
-    cutVarFracFiles = load_cutVarFrac_files(inputdir, suffix)
-    hCorrYieldPrompt, hCorrYieldFD, hCovPromptPrompt, hCovPromptFD, hCovFDFD = load_cutVarFrac_histos(cutVarFracFiles)
-    
-    for iFile in range(len(effFiles)):
-        data_driven_frac(
-            outputdir,
-            suffix,
-            iFile,
-            hEffPrompts[iFile],
-            hEffFDs[iFile],
-            hPromptFracs[iFile],
-            hFDFracs[iFile],
-            hPromptFracCorrs[iFile],
-            hFDFracCorrs[iFile],
-            hCorrYieldPrompt,
-            hCorrYieldFD,
-            hCovPromptPrompt,
-            hCovPromptFD,
-            hCovFDFD
-        )
+    if not systematics:
+        effFiles = load_eff_files(inputdir, suffix)
+        hEffPrompts, hEffFDs, hPromptFracs, hFDFracs, hPromptFracCorrs, hFDFracCorrs = load_eff_histos(effFiles)
         
-    if combined:
-        cutVarFracFiles = load_cutVarFrac_files(correlatedCutVarPath, suffix)
+        cutVarFracFiles = load_cutVarFrac_files(inputdir, suffix)
         hCorrYieldPrompt, hCorrYieldFD, hCovPromptPrompt, hCovPromptFD, hCovFDFD = load_cutVarFrac_histos(cutVarFracFiles)
         
         for iFile in range(len(effFiles)):
             data_driven_frac(
-                outputdir_combined,
+                outputdir,
+                suffix,
+                iFile,
+                hEffPrompts[iFile],
+                hEffFDs[iFile],
+                hPromptFracs[iFile],
+                hFDFracs[iFile],
+                hPromptFracCorrs[iFile],
+                hFDFracCorrs[iFile],
+                hCorrYieldPrompt,
+                hCorrYieldFD,
+                hCovPromptPrompt,
+                hCovPromptFD,
+                hCovFDFD
+            )
+            
+        if combined:
+            cutVarFracFiles = load_cutVarFrac_files(correlatedCutVarPath, suffix)
+            hCorrYieldPrompt, hCorrYieldFD, hCovPromptPrompt, hCovPromptFD, hCovFDFD = load_cutVarFrac_histos(cutVarFracFiles)
+            
+            for iFile in range(len(effFiles)):
+                data_driven_frac(
+                    outputdir_combined,
+                    suffix,
+                    iFile,
+                    hEffPrompts[iFile],
+                    hEffFDs[iFile],
+                    hPromptFracs[iFile],
+                    hFDFracs[iFile],
+                    hPromptFracCorrs[iFile],
+                    hFDFracCorrs[iFile],
+                    hCorrYieldPrompt,
+                    hCorrYieldFD,
+                    hCovPromptPrompt,
+                    hCovPromptFD,
+                    hCovFDFD
+                )
+    else:
+        effFiles = load_eff_files(inputdir, 'central')
+        hEffPrompts, hEffFDs, hPromptFracs, hFDFracs, hPromptFracCorrs, hFDFracCorrs = load_eff_histos(effFiles)
+        
+        cutVarFracFiles = load_cutVarFrac_files(correlatedCutVarPath, 'correlated')
+        hCorrYieldPrompt, hCorrYieldFD, hCovPromptPrompt, hCovPromptFD, hCovFDFD = load_cutVarFrac_histos(cutVarFracFiles)
+        
+        for iFile in range(len(effFiles)):
+            data_driven_frac(
+                outputdir,
                 suffix,
                 iFile,
                 hEffPrompts[iFile],
@@ -225,6 +250,8 @@ if __name__ == "__main__":
                         default="", help="path to the correlated cut method")
     parser.add_argument("--outputdir_combined", "-oc", metavar="text", required=False,
                         default="", help="output directory for the combined method")
+    parser.add_argument("--systematics", "-sys", default=False, required=False,
+                        action='store_true', help="run systematics")
     args = parser.parse_args()
     
     main_data_driven_frac(
@@ -234,5 +261,6 @@ if __name__ == "__main__":
         args.batch,
         combined=args.combined if args.combined else False,
         correlatedCutVarPath=args.correlatedCutVarPath if args.correlatedCutVarPath else "",
-        outputdir_combined=args.outputdir_combined if args.outputdir_combined else ""
+        outputdir_combined=args.outputdir_combined if args.outputdir_combined else "",
+        systematics=args.systematics if args.systematics else False
         )

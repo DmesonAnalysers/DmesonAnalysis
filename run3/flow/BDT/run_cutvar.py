@@ -9,6 +9,7 @@ from flow_analysis_utils import get_cut_sets_config
 from ComputeDataDriFrac_flow import main_data_driven_frac
 from ComputeV2vsFDFrac import main_v2_vs_frac
 from concurrent.futures import ProcessPoolExecutor
+work_dir = os.path.dirname(os.path.realpath(__file__)) + '/'
 
 def check_dir(dir):
 
@@ -30,7 +31,9 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 						   skip_vn = False,
 						   skip_frac_cut_var=False,
 						   skip_data_driven_frac=False,
-						   skip_v2_vs_frac=False):
+						   skip_v2_vs_frac=False,
+						   systematic=False,
+						   sys_pre=""):
 
 #___________________________________________________________________________________________________________________________
 	# Load and copy the configuration file
@@ -66,7 +69,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# calculate the pT weights
 	if not skip_calc_weights:
 		check_dir(f"{output_dir}/ptweights")
-		CalcWeiPath = "./ComputePtWeights.py"
+		CalcWeiPath = work_dir + "./ComputePtWeights.py"
 
 		print(f"\033[32mpython3 {CalcWeiPath} {config_flow} -o {output_dir} -s {suffix}\033[0m")
 		os.system(f"python3 {CalcWeiPath} {config_flow} -o {output_dir} -s {suffix}")
@@ -84,11 +87,10 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# make yaml file
 	if not skip_make_yaml:
 		check_dir(f"{output_dir}/config")
-		MakeyamlPath = './make_yaml_for_ml.py'
-		pre_process = "--preprocessed" if use_preprocessed else ""
+		MakeyamlPath = work_dir + './make_yaml_for_ml.py'
 
-		print(f"\033[32mpython3 {MakeyamlPath} {config_flow} {pre_process} -o {output_dir} -s {suffix}\033[0m")
-		os.system(f"python3 {MakeyamlPath} {config_flow} {pre_process} -o {output_dir} -s {suffix}")
+		print(f"\033[32mpython3 {MakeyamlPath} {config_flow} -o {output_dir} -s {suffix}\033[0m")
+		os.system(f"python3 {MakeyamlPath} {config_flow} -o {output_dir} -s {suffix}")
 	else:
 		print("\033[33mWARNING: Make yaml will not be performed\033[0m")
 
@@ -96,38 +98,47 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# Projection for MC and apply the ptweights
 	if not skip_proj_mc:
 		check_dir(f"{output_dir}/proj")
-		ProjMcPath = "./proj_thn_mc.py"
+		ProjMcPath = work_dir + "./proj_thn_mc.py"
 		if use_preprocessed:
 			pre_process = "--preprocessed"
 		else:
 			pre_process = ""
-			anres_fles = ' '.join(anres_dir)
-		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root') and not given_ptweights:
+		anres_fles = ' '.join(anres_dir)
+		#===========================================================================================================================
+		# trail for systematic uncertainty
+		if systematic:
 			for i in range(mCutSets):
 				iCutSets = f"{i:02d}"
-				# REVIEW: add the list of anres files
-				print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
-				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+				print(f"\033[32mpython3 {ProjMcPath} {config_flow} {sys_pre}/cutvar_central/config/cutset_central_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} -sys\033[0m")
+				os.system(f"python3 {ProjMcPath} {config_flow} {sys_pre}/cutvar_central/config/cutset_central_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} -sys")
+		#===========================================================================================================================
 		else:
-			for i in range(mCutSets):
-				iCutSets = f"{i:02d}"
+			if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root') and not given_ptweights:
+				for i in range(mCutSets):
+					iCutSets = f"{i:02d}"
+					# REVIEW: add the list of anres files
+					print(f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
+					os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+			else:
+				for i in range(mCutSets):
+					iCutSets = f"{i:02d}"
 
-				if given_ptweights:
-					ptweightsPath = given_ptWeightsPath
-				else:
-					ptweightsPath = f'{output_dir}/ptweights/pTweight_{suffix}.root'
+					if given_ptweights:
+						ptweightsPath = given_ptWeightsPath
+					else:
+						ptweightsPath = f'{output_dir}/ptweights/pTweight_{suffix}.root'
 
-				print(
-					f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} "
-					f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
-					f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
-					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} \033[0m"
-				)
-    			# REVIEW: add the list of anres files
-				os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} "
+					print(
+						f"\033[32mpython3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} "
 						f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
 						f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
-						f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+						f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} \033[0m"
+					)
+					# REVIEW: add the list of anres files
+					os.system(f"python3 {ProjMcPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_fles} {pre_process} "
+							f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
+							f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
+							f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
 	else:
 		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")							
 
@@ -135,7 +146,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# Compute the efficiency
 	if not skip_efficiency:
 		check_dir(f"{output_dir}/eff")
-		EffPath = "./../compute_efficiency.py"
+		EffPath = work_dir + "./../compute_efficiency.py"
 
 		for i in range(mCutSets):
 			iCutSets = f"{i:02d}"
@@ -149,7 +160,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# do the simulation fit to get the raw yields
 	if not skip_vn:
 		check_dir(f"{output_dir}/ry")
-		SimFitPath = "./../get_vn_vs_mass.py"
+		SimFitPath = work_dir + "./../get_vn_vs_mass.py"
 
 		for i in range(mCutSets):
 			iCutSets = f"{i:02d}"
@@ -163,7 +174,7 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# Compute the fraction by cut variation method
 	if not skip_frac_cut_var:
 		check_dir(f"{output_dir}/CutVarFrac")
-		CurVarFracPath = "./compute_frac_cut_var.py"
+		CurVarFracPath = work_dir + "./compute_frac_cut_var.py"
 
 		print(f"\033[32mpython3 {CurVarFracPath} {config_flow} {output_dir} -o {output_dir} -s {suffix}\033[0m")
 		os.system(f"python3 {CurVarFracPath} {config_flow} {output_dir} -o {output_dir} -s {suffix} --batch")
@@ -174,42 +185,51 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# Compute fraction by Data-driven method
 	if not skip_data_driven_frac:
 		check_dir(f"{output_dir}/DataDrivenFrac")
-		DataDrivenFracPath = "./ComputeDataDriFrac_flow.py"
+		DataDrivenFracPath = work_dir + "./ComputeDataDriFrac_flow.py"
 
-		# TODO: add the combined method with runing the correlated and uncorrelated at the same time
-		combined = config['combined'] if 'combined' in config else False
-		print(f"\033[32mCombined method: {combined}\033[0m")
-		if combined:
-			if config['minimisation']['correlated']:
-				print("\033[31mOnly support combined method when the minimisation is uncorrelated\033[0m")
-				print("\033[31mThe combined method will not be performed\033[0m")
-				# run the data-driven method with the corelated results
+		#===========================================================================================================================
+		if args.systematic:
+			
+			correlatedCutVarPath = sys_pre + '/cutvar_correlated'
+			inputdir = sys_pre + '/cutvar_central'
+			main_data_driven_frac(inputdir=inputdir, outputdir=output_dir, suffix=suffix, batch=True, combined=False, \
+       								correlatedCutVarPath=correlatedCutVarPath, outputdir_combined='', systematics=True)
+		#===========================================================================================================================
+		else:
+			# TODO: add the combined method with runing the correlated and uncorrelated at the same time
+			combined = config['combined'] if 'combined' in config else False
+			print(f"\033[32mCombined method: {combined}\033[0m")
+			if combined:
+				if config['minimisation']['correlated']:
+					print("\033[31mOnly support combined method when the minimisation is uncorrelated\033[0m")
+					print("\033[31mThe combined method will not be performed\033[0m")
+					# run the data-driven method with the corelated results
+					print(f"\033[32mpython3 {DataDrivenFracPath} -i {output_dir} -o {output_dir} -s {suffix} -b\033[0m")
+					main_data_driven_frac(inputdir=output_dir, outputdir=output_dir, suffix=suffix, batch=True, combined=False)
+				else:
+					# the path of corresponding results with correlated cut method
+					correlatedPath = config['correlatedPath'] if 'correlatedPath' in config else ''
+					if correlatedPath == '':
+						print("\033[31mPlease provide the path to the corresponding correlated cut method\033[0m")
+						correlatedPath = input("Path(`output_dir` in run_cutvar.sh): ")
+					correlatedCutVarPath = correlatedPath + '/cutvar_' + suffix
+					
+					# the path of the combined results
+					if 'pass3' in correlatedPath:
+						outputdir_corr = output_dir.replace(f'{output_dir.split("/")[-2]}', 'combined_pass3')
+					else:
+						outputdir_corr = output_dir.replace(f'{output_dir.split("/")[-2]}', 'combined')
+					check_dir(f"{outputdir_corr}/DataDrivenFrac")
+					
+					# run the data-driven method with the combined results and the uncorrelated results
+					print(f"\033[32mpython3 {DataDrivenFracPath} -i {output_dir} -o {output_dir} -s {suffix} -b -comb -cc {correlatedCutVarPath} -oc {outputdir_corr}\033[0m") 
+					main_data_driven_frac(inputdir=output_dir, outputdir=output_dir, suffix=suffix, batch=True, \
+											combined=True, correlatedCutVarPath=correlatedCutVarPath, outputdir_combined=outputdir_corr)
+
+			# run the data-driven method with the uncorrelated or correlated results
+			else:
 				print(f"\033[32mpython3 {DataDrivenFracPath} -i {output_dir} -o {output_dir} -s {suffix} -b\033[0m")
 				main_data_driven_frac(inputdir=output_dir, outputdir=output_dir, suffix=suffix, batch=True, combined=False)
-			else:
-				# the path of corresponding results with correlated cut method
-				correlatedPath = config['correlatedPath'] if 'correlatedPath' in config else ''
-				if correlatedPath == '':
-					print("\033[31mPlease provide the path to the corresponding correlated cut method\033[0m")
-					correlatedPath = input("Path(`output_dir` in run_cutvar.sh): ")
-				correlatedCutVarPath = correlatedPath + '/cutvar_' + suffix
-				
-				# the path of the combined results
-				if 'pass3' in correlatedPath:
-					outputdir_corr = output_dir.replace(f'{output_dir.split("/")[-2]}', 'combined_pass3')
-				else:
-					outputdir_corr = output_dir.replace(f'{output_dir.split("/")[-2]}', 'combined')
-				check_dir(f"{outputdir_corr}/DataDrivenFrac")
-				
-				# run the data-driven method with the combined results and the uncorrelated results
-				print(f"\033[32mpython3 {DataDrivenFracPath} -i {output_dir} -o {output_dir} -s {suffix} -b -comb -cc {correlatedCutVarPath} -oc {outputdir_corr}\033[0m") 
-				main_data_driven_frac(inputdir=output_dir, outputdir=output_dir, suffix=suffix, batch=True, \
-										combined=True, correlatedCutVarPath=correlatedCutVarPath, outputdir_combined=outputdir_corr)
-
-		# run the data-driven method with the uncorrelated or correlated results
-		else:
-			print(f"\033[32mpython3 {DataDrivenFracPath} -i {output_dir} -o {output_dir} -s {suffix} -b\033[0m")
-			main_data_driven_frac(inputdir=output_dir, outputdir=output_dir, suffix=suffix, batch=True, combined=False)
 
 	else:
 		print("\033[33mWARNING: Fraction by Data-driven method will not be performed\033[0m")
@@ -218,25 +238,29 @@ def run_full_cut_variation(config_flow, anres_dir, cent, res_file, output, suffi
 	# Compute v2 vs fraction
 	if not skip_v2_vs_frac:
 		check_dir(f"{output_dir}/V2VsFrac")
-		v2vsFDFracPath = "./ComputeV2vsFDFrac.py"
-		
-		combined = config['combined'] if 'combined' in config else False
-		
-		if combined:
-			if 'pass3' in output_dir:
-				inputdir_combined = output_dir.replace(f'{output_dir.split("/")[-2]}', 'combined_pass3')
-			else:
-				inputdir_combined = output_dir.replace(f'{output_dir.split("/")[-2]}', 'combined')
-			outputdir_combined = inputdir_combined
-			check_dir(f"{outputdir_combined}/V2VsFrac")
-			
-			print(f"\033[32mthe combined method will be performed\033[0m")
-			print(f"\033[32mpython3 {v2vsFDFracPath} {config_flow} -i {output_dir} -o {output_dir} -s {suffix} -comb -ic {inputdir_combined} -oc {outputdir_combined}\033[0m")
-			main_v2_vs_frac(config=config_flow, inputdir=output_dir, outputdir=output_dir, suffix=suffix, \
-								combined=True, inputdir_combined=inputdir_combined, outputdir_combined=outputdir_combined)
+		v2vsFDFracPath = work_dir + "./ComputeV2vsFDFrac.py"
+  
+		if args.systematic:
+			main_v2_vs_frac(config=config_flow, inputdir=output_dir, outputdir=output_dir, suffix=suffix, combined=False)		
+   
 		else:
-			print(f"\033[32mpython3 {v2vsFDFracPath} {config_flow} -i {output_dir} -o {output_dir} -s {suffix}\033[0m")
-			main_v2_vs_frac(config=config_flow, inputdir=output_dir, outputdir=output_dir, suffix=suffix, combined=False)
+			combined = config['combined'] if 'combined' in config else False
+			
+			if combined:
+				if 'pass3' in output_dir:
+					inputdir_combined = output_dir.replace(f'{output_dir.split("/")[-2]}', 'combined_pass3')
+				else:
+					inputdir_combined = output_dir.replace(f'{output_dir.split("/")[-2]}', 'combined')
+				outputdir_combined = inputdir_combined
+				check_dir(f"{outputdir_combined}/V2VsFrac")
+				
+				print(f"\033[32mthe combined method will be performed\033[0m")
+				print(f"\033[32mpython3 {v2vsFDFracPath} {config_flow} -i {output_dir} -o {output_dir} -s {suffix} -comb -ic {inputdir_combined} -oc {outputdir_combined}\033[0m")
+				main_v2_vs_frac(config=config_flow, inputdir=output_dir, outputdir=output_dir, suffix=suffix, \
+									combined=True, inputdir_combined=inputdir_combined, outputdir_combined=outputdir_combined)
+			else:
+				print(f"\033[32mpython3 {v2vsFDFracPath} {config_flow} -i {output_dir} -o {output_dir} -s {suffix}\033[0m")
+				main_v2_vs_frac(config=config_flow, inputdir=output_dir, outputdir=output_dir, suffix=suffix, combined=False)
 	else:
 		print("\033[33mWARNING: v2 vs fraction will not be performed\033[0m")
 	
@@ -262,6 +286,8 @@ if __name__ == "__main__":
 	parser.add_argument("--skip_frac_cut_var", "-sf", action="store_true", help="skip fraction by cut variation")
 	parser.add_argument("--skip_data_driven_frac", "-sddf", action="store_true", help="skip fraction by data-driven method")
 	parser.add_argument("--skip_v2_vs_frac", "-sv2fd", action="store_true", help="skip v2 vs FD fraction")
+	parser.add_argument("--systematic", "-sys", action="store_true", help="run for the systematic uncertainty")
+	parser.add_argument("--sys_pre", "-sp", metavar="text", default="", required=False, help="path to the systematic uncertainty pre results")
 	args = parser.parse_args()
 
 	run_full_cut_variation(args.flow_config, args.anres_dir, args.centrality, args.resolution, args.outputdir, args.suffix, args.vn_method, args.preprocessed,
@@ -272,4 +298,6 @@ if __name__ == "__main__":
 						args.skip_vn,
 						args.skip_frac_cut_var, 
 						args.skip_data_driven_frac, 
-						args.skip_v2_vs_frac)
+						args.skip_v2_vs_frac,
+						args.systematic,
+						args.sys_pre)
