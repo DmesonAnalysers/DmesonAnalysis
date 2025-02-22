@@ -51,7 +51,7 @@ def cook_thnsparse(thnsparse_list, ptmins, ptmaxs, axestokeep):
 def pre_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, outputDir):
     
     # Load the ThnSparse
-    thnsparse_list, _, _, sparse_axes = get_sparses(config, True, False, False)
+    thnsparse_list, _, _, sparse_axes = get_sparses(config, True, False, False, config['flow_files'])
 
     os.makedirs(f'{outputDir}/pre/AnRes', exist_ok=True)
     out_file = TFile(f'{outputDir}/pre/AnRes/Projections_{centmin}_{centmax}_{ptmins}_{ptmaxs}.root', 'recreate')
