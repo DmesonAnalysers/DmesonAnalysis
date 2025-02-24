@@ -120,6 +120,15 @@ minimisation:
     combined: False
     # `output_dir` in run_cutvar.sh
     correlatedPath: 'path/to/correlated'
+    #skip_cuts: [    # index of the specific cuts to skip for each pt bin
+    #            [], # pt 1
+    #            [], # pt 2
+    #            [], # pt 3
+    #            [], # pt 4
+    #            [], # pt 5
+    #            [], # pt 6
+    #]
+    #systematics: ['minus3', 'even', 'odd', 'random']
 
 # efficiency
 eff_filename: 'task_output.root'
