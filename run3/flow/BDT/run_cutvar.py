@@ -6,6 +6,7 @@ import yaml
 import shutil
 import concurrent.futures
 import time
+import subprocess
 sys.path.append('..')
 from flow_analysis_utils import get_cut_sets_config, cut_var_image_merger
 from ComputeDataDriFrac_flow import main_data_driven_frac
@@ -34,7 +35,7 @@ def run_full_cut_variation(config_flow,
 						   frac_cut_var=False,
 						   data_driven_frac=False,
 						   v2_vs_frac=False,
-							merge_images=False):    
+						   merge_images=False):    
 #___________________________________________________________________________________________________________________________
 	# Load and copy the configuration file
 	with open(config_flow, 'r') as cfgFlow:
@@ -57,13 +58,18 @@ def run_full_cut_variation(config_flow,
 	output_dir = f"{output}/cutvar_{suffix}"
  
 	os.system(f"mkdir -p {output_dir}")
-  
 	# copy the configuration file
 	config_suffix = 0
 	os.makedirs(f'{output_dir}/config_flow', exist_ok=True)
-	while os.path.exists(f'{output_dir}/config_flow/config_flow_{suffix}_{config_suffix}.yml'):
+	while os.path.exists(f'{output_dir}/config_flow/{os.path.splitext(os.path.basename(config_flow))[0]}_{suffix}_{config_suffix}.yml'):
 		config_suffix = config_suffix + 1
-	os.system(f'cp {config_flow} {output_dir}/{os.path.splitext(os.path.basename(config_flow))[0]}_{suffix}_{config_suffix}.yml')
+	os.system(f'cp {config_flow} {output_dir}/config_flow/{os.path.splitext(os.path.basename(config_flow))[0]}_{suffix}_{config_suffix}.yml')
+
+	# Create log file
+	os.makedirs(f"{output_dir}/logs", exist_ok=True)
+	log_file = f"{output_dir}/logs/log_{config_suffix}.log"
+	sys.stdout = open(log_file, "a")
+	sys.stderr = sys.stdout
 
 	# backup the results into history
 	file_to_check = f"{output_dir}/V2VsFrac/V2VsFrac_{suffix}.root"
@@ -80,7 +86,7 @@ def run_full_cut_variation(config_flow,
 		CalcWeiPath = "./ComputePtWeights.py"
 
 		print(f"\033[32mpython3 {CalcWeiPath} {config_flow} -o {output_dir} -s {suffix}\033[0m")
-		os.system(f"python3 {CalcWeiPath} {config_flow} -o {output_dir} -s {suffix}")
+		os.system(f"python3 {CalcWeiPath} {config_flow} -o {output_dir} -s {suffix} >> {log_file} 2>&1")
 	else:
 		print("\033[33mWARNING: Calculation of weights will not be performed\033[0m")
 
@@ -99,7 +105,7 @@ def run_full_cut_variation(config_flow,
 		pre_process = "--preprocessed" if use_preprocessed else ""
 
 		print(f"\033[32mpython3 {MakeyamlPath} {config_flow} {pre_process} -o {output_dir} -s {suffix}\033[0m")
-		os.system(f"python3 {MakeyamlPath} {config_flow} {pre_process} -o {output_dir} -s {suffix}")
+		os.system(f"python3 {MakeyamlPath} {config_flow} {pre_process} -o {output_dir} -s {suffix} >> {log_file} 2>&1")
 	else:
 		print("\033[33mWARNING: Make yaml will not be performed\033[0m")
 
@@ -112,7 +118,7 @@ def run_full_cut_variation(config_flow,
 		anres_files = ' '.join(anres_dir)
 
 		def run_projections(i):
-			"""Run simulation fit for a given cutset index."""
+			"""Run sparse projection for a given cutset index."""
 			iCutSets = f"{i:02d}"
 			print(f"\033[32mProcessing cutset {iCutSets}...\033[0m")
 
@@ -120,7 +126,7 @@ def run_full_cut_variation(config_flow,
 				# REVIEW: add the list of anres files
 				cmd = (
 					f"python3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} "
-					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}"
+					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} >> {log_file} 2>&1"
 				)
 			else:
 				ptweightsPath = given_ptWeightsPath if given_ptweights else f"{output_dir}/ptweights/pTweight_{suffix}.root"
@@ -129,7 +135,7 @@ def run_full_cut_variation(config_flow,
 					f"python3 {ProjPath} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {anres_files} {pre_process} "
 					f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
 					f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
-					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}"
+					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} >> {log_file} 2>&1"
 				)
 			
 			print(f"\033[32m{cmd}\033[0m")
@@ -152,7 +158,7 @@ def run_full_cut_variation(config_flow,
 			iCutSets = f"{i:02d}"
 			print(f"\033[32mpython3 {EffPath} {config_flow} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -c {cent} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
 			print(f"\033[32mProcessing cutset {iCutSets}\033[0m")
-			os.system(f"python3 {EffPath} {config_flow} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -c {cent} -o {output_dir} -s {suffix}_{iCutSets} --batch")
+			os.system(f"python3 {EffPath} {config_flow} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -c {cent} -o {output_dir} -s {suffix}_{iCutSets} --batch >> {log_file} 2>&1")
 		
 		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
 			results_eff = list(executor.map(run_efficiency, range(mCutSets)))
@@ -166,11 +172,11 @@ def run_full_cut_variation(config_flow,
 		SimFitPath = "./../get_vn_vs_mass.py"
 
 		def run_simfit(i):
-			"""Run simulation fit for a given cutset index."""
+			"""Run simultaneous fit for a given cutset index."""
 			iCutSets = f"{i:02d}"
 			print(f"\033[32mpython3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method}\033[0m")
 			print(f"\033[32mProcessing cutset {iCutSets}\033[0m")
-			os.system(f"python3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method} --batch")
+			os.system(f"python3 {SimFitPath} {config_flow} {cent} {output_dir}/proj/proj_{suffix}_{iCutSets}.root -o {output_dir}/ry -s _{suffix}_{iCutSets} -vn {vn_method} --batch >> {log_file} 2>&1")
 		
 		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
 			executor.map(run_simfit, range(mCutSets))
@@ -184,7 +190,7 @@ def run_full_cut_variation(config_flow,
 		CurVarFracPath = "./compute_frac_cut_var.py"
 
 		print(f"\033[32mpython3 {CurVarFracPath} {config_flow} {output_dir} -o {output_dir} -s {suffix}\033[0m")
-		os.system(f"python3 {CurVarFracPath} {config_flow} {output_dir} -o {output_dir} -s {suffix} --batch")
+		os.system(f"python3 {CurVarFracPath} {config_flow} {output_dir} -o {output_dir} -s {suffix} --batch >> {log_file} 2>&1")
 	else:
 		print("\033[33mWARNING: Fraction by cut variation will not be performed\033[0m")
 
@@ -263,13 +269,20 @@ def run_full_cut_variation(config_flow,
 	if merge_images:
 		print(f"\033[32m\nCut_var_image_merger({config_flow}, {output_dir}, {suffix})\033[0m")
 		cut_var_image_merger(config, output_dir, suffix)
+
+	# Run the clean_logs.py script with the log file as an argument
+	script_dir = os.path.dirname(os.path.realpath(__file__))
+	clean_logs_script = f"{script_dir}/../../tool/clean_logs.py"
+	subprocess.run(["python3", clean_logs_script, log_file])
+	print(f"Log saved to: {log_file}")
+
 	return
 
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Arguments')
 	parser.add_argument('flow_config', metavar='text', default='config_flow_d0.yml', help='configuration file')
-	parser.add_argument("--preprocessed", "-prep", action="store_true", help="use preprocessed input")
+	parser.add_argument("--use_preprocessed", "-prep", action="store_true", help="use preprocessed input")
 	parser.add_argument("--do_calc_weights", "-cw", action="store_true", help="perform calculation of weights")
 	parser.add_argument("--do_make_yaml", "-my", action="store_true", help="perform make yaml")
 	parser.add_argument("--do_projections", "-pd", action="store_true", help="perform projections")
@@ -282,9 +295,8 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	start_time = time.time()
-	print(f"args.do_projections: {args.do_projections}")
 	run_full_cut_variation(args.flow_config,
-						   args.preprocessed,
+						   args.use_preprocessed,
 						   args.do_calc_weights,
 						   args.do_make_yaml, 
 						   args.do_projections,
@@ -297,5 +309,8 @@ if __name__ == "__main__":
 
 	end_time = time.time()
 	execution_time = end_time - start_time
+	sys.stdout.close()
+	sys.stdout = sys.__stdout__
+	sys.stderr = sys.__stderr__
 	print(f"\033[34mTotal execution time: {execution_time:.2f} seconds\033[0m")
  

@@ -23,7 +23,8 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
     """
     
     
-    sparsesFlow, sparsesReco, sparsesGen, axes_dict = {}, {}, {}, {}    
+    sparsesFlow, sparsesReco, sparsesGen, axes_dict = {}, {}, {}, {}
+
     if get_data:
         if preprocessed:
             # REVIEW: sperate the config_pre and config_flow

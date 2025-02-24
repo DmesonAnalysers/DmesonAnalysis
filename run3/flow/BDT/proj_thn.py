@@ -405,11 +405,11 @@ if __name__ == "__main__":
     histo_cent.Write()
     resofile.Close()
     infilemc.Close()
-    
+
     # load thnsparse
     # REVIEW: 
     # for the main workflow, only the config_flow
-    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.anres_dir, args.preprocessed, f'{config["skim_out_dir"]}')
+    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.anres_dir, args.preprocessed, f'{config.get("skim_out_dir", "")}')
     if not args.preprocessed:
         for key, iSparse in sparsesFlow.items():
             iSparse.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
