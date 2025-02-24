@@ -14,6 +14,21 @@ axes: {mass: 0,
        bdt_bkg: 6,
        bdt_sig: 7}
 
+# cut variation general configurables
+centrality: 'k3040' # centrality class
+res_file: '/path/to/resofile.root' 
+out_dir: '/path/to/output/dir'
+suffix: 'suffix'
+anresdir: [
+    "path/to/AnRes1.root",
+    "path/to/AnRes2.root",
+    "path/to/AnRes3.root",
+    "path/to/AnRes4.root",
+    "path/to/AnRes5.root"
+]
+vn_method: 'sp'
+nworkers: 1 # workers to parallelize projections, efficiency and fitting
+
 harmonic: 2 # 2: v2, 3: v3, etc.
 
 # pt bins
