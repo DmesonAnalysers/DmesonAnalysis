@@ -380,7 +380,6 @@ if __name__ == "__main__":
     cent, (cent_min, cent_max) = get_centrality_bins(args.centrality)
     outfile_dir = 'hf-candidate-creator-2prong' if config['Dmeson'] == 'Dzero' else 'hf-candidate-creator-3prong'
     # REVIEW the mc_filename is the same as the eff_filename so no need to use mc_filename.
-    print('infilemc')
     infilemc = TFile.Open(config['eff_filename'], 'r')
     histo_cent = infilemc.Get(f'{outfile_dir}/hSelCollisionsCent')
     histo_cent.GetXaxis().SetRangeUser(cent_min, cent_max)
@@ -406,12 +405,10 @@ if __name__ == "__main__":
     histo_cent.Write()
     resofile.Close()
     infilemc.Close()
-    print('infilemc.Close()')
-
+    
     # load thnsparse
     # REVIEW: 
     # for the main workflow, only the config_flow
-    print('LOADING')
     sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, True, True, True, args.anres_dir, args.preprocessed, f'{config["skim_out_dir"]}')
     if not args.preprocessed:
         for key, iSparse in sparsesFlow.items():

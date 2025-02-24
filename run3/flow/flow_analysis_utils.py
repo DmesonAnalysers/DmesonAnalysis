@@ -881,7 +881,7 @@ def get_cut_sets_config(config):
 
 def cut_var_image_merger(config, cut_var_dir, suffix):
 
-    def pdf_to_images(pdf_path, dpi=300):
+    def pdf_to_images(pdf_path, dpi=100):
         """Extract high-quality images from a PDF."""
         doc = fitz.open(pdf_path)
         images = []
@@ -931,7 +931,7 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         if len(pdf_list) == 0:
             raise ValueError("No PDF provided!")
 
-        images = [pdf_to_images(pdf, dpi=300) for pdf in pdf_list]
+        images = [pdf_to_images(pdf, dpi=100) for pdf in pdf_list]
         num_pages = min(len(imgs) for imgs in images)
 
         os.makedirs(output_folder, exist_ok=True)
