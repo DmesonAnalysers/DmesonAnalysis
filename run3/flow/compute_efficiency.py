@@ -203,7 +203,7 @@ def compute_eff_thns(config_file, centclass, inputFile, outputdir, suffix, batch
     #_____________________________________________________________________________________
     # Compute efficiency
     for iPt, (ptMin, ptMax) in enumerate(zip(ptMins, ptMaxs)):
-        ## get input histograms
+        ## get inpput histograms
         ## whether need to minus reflection from prompt or FD?
         hRecoPrompt.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{ptMin}_{ptMax}/hPromptPt'))
         hRecoFD.append(infile.Get(f'cent_bins{centMin}_{centMax}/pt_bins{ptMin}_{ptMax}/hFDPt'))

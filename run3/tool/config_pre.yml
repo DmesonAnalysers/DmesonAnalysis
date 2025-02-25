@@ -20,7 +20,7 @@ ptmaxs: [0.5,1.0,1.5,2.0]
 # centrality class
 centrality: 'k3040'
 # output directory for preprocessed files
-skim_out_dir: '/home/mdicosta/Datasets/3050/skim3040bkgstrict'
+skim_out_dir: '/Users/mcosti/Analysis/Datasets/3050/skim3040bkgstrict'
 # bkg cuts, cut is applied then bkg axis is dropped
 bkg_cuts: [0.002, 0.002, 0.002, 0.006]
 
