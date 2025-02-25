@@ -8,6 +8,11 @@ import sys
 import ctypes
 from itertools import combinations
 import numpy as np
+import fitz  # PyMuPDF
+from PIL import Image
+import math
+import glob
+import re
 
 def get_vn_versus_mass(thnSparses, inv_mass_bins, mass_axis, vn_axis, debug=False):
     '''
