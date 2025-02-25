@@ -38,8 +38,14 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
     for iRow, row in enumerate(hCovCorrYields):
         for iCol, hCov in enumerate(row):
             SetObjectStyle(hCov, linecolor=kBlack)
-            rowName = '#it{N}_{prompt}' if iRow == 0 else '#it{N}_{non-prompt}'
-            colName = '#it{N}_{prompt}' if iCol == 0 else '#it{N}_{non-prompt}'
+            if iRow == 0:
+                rowName = '#it{N}_{prompt}'
+            else:
+                rowName = '#it{N}_{non-prompt}'
+            if iCol == 0:
+                colName = '#it{N}_{prompt}'
+            else:
+                colName = '#it{N}_{non-prompt}'
             hCov.SetTitle(f';#it{{p}}_{{T}} (GeV/#it{{c}}); #sigma({rowName}, {colName})')
 
     for iPt, (ptMin, ptMax) in enumerate(zip(ptmins, ptmaxs)):
@@ -256,8 +262,8 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
     hCorrYieldFD.Draw('same')
     legEff.Draw()
 
-    os.makedirs(f'{cutvardir}/CutVarFrac', exist_ok=True)
-    outFileName = f'{cutvardir}/CutVarFrac/CutVarFrac_{suffix}.root'
+    os.makedirs(f'{outputdir}/CutVarFrac', exist_ok=True)
+    outFileName = f'{outputdir}/CutVarFrac/CutVarFrac_{suffix}.root'
     outFile = TFile(outFileName, 'recreate')
     cCorrYield.Write()
     hCorrYieldPrompt.Write()

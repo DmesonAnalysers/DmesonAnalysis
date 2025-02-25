@@ -67,8 +67,12 @@ def make_yaml(flow_config, outputdir, suffix):
     os.makedirs(outputdir, exist_ok=True)
 
     # load the variable from the input config
+
+    # pt
     ptmins = input['ptmins']
     ptmaxs = input['ptmaxs']
+
+    ## safety check
     if len(ptmins) != len(ptmaxs):
         raise ValueError(f'''The number of pt bins({len(ptmins)}, {len(ptmaxs)} are not the same''')
 
