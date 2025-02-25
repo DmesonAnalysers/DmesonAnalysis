@@ -118,85 +118,35 @@ def run_full_cut_variation(config_flow,
 	else:
 		print("\033[33mWARNING: Make yaml will not be performed\033[0m")
 
-
-
-# #___________________________________________________________________________________________________________________________
-# 	ProjPath = "./proj_thn.py"
-# 	pre_process = "--preprocessed" if use_preprocessed else ""
-# 	proj_data = "--proj_data" if proj_data else ""
-# 	proj_mc = "--proj_mc" if proj_mc else ""
-# 	def run_projections(i):
-# 		"""Run simulation fit for a given cutset index."""
-# 		iCutSets = f"{i:02d}"
-# 		print('CIAOOOOO')
-# 		print(f"\033[32mProcessing cutset {iCutSets}...\033[0m")
-# 		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root'):
-# 			print('USE PT WEIGHTS')
-# 			print(f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
-# 			os.system(f"python3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
-# 		else:
-# 			print('NOT USE PT WEIGHTS')
-# 			print(
-# 				f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} "
-# 				f"-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent "
-# 				f"-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent "
-# 				f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} \033[0m"
-# 			)
-# 			os.system(f"python3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} \
-# 					-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent \
-# 					-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
-# 		print('CIAO END')
-  
-# 	if proj_mc or proj_data:
-# 		print('Projecting histograms')
-# 		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
-# 			results_proj = list(executor.map(run_projections, range(nCutSets)))
-# 	else:
-# 		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")
-
 #___________________________________________________________________________________________________________________________
-	# Projection for MC and apply the ptweights
-	#### TO BE PARALLELIZED
-	if proj_mc or proj_data:
-		ProjPath = "./proj_thn.py"
-		pre_process = "--preprocessed" if use_preprocessed else ""
-		proj_data = "--proj_data" if proj_data else ""
-		proj_mc = "--proj_mc" if proj_mc else ""
+	# Projection for MC and apply the ptweights	
+	ProjPath = "./proj_thn.py"
+	pre_process = "--preprocessed" if use_preprocessed else ""
+	proj_data = "--proj_data" if proj_data else ""
+	proj_mc = "--proj_mc" if proj_mc else ""
+	def run_projections(i):
+		"""Run simulation fit for a given cutset index."""
+		iCutSets = f"{i:02d}"
+		print(f"\033[32mProcessing cutset {iCutSets}...\033[0m")
 		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root'):
-			for i in range(nCutSets):
-				iCutSets = f"{i:02d}"
-				print(f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
-				os.system(f"python3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
-		if not os.path.exists(f'{output_dir}/ptweights/pTweight_{suffix}.root') and not given_ptweights:
-			for i in range(mCutSets):
-				iCutSets = f"{i:02d}"
-				# REVIEW: add the list of anres files --> by now removed here, to be added in projections
-				print(f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
-				os.system(f"python3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+			print(f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}\033[0m")
+			os.system(f"python3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
 		else:
-			for i in range(mCutSets):
-				iCutSets = f"{i:02d}"
-
-				if given_ptweights:
-					ptweightsPath = given_ptWeightsPath
-				else:
-					ptweightsPath = f'{output_dir}/ptweights/pTweight_{suffix}.root'
-
-				print(
-					f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} "
-					f"-w {ptweightsPath} hPtWeightsFONLLtimesTAMUDcent "
-					f"-wb {ptweightsPath} hPtWeightsFONLLtimesTAMUBcent "
-					f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} >> {log_file} 2>&1"
-				)
-
-			print(f"\033[32m{cmd}\033[0m")
-			os.system(cmd)
-
+			print(
+				f"\033[32mpython3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} "
+				f"-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent "
+				f"-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent "
+				f"-c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets} \033[0m"
+			)
+			os.system(f"python3 {ProjPath} {proj_data} {proj_mc} {config_flow} {output_dir}/config/cutset_{suffix}_{iCutSets}.yml {pre_process} \
+					-w {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUDcent \
+					-wb {output_dir}/ptweights/pTweight_{suffix}.root hPtWeightsFONLLtimesTAMUBcent -c {cent} -r {res_file} -o {output_dir} -s {suffix}_{iCutSets}")
+		
+	if proj_mc or proj_data:
 		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
-			results_proj = list(executor.map(run_projections, range(mCutSets)))
+			results_proj = list(executor.map(run_projections, range(nCutSets)))
 	else:
-		print("\033[33mWARNING: Projections will not be performed\033[0m")
-
+		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")
 
 #___________________________________________________________________________________________________________________________
 	# Compute the efficiency
