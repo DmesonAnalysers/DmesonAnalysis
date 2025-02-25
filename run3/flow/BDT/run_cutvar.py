@@ -144,7 +144,7 @@ def run_full_cut_variation(config_flow,
 		
 	if proj_mc or proj_data:
 		with concurrent.futures.ThreadPoolExecutor(max_workers=n_workers) as executor:
-			results_proj = list(executor.map(run_projections, range(nCutSets)))
+			results_proj = list(executor.map(run_projections, range(mCutSets)))
 	else:
 		print("\033[33mWARNING: Projection for MC will not be performed\033[0m")
 
@@ -289,7 +289,7 @@ def run_full_cut_variation(config_flow,
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Arguments')
 	parser.add_argument('flow_config', metavar='text', default='config_flow_d0.yml', help='configuration file')
-	parser.add_argument("--preprocessed", "-prep", action="store_true", help="use preprocessed input")
+	parser.add_argument("--use_preprocessed", "-prep", action="store_true", help="use preprocessed input")
 	parser.add_argument("--do_calc_weights", "-cw", action="store_true", help="skip calculation of weights")
 	parser.add_argument("--do_make_yaml", "-my", action="store_true", help="skip make yaml")
 	parser.add_argument("--do_proj_data", "-pd", action="store_true", help="skip projection for data")
@@ -304,7 +304,7 @@ if __name__ == "__main__":
 
 	start_time = time.time()
 	run_full_cut_variation(args.flow_config, 
-                           args.preprocessed,
+                           args.use_preprocessed,
 						   args.do_calc_weights,
 						   args.do_make_yaml, 
 						   args.do_proj_data, 

@@ -352,7 +352,7 @@ if __name__ == "__main__":
     # load thnsparse
     # # REVIEW chuntai: 
     # # for the main workflow, only the config_flow
-    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, args.proj_data, args.proj_mc, args.proj_mc, args.preprocessed, f'{config.get("skim_out_dir", "")}')
+    sparsesFlow, sparsesReco, sparsesGen, axes = get_sparses(config, args.proj_data, args.proj_mc, args.proj_mc, config.get('anresdir', []), args.preprocessed, f'{config.get("skim_out_dir", "")}')
     if not args.preprocessed:
         for key, iSparse in sparsesFlow.items():
             iSparse.GetAxis(axes['Flow']['cent']).SetRangeUser(cent_min, cent_max)
