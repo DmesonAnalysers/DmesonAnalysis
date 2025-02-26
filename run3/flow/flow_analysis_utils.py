@@ -540,10 +540,8 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
     vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
     if useTempl:
         vnComps = vnFitter.GetVnCompsFuncts()
-        # vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
-        # vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
-        vn_results['fVnCompsFuncts']['vnSgn'] = vnFitter.GetMassTotFitFunc()
-        vn_results['fVnCompsFuncts']['vnBkg'] = vnFitter.GetMassTotFitFunc()
+        vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
+        vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
         for iTempl in range(len(vn_results['fMassTemplFuncts'])):
             vn_results['fVnCompsFuncts'][f'vnTempl{iTempl}'] = vnComps[2+secPeak+iTempl]
     

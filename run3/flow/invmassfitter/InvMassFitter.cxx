@@ -265,19 +265,6 @@ void InvMassFitter::SetNumberOfParams(){
     }
   }
 
-  // if(fTemplates) {
-  //   if (fAnchorTempls) {
-  //     fNParsTempls=0;
-  //   } else if(fRelWeights.size()>0) {
-  //     // in this case, all templates are reweighted with respect to the
-  //     // first and only the scaling parameter of the first one is left free in the fit
-  //     fNParsTempls=1;
-  //   } else {
-  //     fNParsTempls=fTemplatesFuncts.size();
-  //   }
-  // }
-  // else fNParsTempls=0;
-
   if(fSecondPeak) fNParsSec=3;
   else fNParsSec=0;
 
@@ -356,19 +343,8 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
   fTotFunc = CreateTotalFitFunction("funcmass");
 
   if(doFinalFit){
-    // cout << "ABOUT TO PERFORM FINAL FIT" << endl;
-      // totalTempl += par[0]*fRelWeights[iTempl]*fTemplatesFuncts[iTempl].Eval(x[0]);
-    // cout << "fRelWeights.size(): " << fRelWeights.size() << endl;
-    // cout << "fRelWeights[0]: " << fRelWeights[0] << endl;
-    // cout << "fRelWeights[1]: " << fRelWeights[1] << endl;
-    // cout << "fTemplatesFuncts.size(): " << fTemplatesFuncts.size() << endl;
-    // cout << "fTemplatesFuncts[0].Eval(2.0): " << fTemplatesFuncts[0].Eval(2.0) << endl;
-    // cout << "fTemplatesFuncts[1].Eval(2.0): " << fTemplatesFuncts[1].Eval(2.0) << endl;
     printf("\n--- Final fit with signal+background on the full range ---\n");
-    // cout << "fNParsTempls: " << fNParsTempls << endl;
-    // cout << "fAnchorTempls: " << fAnchorTempls << endl;
     TFitResultPtr resultptr=fHistoInvMass->Fit("funcmass",Form("R,S,%s,+,0",fFitOption.Data()));
-    // cout << "FIT PERFORMED" << endl;
     isFitValid = resultptr->IsValid();
     status = (Int_t) resultptr;
     printf("[InvMassFitter] final fit status %d\n",status);
@@ -888,15 +864,7 @@ Double_t InvMassFitter::FitFunction4Templ(Double_t *x, Double_t *par){
     default:
       std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
   }
-  // if(fAnchorTempls) {
-  //   for(int iTempl=0; iTempl<fTemplatesFuncts.size(); iTempl++) {
-  //     totalTempl += par[0]*fRelWeights[iTempl]*fTemplatesFuncts[iTempl].Eval(x[0]);
-  //   }    
-  // } else {
-  //   for(int iFunc=0; iFunc<this->fTemplatesFuncts.size(); iFunc++) {
-  //     totalTempl += par[iFunc] * this->fTemplatesFuncts[iFunc].Eval(x[0]);
-  //   }
-  // }
+
   return totalTemplates;
 }
 //_________________________________________________________________________
@@ -926,13 +894,7 @@ Double_t InvMassFitter::FitFunction4Mass(Double_t *x, Double_t *par){
         std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
     }
   }
-  //   if (fAnchorTempls) {
-  //     // templates are scaled with sgnInt * relWeight
-  //     templ=FitFunction4Templ(x,&par[fNParsBkg]);
-  //   } else {
-  //     templ=FitFunction4Templ(x,&par[fNParsBkg+fNParsSig+fNParsSec+fNParsRfl]);
-  //   }
-  // }
+
   return bkg+sig+sec+refl+templ;
 }
 

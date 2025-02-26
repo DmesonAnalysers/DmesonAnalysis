@@ -243,47 +243,36 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   if(!fTemplSameVnOfSignal) {NvnParsSgn+=fNParsTempls;}
   const Int_t nparsvn = nparsmass+fNParsVnBkg+NvnParsSgn+NvnParsTempls;
 
-  // cout << "CIAO1" << endl;
   Bool_t massprefit=MassPrefit();
   if(!massprefit) {printf("Impossible to perform the mass prefit"); return kFALSE;}
-  // cout << "CIAO2" << endl;
   Bool_t vnprefit=VnSBPrefit();
   if(!vnprefit) {printf("Impossible to perform the bkg vn prefit"); return kFALSE;}
   std::vector<Double_t> initpars;
-  // cout << "CIAO3" << endl;
   for(Int_t iBkgPar=0; iBkgPar<fNParsMassBkg; iBkgPar++) {
     initpars.push_back(fMassFuncFromPrefit->GetParameter(iBkgPar));
   }
-  // cout << "CIAO4" << endl;
   for(Int_t iSgnPar=0; iSgnPar<fNParsMassSgn; iSgnPar++) {
     initpars.push_back(fMassFuncFromPrefit->GetParameter(iSgnPar+fNParsMassBkg));
   }
-  // cout << "CIAO5" << endl;
   for(Int_t iSecPeakPar=0; iSecPeakPar<fNParsSec; iSecPeakPar++) {
     initpars.push_back(fMassFuncFromPrefit->GetParameter(iSecPeakPar+fNParsMassBkg+fNParsMassSgn));
   }
-  // cout << "CIAO6" << endl;
   for(Int_t iReflPar=0; iReflPar<fNParsRfl; iReflPar++) {
     initpars.push_back(fMassFuncFromPrefit->GetParameter(iReflPar+fNParsMassBkg+fNParsMassSgn+fNParsSec));
   }
-  // cout << "CIAO7" << endl;
   for(Int_t iTemplPar=0; iTemplPar<fNParsTempls; iTemplPar++) {
     initpars.push_back(fMassFuncFromPrefit->GetParameter(iTemplPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl));
   }
-  // cout << "CIAO8" << endl;
   for(Int_t iVnBkgPar=0; iVnBkgPar<fNParsVnBkg; iVnBkgPar++) {
     if(vnprefit) {initpars.push_back(fVnBkgFuncSb->GetParameter(iVnBkgPar));}
     else {initpars.push_back(0.05);}
   }
-  // cout << "CIAO9" << endl;
   initpars.push_back(0.10); //initial parameter for signal vn
   if(fSecondPeak && fDoSecondPeakVn) {initpars.push_back(0.10);} //initial parameter for second peak vn
-  // cout << "CIAO10" << endl;
 
   fMassTotFunc = new TF1("fMassTotFunc",this,&VnVsMassFitter::MassFunc,fMassMin,fMassMax,nparsmass,"VnVsMassFitter","MassFunc");
   fVnTotFunc = new TF1("fVnTotFunc",this,&VnVsMassFitter::vnFunc,fMassMin,fMassMax,nparsvn,"VnVsMassFitter","vnFunc");
   SetParNames();
-  // cout << "CIAO11" << endl;
 
   ROOT::Math::WrappedMultiTF1 wfTotMass(*fMassTotFunc,1);
   ROOT::Math::WrappedMultiTF1 wfTotVn(*fVnTotFunc,1);
@@ -305,7 +294,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   //define the global chi square
   GlobalChi2 globalChi2(chi2Mass, chi2Vn);
 
-  // cout << "CIAO12" << endl;
   //define fitter
   ROOT::Fit::Fitter fitter;
   // create before the parameter settings in order to fix or set range on them
@@ -320,7 +308,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
       }
     }
   }
-  // cout << "CIAO13" << endl;
   if(fMeanFixed==2 || fMeanFixedFromMassFit) {fitter.Config().ParSettings(fNParsMassBkg+1).Fix();}
   fitter.Config().ParSettings(fNParsMassBkg+2).SetLimits(0,1);
   if(fSigmaFixed==2 || fSigmaFixedFromMassFit) {fitter.Config().ParSettings(fNParsMassBkg+2).Fix();}
@@ -354,7 +341,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
       }
     }
   }
-  // cout << "CIAO14" << endl;
 
   fitter.Config().MinimizerOptions().SetPrintLevel(0);
   fitter.Config().SetMinimizer("Minuit2","Migrad");
@@ -363,7 +349,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
   // (specify optionally data size and flag to indicate that is a chi2 fit
   Bool_t isFitOk = fitter.FitFCN(nparsvn,globalChi2,0,dataMass.Size()+dataVn.Size(),kFALSE);
   if(!isFitOk) return kFALSE;
-  // cout << "CIAO15" << endl;
 
   ROOT::Fit::FitResult result = fitter.Result();
   result.Print(std::cout);
@@ -455,7 +440,6 @@ Bool_t VnVsMassFitter::SimultaneousFit(Bool_t drawFit) {
                       [&, this, iTempl, idxParMassTemplsScaling, result] (double *x, double *par) {
                          double templScalingPar = result.Parameter(iTempl + idxParMassTemplsScaling);
                          double kdeTemplEval = this->fKDETemplates[iTempl].Eval(x[0]);
-                        //  cout << "templScalingPar: " << templScalingPar << ", kdeTemplEval: " << kdeTemplEval << endl; 
                          return templScalingPar * this->fRelWeights[iTempl] * kdeTemplEval;
                       }, fMassMin, fMassMax, 0));
       if(fTemplSameVnOfSignal) {
@@ -1126,15 +1110,6 @@ Double_t VnVsMassFitter::MassTemplates(Double_t *m,Double_t *pars){
     default:
       std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
   }
-  // if(fAnchorTempls) {
-  //   for(int iTempl=0; iTempl<fNParsTempls; iTempl++) {
-  //     totalTemplates += pars[0]*fRelWeights[iTempl]*fKDETemplates[iTempl].Eval(m[0]);
-  //   }    
-  // } else {
-  //   for(int iTempl=0; iTempl<fNParsTempls; iTempl++) {
-  //     totalTemplates += pars[iTempl]*fKDETemplates[iTempl].Eval(m[0]);
-  //   }
-  // }
   return totalTemplates;
 }
 
@@ -1163,16 +1138,6 @@ Double_t VnVsMassFitter::VnTemplates(Double_t *m,Double_t *pars){
       std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
   }
 
-  // if(fAnchorTempls) {
-  //   for(int iTempl=0; iTempl<fNParsTempls; iTempl++) {
-  //     // vnTempl * first_templ_norm * relWeightTempl * templ
-  //     totalTemplates += pars[iTempl+fNParsTempls]*pars[0]*fRelWeights[iTempl]*fKDETemplates[iTempl].Eval(m[0]);
-  //   }
-  // } else {
-  //   for(int iTempl=0; iTempl<fNParsTempls; iTempl++) {
-  //     totalTemplates += pars[iTempl+fNParsTempls]*pars[iTempl]*fKDETemplates[iTempl].Eval(m[0]);
-  //   }
-  // }
   return totalTemplates;
 }
 
@@ -1236,22 +1201,10 @@ Double_t VnVsMassFitter::MassFunc(Double_t *m, Double_t *pars) {
   //reflection parameters
   Double_t rflpars[1]; //maximum number of parameters for rfl = 1 for the implemented functions
   for(Int_t iPar=0; iPar<fNParsRfl; iPar++) {rflpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec];}
-  //templates parameters
-  // Double_t templpars[fNParsTempls]; //one parameter for each template (i.e. its scaling parameter)
-
-  // if (fAnchorTempls) {
-  //   // templates are scaled with sgnInt * relWeight
-  //   templpars[0] = pars[fNParsMassBkg]; 
-  // } else {
-  //   for(Int_t iPar=0; iPar<fNParsTempls; iPar++) { 
-  //     templpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl];
-  //   }
-  // }
 
   Double_t total = MassSignal(m,sgnpars)+MassBkg(m,bkgpars);
   if(fSecondPeak) {total += MassSecondPeak(m,secpeakpars);}
   if(fReflections) {total += MassRfl(m,rflpars);}
-  // if(fTemplates) {total += MassTemplates(m,templpars);}
 
   if (fTemplates) {
     switch (fAnchorTemplsMode) {
@@ -1289,11 +1242,6 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
   Double_t rflpars[1]; //maximum number of parameters for rfl = 1 for the implemented functions
   for(Int_t iPar=0; iPar<fNParsRfl; iPar++) {rflpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec];}
   
-  // if (fAnchorTempls) {
-  //   // templates are scaled with sgnInt * relWeight
-  //   templpars[0] = pars[fNParsMassBkg]; 
-  // } else {
-  // }
   //bkg vn parameters
   const Int_t nVnBkgPars = fNParsVnBkg;
   Double_t vnbkgpars[nVnBkgPars];
@@ -1327,13 +1275,6 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
         break;
     }
   }
-  // Double_t vntemplpars[2*fNParsTempls]; //one parameter for each template (i.e. its scaling parameter)
-  // if(!fTemplSameVnOfSignal){
-  //   for(Int_t iPar=0; iPar<fNParsTempls; iPar++) {
-  //     vntemplpars[iPar] = pars[iPar+fNParsMassBkg+fNParsMassSgn+fNParsSec+fNParsRfl];
-  //     vntemplpars[iPar+fNParsTempls] = pars[iPar+fNParsMassSgn+fNParsMassBkg+fNParsSec+fNParsRfl+fNParsTempls+fNParsVnBkg+fNParsVnSgn+fNParsVnSecPeak+fNParsRfl];
-  //   }
-  // }
   Double_t vnBkg = vnBkgFunc(m,vnbkgpars);
   Double_t Sgn = MassSignal(m,masssgnpars);
   Double_t Bkg = MassBkg(m,massbkgpars);
@@ -1347,18 +1288,6 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
     if(fVnRflOpt==kSameVnBkg) Bkg += MassRfl(m,rflpars);
     else Refl += MassRfl(m,rflpars);
   }
-  // if(fTemplates) {
-  //   TemplatesMass += MassTemplates(m,templpars);
-  //   if(fTemplSameVnOfSignal){
-  //     TemplatesVn += vnSgn*MassTemplates(m,templpars);
-  //   } else {
-  //     TemplatesVn += VnTemplates(m,vntemplpars);
-  //   }
-  // }
-
-
-
-  // Double_t templpars[fNParsTempls]; //one parameter for each template (i.e. its scaling parameter)
 
   Double_t TemplatesVn = 0;
   Double_t TemplatesMass = 0;
@@ -1395,8 +1324,6 @@ Double_t VnVsMassFitter::vnFunc(Double_t *m, Double_t *pars) {
         std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
      }
   }
-
-
 
   return (vnSgn*Sgn+vnBkg*Bkg+vnSecPeak*SecPeak+vnRefl*Refl+TemplatesVn)/(Sgn+Bkg+SecPeak+Refl+TemplatesMass);
 }

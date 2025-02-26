@@ -158,7 +158,7 @@ TemplsNames: ["DsKKPi", "DplusKKPi"]  # names to save the templates in files
 TemplsTreeNames: ['O2hfcanddplite']   # list of tables (they will be joined) to use to extract KDEs
 SignalQuery: 'abs(fFlagMcMatchRec) == 1'  # query on tree to extract signal
 TemplsQueries: ['abs(fFlagMcMatchRec) == 4 and abs(fFlagMcDecayChanRec) <= 2', 'abs(fFlagMcMatchRec) == 4 and abs(fFlagMcDecayChanRec) > 2'] # queries for corr bkgs.
-weights_file: '/home/mdicosta/FlowDplus/FinalResults/templs_from_histo_parallel/weights.root' # path to store the relative weights of templates
+WeightsFile: '/home/mdicosta/FlowDplus/FinalResults/templs_from_histo_parallel/weights.root' # path to store the relative weights of templates
 
 
 # init weights for mass templates and vn of templates

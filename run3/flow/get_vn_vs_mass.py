@@ -140,7 +140,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         TemplatesFuncts = [[None]*len(fitConfig['TemplsNames']) for _ in range(len(ptMins))]
         templatesDfs = []
         with uproot.open(fitConfig['TemplsInputs']) as f:
-            for itemplate in range(len(fitConfig['TemplsNames'])):
+            for _ in range(len(fitConfig['TemplsNames'])):
                 dfsData = []
                 for tree_name in fitConfig['TemplsTreeNames']: 
                     for key in f.keys():
@@ -472,10 +472,10 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 vnFitter[iPt].SetFixReflOverS(SoverR)
                 vnFitter[iPt].SetReflVnOption(0) # kSameVnSignal
             useTemplates = False
-            if fitConfig['IncludeTempls'] and (fitConfig['TemplInputType'][iPt] == 'kde' or fitConfig['TemplInputType'][iPt] == 'histo'):
+            if fitConfig['IncludeTempls'] and fitConfig['TemplInputType'][iPt] == 'kde':
                 useTemplates = True 
             if useTemplates:        
-                weightsFile = TFile.Open(fitConfig['weights_file'], 'r')
+                weightsFile = TFile.Open(fitConfig['WeightsFile'], 'r')
                 TemplsRelWeights = []
                 for iTemplName in fitConfig['TemplsNames']:
                     if fitConfig['AnchorTemplsMode'] == 2:
@@ -484,25 +484,19 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                         histo_weights = weightsFile.Get(f"cutset_{cut_var_suffix}/{iTemplName}/Weights/hWeights{iTemplName}_wrt_firsttempl")
                     TemplsRelWeights.append(histo_weights.GetBinContent(iPt+1))
                 
-                if fitConfig.get('FixVnTemplToSgn'):        
-                    vnFitter[iPt].SetKDETemplates(TemplatesFuncts[iPt], fitConfig['TemplsNames'],
-                                                fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
-                                                [], [], [], fitConfig['FixVnTemplToSgn'][iPt], fitConfig['AnchorTemplsMode'], TemplsRelWeights)
-                else:
-                    vnFitter[iPt].SetKDETemplates(TemplatesFuncts[iPt], fitConfig['TemplsNames'],
-                                                  fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
-                                                  fitConfig['VnInitWeights'][iPt], fitConfig['VnMinWeights'][iPt], fitConfig['VnMaxWeights'][iPt], 
-                                                  fitConfig['FixVnTemplToSgn'][iPt])
+                vnFitter[iPt].SetKDETemplates(TemplatesFuncts[iPt], fitConfig['TemplsNames'],
+                                              fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
+                                              fitConfig['VnInitWeights'][iPt] if not fitConfig.get('FixVnTemplToSgn') else [], 
+                                              fitConfig['VnMinWeights'][iPt] if not fitConfig.get('FixVnTemplToSgn') else [], 
+                                              fitConfig['VnMaxWeights'][iPt] if not fitConfig.get('FixVnTemplToSgn') else [], 
+                                              fitConfig['FixVnTemplToSgn'][iPt], fitConfig['AnchorTemplsMode'], TemplsRelWeights)
             if fitConfig.get('InitBkg'):
                 if fitConfig['InitBkg'][iPt] != []:
                     vnFitter[iPt].SetBkgPars(list(itertools.chain(*fitConfig['InitBkg'][iPt])))
 
             # collect fit results
             vnFitter[iPt].SimultaneousFit(False)
-            # REVIEW: delete this vnComps = vnFitter[iPt].GetVnCompsFuncts()
             vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, useTemplates)
-            # vnComps = vnFitter[iPt].GetVnCompsFuncts()
-            # vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, True)
             fTotFuncMass.append(vnResults['fTotFuncMass'])
             fTotFuncVn.append(vnResults['fTotFuncVn'])
             fSgnFuncMass.append(vnResults['fSgnFuncMass'])
