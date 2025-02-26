@@ -536,12 +536,17 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
     
     vn_results['fVnCompsFuncts'] = {}
     vnComps = vnFitter.GetVnCompsFuncts()
-    vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
-    vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
+    try:
+        vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
+        vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
+    except:
+        print('Unable to get vnComps!')
     if secPeak:
         vn_results['fVnCompsFuncts']['vnSecPeak'] = vnComps[2]
     vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
     if useTempl:
+        vn_results['fVnCompsFuncts']['vnSgn'] = vnFitter.GetMassBkgFitFunc()
+        vn_results['fVnCompsFuncts']['vnBkg'] = vnFitter.GetMassBkgFitFunc()
         for iTempl in range(len(vn_results['fMassTemplFuncts'])):
             vn_results['fVnCompsFuncts'][f'vnTempl{iTempl}'] = vnComps[2+secPeak+iTempl]
     
@@ -976,7 +981,7 @@ def extract_template_weights(config):
     with open(config, 'r') as cfg:
         config = yaml.safe_load(cfg)
 
-    weights_file = TFile(config['weights_file'], 'recreate')
+    weights_file = TFile(config['WeightsFile'], 'recreate')
 
     templatesBRNorms = []
     if config['Dmeson'] == 'Dplus':

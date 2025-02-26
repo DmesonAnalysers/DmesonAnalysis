@@ -171,8 +171,8 @@ def run_full_cut_variation(config_flow,
 	if vn:
 		check_dir(f"{output_dir}/ry")
 		SimFitPath = "./../get_vn_vs_mass.py"
-		# if config['Dmeson'] == 'Dplus' and config.get('IncludeTempls'):
-		# 	extract_template_weights(config_flow)
+		if config['Dmeson'] == 'Dplus' and config.get('IncludeTempls'):
+			extract_template_weights(config_flow)
 
 		print('EXTRACTED TEMPLATE WEIGHTS')
 		def run_simfit(i):
