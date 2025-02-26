@@ -1,46 +1,23 @@
 import argparse
 import yaml
-import pandas as pd
 import numpy as np
-import uproot
 import ROOT
 import ctypes
 from ROOT import TFile, TKDE, TCanvas, TH1D, TF1
 
-def templ_producer_kde(tree_file, var, pt_min, pt_max, query, name, outfile='', tree_name='O2hfcanddplite'):
+def templ_producer_kde(tree, var, pt_min, pt_max, query, name, outfile=''):
     
-    print(f"Producing KDE from {tree_file} for var {var}, {pt_min} <= pt < {pt_max}, name {name}")
+    print(f"Producing KDE from {name} for var {var}, {pt_min} <= pt < {pt_max}")
     print(f"-----> Query: {pt_min} <= fPt < {pt_max} and {query}")
-    # convert the tree_file to a pandas dataframe
-    dfsData = []
-    with uproot.open(f'{tree_file}') as f:
-        for key in f.keys():
-            if tree_name in key:
-                dfData = f[key].arrays(library='pd')
-                dfsData.append(dfData)      
-    full_dataset = pd.concat([df for df in dfsData], ignore_index=True)
-    full_dataset.query(f"{pt_min} <= fPt < {pt_max} and {query}", inplace=True)
-    var_values = full_dataset[f'{var}'].tolist()
-
-    # kde = TKDE(len(var_values), np.asarray(var_values, 'd'), 0, 3)
-    # kde_func = TF1("kde_name",kde,-10,10,0)
-    # print(type(kde_func))
-    # Assuming TKDE class is defined as such, and var_values is your data
+    
+    print(f"[2] type(tree): {type(tree)}")
+    # tree.query(f"{pt_min} <= fPt < {pt_max} and {query}")
+    print(f"[3] type(tree): {type(tree)}")
+    var_values = tree.query(f"{pt_min} <= fPt and fPt < {pt_max} and {query}")[var].tolist()
+    print(f"len(var_values): {len(var_values)}")
+    print(f"np.asarray(var_values, 'd'): {np.asarray(var_values, 'd')}")
     kde = TKDE(len(var_values), np.asarray(var_values, 'd'), 0, 3)
-
-    # Use a lambda function to wrap the TKDE's Eval method (or similar)
-    kde_func = kde.GetFunction(5000)
-    # kde_func = TF1("kde_name", lambda x, par: kde.Eval(x[0]), -10, 10)
-
-    # Print the type of the TF1 object
-    # print(type(kde_func))
-    # print(f'kde_func.Eval(2): {kde_func.Eval(2.)}')
-    # file = TFile(f'/home/mdicosta/FlowDplus/FinalResults/templs_from_histo/cutvar_withtempls/ry/debug_{pt_min}_{pt_max}_{name}.root', 'recreate')
-    # print('ciao1')
-    # kde_func.Write()
-    # print('ciao2')
-    # file.Close()
-    # kde_func = kde.GetFunction(1000)
+    kde_func = kde.GetFunction(500)
     
     binned_var_values = TH1D(f'hBinned', f'hBinned', 3000, 0, 3)
     for var_value in var_values:

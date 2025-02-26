@@ -11,6 +11,8 @@ class InvMassFitter : public TNamed {
 
   enum ETypeOfBkg{ kExpo=0, kLin=1, kPol2=2, kNoBk=3, kPow=4, kPowEx=5, kPol3=6};
   enum ETypeOfSgn{ kGaus=0, k2Gaus=1, k2GausSigmaRatioPar=2 };
+  enum TemplAnchorMode{Free=0, AnchorToFirst=1, AnchorToSgn=2};
+
   InvMassFitter();
   InvMassFitter(const TH1F* histoToFit, Double_t minvalue, Double_t maxvalue, Int_t fittypeb=kExpo, Int_t fittypes=kGaus);
   ~InvMassFitter();
@@ -101,13 +103,14 @@ class InvMassFitter : public TNamed {
   void SetSmoothReflectionTemplate(Bool_t opt){fSmoothRfl=opt;}
   void SetTemplates(std::vector<TF1> templates, std::vector<Double_t> initweights,
                     std::vector<Double_t> minweights, std::vector<Double_t> maxweights,
-                    std::vector<Double_t> relcombweights) {
+                    int anchormode = TemplAnchorMode::Free, std::vector<Double_t> relcombweights = {}) {
     fTemplatesFuncts=templates;
     fMassInitWeights=initweights;
     fMassWeightsLowerLims=minweights;
     fMassWeightsUpperLims=maxweights;
     fTemplates=kTRUE;
     fRelWeights=relcombweights;
+    fAnchorTemplsMode=static_cast<TemplAnchorMode>(anchormode);
   }
 
   void IncludeSecondGausPeak(Double_t mass, Bool_t fixm, Double_t width, Bool_t fixw){
@@ -259,6 +262,7 @@ class InvMassFitter : public TNamed {
   std::vector<TF1>      fTemplatesFuncts;      /// vector storing TF1 to be added as templates
   TF1*                  fTemplFunc;            /// fit function for templates
   Bool_t                fTemplates;            /// flag use/not use templates fit functions
+  TemplAnchorMode       fAnchorTemplsMode;     /// init values of the templates' weights
   Int_t                 fNParsTempls;          /// fit parameters in templates fit function
   std::vector<Double_t> fRelWeights;           /// relative weights of templates
   std::vector<Double_t> fMassWeightsUpperLims;     /// upper limit of the templates' weights

@@ -13,9 +13,12 @@
 #include "Math/WrappedMultiTF1.h"
 #include "InvMassFitter.h"
 
+
 class VnVsMassFitter : public TObject {
 
 public:
+
+
   VnVsMassFitter();
   VnVsMassFitter(TH1F* hMass, TH1F* hvn, Double_t min, Double_t max, Int_t funcMassBkg, Int_t funcMassSgn, Int_t funcvnBkg);
   ~VnVsMassFitter();
@@ -23,6 +26,7 @@ public:
   enum ETypeOfBkg{kExpo=0, kLin=1, kPol2=2, kNoBk=3, kPow=4, kPowEx=5, kPoln=6};
   enum ETypeOfSgn{kGaus=0, k2Gaus=1};
   enum ETypeOfVnRfl{kSameVnSignal=0, kOppVnSignal=1, kSameVnBkg=2, kFreePar=3};
+  enum TemplAnchorMode{Free=0, AnchorToFirst=1, AnchorToSgn=2};
 
   Bool_t SimultaneousFit(Bool_t drawFit=kTRUE);
   void DrawHere(TVirtualPad* c);
@@ -65,7 +69,7 @@ public:
   void SetKDETemplates(std::vector<TF1> templs, std::vector<std::string> templsnames,
                        std::vector<Double_t> initweights, std::vector<Double_t> minweights, std::vector<Double_t> maxweights, 
                        std::vector<Double_t> vninitweights, std::vector<Double_t> vnminweights, std::vector<Double_t> vnmaxweights, 
-                       Bool_t samevnofsignal, std::vector<Double_t> relcombweights, Bool_t anchortemplstosgn) {
+                       Bool_t samevnofsignal, int anchormode = TemplAnchorMode::Free, std::vector<Double_t> relcombweights = {}) {
     fKDETemplates=templs;
     fMassInitWeights=initweights;
     fMassWeightsLowerLims=minweights;
@@ -81,7 +85,7 @@ public:
     fTemplSameVnOfSignal=samevnofsignal;
     fTemplates=kTRUE;
     fRelWeights=relcombweights;
-    fAnchorTemplsToSgn=anchortemplstosgn;
+    fAnchorTemplsMode=static_cast<TemplAnchorMode>(anchormode);
   }
   void SetBkgPars(std::vector<Double_t> initpars) {
     fMassBkgInitPars = initpars;
@@ -374,7 +378,7 @@ private:
   std::vector<Double_t> fMassInitWeights;               /// init values of the templates' weights
   std::vector<Double_t> fVnInitWeights;                 /// init values of the templates' weights
   Bool_t                fTemplSameVnOfSignal;           /// init values of the templates' weights
-  Bool_t                fAnchorTemplsToSgn;             /// init values of the templates' weights
+  TemplAnchorMode       fAnchorTemplsMode;              /// init values of the templates' weights
 
     /// \cond CLASSDEF
   ClassDef(VnVsMassFitter,5);

@@ -8,10 +8,12 @@ import sys
 import argparse
 import ctypes
 import numpy as np
+import pandas as pd
 import yaml
 import os
 import itertools
 import re
+import uproot
 from ROOT import TLatex, TFile, TCanvas, TLegend, TH1D, TH1F, TDatabasePDG, TGraphAsymmErrors, TKDE # pylint: disable=import-error,no-name-in-module
 from ROOT import gROOT, gPad, gInterpreter, kBlack, kRed, kAzure, kCyan, kGray, kOrange, kGreen, kMagenta, kFullCircle, kFullSquare, kOpenCircle # pylint: disable=import-error,no-name-in-module
 from flow_analysis_utils import get_centrality_bins, get_vnfitter_results, get_ep_vn, get_refl_histo, get_particle_info # pylint: disable=import-error,no-name-in-module
@@ -22,6 +24,7 @@ script_dir = os.path.dirname(os.path.realpath(__file__))
 gInterpreter.ProcessLine(f'#include "{script_dir}/invmassfitter/InvMassFitter.cxx"')
 gInterpreter.ProcessLine(f'#include "{script_dir}/invmassfitter/VnVsMassFitter.cxx"')
 from ROOT import InvMassFitter, VnVsMassFitter
+from flow_analysis_utils import extract_template_weights
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, DivideCanvas
 from utils.FitUtils import SingleGaus, DoubleGaus, DoublePeakSingleGaus, DoublePeakDoubleGaus, RebinHisto
 from template_producer import templ_producer_kde, templ_producer_histo
@@ -135,25 +138,34 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
         templatesFile = TFile(f'{outputdir}/Templates_{cut_var_suffix}.root', 'recreate')
         Templates = [[None]*len(fitConfig['TemplsNames']) for _ in range(len(ptMins))]
         TemplatesFuncts = [[None]*len(fitConfig['TemplsNames']) for _ in range(len(ptMins))]
+        templatesDfs = []
+        with uproot.open(fitConfig['TemplsInputs']) as f:
+            for itemplate in range(len(fitConfig['TemplsNames'])):
+                dfsData = []
+                for tree_name in fitConfig['TemplsTreeNames']: 
+                    for key in f.keys():
+                        if tree_name in key:
+                            dfData = f[key].arrays(library='pd')
+                            dfsData.append(dfData)      
+                    templatesDfs.append(pd.concat([df for df in dfsData], ignore_index=True))
+
         for iPt, (bkgStr, sgnStr, bkgVnStr) in enumerate(zip(BkgFuncStr, SgnFuncStr, BkgFuncVnStr)):
             if fitConfig['TemplInputType'][iPt] == 'kde':
-                for iTempl in range(len(fitConfig['TemplsNames'])):
-                    Templates[iPt][iTempl], _, _ = templ_producer_kde(fitConfig['TemplsInputs'], 'fM', ptMins[iPt], ptMaxs[iPt],
-                                                                      fitConfig['TemplsQueries'][iTempl], fitConfig['TemplsNames'][iTempl],
-                                                                      templatesFile, fitConfig['TemplsTreeNames'])
+                for iTempl, (df, query, name) in enumerate(zip(templatesDfs, fitConfig['TemplsQueries'], fitConfig['TemplsNames'])):
+                    Templates[iPt][iTempl], _, _ = templ_producer_kde(df, 'fM', ptMins[iPt], ptMaxs[iPt], query, name, templatesFile)
                     TemplatesFuncts[iPt][iTempl] = Templates[iPt][iTempl].GetFunction()
-            # elif fitConfig['TemplInputType'][iPt] == 'histo':
-                # print('GETTING TEMPLATE FROM HISTOGRAM, RELATIVE REWEIGHTING')
-                # TemplsRelWeights = [eval(expr) if isinstance(expr, str) else expr for expr in fitConfig["TemplsRelWeights"]]   
-                # print(f"TemplsRelWeights: {TemplsRelWeights}")
-                # Templates[iPt][0] = templ_producer_histo(fitConfig['TemplsInputs'], 'fM', ptMins[iPt], ptMaxs[iPt], fitConfig['TemplsQueries'],
-                #                                          fitConfig['TemplsNames'], TemplsRelWeights, templatesFile, fitConfig['TemplsTreeNames'])
-                # TemplatesFuncts[iPt][0] = Templates[iPt][0]
             else:
                 print(f'Provided setting for templates not implemented, templates for {ptMins[iPt]} <= pt < {ptMaxs[iPt]} bin will not be added!')
-                TemplatesFuncts[iPt] = None
+                TemplatesFuncts[iPt][iTempl] = None
                 continue
         templatesFile.Close()
+
+    print(f"TemplatesFuncts: {TemplatesFuncts}")
+    for iPt, bkgStr in enumerate(BkgFuncStr):
+        debug_functs = TFile(f"/home/mdicosta/FlowDplus/FinalResults/templs_from_histo_parallel/Functs{iPt}.root", 'recreate')
+        for iTempl in TemplatesFuncts[iPt]:
+            iTempl.Write()
+        debug_functs.Close()
     # quit()
     # set particle configuration
     if particleName == 'Dzero':
@@ -460,47 +472,27 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                 vnFitter[iPt].SetFixReflOverS(SoverR)
                 vnFitter[iPt].SetReflVnOption(0) # kSameVnSignal
             useTemplates = False
-            if fitConfig['TemplInputType'][iPt] == 'kde' or fitConfig['TemplInputType'][iPt] == 'histo':
+            if fitConfig['IncludeTempls'] and (fitConfig['TemplInputType'][iPt] == 'kde' or fitConfig['TemplInputType'][iPt] == 'histo'):
                 useTemplates = True 
-            if useTemplates:
-                print(f"TemplatesFuncts[iPt]: {TemplatesFuncts[iPt]}")
-                # if fitConfig.get('TemplsRelWeights'):
-                #     TemplsRelWeights = [eval(expr) if isinstance(expr, str) else expr for expr in fitConfig["TemplsRelWeights"]]   
-                #     if fitConfig['FixVnTemplToSgn'][iPt]:
-                #         print("Fixing template of Vn to signal")
-                #         vnFitter[iPt].SetKDETemplatesCombRew(TemplatesFuncts[iPt], TemplsRelWeights, fitConfig['TemplsNames'],
-                #                                              fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
-                #                                              [], [], [], True, ptMins[iPt], ptMaxs[iPt])
-                #     else:                    
-                #         vnFitter[iPt].SetKDETemplatesCombRew(TemplatesFuncts[iPt], TemplsRelWeights, fitConfig['TemplsNames'],
-                #                                              fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
-                #                                              fitConfig['VnInitWeights'][iPt], fitConfig['VnMinWeights'][iPt], fitConfig['VnMaxWeights'][iPt], 
-                #                                              False)
-                #     # quit()
-                # else:
+            if useTemplates:        
+                weightsFile = TFile.Open(fitConfig['weights_file'], 'r')
+                TemplsRelWeights = []
+                for iTemplName in fitConfig['TemplsNames']:
+                    if fitConfig['AnchorTemplsMode'] == 2:
+                        histo_weights = weightsFile.Get(f"cutset_{cut_var_suffix}/{iTemplName}/Weights/hWeights{iTemplName}_wrt_signal")
+                    elif fitConfig['AnchorTemplsMode'] == 1:
+                        histo_weights = weightsFile.Get(f"cutset_{cut_var_suffix}/{iTemplName}/Weights/hWeights{iTemplName}_wrt_firsttempl")
+                    TemplsRelWeights.append(histo_weights.GetBinContent(iPt+1))
                 
-                if fitConfig.get('TemplsRelWeights'):
-                    TemplsRelWeights = [eval(expr) if isinstance(expr, str) else expr for expr in fitConfig["TemplsRelWeights"]] 
-                    anchorTemplsToSgn = True
-                elif fitConfig.get('TemplsRelWeightsToSgn'):
-                    TemplsRelWeights = [eval(expr) if isinstance(expr, str) else expr for expr in fitConfig["TemplsRelWeightsToSgn"]] 
-                    anchorTemplsToSgn = False
-                else:
-                    TemplsRelWeights = []    
-                    anchorTemplsToSgn = False
-
-                if fitConfig['FixVnTemplToSgn'][iPt]:
-                    print('Setting KDE templs')
+                if fitConfig.get('FixVnTemplToSgn'):        
                     vnFitter[iPt].SetKDETemplates(TemplatesFuncts[iPt], fitConfig['TemplsNames'],
                                                 fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
-                                                [], [], [], True, TemplsRelWeights, anchorTemplsToSgn)
-                    print('KDE templs set')
+                                                [], [], [], fitConfig['FixVnTemplToSgn'][iPt], fitConfig['AnchorTemplsMode'], TemplsRelWeights)
                 else:
                     vnFitter[iPt].SetKDETemplates(TemplatesFuncts[iPt], fitConfig['TemplsNames'],
-                                                fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
-                                                fitConfig['VnInitWeights'][iPt], fitConfig['VnMinWeights'][iPt], fitConfig['VnMaxWeights'][iPt], 
-                                                False, TemplsRelWeights, anchorTemplsToSgn)
-
+                                                  fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
+                                                  fitConfig['VnInitWeights'][iPt], fitConfig['VnMinWeights'][iPt], fitConfig['VnMaxWeights'][iPt], 
+                                                  fitConfig['FixVnTemplToSgn'][iPt])
             if fitConfig.get('InitBkg'):
                 if fitConfig['InitBkg'][iPt] != []:
                     vnFitter[iPt].SetBkgPars(list(itertools.chain(*fitConfig['InitBkg'][iPt])))
