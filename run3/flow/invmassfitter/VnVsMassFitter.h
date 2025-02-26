@@ -17,6 +17,8 @@
 class VnVsMassFitter : public TObject {
 
 public:
+
+
   VnVsMassFitter();
   VnVsMassFitter(TH1F* hMass, TH1F* hvn, Double_t min, Double_t max, Int_t funcMassBkg, Int_t funcMassSgn, Int_t funcvnBkg);
   ~VnVsMassFitter();

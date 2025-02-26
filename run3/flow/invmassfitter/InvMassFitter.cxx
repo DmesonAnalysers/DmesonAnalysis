@@ -343,8 +343,19 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
   fTotFunc = CreateTotalFitFunction("funcmass");
 
   if(doFinalFit){
+    // cout << "ABOUT TO PERFORM FINAL FIT" << endl;
+      // totalTempl += par[0]*fRelWeights[iTempl]*fTemplatesFuncts[iTempl].Eval(x[0]);
+    // cout << "fRelWeights.size(): " << fRelWeights.size() << endl;
+    // cout << "fRelWeights[0]: " << fRelWeights[0] << endl;
+    // cout << "fRelWeights[1]: " << fRelWeights[1] << endl;
+    // cout << "fTemplatesFuncts.size(): " << fTemplatesFuncts.size() << endl;
+    // cout << "fTemplatesFuncts[0].Eval(2.0): " << fTemplatesFuncts[0].Eval(2.0) << endl;
+    // cout << "fTemplatesFuncts[1].Eval(2.0): " << fTemplatesFuncts[1].Eval(2.0) << endl;
     printf("\n--- Final fit with signal+background on the full range ---\n");
+    // cout << "fNParsTempls: " << fNParsTempls << endl;
+    // cout << "fAnchorTempls: " << fAnchorTempls << endl;
     TFitResultPtr resultptr=fHistoInvMass->Fit("funcmass",Form("R,S,%s,+,0",fFitOption.Data()));
+    // cout << "FIT PERFORMED" << endl;
     isFitValid = resultptr->IsValid();
     status = (Int_t) resultptr;
     printf("[InvMassFitter] final fit status %d\n",status);
@@ -618,9 +629,9 @@ TF1* InvMassFitter::CreateTotalFitFunction(TString fname){
   for(Int_t ipar=0; ipar<fNParsBkg; ipar++){
     ftot->SetParameter(ipar,fBkgFunc->GetParameter(ipar));
     ftot->SetParName(ipar,fBkgFunc->GetParName(ipar));
-    // Double_t parmin,parmax;
-    // fBkgFunc->GetParLimits(ipar,parmin,parmax);
-    // ftot->SetParLimits(ipar,parmin,parmax);
+    Double_t parmin,parmax;
+    fBkgFunc->GetParLimits(ipar,parmin,parmax);
+    ftot->SetParLimits(ipar,parmin,parmax);
   }
   for(Int_t ipar=0; ipar<fNParsSig; ipar++){
     ftot->SetParameter(ipar+fNParsBkg,fSigFunc->GetParameter(ipar));
@@ -651,6 +662,7 @@ TF1* InvMassFitter::CreateTotalFitFunction(TString fname){
     for(Int_t ipar=0; ipar<fNParsTempls; ipar++){
       Double_t parmin,parmax;
       fTemplFunc->GetParLimits(ipar,parmin,parmax);
+      cout << "ipar: " << ipar << ", parmin: " << parmin << ", parmax: " << parmax << ", par: " << fTemplFunc->GetParameter(ipar) << endl; 
       ftot->SetParLimits(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,parmin,parmax);
       ftot->SetParameter(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,fTemplFunc->GetParameter(ipar));
       ftot->SetParName(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,fTemplFunc->GetParName(ipar));
@@ -863,7 +875,6 @@ Double_t InvMassFitter::FitFunction4Templ(Double_t *x, Double_t *par){
     default:
       std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
   }
-
   return totalTemplates;
 }
 //_________________________________________________________________________
@@ -893,7 +904,6 @@ Double_t InvMassFitter::FitFunction4Mass(Double_t *x, Double_t *par){
         std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
     }
   }
-
   return bkg+sig+sec+refl+templ;
 }
 
