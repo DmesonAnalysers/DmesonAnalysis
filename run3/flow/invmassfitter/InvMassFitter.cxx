@@ -343,19 +343,8 @@ Int_t InvMassFitter::MassFitter(Bool_t draw){
   fTotFunc = CreateTotalFitFunction("funcmass");
 
   if(doFinalFit){
-    // cout << "ABOUT TO PERFORM FINAL FIT" << endl;
-      // totalTempl += par[0]*fRelWeights[iTempl]*fTemplatesFuncts[iTempl].Eval(x[0]);
-    // cout << "fRelWeights.size(): " << fRelWeights.size() << endl;
-    // cout << "fRelWeights[0]: " << fRelWeights[0] << endl;
-    // cout << "fRelWeights[1]: " << fRelWeights[1] << endl;
-    // cout << "fTemplatesFuncts.size(): " << fTemplatesFuncts.size() << endl;
-    // cout << "fTemplatesFuncts[0].Eval(2.0): " << fTemplatesFuncts[0].Eval(2.0) << endl;
-    // cout << "fTemplatesFuncts[1].Eval(2.0): " << fTemplatesFuncts[1].Eval(2.0) << endl;
     printf("\n--- Final fit with signal+background on the full range ---\n");
-    // cout << "fNParsTempls: " << fNParsTempls << endl;
-    // cout << "fAnchorTempls: " << fAnchorTempls << endl;
     TFitResultPtr resultptr=fHistoInvMass->Fit("funcmass",Form("R,S,%s,+,0",fFitOption.Data()));
-    // cout << "FIT PERFORMED" << endl;
     isFitValid = resultptr->IsValid();
     status = (Int_t) resultptr;
     printf("[InvMassFitter] final fit status %d\n",status);
