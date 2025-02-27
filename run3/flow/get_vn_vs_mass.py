@@ -134,7 +134,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
 
     Templates = []
     TemplatesFuncts = []
-    if 'IncludeTempls' in fitConfig:
+    if fitConfig.get('IncludeTempls'):
         templatesFile = TFile(f'{outputdir}/Templates_{cut_var_suffix}.root', 'recreate')
         Templates = [[None]*len(fitConfig['TemplsNames']) for _ in range(len(ptMins))]
         TemplatesFuncts = [[None]*len(fitConfig['TemplsNames']) for _ in range(len(ptMins))]
@@ -335,7 +335,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     gvnUncSecPeak.SetName('gvnUncSecPeak')
     gvnTempls = []
     gvnTemplsUncs = []
-    if 'IncludeTempls' in fitConfig:
+    if fitConfig.get('IncludeTempls'):
         for iTempl in fitConfig['TemplsNames']:
             gvnTempl = TGraphAsymmErrors(1)
             gvnTempl.SetName('gvnTemplUnc')
@@ -955,7 +955,7 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
     if secPeak:
         gvnSimFitSecPeak.Write()
         gvnUncSecPeak.Write()
-    if 'IncludeTempls' in fitConfig:
+    if fitConfig.get('IncludeTempls'):
         for iTempl in range(len(fitConfig['TemplsNames'])):
             gvnTempls[iTempl].Write()
             gvnTemplsUncs[iTempl].Write()
