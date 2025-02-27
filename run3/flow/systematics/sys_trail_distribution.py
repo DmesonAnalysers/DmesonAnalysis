@@ -1,12 +1,9 @@
-"""
-python script for the computation of the prompt or non-prompt v2 via extrapolation
-run: python ComputeV2vsFDFrac.py config.yaml --inputdir path/to/input --outputdir path/to/output --suffix text
-
-"""
-import argparse
 import os
-import yaml
 import sys
+import yaml
+import argparse
+sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/BDT')
+sys.path.append('/home/wuct/ALICE/local/DmesonAnalysis/run3/flow/systematics')
 import ROOT
 from ROOT import TFile, TCanvas, TLegend, TLatex, TGraphErrors, TF1, TH1D, TVirtualFitter, Double_t
 from ROOT import kBlack, kAzure, kCyan, kOrange
@@ -16,14 +13,9 @@ sys.path.append('../')
 from flow_analysis_utils import get_particle_info, get_cut_sets_config
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor
 
-def load_v2_files(inputdir, suffix):
-    if os.path.exists(f'{inputdir}/ry'):
-        v2Files = [f'{inputdir}/ry/{file}'
-                    for file in os.listdir(f'{inputdir}/ry') if file.endswith('.root') and suffix in file]
-        v2Files.sort()
-    else:
-        raise ValueError(f'No ry folder found in {inputdir}')
-    return v2Files
+#def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files, systematics=False):
+
+ROOT.gROOT.SetBatch(True)
 
 def load_frac_files(inputdir, suffix):
     if os.path.exists(f'{inputdir}/DataDrivenFrac'):
@@ -33,7 +25,6 @@ def load_frac_files(inputdir, suffix):
     else:
         raise ValueError(f'No DataDrivenFrac folder found in {inputdir}')
     return fracFiles
-
 def set_frame_style(canv, Title, particleTit):
     canv.SetLeftMargin(0.15)
     canv.SetRightMargin(0.05)
@@ -50,18 +41,120 @@ def set_frame_style(canv, Title, particleTit):
     hFrame.GetXaxis().SetLabelSize(0.04)
     hFrame.GetXaxis().SetTitleOffset(1.4)
     hFrame.GetYaxis().SetNdivisions(505)
-
+    
 def set_frame_margin(canv):
     canv.SetLeftMargin(0.15)
     canv.SetRightMargin(0.05)
     canv.SetBottomMargin(0.15)
     canv.SetTopMargin(0.05)
 
-def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files, systematics=False):
+def get_mean_vn_rms_vn(hvn, hsyst):
+    mean_vn = 0
+    rms_vn = 0
+    for i in range(hvn.GetNbinsX()):
+        mean_vn = hvn.GetBinContent(i) / hvn.GetNbinsX() + mean_vn
+    rms_vn = hsyst.GetMean()
+    return mean_vn, rms_vn
+config_flow_path = '/home/wuct/ALICE/local/Results/test/flow/systematics/trails/trails_pt_30_35/cutvar_config_pt3_3.5_Sigma-0.018930816044528502_BkgFuncVn-kLin_BkgFunc-kExpo_Rebin-1_MassMin-1.7_MassMax-2.0/config_flow/config_flow_config_pt3_3.5_Sigma-0.018930816044528502_BkgFuncVn-kLin_BkgFunc-kExpo_Rebin-1_MassMin-1.7_MassMax-2.0_0.yml'
 
-    CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
-    nCutSets = max(CutSets)
-    with open(config_flow, 'r') as ymlCfgFile:
+ry_template_path = '/home/wuct/ALICE/local/Results/test/flow/systematics/trails/trails_pt_30_35/cutvar_config_pt3_3.5_Sigma-0.018930816044528502_BkgFuncVn-kLin_BkgFunc-kExpo_Rebin-1_MassMin-1.7_MassMax-2.0/ry/raw_yields_config_pt3_3.5_Sigma-0.018930816044528502_BkgFuncVn-kLin_BkgFunc-kExpo_Rebin-1_MassMin-1.7_MassMax-2.0_00.root'
+
+ry_template_file = TFile.Open(ry_template_path)
+
+gry = ry_template_file.Get('gvnSimFit')
+hry = ry_template_file.Get('hvnSimFit')
+hry.SetDirectory(0)
+gry.Set(0)
+# hry.Set(0)
+ry_template_file.Close()
+
+syst_mult_path = '/home/wuct/ALICE/local/Results/test/flow/systematics/sys/pt_30_35/syst_multitrial'
+outputdir = '/home/wuct/ALICE/local/Results/test/flow/systematics/sys/pt_30_35/syst_multitrial'
+syst_file_names = os.listdir(syst_mult_path)
+for file in syst_file_names:
+    if 'syst_multitrial' not in file or 'ry' not in file:
+        syst_file_names.remove(file)
+
+print(syst_file_names)
+syst_file_names.sort()
+syst_files = []
+mean_v2s = []
+rms_v2s = []
+syst_finals = []
+
+for syst_file_name in syst_file_names:
+    syst_file = TFile.Open(os.path.join(syst_mult_path, syst_file_name))
+    print(f'Loading {syst_file_name}')
+    syst_files.append(syst_file)
+    hvn = syst_file.Get('hvn')
+    hsyst = syst_file.Get('hsyst')
+    hsyst_final = syst_file.Get('hsyst_final')
+    hvn.SetDirectory(0)
+    hsyst.SetDirectory(0)
+    hsyst_final.SetDirectory(0)
+    mean_v2, rms_v2 = get_mean_vn_rms_vn(hvn, hsyst)
+    print(f'mean_v2: {mean_v2}, rms_v2: {rms_v2}')
+    mean_v2s.append(mean_v2)
+    rms_v2s.append(rms_v2)
+    syst_final = hsyst_final.GetBinContent(1)
+    syst_finals.append(syst_final)
+    print(f'syst_final: {syst_final}')
+    syst_file.Close()
+
+from itertools import product
+
+n_files = len(mean_v2s)
+
+combinations = product([0, 1, 2], repeat=n_files)
+
+all_gry_configs = []
+all_hry_configs = []
+
+for icombo, combo in enumerate(combinations):
+    gry_sys = []
+    hry_sys = []
+    
+    for iFile, choice in enumerate(combo):
+        gry_sy = gry.Clone(f"gvnSimFit_combo_{iFile}_choice_{choice}")
+        hry_sy = hry.Clone(f"hvnSimFit_combo_{iFile}_choice_{choice}")
+        
+        if choice == 0:
+            value = mean_v2s[iFile]
+        elif choice == 1:
+            value = mean_v2s[iFile] - rms_v2s[iFile]
+        elif choice == 2:
+            value = mean_v2s[iFile] + rms_v2s[iFile]
+        
+        gry_sy.SetPoint(0, 0, value)
+        gry_sy.SetPointError(0, 0.25, 0.25, syst_finals[iFile], syst_finals[iFile])
+
+        hry_sy.SetBinContent(1, value)
+        hry_sy.SetBinError(1, syst_finals[iFile])
+        hry_sy.SetDirectory(0)
+        
+        gry_sys.append(gry_sy)
+        hry_sys.append(hry_sy)
+
+# for ll in range(3):
+#     gry_sys, hry_sys = [], []
+#     for iFile in range(len(mean_v2s)):
+#         gry_sy = gry.Clone('gvnSimFit')
+#         if ll == 0:
+#             gry_sy.SetPoint(0, 0, mean_v2s[iFile])
+#         elif ll == 1:
+#             gry_sy.SetPoint(0, 0, mean_v2s[iFile] - rms_v2s[iFile])
+#         elif ll == 2:
+#             gry_sy.SetPoint(0, 0, mean_v2s[iFile] + rms_v2s[iFile])
+#         gry_sy.SetPointError(0, 0.25, 0.25, syst_finals[iFile], syst_finals[iFile])
+#         hry_sy = hry.Clone('hvnSimFit')
+#         hry_sy.SetBinContent(1, mean_v2s[iFile])
+#         hry_sy.SetBinError(1, syst_finals[iFile])
+#         hry_sy.SetDirectory(0)
+#         gry_sys.append(gry_sy)
+#         hry_sys.append(hry_sy)
+
+    CutSets = len(syst_files)
+    with open(config_flow_path, 'r') as ymlCfgFile:
         config = yaml.load(ymlCfgFile, yaml.FullLoader)
         
     ptmins = config['ptmins']
@@ -70,28 +163,14 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files, sys
     particleName = config['Dmeson']
 
     particleTit, _, decay, _ = get_particle_info(particleName)
-    
-    CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
 
-    #================= Load the files =================
-    # consider the different number of cutsets
-    if len(fracFiles) < len(v2Files):
-        raise ValueError('Number of frac files is less than the number of v2 files')
+    fracFiles = load_frac_files('/home/wuct/ALICE/local/Results/test/flow/systematics/trails/trails_pt_30_35/cutvar_config_pt3_3.5_Sigma-0.018930816044528502_BkgFuncVn-kLin_BkgFunc-kExpo_Rebin-1_MassMin-1.7_MassMax-2.0', 'DataDrivenFrac')
+
 
     hV2, gV2, hFracFD, hFracPrompt = [], [], [], []
     avrV2XErrL, avrV2XErrH = [], []
 
-    # for fracFile, v2File in zip(fracFiles, v2Files):
-    #     inV2File = TFile.Open(v2File)
-    #     hV2.append(inV2File.Get('hvnSimFit'))
-    #     gV2.append(inV2File.Get('gvnSimFit'))
-    #     hV2[-1].SetDirectory(0)
-
-    for iFile, v2File in enumerate(v2Files):
-        inV2File = TFile.Open(v2File)
-        hV2.append(inV2File.Get('hvnSimFit'))
-        gV2.append(inV2File.Get('gvnSimFit'))
-        hV2[-1].SetDirectory(0)
+    for iFile in range(len(fracFiles)):
         
         fracFile = fracFiles[iFile]
         inFracFile = TFile.Open(fracFile)
@@ -101,15 +180,15 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files, sys
         hFracPrompt[-1].SetDirectory(0)
 
     gFracVsV2, hV2VsFrac = [], [] # gFracVsV2 used for fitting, hV2VsFrac used for plotting
-    hV2VsPtFD = hV2[0].Clone("hV2VsPtFD")
-    hV2VsPtPrompt = hV2[0].Clone("hV2VsPtPrompt")
+    hV2VsPtFD = hry.Clone("hV2VsPtFD")
+    hV2VsPtPrompt = hry.Clone("hV2VsPtPrompt")
 
     cFrac, ptStrings, chi2Strings = [], [], []
-    
+
     nPtBins = len(ptmins)
     for iPt, (ptMin, ptMax) in enumerate(zip(ptmins, ptmaxs)):
         ptCent = (ptMin + ptMax) / 2
-        nSets = CutSets[iPt]
+        nSets = CutSets
 
         gFracVsV2.append(TGraphErrors(-1))
         hV2VsFrac.append(TH1D(f"hV2VsFrac_{iPt}", "", 1000, 0.0, 1.0))
@@ -117,12 +196,12 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files, sys
         SetObjectStyle(hV2VsFrac[-1], markerstyle=kFullCircle, markersize=0)
         SetObjectStyle(gFracVsV2[-1], linecolor=kAzure+4, linewidth=2, markerstyle=kFullCircle, markersize=1, markercolor=kAzure+4)
 
-        avrV2XErrL.append(Double_t(sum(gV2[i].GetErrorXlow(iPt) for i in range(nSets)) / nSets))
-        avrV2XErrH.append(Double_t(sum(gV2[i].GetErrorXhigh(iPt) for i in range(nSets)) / nSets))
+        avrV2XErrL.append(Double_t(sum(gry_sys[i].GetErrorXlow(iPt) for i in range(nSets)) / nSets))
+        avrV2XErrH.append(Double_t(sum(gry_sys[i].GetErrorXhigh(iPt) for i in range(nSets)) / nSets))
         
 
-        v2Values = [hV2[i].GetBinContent(iPt + 1) for i in range(nSets)]
-        v2Unc = [hV2[i].GetBinError(iPt + 1) for i in range(nSets)]
+        v2Values = [hry_sys[i].GetBinContent(iPt + 1) for i in range(nSets)]
+        v2Unc = [hry_sys[i].GetBinError(iPt + 1) for i in range(nSets)]
         fracBins = [hFracFD[i].GetXaxis().FindBin(ptCent) for i in range(nSets)]
         fracFDValues = [hFracFD[i].GetBinContent(fracBins[i]) for i in range(nSets)]
         fracFDUnc = [hFracFD[i].GetBinError(fracBins[i]) for i in range(nSets)]
@@ -164,8 +243,8 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files, sys
 
     # save the results
     os.makedirs(outputdir + f'/V2VsFrac', exist_ok=True)
-    outFile = TFile(f'{outputdir}/V2VsFrac/V2VsFrac_{suffix}.root', "recreate")
-    
+    outFile = TFile(f'{outputdir}/V2VsFrac/V2VsFrac_sys_trail_distribution_{icombo}.root', "recreate")
+
     t = TLatex(8, 8, "")
     t.SetNDC()
     t.SetTextFont(42)
@@ -196,7 +275,7 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files, sys
         cFrac[-1].Update()
         cFrac[-1].Write()
 
-        cFrac[iPt].SaveAs(f"{outputdir}/V2VsFrac/FracV2_{suffix}.pdf{suffix_pdf}")
+        cFrac[iPt].SaveAs(f"{outputdir}/V2VsFrac/FracV2{icombo}.pdf{suffix_pdf}")
 
         outFile.mkdir(f"pt_{int(ptMin*10)}_{int(ptMax*10)}")
         outFile.cd(f"pt_{int(ptMin*10)}_{int(ptMax*10)}")
@@ -247,54 +326,7 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files, sys
 
     hV2VsPtFD.Write()
     hV2VsPtPrompt.Write()
-    cV2VsPtFD.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtFD_{suffix}.pdf")
-    cV2VsPtPrompt.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPrompt_{suffix}.pdf")
-    cPromptAndFDV2.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPromptAndFD_{suffix}.pdf")
-
-def main_v2_vs_frac(config, inputdir, outputdir, suffix, combined=False, inputdir_combined='', outputdir_combined=''):
-
-    v2_vs_frac(
-        config,
-        inputdir,
-        outputdir,
-        suffix,
-        load_frac_files(inputdir, suffix),
-        load_v2_files(inputdir, suffix)
-    )
-    if combined:
-        v2_vs_frac(
-            config,
-            inputdir_combined,
-            outputdir_combined,
-            suffix,
-            load_frac_files(inputdir_combined, suffix),
-            load_v2_files(inputdir, suffix)
-        )
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Arguments')
-    parser.add_argument("config", metavar="text",
-                        default="config.yaml", help="flow configuration file")
-    parser.add_argument('--inputdir', '-i', metavar='text',
-                        default='.', help='input directory containing rawyields and frac files')
-    parser.add_argument("--outputdir", "-o", metavar="text",
-                        default=".", help="output directory")
-    parser.add_argument("--suffix", "-s", metavar="text",
-                        default="", help="suffix for output files")
-    parser.add_argument("--combined", '-comb', metavar='bool', required=False,
-                        action='store_true', help="combined method")
-    parser.add_argument("--inputdir_combined", "-ic", metavar="text", required=False,
-                        default="", help="input directory containing the frac files for the combined method")
-    parser.add_argument("--output_combined", "-oc", metavar="text", required=False,
-                        default="", help="output directory for the combined method")
-    args = parser.parse_args()
-
-    main_v2_vs_frac(
-        args.config,
-        args.inputdir,
-        args.outputdir,
-        args.suffix,
-        combined=args.combined if args.combined else False,
-        inputdir_combined=args.inputdir_combined if args.combined else '',
-        outputdir_combined=args.output_combined if args.combined else ''
-    )
+    cV2VsPtFD.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtFD{icombo}.pdf")
+    cV2VsPtPrompt.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPrompt{icombo}.pdf")
+    cPromptAndFDV2.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPromptAndFD{icombo}.pdf")
+    print(syst_files)
