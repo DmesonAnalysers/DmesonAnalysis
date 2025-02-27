@@ -141,35 +141,37 @@ def load_eff_histos(effFiles):
         hFDFracCorrs[-1].SetDirectory(0)
     return hEffPrompts, hEffFDs, hPromptFracs, hFDFracs, hPromptFracCorrs, hFDFracCorrs
 
-def load_eff_files(inputdir, suffix):
+def load_eff_files(inputdir):
     if os.path.exists(f'{inputdir}/eff'):
+        print(f'Loading {inputdir}/eff')
         effFiles = [f'{inputdir}/eff/{file}'
-                        for file in os.listdir(f'{inputdir}/eff') if file.endswith('.root') and suffix in file]
+                        for file in os.listdir(f'{inputdir}/eff') if file.endswith('.root')]
         effFiles.sort()
     else:
-        raise ValueError(f'No eff fodel found in {inputdir}')
+        raise ValueError(f'No eff folder found in {inputdir}')
     return effFiles
 
-def load_cutVarFrac_files(inputdir, suffix):
+def load_cutVarFrac_files(inputdir):
     if os.path.exists(f'{inputdir}/CutVarFrac'):
-        cutVarFracFiles = [f'{inputdir}/CutVarFrac/{file}' 
-                        for file in os.listdir(f'{inputdir}/CutVarFrac') if file.endswith('.root') and suffix in file]
+        print(f'Loading {inputdir}/CutVarFrac')
+        cutVarFracFiles = [f'{inputdir}/CutVarFrac/{file}'
+                        for file in os.listdir(f'{inputdir}/CutVarFrac') if file.endswith('.root')]
         cutVarFracFiles.sort()
     else:
         raise ValueError(f'No CutVarFrac folder found in {inputdir}')
     return cutVarFracFiles
 
 def main_data_driven_frac(inputdir, outputdir, suffix, batch, combined=False, correlatedCutVarPath="", outputdir_combined=""):
-    
+
     if batch:
         gROOT.SetBatch()
-        
-    effFiles = load_eff_files(inputdir, suffix)
+
+    effFiles = load_eff_files(inputdir)
     hEffPrompts, hEffFDs, hPromptFracs, hFDFracs, hPromptFracCorrs, hFDFracCorrs = load_eff_histos(effFiles)
-    
-    cutVarFracFiles = load_cutVarFrac_files(inputdir, suffix)
+
+    cutVarFracFiles = load_cutVarFrac_files(inputdir)
     hCorrYieldPrompt, hCorrYieldFD, hCovPromptPrompt, hCovPromptFD, hCovFDFD = load_cutVarFrac_histos(cutVarFracFiles)
-    
+
     for iFile in range(len(effFiles)):
         data_driven_frac(
             outputdir,
@@ -187,9 +189,9 @@ def main_data_driven_frac(inputdir, outputdir, suffix, batch, combined=False, co
             hCovPromptFD,
             hCovFDFD
         )
-        
     if combined:
-        cutVarFracFiles = load_cutVarFrac_files(correlatedCutVarPath, suffix)
+        print('Computing combined DataDriFrac')
+        cutVarFracFiles = load_cutVarFrac_files(correlatedCutVarPath)
         hCorrYieldPrompt, hCorrYieldFD, hCovPromptPrompt, hCovPromptFD, hCovFDFD = load_cutVarFrac_histos(cutVarFracFiles)
         
         for iFile in range(len(effFiles)):

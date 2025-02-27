@@ -49,7 +49,7 @@ use_inv_mass_bins: false # use binning in invariant mass distribution, neglects 
 
 # ep/sp subevents
 detA: 'FT0c'
-detB: 'FT0a'
+detB: 'FV0a'
 detC: 'TPCpos'
 
 #________________________________________________________________________________________________________________________
@@ -128,7 +128,7 @@ minimisation:
     #            [], # pt 5
     #            [], # pt 6
     #]
-    #systematics: ['minus3', 'even', 'odd', 'random']
+    #systematics: ['even', 'random', 'odd', 'minus3low', '1in3', '1in4', 'minus3high', 'minus3']
 
 # efficiency
 eff_filename: 'task_output.root'

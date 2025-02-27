@@ -66,20 +66,22 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
             listEffFDUnc.append(hEffF.GetBinError(iPt+1))
 
         if systematics:
+            # Remove the loosest 3 cuts if 'minus3low' or 'minus' is in systematics
             if systematics == 'minus3low' or systematics == 'minus3':
-                listRawYield     = [x for i, x in enumerate(listRawYield) if i < 3]
-                listRawYieldUnc  = [x for i, x in enumerate(listRawYieldUnc) if i < 3]
-                listEffPrompt    = [x for i, x in enumerate(listEffPrompt) if i < 3]
-                listEffPromptUnc = [x for i, x in enumerate(listEffPromptUnc) if i < 3]
-                listEffFD        = [x for i, x in enumerate(listEffFD) if i < 3]
-                listEffFDUnc     = [x for i, x in enumerate(listEffFDUnc) if i < 3]
+                listRawYield     = listRawYield[2:]
+                listRawYieldUnc  = listRawYieldUnc[2:]
+                listEffPrompt    = listEffPrompt[2:]
+                listEffPromptUnc = listEffPromptUnc[2:]
+                listEffFD        = listEffFD[2:]
+                listEffFDUnc     = listEffFDUnc[2:]
+            # Remove the tightest 3 cuts if 'minus3high' or 'minus' is in systematics
             if systematics == 'minus3high' or systematics == 'minus3':
-                listRawYield     = [x for i, x in enumerate(listRawYield) if i > len(listRawYield) - 3]
-                listRawYieldUnc  = [x for i, x in enumerate(listRawYieldUnc) if i > len(listRawYield) - 3]
-                listEffPrompt    = [x for i, x in enumerate(listEffPrompt) if i > len(listRawYield) - 3]
-                listEffPromptUnc = [x for i, x in enumerate(listEffPromptUnc) if i > len(listRawYield) - 3]
-                listEffFD        = [x for i, x in enumerate(listEffFD) if i > len(listRawYield) - 3]
-                listEffFDUnc     = [x for i, x in enumerate(listEffFDUnc) if i > len(listRawYield) - 3]
+                listRawYield     = listRawYield[:-3]
+                listRawYieldUnc  = listRawYieldUnc[:-3]
+                listEffPrompt    = listEffPrompt[:-3]
+                listEffPromptUnc = listEffPromptUnc[:-3]
+                listEffFD        = listEffFD[:-3]
+                listEffFDUnc     = listEffFDUnc[:-3]
             # Remove even-indexed elements if 'even' is in systematics
             if 'even' in systematics:
                 listRawYield     = [x for i, x in enumerate(listRawYield) if i % 2 != 0]
@@ -105,6 +107,22 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
                 listEffPromptUnc = [x for x, b in zip(listEffPromptUnc, random_bools) if b]
                 listEffFD        = [x for x, b in zip(listEffFD, random_bools) if b]
                 listEffFDUnc     = [x for x, b in zip(listEffFDUnc, random_bools) if b]
+            # Remove 1 element every 3 '1in3' is in systematics
+            if '1in3' in systematics:
+                listRawYield     = [x for i, x in enumerate(listRawYield) if i % 3 == 0]
+                listRawYieldUnc  = [x for i, x in enumerate(listRawYieldUnc) if i % 3 == 0]
+                listEffPrompt    = [x for i, x in enumerate(listEffPrompt) if i % 3 == 0]
+                listEffPromptUnc = [x for i, x in enumerate(listEffPromptUnc) if i % 3 == 0]
+                listEffFD        = [x for i, x in enumerate(listEffFD) if i % 3 == 0]
+                listEffFDUnc     = [x for i, x in enumerate(listEffFDUnc) if i % 3 == 0]
+            # Remove 1 element every 4 '1in4' is in systematics
+            if '1in4' in systematics:
+                listRawYield     = [x for i, x in enumerate(listRawYield) if i % 4 == 0]
+                listRawYieldUnc  = [x for i, x in enumerate(listRawYieldUnc) if i % 4 == 0]
+                listEffPrompt    = [x for i, x in enumerate(listEffPrompt) if i % 4 == 0]
+                listEffPromptUnc = [x for i, x in enumerate(listEffPromptUnc) if i % 4 == 0]
+                listEffFD        = [x for i, x in enumerate(listEffFD) if i % 4 == 0]
+                listEffFDUnc     = [x for i, x in enumerate(listEffFDUnc) if i % 4 == 0]
 
         nSets = len(listRawYield)
         print(f'Pt: {ptMin:.1f}-{ptMax:.1f}')
@@ -262,8 +280,12 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
     hCorrYieldFD.Draw('same')
     legEff.Draw()
 
-    os.makedirs(f'{outputdir}/CutVarFrac', exist_ok=True)
-    outFileName = f'{outputdir}/CutVarFrac/CutVarFrac_{suffix}.root'
+    if systematics:
+        directory = f'{systematics}/CutVarFrac'
+    else:
+        directory = 'CutVarFrac'
+    os.makedirs(f'{outputdir}/{directory}', exist_ok=True)
+    outFileName = f'{outputdir}/{directory}/CutVarFrac_{suffix}.root'
     outFile = TFile(outFileName, 'recreate')
     cCorrYield.Write()
     hCorrYieldPrompt.Write()
@@ -288,11 +310,11 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
 
     for iPt in range(len(ptmins)):
         if iPt == 0:
-            cFinalResPt[iPt].SaveAs(f'{outputdir}/CutVarFrac/FinalResPt_{suffix}.pdf[')
-        cFinalResPt[iPt].SaveAs(f'{outputdir}/CutVarFrac/FinalResPt_{suffix}.pdf')
+            cFinalResPt[iPt].SaveAs(f'{outputdir}/{directory}/FinalResPt_{suffix}.pdf[')
+        cFinalResPt[iPt].SaveAs(f'{outputdir}/{directory}/FinalResPt_{suffix}.pdf')
         if iPt == hRawYields[0].GetNbinsX() - 1:
-            cFinalResPt[iPt].SaveAs(f'{outputdir}/CutVarFrac/FinalResPt_{suffix}.pdf]')
-        cFinalResPt[iPt].SaveAs(f'{outputdir}/CutVarFrac/FinalResPt_{suffix}_pt{ptmins[iPt]}_{ptmaxs[iPt]}.png')
+            cFinalResPt[iPt].SaveAs(f'{outputdir}/{directory}/FinalResPt_{suffix}.pdf]')
+        cFinalResPt[iPt].SaveAs(f'{outputdir}/{directory}/FinalResPt_{suffix}_pt{ptmins[iPt]}_{ptmaxs[iPt]}.png')
     
 
 def compute_frac_cut_var(config_flow, inputdir, outputdir, suffix, batch=False):
@@ -368,9 +390,10 @@ def compute_frac_cut_var(config_flow, inputdir, outputdir, suffix, batch=False):
     latInfo.SetTextColor(1)
 
     minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, outputdir, suffix, False)
-    for syst in config['minimisation']['systematics']:
-        print(f'Running systematics: {syst}')
-        minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, f'{outputdir}/Syst', syst, systematics=syst)
+    if 'systematics' in config['minimisation']:
+        for syst in config['minimisation']['systematics']:
+            print(f'Running systematics: {syst}')
+            minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, f'{outputdir}/Syst', syst, systematics=syst)
 
 
 if __name__ == "__main__":
