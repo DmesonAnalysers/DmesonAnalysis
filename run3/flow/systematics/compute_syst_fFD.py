@@ -150,8 +150,6 @@ def compute_syst(infiles, outputdir, suffix):
 
     #______________________________________________________________________________________
     # Save output
-    print(f"outputdir: {outputdir}")
-    print(f"syst_fFD_suffix.root: syst_fFD_{suffix}.root")
     outputfile = os.path.join(outputdir, f'syst_fFD_{suffix}.root')
     outfile = TFile(outputfile, 'RECREATE')
     canv.Write()
