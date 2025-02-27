@@ -7,28 +7,29 @@ import argparse
 import os
 import yaml
 import sys
-import ROOT
 from ROOT import TFile, TCanvas, TLegend, TLatex, TGraphErrors, TF1, TH1D, TVirtualFitter, Double_t
-from ROOT import kBlack, kAzure, kCyan, kOrange
-from ROOT import kFullCircle, kOpenCircle
+from ROOT import kBlack, kAzure, kOrange
+from ROOT import kFullCircle
 sys.path.append('../../../')
 sys.path.append('../')
 from flow_analysis_utils import get_particle_info, get_cut_sets_config
-from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor
+from utils.StyleFormatter import SetObjectStyle, GetROOTColor
 
-def load_v2_files(inputdir, suffix):
+def load_v2_files(inputdir):
     if os.path.exists(f'{inputdir}/ry'):
+        print(f'Loading v2 files from {inputdir}/ry')
         v2Files = [f'{inputdir}/ry/{file}'
-                    for file in os.listdir(f'{inputdir}/ry') if file.endswith('.root') and suffix in file]
+                    for file in os.listdir(f'{inputdir}/ry') if file.endswith('.root')]
         v2Files.sort()
     else:
         raise ValueError(f'No ry folder found in {inputdir}')
     return v2Files
 
-def load_frac_files(inputdir, suffix):
+def load_frac_files(inputdir):
     if os.path.exists(f'{inputdir}/DataDrivenFrac'):
+        print(f'Loading frac files from {inputdir}/DataDrivenFrac')
         fracFiles = [f'{inputdir}/DataDrivenFrac/{file}'
-                        for file in os.listdir(f'{inputdir}/DataDrivenFrac') if file.endswith('.root') and suffix in file]
+                        for file in os.listdir(f'{inputdir}/DataDrivenFrac') if file.endswith('.root')]
         fracFiles.sort()
     else:
         raise ValueError(f'No DataDrivenFrac folder found in {inputdir}')
@@ -44,11 +45,11 @@ def set_frame_style(canv, Title, particleTit):
     hFrame.GetYaxis().SetNoExponent()
     hFrame.GetXaxis().SetMoreLogLabels()
     hFrame.GetYaxis().SetTitleSize(0.04)
-    hFrame.GetYaxis().SetTitleOffset(1.4)
+    hFrame.GetYaxis().SetTitleOffset(1.2)
     hFrame.GetYaxis().SetLabelSize(0.04)
     hFrame.GetXaxis().SetTitleSize(0.04)
     hFrame.GetXaxis().SetLabelSize(0.04)
-    hFrame.GetXaxis().SetTitleOffset(1.4)
+    hFrame.GetXaxis().SetTitleOffset(1.2)
     hFrame.GetYaxis().SetNdivisions(505)
 
 def set_frame_margin(canv):
@@ -74,7 +75,7 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
     CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
 
     if len(fracFiles) != len(v2Files):
-        raise ValueError('Number of eff and frac files do not match')
+        raise ValueError(f'Number of eff and frac files do not match: {len(fracFiles)} != {len(v2Files)}')
 
     hV2, gV2, hFracFD, hFracPrompt = [], [], [], []
     avrV2XErrL, avrV2XErrH = [], []
@@ -187,6 +188,7 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
         cFrac[-1].Write()
 
         cFrac[iPt].SaveAs(f"{outputdir}/V2VsFrac/FracV2_{suffix}.pdf{suffix_pdf}")
+        cFrac[iPt].SaveAs(f"{outputdir}/V2VsFrac/FracV2_pt{ptMin}_{ptMax}.png")
 
         outFile.mkdir(f"pt_{int(ptMin*10)}_{int(ptMax*10)}")
         outFile.cd(f"pt_{int(ptMin*10)}_{int(ptMax*10)}")
@@ -212,6 +214,7 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
     hV2VsPtFD.SetMarkerStyle(20)
     hV2VsPtFD.SetMarkerSize(2)
     hV2VsPtFD.GetYaxis().SetNoExponent()
+    hV2VsPtFD.GetYaxis().SetDecimals()
 
     cV2VsPtPrompt = TCanvas("cV2VsPtPrompt", "prompt v2 versus pt", 800, 800)
     set_frame_margin(cV2VsPtPrompt)
@@ -223,6 +226,7 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
     hV2VsPtPrompt.SetMarkerStyle(20)
     hV2VsPtPrompt.SetMarkerSize(2)
     hV2VsPtPrompt.GetYaxis().SetNoExponent()
+    hV2VsPtPrompt.GetYaxis().SetDecimals()
 
     cPromptAndFDV2 = TCanvas("cPromptAndFDV2", "prompt and non-prompt v2 versus pt", 800, 800)
     set_frame_margin(cPromptAndFDV2)
@@ -240,6 +244,9 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
     cV2VsPtFD.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtFD_{suffix}.pdf")
     cV2VsPtPrompt.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPrompt_{suffix}.pdf")
     cPromptAndFDV2.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPromptAndFD_{suffix}.pdf")
+    cV2VsPtFD.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtFD_{suffix}.png")
+    cV2VsPtPrompt.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPrompt_{suffix}.png")
+    cPromptAndFDV2.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPromptAndFD_{suffix}.png")
 
 def main_v2_vs_frac(config, inputdir, outputdir, suffix, combined=False, inputdir_combined='', outputdir_combined=''):
 
@@ -248,8 +255,8 @@ def main_v2_vs_frac(config, inputdir, outputdir, suffix, combined=False, inputdi
         inputdir,
         outputdir,
         suffix,
-        load_frac_files(inputdir, suffix),
-        load_v2_files(inputdir, suffix)
+        load_frac_files(inputdir),
+        load_v2_files(inputdir)
     )
     if combined:
         v2_vs_frac(
@@ -257,8 +264,8 @@ def main_v2_vs_frac(config, inputdir, outputdir, suffix, combined=False, inputdi
             inputdir_combined,
             outputdir_combined,
             suffix,
-            load_frac_files(inputdir_combined, suffix),
-            load_v2_files(inputdir, suffix)
+            load_frac_files(inputdir_combined),
+            load_v2_files(inputdir)
         )
 
 if __name__ == "__main__":
@@ -271,7 +278,7 @@ if __name__ == "__main__":
                         default=".", help="output directory")
     parser.add_argument("--suffix", "-s", metavar="text",
                         default="", help="suffix for output files")
-    parser.add_argument("--combined", '-comb', metavar='bool', required=False,
+    parser.add_argument("--combined", '-comb', default=False,
                         action='store_true', help="combined method")
     parser.add_argument("--inputdir_combined", "-ic", metavar="text", required=False,
                         default="", help="input directory containing the frac files for the combined method")
@@ -284,7 +291,7 @@ if __name__ == "__main__":
         args.inputdir,
         args.outputdir,
         args.suffix,
-        combined=args.combined if args.combined else False,
-        inputdir_combined=args.inputdir_combined if args.combined else '',
-        outputdir_combined=args.output_combined if args.combined else ''
+        combined=args.combined,
+        inputdir_combined=args.inputdir_combined,
+        outputdir_combined=args.output_combined
     )
