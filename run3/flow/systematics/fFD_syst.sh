@@ -24,6 +24,7 @@ cutvar_systvariation_paths=(
 export corrPath="path/to/correlated/folder"
 export uncorrPath="path/to/uncorr/fodler/"
 export output_dir="output/dir"  # Output directory for results
+export suffix="suffix"
 export config="../config_flow.yml"
 export n_parallel=2  # Number of parallel jobs
 
@@ -123,4 +124,4 @@ done
 shopt -u globstar
 
 echo "Running python3 compute_syst_fFD.py -s $cutvar_systvariation_paths -o $output_dir"
-python3 compute_syst_fFD.py ${all_v2_files[@]} -s $cutvar_systvariation_paths -o $output_dir
+python3 compute_syst_fFD.py ${all_v2_files[@]} -s $suffix -o $output_dir
