@@ -94,6 +94,7 @@ InvMassFitter::InvMassFitter() :
   fHistoTemplRfl(0x0),
   fSmoothRfl(kFALSE),
   fTemplates(kFALSE),
+  fAnchorTemplsMode(Free),
   fNParsTempls(0),
   fRawYieldHelp(0),
   fRflFunc(0x0),
@@ -160,6 +161,7 @@ InvMassFitter::InvMassFitter(const TH1F *histoToFit, Double_t minvalue, Double_t
   fHistoTemplRfl(0x0),
   fSmoothRfl(kFALSE),
   fTemplates(kFALSE),
+  fAnchorTemplsMode(Free),
   fNParsTempls(0),
   fRawYieldHelp(0),
   fRflFunc(0x0),
@@ -246,8 +248,22 @@ void InvMassFitter::SetNumberOfParams(){
   if(fReflections) fNParsRfl=1;
   else fNParsRfl=0;
 
-  if(fTemplates) fNParsTempls=this->fTemplatesFuncts.size();
-  else fNParsTempls=0;
+  fNParsTempls=0;
+  if (fTemplates) {
+    switch (fAnchorTemplsMode) {
+      case TemplAnchorMode::Free:
+        fNParsTempls = fTemplatesFuncts.size();
+        break;
+      case TemplAnchorMode::AnchorToFirst:
+        fNParsTempls = 1;
+        break;
+       case TemplAnchorMode::AnchorToSgn:
+        fNParsTempls = 0;
+        break;
+      default:
+        std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
+    }
+  }
 
   if(fSecondPeak) fNParsSec=3;
   else fNParsSec=0;
@@ -492,14 +508,25 @@ TF1* InvMassFitter::CreateReflectionFunction(TString fname){
 //______________________________________________________________________________
 TF1* InvMassFitter::CreateTemplatesFunction(TString fname){
   /// Creates a function for templates in the D+ inv. mass distribution
-  TF1* functempl =  new TF1(fname.Data(),this,&InvMassFitter::FitFunction4Templ,fMinMass,fMaxMass,this->fTemplatesFuncts.size(),"InvMassFitter","FitFunction4Templ");
-  for(int iPar=0; iPar<functempl->GetNpar(); iPar++) {
-    functempl->SetParName(iPar, Form("w_%s",this->fTemplatesFuncts[iPar].GetName()));
-    if(this->fMassWeightsLowerLims[iPar] >= this->fMassWeightsUpperLims[iPar]) {
-      functempl->FixParameter(iPar,this->fMassInitWeights[iPar]);
+  TF1* functempl =  new TF1(fname.Data(),this,&InvMassFitter::FitFunction4Templ,fMinMass,fMaxMass,fNParsTempls,"InvMassFitter","FitFunction4Templ");
+  if(fNParsTempls == 1 && fTemplatesFuncts.size()>1) {
+    functempl->SetParName(0, "w_templates_anchored");
+    if(this->fMassWeightsLowerLims[0] >= this->fMassWeightsUpperLims[0]) {
+      functempl->FixParameter(0,this->fMassInitWeights[0]);
     } else {
-      functempl->SetParameter(iPar,this->fMassInitWeights[iPar]);
-      functempl->SetParLimits(iPar,this->fMassWeightsLowerLims[iPar],this->fMassWeightsUpperLims[iPar]);
+      functempl->SetParameter(0,this->fMassInitWeights[0]);
+      functempl->SetParLimits(0,this->fMassWeightsLowerLims[0],this->fMassWeightsUpperLims[0]);
+    }
+  }
+  else {
+    for(int iPar=0; iPar<functempl->GetNpar(); iPar++) {
+      functempl->SetParName(iPar, Form("w_%s",this->fTemplatesFuncts[iPar].GetName()));
+      if(this->fMassWeightsLowerLims[iPar] >= this->fMassWeightsUpperLims[iPar]) {
+        functempl->FixParameter(iPar,this->fMassInitWeights[iPar]);
+      } else {
+        functempl->SetParameter(iPar,this->fMassInitWeights[iPar]);
+        functempl->SetParLimits(iPar,this->fMassWeightsLowerLims[iPar],this->fMassWeightsUpperLims[iPar]);
+      }
     }
   }
   return functempl;
@@ -536,6 +563,7 @@ TF1* InvMassFitter::CreateSignalFitFunction(TString fname, Double_t integsig){
     if(fFixedMean) funcsig->FixParameter(1,fMass);
     if(fBoundMean) funcsig->SetParLimits(1,fMassLowerLim, fMassUpperLim);
     funcsig->SetParameter(2,fSigmaSgn);
+    funcsig->SetParLimits(2,0,1);
     if(fFixedSigma) funcsig->FixParameter(2,fSigmaSgn);
     if(fBoundSigma) funcsig->SetParLimits(2,fSigmaVar*(1-fParSig), fSigmaVar*(1+fParSig));
     funcsig->SetParNames("SgnInt","Mean","Sigma");
@@ -590,9 +618,9 @@ TF1* InvMassFitter::CreateTotalFitFunction(TString fname){
   for(Int_t ipar=0; ipar<fNParsBkg; ipar++){
     ftot->SetParameter(ipar,fBkgFunc->GetParameter(ipar));
     ftot->SetParName(ipar,fBkgFunc->GetParName(ipar));
-    // Double_t parmin,parmax;
-    // fBkgFunc->GetParLimits(ipar,parmin,parmax);
-    // ftot->SetParLimits(ipar,parmin,parmax);
+    Double_t parmin,parmax;
+    fBkgFunc->GetParLimits(ipar,parmin,parmax);
+    ftot->SetParLimits(ipar,parmin,parmax);
   }
   for(Int_t ipar=0; ipar<fNParsSig; ipar++){
     ftot->SetParameter(ipar+fNParsBkg,fSigFunc->GetParameter(ipar));
@@ -623,6 +651,7 @@ TF1* InvMassFitter::CreateTotalFitFunction(TString fname){
     for(Int_t ipar=0; ipar<fNParsTempls; ipar++){
       Double_t parmin,parmax;
       fTemplFunc->GetParLimits(ipar,parmin,parmax);
+      cout << "ipar: " << ipar << ", parmin: " << parmin << ", parmax: " << parmax << ", par: " << fTemplFunc->GetParameter(ipar) << endl; 
       ftot->SetParLimits(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,parmin,parmax);
       ftot->SetParameter(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,fTemplFunc->GetParameter(ipar));
       ftot->SetParName(ipar+fNParsBkg+fNParsSig+fNParsSec+fNParsRfl,fTemplFunc->GetParName(ipar));
@@ -743,7 +772,7 @@ Double_t InvMassFitter::FitFunction4Sgn (Double_t *x, Double_t *par){
     // * [1] = mean
     // * [2] = sigma
   //gaussian = [0]/TMath::Sqrt(2.*TMath::Pi())/[2]*exp[-(x-[1])*(x-[1])/(2*[2]*[2])]
-    sigval=par[0]/TMath::Sqrt(2.*TMath::Pi())/par[2]*TMath::Exp(-(x[0]-par[1])*(x[0]-par[1])/2./par[2]/par[2]);
+    sigval=par[0]/TMath::Sqrt(2.*TMath::Pi()*par[2]*par[2])*TMath::Exp(-(x[0]-par[1])*(x[0]-par[1])/2./par[2]/par[2]);
     break;
   case 1:
     //double gaussian = A/(sigma*sqrt(2*pi))*exp(-(x-mean)^2/2/sigma^2)
@@ -815,11 +844,27 @@ Double_t InvMassFitter::FitFunction4SecPeak (Double_t *x, Double_t *par){
 }
 //_________________________________________________________________________
 Double_t InvMassFitter::FitFunction4Templ(Double_t *x, Double_t *par){
-  Double_t totalTempl=0;
-  for(int iFunc=0; iFunc<this->fTemplatesFuncts.size(); iFunc++) {
-    totalTempl += par[iFunc] * this->fTemplatesFuncts[iFunc].Eval(x[0]);
+  Double_t totalTemplates = 0.;
+  switch (fAnchorTemplsMode) {
+    case TemplAnchorMode::Free:
+      for(int iFunc=0; iFunc<this->fTemplatesFuncts.size(); iFunc++) {
+        totalTemplates += par[iFunc]*fTemplatesFuncts[iFunc].Eval(x[0]);
+      }
+      break;
+    case TemplAnchorMode::AnchorToFirst:
+      for(int iFunc=0; iFunc<this->fTemplatesFuncts.size(); iFunc++) {
+        totalTemplates += par[0]*fRelWeights[iFunc]*fTemplatesFuncts[iFunc].Eval(x[0]);
+      }
+      break;
+    case TemplAnchorMode::AnchorToSgn:
+      for(int iFunc=0; iFunc<this->fTemplatesFuncts.size(); iFunc++) {
+        totalTemplates += par[0]*fRelWeights[iFunc]*fTemplatesFuncts[iFunc].Eval(x[0]);
+      }
+      break;
+    default:
+      std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
   }
-  return totalTempl;
+  return totalTemplates;
 }
 //_________________________________________________________________________
 Double_t InvMassFitter::FitFunction4Mass(Double_t *x, Double_t *par){
@@ -833,7 +878,21 @@ Double_t InvMassFitter::FitFunction4Mass(Double_t *x, Double_t *par){
   Double_t refl=0;
   if(fReflections) refl=FitFunction4Refl(x,&par[fNParsBkg+fNParsSig+fNParsSec]);
   Double_t templ=0;
-  if(fTemplates) templ=FitFunction4Templ(x,&par[fNParsBkg+fNParsSig+fNParsSec+fNParsRfl]);
+  if(fTemplates) {
+    switch (fAnchorTemplsMode) {
+      case TemplAnchorMode::Free:
+        templ=FitFunction4Templ(x,&par[fNParsBkg+fNParsSig+fNParsSec+fNParsRfl]);
+        break;
+      case TemplAnchorMode::AnchorToFirst:
+        templ=FitFunction4Templ(x,&par[fNParsBkg+fNParsSig+fNParsSec+fNParsRfl]);
+        break;
+      case TemplAnchorMode::AnchorToSgn:
+        templ=FitFunction4Templ(x,&par[fNParsBkg]);
+        break;
+      default:
+        std::cerr << "Error: Invalid fAnchorTemplsMode value!" << std::endl;
+    }
+  }
   return bkg+sig+sec+refl+templ;
 }
 
