@@ -1,8 +1,8 @@
 import ROOT
 import yaml
-from ROOT import TFile
+from ROOT import TFile # pyright: ignore # type: ignore
 
-def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], preprocessed=False, preprocess_dir='', debug=False):
+def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], preprocessed=False, preprocess_dir='', systematics=False, iCut='', debug=False):
     """Load the sparses and axes infos
 
     Args:
@@ -12,7 +12,7 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
         get_mc_gen (bool): whether to get the mc gen level
         anres_files (list, optional): a list of AnRes.root. Defaults to [].
         preprocessed (bool, optional): whether to use the pre-selected AnRes.root. Defaults to False.
-        preprocess_dir (str, optional): path of the pre-selected AnRes.root. Defaults to ''.
+        preprocess_dir (str, optional): path of the config_pre.yaml. Defaults to ''.
         debug (bool, optional): print debug info. Defaults to False.
 
     Outputs:
@@ -27,15 +27,24 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
 
     if get_data:
         if preprocessed:
-            # REVIEW: sperate the config_pre and config_flow
-            with open(f"{config['skim_out_dir']}/config_pre.yaml", 'r') as CfgPre:
+            
+            if systematics:
+                config_pre_path = f"{preprocess_dir}/pre_sys/AnRes/config_pre.yml"
+            else:
+                config_pre_path = f"{preprocess_dir}/config_pre.yml"
+            # TODO: split the path of config_pre and the path of the AnRes files pre-processed
+            # TODO: the path of config_pre is in config_flow, hte path of the AnRes files pre-processed is in config_pre
+            with open(config_pre_path, 'r') as CfgPre:
                 config_pre = yaml.safe_load(CfgPre)
-            if config_pre['ptmins'] != config['ptmins'] or config_pre['ptmaxs'] != config['ptmaxs']:
-                raise ValueError("Error: ptmins and ptmaxs in config_pre.yaml do not match the ones in the config.yaml")
+
             axes_dict['Flow'] = {ax: iax for iax, ax in enumerate(config_pre['axestokeep'])}
             for ptmin, ptmax in zip(config_pre['ptmins'], config_pre['ptmaxs']):
-                print(f"Loading flow sparse from file: {preprocess_dir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
-                infileflow = TFile(f"{preprocess_dir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
+                if systematics and iCut != '':
+                    print(f"Loading flow sparse from file: {preprocess_dir}/pre_sys/AnRes/{iCut}/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
+                    infileflow = TFile(f"{preprocess_dir}/pre_sys/AnRes/{iCut}/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
+                else:
+                    print(f"Loading flow sparse from file: {preprocess_dir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
+                    infileflow = TFile(f"{preprocess_dir}/pre/AnRes/AnalysisResults_pt_{int(ptmin*10)}_{int(ptmax*10)}.root")
                 sparsesFlow[f'Flow_{ptmin*10}_{ptmax*10}'] = infileflow.Get('hf-task-flow-charm-hadrons/hSparseFlowCharm')
                 infileflow.Close()
         else:
@@ -149,7 +158,7 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
 
     if get_mc_gen: 
         print(f"Loading mc gen sparse from: {config['eff_filename']}")
-        infiletask = ROOT.TFile(config['eff_filename'])
+        infiletask = TFile(config['eff_filename'])
         if config['Dmeson'] == 'Dzero':
             axes_gen = {
                 'Pt': 0,

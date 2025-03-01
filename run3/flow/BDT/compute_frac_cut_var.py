@@ -2,7 +2,7 @@ import argparse
 import yaml
 import sys
 import os
-import numpy as np
+import numpy as np # type: ignore
 from itertools import product
 import ROOT
 from ROOT import TFile, TCanvas, TLegend, TLatex, gROOT, gStyle
@@ -54,7 +54,7 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
 
         for iCut, (hRaw, hEffP, hEffF) in enumerate(zip(hRawYields, hEffPrompt, hEffFD)):
             # if skip_cuts is defined check if the cut number is present for that pt
-            if 'skip_cuts' in config['minimisation']:
+            if 'skip_cuts' in config['minimisation'] and iPt < len(config['minimisation']['skip_cuts']):
                 if iCut in config['minimisation']['skip_cuts'][iPt]:
                     print(f'Skipping cut set {iCut} for pt {ptMin:.1f}-{ptMax:.1f}')
                     continue
@@ -125,7 +125,7 @@ def minimise_chi2(config, ptmins, ptmaxs, hRawYields, hEffPrompt, hEffFD, output
                 listEffFDUnc     = [x for i, x in enumerate(listEffFDUnc) if i % 4 == 0]
 
         nSets = len(listRawYield)
-        print(f'Pt: {ptMin:.1f}-{ptMax:.1f}')
+        print(f'Pt: {ptMin:.1f}-{ptMax:.1f}, iPt: {iPt+1}')
         for i in range(len(listEffPrompt)):
             print(f'({i}) Eff Prompt: {listEffPrompt[i]:.6f}    Eff FD: {listEffFD[i]:.6f}    Raw Yield: {listRawYield[i]:.2f}')
 
