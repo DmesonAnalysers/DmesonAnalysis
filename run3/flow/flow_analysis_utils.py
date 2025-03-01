@@ -3,11 +3,16 @@ Analysis utilities for flow analysis
 '''
 
 import ROOT
+from ROOT import TFile
 import os
 import sys
 import ctypes
+import yaml
 from itertools import combinations
 import numpy as np
+import pandas as pd
+import uproot
+import array
 import fitz  # PyMuPDF
 from PIL import Image
 import math
@@ -531,12 +536,17 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
     
     vn_results['fVnCompsFuncts'] = {}
     vnComps = vnFitter.GetVnCompsFuncts()
-    vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
-    vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
+    try:
+        vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
+        vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
+    except:
+        print('Unable to get vnComps!')
     if secPeak:
         vn_results['fVnCompsFuncts']['vnSecPeak'] = vnComps[2]
     vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
     if useTempl:
+        vn_results['fVnCompsFuncts']['vnSgn'] = vnFitter.GetMassBkgFitFunc()
+        vn_results['fVnCompsFuncts']['vnBkg'] = vnFitter.GetMassBkgFitFunc()
         for iTempl in range(len(vn_results['fMassTemplFuncts'])):
             vn_results['fVnCompsFuncts'][f'vnTempl{iTempl}'] = vnComps[2+secPeak+iTempl]
     
@@ -721,8 +731,6 @@ def get_refl_histo(reflFile, centMinMax, ptMins, ptMaxs):
 
     return True, hMCSgn, hMCRefl
 
-import yaml
-
 def get_particle_info(particleName):
     '''
     Get particle information
@@ -883,10 +891,10 @@ def get_cut_sets_config(config):
         bkg_cut_maxs = config['cut_variation']['uncorr_bdt_cut']['bkg_max']
 
     return get_cut_sets(len(ptmins), sig_cut, bkg_cut_maxs, correlated_cuts)
-
+    
 def cut_var_image_merger(config, cut_var_dir, suffix):
 
-    def pdf_to_images(pdf_path, dpi=100):
+    def pdf_to_images(pdf_path, dpi=300):
         """Extract high-quality images from a PDF."""
         doc = fitz.open(pdf_path)
         images = []
@@ -936,7 +944,7 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         if len(pdf_list) == 0:
             raise ValueError("No PDF provided!")
 
-        images = [pdf_to_images(pdf, dpi=100) for pdf in pdf_list]
+        images = [pdf_to_images(pdf, dpi=300) for pdf in pdf_list]
         num_pages = min(len(imgs) for imgs in images)
 
         os.makedirs(output_folder, exist_ok=True)
@@ -967,3 +975,136 @@ def cut_var_image_merger(config, cut_var_dir, suffix):
         process_pdfs(config, fit_files_sorted, f"{cut_var_dir}/merged_images/fits/", 'fit_summary', 5)
     except:
         print("Error in merging fit files")
+
+def extract_template_weights(config):
+
+    with open(config, 'r') as cfg:
+        config = yaml.safe_load(cfg)
+
+    weights_file = TFile(config['WeightsFile'], 'recreate')
+
+    templatesBRNorms = []
+    if config['Dmeson'] == 'Dplus':
+        ###### MC decay tables
+        # D+ decay table from https://github.com/AliceO2Group/O2DPG/blob/master/MC/config/PWGHF/pythia8/generator/pythia8_charmhadronic_with_decays_Mode2.cfg
+        # 411:oneChannel = 1 0.0752 0 -321 211 211
+        # 411:addChannel = 1 0.0104 0 -313 211
+        # 411:addChannel = 1 0.0156 0 311 211
+        # 411:addChannel = 1 0.0752 0 333 211, same amount of D+->KKpi and D+->Kpipi
+        
+        # Ds decay table in MC --> all in Ds --> KKpi
+        
+        ##### PDG branching ratios
+        # D+ -> Kpipi: 9.38e-2
+        # D+ -> KKpi: 9.68e-3
+        # Ds+ -> KKpi: 5.37e-2
+        
+        # Reweight contributions with (BR_PDG / BR_MC)
+        
+        BRDplusTotMC = 0.0752 + 0.0104 + 0.0156 + 0.0752
+        BRDplusKPiPiMC = 0.0752 + 0.0156 + 0.0104
+        BRDplusKKPiMC = 0.0752
+        BRDplusKPiPiPDG = 9.38e-2
+        BRDplusKKPiPDG = 9.68e-3
+        BRDsKKPiPDG = 5.37e-2
+        BRDsKKPiMC = 1.
+        print(config['TemplsNames'])
+        for iTemplate, templ in enumerate(config['TemplsNames']):
+            if templ == "DsKKPi":
+                # Ds/D+ is underestimated in pythia CRMode2 --> multiply by 1.25
+                templatesBRNorms.append( (BRDsKKPiPDG / BRDsKKPiMC) * 1.25)
+            elif templ == "DplusKKPi":
+                templatesBRNorms.append(BRDplusKKPiPDG / (BRDplusKKPiMC / BRDplusTotMC))
+            else:
+                templatesBRNorms.append(1.)
+        signalBRNorm = BRDplusKPiPiPDG / (BRDplusKPiPiMC / BRDplusTotMC)
+
+    ### load the trees
+    templatesDfs = []
+    with uproot.open(config['TemplsInputs']) as f:
+        for iTemplate, query in enumerate(config['TemplsQueries']):
+            templDfs = []
+            for iTable in config["TemplsTreeNames"]:
+                singleTableDfs = []
+                for key in f.keys():
+                    if iTable in key:
+                        dfTable = f[key].arrays(library='pd')
+                        singleTableDfs.append(dfTable)      
+                templDfs.append(pd.concat([df for df in singleTableDfs], ignore_index=True))
+            df = pd.concat([df for df in templDfs], axis=1).query(query)
+            templatesDfs.append(df)
+
+
+        signalDfs = []
+        for iTable in config["TemplsTreeNames"]:
+            singleTableDfs = []
+            for key in f.keys():
+                if iTable in key:
+                    dfTable = f[key].arrays(library='pd')
+                    singleTableDfs.append(dfTable)      
+            signalDfs.append(pd.concat([df for df in singleTableDfs], ignore_index=True))
+        signalDf = pd.concat([df for df in signalDfs], axis=1).query(config['SignalQuery'])
+
+
+    templatesYieldsDfs = [signalDf] + templatesDfs 
+    templatesYieldsNames = ["Signal"] + config['TemplsNames']
+    templatesBRNorms = [signalBRNorm] + templatesBRNorms
+    config_files = [f for f in os.listdir(f"{config['out_dir']}/cutvar_{config['suffix']}/config/") if os.path.isfile(os.path.join(f"{config['out_dir']}/cutvar_{config['suffix']}/config/", f))]
+    print(f"config_files: {config_files}")
+    for config_file in config_files:
+        match = re.search(r"(\d+)\.yml$", os.path.basename(config_file))
+        if match:
+            cutset = match.group(1)
+        with open(f"{config['out_dir']}/cutvar_{config['suffix']}/config/{config_file}", 'r') as cfg:
+            config_cut = yaml.safe_load(cfg)
+
+        for iTemplate, (templName, templDf, BRnorm) in enumerate(zip(templatesYieldsNames, templatesYieldsDfs, templatesBRNorms)):
+            pt_bins = array.array('d', config_cut['cutvars']['Pt']['min'] + [config_cut['cutvars']['Pt']['max'][-1]])
+            for iPt, (ptmin, ptmax) in enumerate(zip(config_cut['cutvars']['Pt']['min'], config_cut['cutvars']['Pt']['max'])):
+                weights_file.mkdir(f"cutset_{cutset}/{templName}/pt_{ptmin}_{ptmax}/")
+                weights_file.cd(f"cutset_{cutset}/{templName}/pt_{ptmin}_{ptmax}/")
+                templDfPt = templDf.query(f"fPt >= {ptmin} and fPt < {ptmax}")
+                if config.get('MlDiffWeights'):
+                    if config_cut['cutvars'].get('score_bkg'):
+                        templDfPt = templDfPt.query(f"fMlScore0 >= {config_cut['cutvars']['score_bkg']['min'][iPt]} and fMlScore0 < {config_cut['cutvars']['score_bkg']['max'][iPt]}")
+                    if config_cut['cutvars'].get('score_FD'):
+                        templDfPt = templDfPt.query(f"fMlScore1 >= {config_cut['cutvars']['score_FD']['min'][iPt]} and fMlScore1 < {config_cut['cutvars']['score_FD']['max'][iPt]}")
+
+                hist_templ = ROOT.TH1D(f"h{templName}Raw", ";#it{M}(K#pi#pi) (GeV/#it{c})", 600, 1.67, 2.27)
+                for mass in templDfPt["fM"].to_numpy():
+                    hist_templ.Fill(mass)
+                hist_templ.Write(f"h{templName}Raw")
+                hist_templ.Scale(BRnorm)
+                hist_templ.Write(f"h{templName}RescaledBR")
+
+        pt_bins = array.array('d', config_cut['cutvars']['Pt']['min'] + [config_cut['cutvars']['Pt']['max'][-1]])
+        for iTemplate, (templName, templDf) in enumerate(zip(config['TemplsNames'], templatesDfs)):
+
+            hist_weights_sgn_templ = ROOT.TH1D(f"hist_weights_signal_{templName}", ";#it{M}(K#pi#pi) (GeV/#it{c})", len(pt_bins)-1, pt_bins)
+            hist_weights_firsttempl_templ = ROOT.TH1D(f"hist_weights_firsttempl_{templName}", ";#it{M}(K#pi#pi) (GeV/#it{c})", len(pt_bins)-1, pt_bins)
+
+            for iPt, (ptmin, ptmax) in enumerate(zip(config_cut['cutvars']['Pt']['min'], config_cut['cutvars']['Pt']['max'])):
+                weights_file.cd(f"cutset_{cutset}/{templName}/pt_{ptmin}_{ptmax}/")                
+            
+                h_signal_yields_BR_rew = weights_file.Get(f"cutset_{cutset}/Signal/pt_{ptmin}_{ptmax}/hSignalRescaledBR")
+                h_first_templ_yields_BR_rew = weights_file.Get(f"cutset_{cutset}/{config['TemplsNames'][0]}/pt_{ptmin}_{ptmax}/h{config['TemplsNames'][0]}RescaledBR")        
+                h_templ_yields_BR_rew = weights_file.Get(f"cutset_{cutset}/{templName}/pt_{ptmin}_{ptmax}/h{templName}RescaledBR")        
+            
+                h_templ_yields_raw = weights_file.Get(f"cutset_{cutset}/{templName}/pt_{ptmin}_{ptmax}/h{templName}Raw")        
+            
+                h_templ_yields_BR_eff_rew_first_templ = h_templ_yields_raw.Clone(f"h{templName}_BR_eff_rew_first_templ")        
+                h_templ_yields_BR_eff_rew_first_templ.Scale(h_templ_yields_BR_rew.Integral() / h_first_templ_yields_BR_rew.Integral())        
+                h_templ_yields_BR_eff_rew_first_templ.Write(f"h{templName}_BR_eff_rew_first_templ")
+                hist_weights_firsttempl_templ.SetBinContent(iPt+1, h_templ_yields_BR_rew.Integral() / h_first_templ_yields_BR_rew.Integral() )
+            
+                h_templ_yields_BR_eff_rew_sgn = h_templ_yields_raw.Clone(f"h{templName}_BR_eff_rew_signal")        
+                h_templ_yields_BR_eff_rew_sgn.Scale(h_templ_yields_BR_rew.Integral() / h_signal_yields_BR_rew.Integral())        
+                h_templ_yields_BR_eff_rew_sgn.Write(f"h{templName}_BR_eff_rew_signal")
+                hist_weights_sgn_templ.SetBinContent(iPt+1, h_templ_yields_BR_rew.Integral() / h_signal_yields_BR_rew.Integral() )
+
+            weights_file.mkdir(f"cutset_{cutset}/{templName}/Weights/")
+            weights_file.cd(f"cutset_{cutset}/{templName}/Weights/")
+            hist_weights_sgn_templ.Write(f"hWeights{templName}_wrt_signal")
+            hist_weights_firsttempl_templ.Write(f"hWeights{templName}_wrt_firsttempl")
+
+    weights_file.Close()

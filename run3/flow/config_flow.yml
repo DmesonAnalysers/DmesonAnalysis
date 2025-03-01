@@ -152,8 +152,13 @@ IncludeKDETempls: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]  # boolean flag to include tem
 FromGrid: false # compute templates from TemplsInputs, else take them from file with FromFile flag
 # To add more templates, use [part1, ... ,partN]
 TemplsFlags: [2]  # flag of flagMcDecayRec to query the dataframe from which the KDE is obtained
-TemplsInputs: ['/Users/mcosti/Analysis/Datasets/Templates/AO2D_325626.root']  # input AODs for templates
-TemplsTreeNames: ['O2hfcanddplite'] # name of tree in the AO2D file
+TemplsInputs: '/Users/mcosti/Analysis/Datasets/Templates/AO2D_325626.root'  # input AODs for templates
+AnchorTemplsMode: 2   # 0 to leave all templates free, 1 to anchor with respect to the first, 2 to anchor with respect to signal
+TemplsNames: ["DsKKPi", "DplusKKPi"]  # names to save the templates in files
+TemplsTreeNames: ['O2hfcanddplite']   # list of tables (they will be joined) to use to extract KDEs
+SignalQuery: 'abs(fFlagMcMatchRec) == 1'  # query on tree to extract signal
+TemplsQueries: ['abs(fFlagMcMatchRec) == 4 and abs(fFlagMcDecayChanRec) <= 2', 'abs(fFlagMcMatchRec) == 4 and abs(fFlagMcDecayChanRec) > 2'] # queries for corr bkgs.
+WeightsFile: '/home/mdicosta/FlowDplus/FinalResults/templs_from_histo_parallel/weights.root' # path to store the relative weights of templates
 # init weights for mass templates and vn of templates
 InitWeights: [[500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500], [500]]
 MinWeights: [[0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0],]
