@@ -35,11 +35,15 @@ class Trails:
         
     def _get_ry_files(self, trail_path):
         files = []
-        for raw_file in os.listdir(path=f'{trail_path}/ry'):
-            if raw_file.endswith('.root'):
-                files.append(os.path.join(trail_path, 'ry', raw_file))
-            # make sure the files are sorted
-            files.sort()
+        try:
+            for raw_file in os.listdir(path=f'{trail_path}/ry'):
+                if raw_file.endswith('.root'):
+                    files.append(os.path.join(trail_path, 'ry', raw_file))
+                # make sure the files are sorted
+                files.sort()
+        except FileNotFoundError:
+            print(f'No ry directory found in {trail_path}')
+            return []
         return files
     
     def _get_hv2vsptprompt(self, v2vsfracfile):# -> None | Any:
@@ -92,12 +96,12 @@ def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
     os.makedirs(outputdir, exist_ok=True)
 
     if SystMultitrial.prompt:
-        for iFile in range(len(default_trail.ryfiles)):
-            compute_systematics(outputdir, default_trail.gvnsimfits[iFile], \
-                [trail.gvnsimfits[iFile] for trail in trails if len(trail.gvnsimfits) > iFile], \
-                        [trail.hchi2s[iFile] for trail in trails if len(trail.hchi2s) > iFile], \
-                [trail.hsignificances[iFile] for trail in trails if len(trail.hsignificances) > iFile], \
-                    trails, iFile)
+        # for iFile in range(len(default_trail.ryfiles)):
+        #     compute_systematics(outputdir, default_trail.gvnsimfits[iFile], \
+        #         [trail.gvnsimfits[iFile] for trail in trails if len(trail.gvnsimfits) > iFile], \
+        #                 [trail.hchi2s[iFile] for trail in trails if len(trail.hchi2s) > iFile], \
+        #         [trail.hsignificances[iFile] for trail in trails if len(trail.hsignificances) > iFile], \
+        #             trails, iFile)
         compute_systematics_prompt(outputdir, default_trail, trails)
     else:
         compute_systematics(outputdir, default_trail.gvnsimfits, \
@@ -136,7 +140,7 @@ def compute_systematics(outputdir, gvn_vs_mass_default, gvn_vs_mass, hchi2, hsig
                 print(f'No ry file found for trial {j}: {trails[j].trail_path}')
                 continue
             # Skip chi2 higher than 5 and significance lower than 3
-            if (chi2 > 3 and chi2 != 0) or (significance < 6 and significance > 600):
+            if (chi2 > 3 and chi2 != 0) or (significance < 6 or significance > 600):
                 print(f'Skipping trial {j}: {trails[j].ryfiles[iFile]} for pt bin {ipt} with chi2 = {chi2} and significance = {significance}')
                 continue
             hchi2_vs_trial[-1].SetBinContent(j, chi2)
@@ -264,23 +268,33 @@ def compute_systematics_prompt(outputdir, default_trail, trails):
         SetObjectStyle(hsyst[-1], markerstyle=20, markercolor=kBlack, markersize=1., linecolor=kBlack)
 
         ipt = i+1
-        for j, _ in enumerate(trails):    # loop over trials
-            if trails[j].hv2vsptprompt == None:
+        for j, _ in enumerate(trails):
+            if trails[j].hv2vsptprompt is None:
                 print(f'No prompt v2 vs pt found for trial {j}: {trails[j].trail_path}')
                 continue
+            
+            skip_trial = False
+
             for iFile in range(len(trails[j].ryfiles)):
                 significance = trails[j].hsignificances[iFile].GetBinContent(ipt)
                 chi2 = trails[j].hchi2s[iFile].GetBinContent(ipt)
-                # Skip chi2 higher than 5 and significance lower than 3
-                if (chi2 < 3 and chi2 != 0) or (significance < 6 and significance > 600):
+
+                if (chi2 > 3 and chi2 != 0) or (significance < 6 or significance > 600):
                     print(f'Skipping trial {j}: {trails[j].ryfiles[iFile]} for pt bin {ipt} with chi2 = {chi2} and significance = {significance}')
-                    continue
-            if trails[j].hv2vsptprompt.GetNbinsX() <= ipt:
-                print(f'No prompt v2 in pt bin {ipt} for trial {j}: {trails[j].trail_path}')
+                    skip_trial = True
+                    break
+            
+            if skip_trial:
                 continue
+
             if trails[j].hv2vsptprompt.GetBinContent(ipt) == 0:
                 print(f'v2 in pt bin {ipt} for trial {j} is 0: {trails[j].trail_path}')
                 continue
+            if trails[j].hv2vsptprompt.GetBinContent(ipt) < 0:
+                print(f'v2 in pt bin {ipt} for trial {j} is negative: {trails[j].trail_path}')
+                print(f'v2 = {trails[j].hv2vsptprompt.GetBinContent(ipt)}')
+                continue
+
             hvn[-1].SetBinContent(j, trails[j].hv2vsptprompt.GetBinContent(ipt))
             hvn[-1].SetBinError(j, trails[j].hv2vsptprompt.GetBinError(ipt))
             print(i)
@@ -305,12 +319,12 @@ def compute_systematics_prompt(outputdir, default_trail, trails):
         canvas[-1].cd(1).SetGrid()
         # Define reference line
         gref.append(TGraphAsymmErrors())
-        gref[-1].SetPoint(0, 0, default_trail.hv2vsptprompt.GetBinContent(i))
-        gref[-1].SetPointError(0, 0, 0, default_trail.hv2vsptprompt.GetBinError(i),
-                           default_trail.hv2vsptprompt.GetBinError(i))
-        gref[-1].SetPoint(1, len(trails), default_trail.hv2vsptprompt.GetBinContent(i))
-        gref[-1].SetPointError(1, 0, 0, default_trail.hv2vsptprompt.GetBinError(i),
-                           default_trail.hv2vsptprompt.GetBinError(i))
+        gref[-1].SetPoint(0, 0, default_trail.hv2vsptprompt.GetBinContent(ipt))
+        gref[-1].SetPointError(0, 0, 0, default_trail.hv2vsptprompt.GetBinError(ipt)/2,
+                           default_trail.hv2vsptprompt.GetBinError(ipt)/2)
+        gref[-1].SetPoint(1, len(trails), default_trail.hv2vsptprompt.GetBinContent(ipt))
+        gref[-1].SetPointError(1, 0, 0, default_trail.hv2vsptprompt.GetBinError(ipt)/2,
+                           default_trail.hv2vsptprompt.GetBinError(ipt)/2)
         SetObjectStyle(gref[-1], markerstyle=20, markercolor=kAzure+2,
                        markersize=0, linecolor=kAzure+2,
                        linewidth=2, fillcolor=kAzure+2, fillstyle=3135, fillalpha=0.5, linestyle=9)
@@ -331,14 +345,15 @@ def compute_systematics_prompt(outputdir, default_trail, trails):
         # Define reference vertical line at 1
         gref_two.append(gref[-1].Clone())
         gref_two[-1].SetPoint(0, 0, hsyst[-1].GetMaximum()*0.5)
-        gref_two[-1].SetPointError(0, default_trail.hv2vsptprompt.GetBinError(i),
-                                   default_trail.hv2vsptprompt.GetBinError(i),
+        gref_two[-1].SetPointError(0, default_trail.hv2vsptprompt.GetBinError(ipt)/2,
+                                   default_trail.hv2vsptprompt.GetBinError(ipt)/2,
                                    hsyst[-1].GetMaximum()*0.5, hsyst[-1].GetMaximum()*0.5)
         SetObjectStyle(gref_two[-1], markerstyle=20, markercolor=kAzure+2,
                        markersize=1, linecolor=kAzure+2,
                        linewidth=2, fillcolor=kAzure+2, fillstyle=3135, fillalpha=0.5, linestyle=9)
         hsyst[-1].GetYaxis().SetRangeUser(0, hsyst[-1].GetMaximum()*1.8)
         hsyst[-1].GetXaxis().SetRangeUser(hsyst[-1].GetXaxis().GetXmin(), hsyst[-1].GetXaxis().GetXmax())
+        hsyst_final.SetBinContent(ipt, syst)
         hsyst[-1].Draw('same')
         gsyst[-1].Draw('2')
         gref_two[-1].Draw('2')
