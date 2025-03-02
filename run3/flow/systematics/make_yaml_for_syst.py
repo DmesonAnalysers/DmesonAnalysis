@@ -129,11 +129,13 @@ def cook_inv_mass_bins(nPtBins, terms_inv_mass_bins_lower, terms_inv_mass_bins_u
 def find_threshold(nPtBins, default_values, threshold_values):
     lower_thresholds = []
     upper_thresholds = []
+    center_values = []
     
     threshold_values = sorted(threshold_values)
     
     for iPt in range(nPtBins):
         default_value = default_values[iPt]
+        center_values.append(default_value)
         lower_threshold, upper_threshold = default_value, default_value
         # if fit option can't be dependent on pt, then forcelly set the threshold
         for threshold_value in threshold_values:
@@ -144,7 +146,43 @@ def find_threshold(nPtBins, default_values, threshold_values):
                 break
         lower_thresholds.append(lower_threshold)
         upper_thresholds.append(upper_threshold)
-    return lower_thresholds, upper_thresholds
+    return lower_thresholds, upper_thresholds, center_values
+
+def find_2threshold(nPtBins, default_values, threshold_values):
+    lower_thresholds = []
+    lower_thresholds_2 = []
+    upper_thresholds = []
+    upper_thresholds_2 = []
+    center_values = []
+    
+    threshold_values = sorted(threshold_values)
+    
+    for iPt in range(nPtBins):
+        default_value = default_values[iPt]
+        lower_threshold, upper_threshold = default_value, default_value
+        lower_threshold_2, upper_threshold_2 = default_value, default_value
+        center_value = default_value
+        # if fit option can't be dependent on pt, then forcelly set the threshold
+        for threshold_value in threshold_values:
+            if threshold_value < default_value:
+                lower_threshold_2 = lower_threshold
+                lower_threshold = threshold_value
+            elif threshold_value > default_value:
+                upper_threshold = threshold_value
+                break
+        for threshold_value in reversed(threshold_values):
+            if threshold_value > default_value:
+                upper_threshold_2 = upper_threshold
+                upper_threshold = threshold_value
+            elif threshold_value < default_value:
+                lower_threshold = threshold_value
+                break
+        lower_thresholds_2.append(lower_threshold_2)
+        lower_thresholds.append(lower_threshold)
+        upper_thresholds_2.append(upper_threshold_2)
+        upper_thresholds.append(upper_threshold)
+        center_values.append(center_value)
+    return lower_thresholds, upper_thresholds, lower_thresholds_2, upper_thresholds_2, center_values
 
 def clean_flow_configs(flow_configs, output_dir):
     for config_name, config in flow_configs.items():
@@ -279,12 +317,15 @@ def combination_fit_option(config_flow_name, cfg_flow, nPtBins, cfg_mod, output_
         terms_FixSigma = [1 for _ in range(3)]
         terms_FixSigmaFromFile = ['' for  _ in range(3)]
         if fit_option_dict['Sigma']['FixSigma'] == -1:
-            Sigma_uppers = [hSigma.GetBinContent(iPt+1) + hSigma.GetBinError(iPt+1) for iPt in range(nPtBins)]
-            for iSig, Sigma_upper in enumerate(Sigma_uppers):
-                if Sigma_upper > 0.055:
-                    Sigma_uppers[iSig] = 0.055
-            Sigma_median = [hSigma.GetBinContent(iPt+1) for iPt in range(nPtBins)]
-            Sigma_lowers = [hSigma.GetBinContent(iPt+1) - hSigma.GetBinError(iPt+1) for iPt in range(nPtBins)]
+            # Sigma_uppers = [hSigma.GetBinContent(iPt+1) + hSigma.GetBinError(iPt+1) for iPt in range(nPtBins)]
+            # for iSig, Sigma_upper in enumerate(Sigma_uppers):
+            #     if Sigma_upper > 0.055:
+            #         Sigma_uppers[iSig] = 0.055
+            # Sigma_median = [hSigma.GetBinContent(iPt+1) for iPt in range(nPtBins)]
+            # Sigma_lowers = [hSigma.GetBinContent(iPt+1) - hSigma.GetBinError(iPt+1) for iPt in range(nPtBins)]
+            Sigma_uppers = [fit_option_dict['Sigma']['upper']]
+            Sigma_median = [fit_option_dict['Sigma']['med']]
+            Sigma_lowers = [fit_option_dict['Sigma']['lower']]
             terms_sigma = [Sigma_lowers, Sigma_median, Sigma_uppers]
             flow_configs = generate_flow_config_variations(flow_configs, multi_terms=[terms_FixSigma, terms_sigma, terms_FixSigmaFromFile], multi_terms_name=['FixSigma', 'Sigma', 'FixSigmaFromFile'])
             flow_configs_default_mass_bins = generate_flow_config_variations_add(flow_configs_default_mass_bins, multi_terms=[terms_FixSigma, terms_sigma, terms_FixSigmaFromFile], multi_terms_name=['FixSigma', 'Sigma', 'FixSigmaFromFile'])
