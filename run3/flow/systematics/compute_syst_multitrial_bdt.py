@@ -320,11 +320,11 @@ def compute_systematics_prompt(outputdir, default_trail, trails):
         # Define reference line
         gref.append(TGraphAsymmErrors())
         gref[-1].SetPoint(0, 0, default_trail.hv2vsptprompt.GetBinContent(ipt))
-        gref[-1].SetPointError(0, 0, 0, default_trail.hv2vsptprompt.GetBinError(ipt)/2,
-                           default_trail.hv2vsptprompt.GetBinError(ipt)/2)
+        gref[-1].SetPointError(0, 0, 0, default_trail.hv2vsptprompt.GetBinError(ipt),
+                           default_trail.hv2vsptprompt.GetBinError(ipt))
         gref[-1].SetPoint(1, len(trails), default_trail.hv2vsptprompt.GetBinContent(ipt))
-        gref[-1].SetPointError(1, 0, 0, default_trail.hv2vsptprompt.GetBinError(ipt)/2,
-                           default_trail.hv2vsptprompt.GetBinError(ipt)/2)
+        gref[-1].SetPointError(1, 0, 0, default_trail.hv2vsptprompt.GetBinError(ipt),
+                           default_trail.hv2vsptprompt.GetBinError(ipt))
         SetObjectStyle(gref[-1], markerstyle=20, markercolor=kAzure+2,
                        markersize=0, linecolor=kAzure+2,
                        linewidth=2, fillcolor=kAzure+2, fillstyle=3135, fillalpha=0.5, linestyle=9)
@@ -345,8 +345,8 @@ def compute_systematics_prompt(outputdir, default_trail, trails):
         # Define reference vertical line at 1
         gref_two.append(gref[-1].Clone())
         gref_two[-1].SetPoint(0, 0, hsyst[-1].GetMaximum()*0.5)
-        gref_two[-1].SetPointError(0, default_trail.hv2vsptprompt.GetBinError(ipt)/2,
-                                   default_trail.hv2vsptprompt.GetBinError(ipt)/2,
+        gref_two[-1].SetPointError(0, default_trail.hv2vsptprompt.GetBinError(ipt),
+                                   default_trail.hv2vsptprompt.GetBinError(ipt),
                                    hsyst[-1].GetMaximum()*0.5, hsyst[-1].GetMaximum()*0.5)
         SetObjectStyle(gref_two[-1], markerstyle=20, markercolor=kAzure+2,
                        markersize=1, linecolor=kAzure+2,
