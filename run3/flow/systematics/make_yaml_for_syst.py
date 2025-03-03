@@ -192,6 +192,8 @@ def clean_flow_configs(flow_configs, output_dir):
         config['minimisation']['correlated'] = False
         config['minimisation']['combined'] = True
         config['nworkers'] = 1
+        config['FixSigma'] = 1
+        config['FixSigmaFromFile'] = ''
         if config['minimisation'].get('skip_cuts', []):
             config['minimisation'].pop('skip_cuts')
         if config['minimisation'].get('systematics', []):
@@ -327,8 +329,8 @@ def combination_fit_option(config_flow_name, cfg_flow, nPtBins, cfg_mod, output_
             Sigma_median = fit_option_dict['Sigma']['med']
             Sigma_lowers = fit_option_dict['Sigma']['lower']
             terms_sigma = [Sigma_lowers, Sigma_median, Sigma_uppers]
-            flow_configs = generate_flow_config_variations(flow_configs, multi_terms=[terms_FixSigma, terms_sigma, terms_FixSigmaFromFile], multi_terms_name=['FixSigma', 'Sigma', 'FixSigmaFromFile'])
-            flow_configs_default_mass_bins = generate_flow_config_variations_add(flow_configs_default_mass_bins, multi_terms=[terms_FixSigma, terms_sigma, terms_FixSigmaFromFile], multi_terms_name=['FixSigma', 'Sigma', 'FixSigmaFromFile'])
+            flow_configs = generate_flow_config_variations(flow_configs, multi_terms=[terms_sigma], multi_terms_name=['Sigma'])
+            flow_configs_default_mass_bins = generate_flow_config_variations_add(flow_configs_default_mass_bins, multi_terms=[terms_sigma, terms_FixSigmaFromFile], multi_terms_name=['Sigma'])
         # else:
         #     Sigma_uppers = [hSigma.GetBinContent(iPt+1) * (1 + fit_option_dict['Sigma']['FixSigma']) for iPt in range(nPtBins)]
         #     for iSig, Sigma_upper in enumerate(Sigma_uppers):
@@ -337,13 +339,12 @@ def combination_fit_option(config_flow_name, cfg_flow, nPtBins, cfg_mod, output_
         #     Sigma_median = [hSigma.GetBinContent(iPt+1) for iPt in range(nPtBins)]
         #     Sigma_lowers = [hSigma.GetBinContent(iPt+1) * (1 - fit_option_dict['Sigma']['FixSigma']) for iPt in range(nPtBins)]
         #     terms_sigma = [Sigma_lowers, Sigma_median, Sigma_uppers]
-
-            flow_configs = generate_flow_config_variations(flow_configs, multi_terms=[terms_FixSigma, terms_sigma, terms_FixSigmaFromFile], multi_terms_name=['FixSigma', 'Sigma', 'FixSigmaFromFile'])
-            flow_configs_default_mass_bins = generate_flow_config_variations_add(flow_configs_default_mass_bins, multi_terms=[terms_FixSigma, terms_sigma, terms_FixSigmaFromFile], multi_terms_name=['FixSigma', 'Sigma', 'FixSigmaFromFile'])
+            # flow_configs = generate_flow_config_variations(flow_configs, multi_terms=[terms_sigma], multi_terms_name=['Sigma'])
+            # flow_configs_default_mass_bins = generate_flow_config_variations_add(flow_configs_default_mass_bins, multi_terms=[terms_sigma], multi_terms_name=['Sigma'])
     fit_opts_dependent_pt.append('Sigma')
 
     # delete the original config
-    flow_configs_default_mass_bins.pop(config_flow_name + '-ori', None)
+    flow_configs_default_mass_bins.pop(config_flow_name + '-default', None)
 
     # bkg function for vn
     terms_bkg_func_vn = [[bkg_func_vn for _ in range(nPtBins)] for bkg_func_vn in fit_option_dict['BkgFuncVn']]

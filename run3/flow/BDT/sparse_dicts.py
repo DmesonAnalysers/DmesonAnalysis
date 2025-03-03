@@ -31,7 +31,7 @@ def get_sparses(config, get_data, get_mc_reco, get_mc_gen, anres_files=[], prepr
             if systematics:
                 config_pre_path = f"{preprocess_dir}/pre_sys/AnRes/config_pre.yml"
             else:
-                config_pre_path = f"{preprocess_dir}/config_pre.yml"
+                config_pre_path = f"{preprocess_dir}/pre/AnRes/config_pre.yml"
             # TODO: split the path of config_pre and the path of the AnRes files pre-processed
             # TODO: the path of config_pre is in config_flow, hte path of the AnRes files pre-processed is in config_pre
             with open(config_pre_path, 'r') as CfgPre:

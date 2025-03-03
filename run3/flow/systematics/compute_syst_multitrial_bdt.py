@@ -96,12 +96,12 @@ def compute_syst_multitrial(rypathsyst, ry_default, outputdir):
     os.makedirs(outputdir, exist_ok=True)
 
     if SystMultitrial.prompt:
-        # for iFile in range(len(default_trail.ryfiles)):
-        #     compute_systematics(outputdir, default_trail.gvnsimfits[iFile], \
-        #         [trail.gvnsimfits[iFile] for trail in trails if len(trail.gvnsimfits) > iFile], \
-        #                 [trail.hchi2s[iFile] for trail in trails if len(trail.hchi2s) > iFile], \
-        #         [trail.hsignificances[iFile] for trail in trails if len(trail.hsignificances) > iFile], \
-        #             trails, iFile)
+        for iFile in range(len(default_trail.ryfiles)):
+            compute_systematics(outputdir, default_trail.gvnsimfits[iFile], \
+                [trail.gvnsimfits[iFile] for trail in trails if len(trail.gvnsimfits) > iFile], \
+                        [trail.hchi2s[iFile] for trail in trails if len(trail.hchi2s) > iFile], \
+                [trail.hsignificances[iFile] for trail in trails if len(trail.hsignificances) > iFile], \
+                    trails, iFile)
         compute_systematics_prompt(outputdir, default_trail, trails)
     else:
         compute_systematics(outputdir, default_trail.gvnsimfits, \
@@ -140,7 +140,7 @@ def compute_systematics(outputdir, gvn_vs_mass_default, gvn_vs_mass, hchi2, hsig
                 print(f'No ry file found for trial {j}: {trails[j].trail_path}')
                 continue
             # Skip chi2 higher than 5 and significance lower than 3
-            if (chi2 > 3 and chi2 != 0) or (significance < 6 or significance > 600):
+            if (chi2 > 4 and chi2 != 0) or (significance < 6 or significance > 600):
                 print(f'Skipping trial {j}: {trails[j].ryfiles[iFile]} for pt bin {ipt} with chi2 = {chi2} and significance = {significance}')
                 continue
             hchi2_vs_trial[-1].SetBinContent(j, chi2)
@@ -279,7 +279,7 @@ def compute_systematics_prompt(outputdir, default_trail, trails):
                 significance = trails[j].hsignificances[iFile].GetBinContent(ipt)
                 chi2 = trails[j].hchi2s[iFile].GetBinContent(ipt)
 
-                if (chi2 > 3 and chi2 != 0) or (significance < 6 or significance > 600):
+                if (chi2 > 5 and chi2 != 0) or (significance < 6 or significance > 600):
                     print(f'Skipping trial {j}: {trails[j].ryfiles[iFile]} for pt bin {ipt} with chi2 = {chi2} and significance = {significance}')
                     skip_trial = True
                     break
@@ -380,7 +380,6 @@ def compute_systematics_prompt(outputdir, default_trail, trails):
             suffix_pdf = ''
         canv.SaveAs(f'{outputdir}/SystPromptv2.pdf{suffix_pdf}')
     canvsyst.SaveAs(f'{outputdir}/SystPromptv2_vs_pt.pdf)')
-    input()
 
     outdir = os.path.join(outputdir, 'syst_multitrial')
     if not os.path.exists(outdir):
