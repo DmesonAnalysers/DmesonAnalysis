@@ -359,7 +359,7 @@ def combination_fit_option(config_flow_name, cfg_flow, nPtBins, cfg_mod, output_
     fit_opts_dependent_pt.append('BkgFunc')
     
     # rebin
-    terms_rebin = find_2threshold(nPtBins, cfg_flow['Rebin'], fit_option_dict['Rebin'])
+    terms_rebin = find_threshold(nPtBins, cfg_flow['Rebin'], fit_option_dict['Rebin'])
     flow_configs = generate_flow_config_variations(flow_configs, multi_terms=[terms_rebin], multi_terms_name=['Rebin'])
     flow_configs_default_mass_bins = generate_flow_config_variations_add(flow_configs_default_mass_bins, multi_terms=[terms_rebin], multi_terms_name=['Rebin'])
     fit_opts_dependent_pt.append('Rebin')
