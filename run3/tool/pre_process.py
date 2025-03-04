@@ -135,7 +135,7 @@ def get_sigma(preFiles, config_pre, centrality, resolution, outputDir, skip_proj
                 {skip_proj}")
     os.system(f'{command}')
 
-def process_pt_bin_Singlecut(iPt, ptmin, ptmax, centMin, centMax, bkg_max_cut, sig_mins, sig_maxs, thnsparse_list, sparse_axes, axestokeep, outputDir):
+def process_pt_bin_Singlecut(iPt, ptmin, ptmax, centMin, centMax, config, bkg_max_cut, sig_mins, sig_maxs, thnsparse_list, sparse_axes, axestokeep, outputDir):
 
     print(f'Processing pT bin {ptmin} - {ptmax}, cent {centMin}-{centMax}')
 
@@ -203,7 +203,7 @@ def pre_sys_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, output
 
     # Loop over each pt bin in parallel
     max_workers = 12 # hyperparameter
-    args = [(iPt, ptmin, ptmax, centmin, centmax, bkg_cuts[iPt], sig_mins[iPt], sig_maxs[iPt], thnsparse_list, sparse_axes, axestokeep, outputDir) for iPt, (ptmin, ptmax) in enumerate(zip(ptmins, ptmaxs))]
+    args = [(iPt, ptmin, ptmax, centmin, centmax, config, bkg_cuts[iPt], sig_mins[iPt], sig_maxs[iPt], thnsparse_list, sparse_axes, axestokeep, outputDir) for iPt, (ptmin, ptmax) in enumerate(zip(ptmins, ptmaxs))]
     with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
         tasks = executor.map(process_pt_bin_Singlecut, *zip(*args))
         for result in tasks:
