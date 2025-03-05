@@ -244,7 +244,7 @@ def proj_mc_gen(config, ptWeights, ptWeightsB, Bspeciesweights, sPtWeights, sPtW
                 origContent = hPtBvsPtGenD.GetBinContent(iPtD, iPtB)
                 origError = hPtBvsPtGenD.GetBinError(iPtD, iPtB)
                 weight = 0
-                if sPtWeightsB(ptCent) > 0:
+                if sPtWeightsB(ptCentB) > 0:
                     weight = sPtWeightsB(ptCentB)
                 content = hPtBvsPtGenD.GetBinContent(iPtD, iPtB) * weight
                 error = 0
