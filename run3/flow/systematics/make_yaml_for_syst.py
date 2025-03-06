@@ -431,7 +431,7 @@ def produce_pre_config(cfg_flow, cfg_mod, output_dir):
     pre_config_dict['centrality'] = cfg_flow['centrality']
     pre_config_dict['skim_out_dir'] = output_dir
     pre_config_dict['bdt_cut'] = {}
-    pre_config_dict['bdt_cut']['bkg_cuts'] = [max(cfg_flow['cut_variation']['uncorr_bdt_cut']['bkg_max'][iPt]) for iPt in range(len(cfg_flow['ptmins']))]
+    pre_config_dict['bdt_cut']['bkg_cuts'] = [cfg_flow['cut_variation']['uncorr_bdt_cut']['bkg_max'][iPt] for iPt in range(len(cfg_flow['ptmins']))]
     pre_config_dict['bdt_cut']['sig_mins'] = [cfg_flow['cut_variation']['uncorr_bdt_cut']['sig'][iPt]['min'] for iPt in range(len(cfg_flow['ptmins']))]
     pre_config_dict['bdt_cut']['sig_maxs'] = [cfg_flow['cut_variation']['uncorr_bdt_cut']['sig'][iPt]['max'] for iPt in range(len(cfg_flow['ptmins']))]
     # different bkg cut for a dedicated pt bin
