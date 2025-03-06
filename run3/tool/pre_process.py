@@ -135,7 +135,7 @@ def get_sigma(preFiles, config_pre, centrality, resolution, outputDir, skip_proj
                 {skip_proj}")
     os.system(f'{command}')
 
-def process_pt_bin_Singlecut(iPt, ptmin, ptmax, centMin, centMax, config, bkg_max_cut, sig_mins, sig_maxs, thnsparse_list, sparse_axes, axestokeep, outputDir):
+def process_pt_bin_Singlecut(iPt, ptmin, ptmax, centMin, centMax, config, bkg_max_cuts, sig_mins, sig_maxs, thnsparse_list, sparse_axes, axestokeep, outputDir):
 
     print(f'Processing pT bin {ptmin} - {ptmax}, cent {centMin}-{centMax}')
 
@@ -145,11 +145,11 @@ def process_pt_bin_Singlecut(iPt, ptmin, ptmax, centMin, centMax, config, bkg_ma
         cloned_sparse = sparse.Clone()
         cloned_sparse.GetAxis(sparse_axes['Flow']['Pt']).SetRangeUser(ptmin, ptmax)
         cloned_sparse.GetAxis(sparse_axes['Flow']['cent']).SetRangeUser(centMin, centMax)
-        cloned_sparse.GetAxis(sparse_axes['Flow']['score_bkg']).SetRangeUser(0, bkg_max_cut)
         
         temp_thn_projs = []
         for iSig, (sig_min, sig_max) in enumerate(zip(sig_mins, sig_maxs)):
             temp_cloned_sparse = cloned_sparse.Clone()
+            temp_cloned_sparse.GetAxis(sparse_axes['Flow']['score_bkg']).SetRangeUser(0, bkg_max_cuts[iSig])
             temp_cloned_sparse.GetAxis(sparse_axes['Flow']['score_FD']).SetRangeUser(sig_min, sig_max)
             temp_thn_projs.append(temp_cloned_sparse.Projection(len(axestokeep), array.array('i', [sparse_axes['Flow'][axtokeep] for axtokeep in axestokeep]), 'O'))
             temp_thn_projs[-1].SetName(cloned_sparse.GetName() + f'_sig_{iSig}')
@@ -204,7 +204,7 @@ def pre_sys_process(config, ptmins, ptmaxs, centmin, centmax, axestokeep, output
     # Loop over each pt bin in parallel
     max_workers = 12 # hyperparameter
     args = [(iPt, ptmin, ptmax, centmin, centmax, config, bkg_cuts[iPt], sig_mins[iPt], sig_maxs[iPt], thnsparse_list, sparse_axes, axestokeep, outputDir) for iPt, (ptmin, ptmax) in enumerate(zip(ptmins, ptmaxs))]
-    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+    with ProcessPoolExecutor(max_workers=4) as executor:
         tasks = executor.map(process_pt_bin_Singlecut, *zip(*args))
         for result in tasks:
             result
