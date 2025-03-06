@@ -460,14 +460,14 @@ def get_vn_vs_mass(fitConfigFileName, centClass, inFileName,
                                                 fitConfig['InitWeights'][iPt], fitConfig['MinWeights'][iPt], fitConfig['MaxWeights'][iPt], 
                                                 fitConfig['VnInitWeights'][iPt], fitConfig['VnMinWeights'][iPt], fitConfig['VnMaxWeights'][iPt], 
                                                 fitConfig['FixVnTemplToSgn'][iPt])
-            if fitConfig.get('InitBkg'):
+            if fitConfig.get('InitBkg') and particleName == 'Dplus':
                 if fitConfig['InitBkg'][iPt] != []:
                     vnFitter[iPt].SetBkgPars(list(itertools.chain(*fitConfig['InitBkg'][iPt])))
 
             # collect fit results
             vnFitter[iPt].SimultaneousFit(False)
             # REVIEW: delete this vnComps = vnFitter[iPt].GetVnCompsFuncts()
-            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, fitConfig['IncludeKDETempls'][iPt])
+            vnResults = get_vnfitter_results(vnFitter[iPt], secPeak, useRefl, fitConfig['IncludeKDETempls'][iPt], fitConfig.get('DrawVnComps'))
             fTotFuncMass.append(vnResults['fTotFuncMass'])
             fTotFuncVn.append(vnResults['fTotFuncVn'])
             fSgnFuncMass.append(vnResults['fSgnFuncMass'])

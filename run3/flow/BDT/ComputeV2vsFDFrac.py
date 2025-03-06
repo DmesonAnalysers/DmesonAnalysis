@@ -7,7 +7,7 @@ import argparse
 import os
 import yaml
 import sys
-from ROOT import TFile, TCanvas, TLegend, TLatex, TGraphErrors, TF1, TH1D, TVirtualFitter, Double_t
+from ROOT import TFile, TCanvas, TLegend, TLatex, TGraphErrors, TF1, TH1D, TVirtualFitter, Double_t, gROOT
 from ROOT import kBlack, kAzure, kOrange
 from ROOT import kFullCircle
 sys.path.append('../../../')
@@ -60,6 +60,7 @@ def set_frame_margin(canv):
 
 def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
 
+    gROOT.SetBatch(True)
     CutSets, _, _, _, _ = get_cut_sets_config(config_flow)
     nCutSets = max(CutSets)
     with open(config_flow, 'r') as ymlCfgFile:
@@ -248,24 +249,35 @@ def v2_vs_frac(config_flow, inputdir, outputdir, suffix, fracFiles, v2Files):
     cV2VsPtPrompt.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPrompt_{suffix}.png")
     cPromptAndFDV2.SaveAs(f"{outputdir}/V2VsFrac/V2VsPtPromptAndFD_{suffix}.png")
 
-def main_v2_vs_frac(config, inputdir, outputdir, suffix, combined=False, inputdir_combined='', outputdir_combined=''):
+def main_v2_vs_frac(config, inputdir, outputdir, suffix, combined=False, inputdir_combined='', outputdir_combined='', systematics=False):
 
-    v2_vs_frac(
-        config,
-        inputdir,
-        outputdir,
-        suffix,
-        load_frac_files(inputdir),
-        load_v2_files(inputdir)
-    )
-    if combined:
+    if not systematics:
+        if combined:
+            v2_vs_frac(
+                config,
+                inputdir_combined,
+                outputdir_combined,
+                suffix,
+                load_frac_files(inputdir_combined),
+                load_v2_files(inputdir)
+            )
+        else:
+            v2_vs_frac(
+                config,
+                inputdir,
+                outputdir,
+                suffix,
+                load_frac_files(inputdir),
+                load_v2_files(inputdir)
+            )
+    else:
         v2_vs_frac(
-            config,
-            inputdir_combined,
-            outputdir_combined,
-            suffix,
-            load_frac_files(inputdir_combined),
-            load_v2_files(inputdir)
+            config_flow=config,
+            inputdir=inputdir,
+            outputdir=outputdir,
+            suffix=suffix,
+            fracFiles=load_frac_files(inputdir),
+            v2Files=load_v2_files(inputdir)
         )
 
 if __name__ == "__main__":
@@ -284,6 +296,8 @@ if __name__ == "__main__":
                         default="", help="input directory containing the frac files for the combined method")
     parser.add_argument("--output_combined", "-oc", metavar="text", required=False,
                         default="", help="output directory for the combined method")
+    parser.add_argument("--systematics", "-sys", default=False,
+                        action='store_true', help="systematics")
     args = parser.parse_args()
 
     main_v2_vs_frac(
@@ -293,5 +307,6 @@ if __name__ == "__main__":
         args.suffix,
         combined=args.combined,
         inputdir_combined=args.inputdir_combined,
-        outputdir_combined=args.output_combined
+        outputdir_combined=args.output_combined,
+        systematics=args.systematics
     )

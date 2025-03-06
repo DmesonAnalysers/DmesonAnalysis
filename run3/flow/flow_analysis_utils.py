@@ -455,7 +455,7 @@ def get_invmass_vs_deltaphi(thnSparses, deltaphiaxis, invmassaxis):
     
     return hist_invMass_in, hist_invMass_out
 
-def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
+def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl, DrawVnComps):
     '''
     Get vn fitter results:
     0: BkgInt
@@ -529,10 +529,11 @@ def get_vnfitter_results(vnFitter, secPeak, useRefl, useTempl):
     vn_results['fBkgFuncVn'] = vnFitter.GetVnVsMassBkgFitFunc()
     vn_results['fSgnFuncMass'] = vnFitter.GetMassSignalFitFunc()
     
-    vn_results['fVnCompsFuncts'] = {}
-    vnComps = vnFitter.GetVnCompsFuncts()
-    vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
-    vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
+    if DrawVnComps:
+        vn_results['fVnCompsFuncts'] = {}
+        vnComps = vnFitter.GetVnCompsFuncts()
+        vn_results['fVnCompsFuncts']['vnSgn'] = vnComps[0]
+        vn_results['fVnCompsFuncts']['vnBkg'] = vnComps[1]
     if secPeak:
         vn_results['fVnCompsFuncts']['vnSecPeak'] = vnComps[2]
     vn_results['fMassTemplFuncts'] = vnFitter.GetMassTemplFuncts()
