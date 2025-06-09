@@ -8,6 +8,7 @@ from os.path import join
 import argparse
 import numpy as np
 import yaml
+import ROOT
 from ROOT import TCanvas, TFile, TLegend, TLine, gROOT # pylint: disable=import-error,no-name-in-module
 sys.path.append('..')
 from utils.StyleFormatter import SetGlobalStyle, SetObjectStyle, GetROOTColor, GetROOTMarker #pylint: disable=wrong-import-position,import-error
@@ -48,8 +49,15 @@ normalizes = inputCfg['options']['normalize']
 if not isinstance(normalizes, list):
     normalizes = [normalizes] * nObj
 colors = inputCfg['options']['colors']
+if not isinstance(colors, list):
+    ROOT.gStyle.SetPalette(ROOT.kRainBow)
+    nColors = ROOT.gStyle.GetNumberOfColors()
+    colors = [GetROOTColor(ncolor) for ncolor in range(nColors)]
 markers = inputCfg['options']['markers']
+if not isinstance(markers, list):
+    markers = [markers] * nObj
 markersize = inputCfg['options']['markersize']
+
 linewidth = inputCfg['options']['linewidth']
 fillstyles = inputCfg['options']['fillstyle']
 if not isinstance(fillstyles, list):
@@ -170,7 +178,10 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
         for iBin in range(hToCompare[iFile].GetNbinsX()):
             bc = hToCompare[iFile].GetBinContent(iBin+1)
             hToCompare[iFile].SetBinContent(iBin+1, (bc -1) * lambdaParam +1)
-            hToCompare[iFile].SetBinError(iBin+1, hToCompare[iFile].GetBinError(iBin+1) * lambdaParam)
+            if inputCfg['options']['uncertainty']['enable']:
+                hToCompare[iFile].SetBinError(iBin+1, hToCompare[iFile].GetBinError(iBin+1) * lambdaParam)
+            else:
+                hToCompare[iFile].SetBinError(iBin+1, 0)
     else:
         ScaleGraph(hToCompare[iFile], scale)
         
@@ -178,11 +189,18 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
         for iBin in range(hToCompare[iFile].GetN()):
             bc = hToCompare[iFile].GetPointY(iBin)
             hToCompare[iFile].SetPointY(iBin, (bc -1) * lambdaParam +1)
-            hToCompare[iFile].SetPointError(iBin,
-                hToCompare[iFile].GetErrorXlow(iBin),
-                hToCompare[iFile].GetErrorXhigh(iBin),
-                hToCompare[iFile].GetErrorYlow(iBin) * lambdaParam,
-                hToCompare[iFile].GetErrorYhigh(iBin) * lambdaParam)
+            if inputCfg['options']['uncertainty']['enable']:
+                hToCompare[iFile].SetPointError(iBin,
+                    hToCompare[iFile].GetErrorXlow(iBin),
+                    hToCompare[iFile].GetErrorXhigh(iBin),
+                    hToCompare[iFile].GetErrorYlow(iBin) * lambdaParam,
+                    hToCompare[iFile].GetErrorYhigh(iBin) * lambdaParam)
+            else:
+                hToCompare[iFile].SetPointError(iBin,
+                    0,
+                    0,
+                    0,
+                    0)
     if doRatio:
         if multiRatio:
             if iFile in indexNumerator:
@@ -198,7 +216,7 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
                             hNumerator.append(hToCompare[iFile].Clone(f'gNumerator{iFile}'))
                     else:
                         hNumerator.append(hToCompare[iFile].Clone(f'gNumerator{iFile}'))
-            elif iFile in indexDenominator:
+            if iFile in indexDenominator:
                 if 'TH' in objType:
                     if drawRatioUnc:
                         if ratioUncCorr:
@@ -212,10 +230,6 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
                     else:
                         hDenominator.append(hToCompare[iFile].Clone(f'hDenominator{iFile}'))
                         hDenominator[-1].SetDirectory(0)
-                        hRatioToCompare.append(ComputeRatioDiffBins(hNumerator[len(hDenominator)-1], hDenominator[-1]))
-                        for iBin in range(1, hRatioToCompare[-1].GetNbinsX()+1):
-                            hRatioToCompare[-1].SetBinError(iBin, 1.e-20)
-                    hRatioToCompare[-1].SetDirectory(0)
                 else:
                     if drawRatioUnc:
                         if ratioUncCorr:
@@ -230,14 +244,7 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
                         for iBin in range(hRatioToCompare[-1].GetN()):
                             hRatioToCompare[-1].SetPointEYlow(iBin, 1.e-20)
                             hRatioToCompare[-1].SetPointEYhigh(iBin, 1.e-20)
-                hRatioToCompare[-1].SetName(f'hRatio{iFile}')
-                SetObjectStyle(hRatioToCompare[-1],
-                            color=GetROOTColor(colors[indexNumerator[len(hDenominator)-1]]),
-                            markerstyle=GetROOTMarker(markers[indexNumerator[len(hDenominator)-1]]),
-                            markersize=markersize,
-                            linewidth=linewidth,
-                            fillstyle=fillstyles[indexNumerator[len(hDenominator)-1]],
-                            fillalpha=fillalphas[indexNumerator[len(hDenominator)-1]])
+
         
         else:
             if 'TH' in objType:
@@ -299,6 +306,24 @@ for iFile, (inFileName, objName, objType, scale, lambdaParam, normalize, color, 
             doCompareUnc = False
 
     leg.AddEntry(hToCompare[iFile], legNames[iFile], legOpt[iFile])
+
+if doRatio and multiRatio:
+    for iFile, index in enumerate(indexNumerator):
+        print(f'Computing ratio between {iFile}')
+        print(f'{len(hNumerator)}')
+        print(f'{len(hDenominator)}')
+        hRatioToCompare.append(ComputeRatioDiffBins(hNumerator[iFile], hDenominator[indexDenominator.index(indexDenominator[iFile])]))
+        for iBin in range(1, hRatioToCompare[-1].GetNbinsX()+1):
+            hRatioToCompare[-1].SetBinError(iBin, 1.e-20)
+        hRatioToCompare[-1].SetDirectory(0)
+        hRatioToCompare[-1].SetName(f'hRatio{iFile}')
+        SetObjectStyle(hRatioToCompare[-1],
+                    color=GetROOTColor(colors[index]),
+                    markerstyle=GetROOTMarker(markers[index]),
+                    markersize=markersize,
+                    linewidth=linewidth,
+                    fillstyle=fillstyles[index],
+                    fillalpha=fillalphas[index])
 
 ratios, RMS, shift = [], [], []
 if doRatio and displayRMS:

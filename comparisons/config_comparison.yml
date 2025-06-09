@@ -31,16 +31,18 @@ options:
     ratio: 
         enable: true
         uncertainties:
-            enable: false
+            enable: true
             corr: false
-        displayRMS: true
+        displayRMS: false
         multiRatio: false
         indexNumerator: [0, 2]
         indexDenominator: [1, 3]
 
     errcomp: # comparison of uncertainties
+        enable: false
+        relative: false
+    uncertainty: 
         enable: true
-        relative: true
 
     legend:
         avoid: false #set true to avoid the legend in the final plot
